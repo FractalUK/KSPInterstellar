@@ -148,7 +148,7 @@ namespace FNPlugin {
 				part.RequestResource ("Science", science_to_transmit);
 				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
 				data_packet.AddValue("science",science_to_transmit.ToString("E"));
-				data_packet.AddValue ("UT_sent", Planetarium.GetUniversalTime ().ToString ("E"));
+				data_packet.AddValue ("UT_sent", Planetarium.GetUniversalTime ().ToString ("E16"));
 				config.Save (PluginHelper.getPluginSaveFilePath ());
 			}
 					
@@ -165,7 +165,7 @@ namespace FNPlugin {
 
 				// 30 minutes to receive packet
 				if (Planetarium.GetUniversalTime () - packet_ut <= 30 * 60) {
-					part.RequestResource ("Science", -float.Parse(data_packet.GetValue("science")));
+					part.RequestResource ("Science", -double.Parse(data_packet.GetValue("science")));
 					found_good_packet = true;
 				}
 
@@ -188,6 +188,8 @@ namespace FNPlugin {
 			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
 			if (config.HasNode ("DATA_PACKET")) {
 				Events ["ReceivePacket"].active = true;
+			} else {
+				Events ["ReceivePacket"].active = false;
 			}
 
             part.force_activate();
