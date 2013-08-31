@@ -107,7 +107,7 @@ namespace FNPlugin
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Warp Drive", active = false)]
         public void DeactivateWarpDrive() {
-            if (dowarpup) {
+			if (!IsEnabled) {
                 return;
             }
 
