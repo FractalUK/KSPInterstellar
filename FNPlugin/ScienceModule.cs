@@ -164,7 +164,7 @@ namespace FNPlugin {
 				double packet_ut = double.Parse (data_packet.GetValue ("UT_sent"));
 
 				// 30 minutes to receive packet
-				if (Planetarium.GetUniversalTime () - packet_ut < 30 * 60) {
+				if (Planetarium.GetUniversalTime () - packet_ut <= 30 * 60) {
 					part.RequestResource ("Science", -float.Parse(data_packet.GetValue("science")));
 					found_good_packet = true;
 				}
