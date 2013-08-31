@@ -158,9 +158,17 @@ namespace FNPlugin {
 		[KSPEvent(guiActive = true, guiName = "Receive Scientific Data", active = false)]
 		public void ReceivePacket() {
 			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
-			if (config.HasNode ("DATA_PACKET")) {
+			bool found_good_packet = false;
+			while (config.HasNode ("DATA_PACKET") && !found_good_packet) {
 				ConfigNode data_packet = config.GetNode ("DATA_PACKET");
-				part.RequestResource ("Science", -float.Parse(data_packet.GetValue("science")));
+				double packet_ut = double.Parse (data_packet.GetValue ("UT_sent"));
+
+				// 30 minutes to receive packet
+				if (Planetarium.GetUniversalTime () - packet_ut < 30 * 60) {
+					part.RequestResource ("Science", -float.Parse(data_packet.GetValue("science")));
+					found_good_packet = true;
+				}
+
 				config.RemoveNode ("DATA_PACKET");
 			}
 
