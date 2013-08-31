@@ -148,6 +148,7 @@ namespace FNPlugin {
 				part.RequestResource ("Science", science_to_transmit);
 				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
 				data_packet.AddValue("science",science_to_transmit.ToString("E"));
+				data_packet.AddValue ("UT_sent", Planetarium.GetUniversalTime ().ToString ("E"));
 				config.Save (PluginHelper.getPluginSaveFilePath ());
 			}
 					
