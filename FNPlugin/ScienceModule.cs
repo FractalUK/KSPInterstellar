@@ -220,19 +220,26 @@ namespace FNPlugin {
                 crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
                 global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
 
-                if (active_mode == 0) {
-                    double now = Planetarium.GetUniversalTime();
-                    double time_diff = now - last_active_time;
-                    float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
-                    altitude_multiplier = Math.Max(altitude_multiplier, 1);
-                    float stupidity = 0;
-                    foreach (ProtoCrewMember proto_crew_member in part.protoModuleCrew) {
-                        stupidity += proto_crew_member.stupidity;
-                    }
-                    stupidity = 1.5f - stupidity / 2.0f;
-                    double science_to_add = baseScienceRate*time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex) / ((float)Math.Sqrt(altitude_multiplier));
-                    part.RequestResource("Science", -science_to_add);
-                }
+				if (active_mode == 0) { // Science persistence
+					double now = Planetarium.GetUniversalTime ();
+					double time_diff = now - last_active_time;
+					float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
+					altitude_multiplier = Math.Max (altitude_multiplier, 1);
+					float stupidity = 0;
+					foreach (ProtoCrewMember proto_crew_member in part.protoModuleCrew) {
+						stupidity += proto_crew_member.stupidity;
+					}
+					stupidity = 1.5f - stupidity / 2.0f;
+					double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex) / ((float)Math.Sqrt (altitude_multiplier));
+					part.RequestResource ("Science", -science_to_add);
+				} else if (active_mode == 2) { // Antimatter persistence
+					double now = Planetarium.GetUniversalTime ();
+					double time_diff = now - last_active_time;
+
+					float total_electrical_power_provided = electrical_power_ratio * (baseAMFPowerConsumption + basePowerConsumption);
+					float antimatter_mass = total_electrical_power_provided/AlcubierreDrive.warpspeed/AlcubierreDrive.warpspeed*1E6f/2.0f;
+					part.RequestResource("Antimatter", -antimatter_mass * time_diff);
+				}
             }
         }
 
