@@ -383,7 +383,16 @@ namespace FNPlugin
             //    tex_count = 0;
             //}
 
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
+			float currentExoticMatter = 0;
+			float maxExoticMatter = 0;
+			List<PartResource> partresources = new List<PartResource>();
+			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ExoticMatter").id, partresources);
+			foreach (PartResource partresource in partresources) {
+				currentExoticMatter += (float)partresource.amount;
+				maxExoticMatter += (float)partresource.maxAmount;
+			}
+
+            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && currentExoticMatter < maxExoticMatter) {
                 FNResourceManager megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
                 float available_power = megamanager.getStableResourceSupply();
                 float power_returned = consumePower(available_power*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);

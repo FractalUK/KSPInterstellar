@@ -210,9 +210,9 @@ namespace FNPlugin {
 					statusStr = "Active (" + powerPcnt.ToString ("0.0") + "%)";
 				} else {
 					if (isNuclear) {
-						statusStr = "Antimatter Deprived.";
-					}else {
 						statusStr = "UF6 Deprived.";
+					}else {
+						statusStr = "Antimatter Deprived.";
 					}
 				}
 			} else {
