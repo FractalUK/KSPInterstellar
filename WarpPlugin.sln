@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarpPlugin", "FNPlugin\Warp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D6D5782-3585-4E07-A0C6-6E9915C9E30F}"
 	ProjectSection(SolutionItems) = preProject
-		License.txt = License.txt
+		License.md = License.md
 	EndProjectSection
 EndProject
 Global
