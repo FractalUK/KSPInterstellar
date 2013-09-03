@@ -144,6 +144,9 @@ namespace FNPlugin {
 
 			if (currentscience > 0) {
 				ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
+				if (config == null) {
+					config = new ConfigNode();
+				}
 				float science_to_transmit = Math.Min (currentscience, 100f);
 				part.RequestResource ("Science", science_to_transmit);
 				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
@@ -158,6 +161,9 @@ namespace FNPlugin {
 		[KSPEvent(guiActive = true, guiName = "Receive Scientific Data", active = false)]
 		public void ReceivePacket() {
 			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
+			if (config == null) {
+				config = new ConfigNode();
+			}
 			bool found_good_packet = false;
 			while (config.HasNode ("DATA_PACKET") && !found_good_packet) {
 				ConfigNode data_packet = config.GetNode ("DATA_PACKET");
@@ -186,6 +192,10 @@ namespace FNPlugin {
             if (state == StartState.Editor) { return; }
 
 			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
+			if (config == null) {
+				config = new ConfigNode();
+			}
+
 			if (config.HasNode ("DATA_PACKET")) {
 				Events ["ReceivePacket"].active = true;
 			} else {

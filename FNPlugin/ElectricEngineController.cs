@@ -72,7 +72,7 @@ namespace FNPlugin {
                 //curEngine.propellants[1].id = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").id;
                 //curEngine.propellants[1].name = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").name;
                 engineType = upgradedName;
-
+				part.RequestResource("Science", upgradeCost);
                 evaluateMaxThrust();
             }
             

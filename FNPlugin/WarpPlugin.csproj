@@ -76,4 +76,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <None Include="License.md" />
+  </ItemGroup>
 </Project>
