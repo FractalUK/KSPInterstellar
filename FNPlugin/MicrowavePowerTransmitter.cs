@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin {
     class MicrowavePowerTransmitter : PartModule {
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = true)]
         bool IsEnabled;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
         public string beamedpower;
