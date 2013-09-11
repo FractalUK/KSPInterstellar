@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace FNPlugin {
     interface FNResourceSuppliable {
-        void supplyPower(float power_supplied,String resourcename);
-        float consumePower(double power_to_consume, String resourcename);
-        float consumePower(float power_to_consume, String resourcename);
+        void receiveFNResource(float power_supplied,String resourcename);
+        float consumeFNResource(double power_to_consume, String resourcename);
+        float consumeFNResource(float power_to_consume, String resourcename);
     }
 }

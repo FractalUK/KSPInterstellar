@@ -57,7 +57,7 @@ namespace FNPlugin {
                 float air = airspeed * airdensity * scoopair / resourcedensity * TimeWarp.fixedDeltaTime;
                 float scoopedAtm = part.RequestResource("IntakeAtm", air);
                 //float powerreceived = part.RequestResource("Megajoules", powerrequirements * TimeWarp.fixedDeltaTime);
-                float powerreceived = consumePower(powerrequirements * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+                float powerreceived = consumeFNResource(powerrequirements * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
                 float powerpcnt = powerreceived / powerrequirements / TimeWarp.fixedDeltaTime;
                 if (drawCount % 2 == 0) {
                     resflowf = part.RequestResource(PluginHelper.atomspheric_resources_tocollect[currentresource], -scoopedAtm * powerpcnt * respcent * 0.2f);

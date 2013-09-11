@@ -143,10 +143,8 @@ namespace FNPlugin {
 			}
 
 			if (currentscience > 0) {
-				ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
-				if (config == null) {
-					config = new ConfigNode();
-				}
+				ConfigNode config = PluginHelper.getPluginSaveFile ();
+
 				float science_to_transmit = Math.Min (currentscience, 100f);
 				part.RequestResource ("Science", science_to_transmit);
 				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
@@ -160,10 +158,8 @@ namespace FNPlugin {
 
 		[KSPEvent(guiActive = true, guiName = "Receive Scientific Data", active = false)]
 		public void ReceivePacket() {
-			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
-			if (config == null) {
-				config = new ConfigNode();
-			}
+			ConfigNode config = PluginHelper.getPluginSaveFile ();
+
 			bool found_good_packet = false;
 			while (config.HasNode ("DATA_PACKET") && !found_good_packet) {
 				ConfigNode data_packet = config.GetNode ("DATA_PACKET");
@@ -191,10 +187,7 @@ namespace FNPlugin {
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
 
-			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
-			if (config == null) {
-				config = new ConfigNode();
-			}
+			ConfigNode config = PluginHelper.getPluginSaveFile ();
 
 			if (config.HasNode ("DATA_PACKET")) {
 				Events ["ReceivePacket"].active = true;
@@ -326,7 +319,7 @@ namespace FNPlugin {
             if (IsEnabled) {
                 //float electrical_power_provided = part.RequestResource("Megajoules", basePowerConsumption * TimeWarp.fixedDeltaTime);
                 //mega_manager.powerDraw(this, basePowerConsumption);
-                float electrical_power_provided = consumePower(basePowerConsumption * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+                float electrical_power_provided = consumeFNResource(basePowerConsumption * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
                 electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / basePowerConsumption;
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                 
@@ -358,19 +351,19 @@ namespace FNPlugin {
                     }
                 }else if (active_mode == 2) { //Antimatter
                     //float more_electrical_power_provided = part.RequestResource("Megajoules", (baseAMFPowerConsumption-basePowerConsumption) * TimeWarp.fixedDeltaTime);
-                    float more_electrical_power_provided = consumePower((baseAMFPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    float more_electrical_power_provided = consumeFNResource((baseAMFPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
                     float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
                     electrical_power_ratio = total_electrical_power_provided / TimeWarp.fixedDeltaTime / baseAMFPowerConsumption;
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
 
-                    total_electrical_power_provided = total_electrical_power_provided * 1E6f;
-                    float antimatter_mass = total_electrical_power_provided/AlcubierreDrive.warpspeed/AlcubierreDrive.warpspeed*1E6f/2.0f;
-                    antimatter_rate_f = -part.RequestResource("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime);
+					total_electrical_power_provided = global_rate_multipliers*baseAMFPowerConsumption * 1E6f;
+                    float antimatter_mass = total_electrical_power_provided/AlcubierreDrive.warpspeed/AlcubierreDrive.warpspeed*1E6f/20000.0f;
+					antimatter_rate_f = -part.RequestResource("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime)/TimeWarp.fixedDeltaTime;
                 }else if (active_mode == 3) { // Electrolysis
                     if (vessel.Splashed || (vessel.Landed && vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_VALL)) {
                         //float more_electrical_power_provided = part.RequestResource("Megajoules", (baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime);
-                        float more_electrical_power_provided = consumePower((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                        float more_electrical_power_provided = consumeFNResource((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                         global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
                         float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
                         electrolysis_rate_f = total_electrical_power_provided / electrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
@@ -384,7 +377,7 @@ namespace FNPlugin {
                     }else if (vessel.Landed){
                         if (vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_MUN || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_IKE) {
                             //float more_electrical_power_provided = part.RequestResource("Megajoules", (baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime);
-                            float more_electrical_power_provided = consumePower((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                            float more_electrical_power_provided = consumeFNResource((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                             global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
                             float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
                             electrolysis_rate_f = total_electrical_power_provided / aluminiumElectrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
@@ -396,9 +389,11 @@ namespace FNPlugin {
                             electrolysis_rate_f += part.RequestResource("Oxidizer", -aluminiumElectrolysisMassRatio * mass_rate * TimeWarp.fixedDeltaTime / oxygen_density) * oxygen_density;
                             electrolysis_rate_f = electrolysis_rate_f / TimeWarp.fixedDeltaTime;
                         }else {
+							ScreenMessages.PostScreenMessage("No suitable resources found.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             IsEnabled = false;
                         }
                     }else {
+						ScreenMessages.PostScreenMessage("You must be landed or splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         IsEnabled = false;
                     }
                 }

@@ -24,12 +24,22 @@ namespace FNPlugin {
         public const int REF_BODY_POL = 14;
         public const int REF_BODY_DRES = 15;
         public const int REF_BODY_EELOO = 16;
-        public static string[] atomspheric_resources = {"Oxygen", "Hydrogen","Argon" };
-        public static string[] atomspheric_resources_tocollect = { "Oxidizer", "LiquidFuel", "Argon" };
+        public static string[] atomspheric_resources = {"Oxygen", "Hydrogen","Argon","Deuterium"};
+        public static string[] atomspheric_resources_tocollect = { "Oxidizer", "LiquidFuel", "Argon","Deuterium"};
 
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
         }
+
+		public static ConfigNode getPluginSaveFile() {
+			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
+			if (config == null) {
+				config = new ConfigNode ();
+				config.AddValue("writtenat",DateTime.Now.ToString());
+				config.Save(PluginHelper.getPluginSaveFilePath ());
+			}
+			return config;
+		}
 
         public static bool lineOfSightToSun(Vessel vess) {
             Vector3d a = vess.transform.position;
@@ -93,6 +103,9 @@ namespace FNPlugin {
                 if (resource == 1) {
                     resourcecontent = 0.89f;
                 }
+				if (resource == 3) {
+					resourcecontent = 0.00003f;
+				}
             }
 
             if (refBody == REF_BODY_DUNA) {

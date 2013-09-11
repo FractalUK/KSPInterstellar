@@ -12,7 +12,7 @@ namespace FNPlugin {
         public string Brad;
         [KSPField(isPersistant = false, guiActive = true, guiName = "B_T")]
         public string Bthe;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Particle Flux")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
         public string ParticleFlux;
 
         private bool init = false;

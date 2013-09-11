@@ -67,6 +67,9 @@
     <Compile Include="FNReactor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ComputerCore.cs" />
+    <Compile Include="ElectricalRCSSystem.cs" />
+    <Compile Include="FNResourceSuppliableRCSModule.cs" />
+    <Compile Include="VistaEngineController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FNPlugin {
     
-    class ElectricEngineController : PartModule {
+	class ElectricEngineController : FNResourceSuppliableModule {
         [KSPField(isPersistant = true)]
         bool IsEnabled;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -33,6 +33,7 @@ namespace FNPlugin {
         protected float ispMultiplier = 1;
         protected ConfigNode[] propellants;
         protected VInfoBox fuel_gauge;
+		protected float final_thrust_store = 0;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Mode")]
         public string fuelmode;
@@ -61,10 +62,16 @@ namespace FNPlugin {
                 //ConfigNode prop_node = new ConfigNode();
                 //PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").Save(prop_node);
 
-                PartResource part_resource = part.Resources.list[0];
-                part_resource.info = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma");
-                part_resource.maxAmount = 10;
-                part_resource.amount = 10;
+                //PartResource part_resource = part.Resources.list[0];
+                //part_resource.info = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma");
+                //part_resource.maxAmount = 10;
+                //part_resource.amount = 10;
+
+				ConfigNode node = new ConfigNode("RESOURCE");
+				node.AddValue("name", "VacuumPlasma");
+				node.AddValue("maxAmount", 10);
+				node.AddValue("amount", 10);
+				part.AddResource(node);
 
                 propellants = ElectricEngineController.getPropellants(isupgraded);
                 fuel_mode = 0;
@@ -96,7 +103,8 @@ namespace FNPlugin {
             }
 
             engineType = originalName;
-            if (isupgraded) {
+
+            /*if (isupgraded) {
                 foreach (PartResource part_resource in part.Resources.list) {
                     if (part_resource.resourceName == "XenonGas") {
                         part_resource.maxAmount = 0;
@@ -108,7 +116,7 @@ namespace FNPlugin {
                 curEngine.propellants[1].id = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").id;
                 curEngine.propellants[1].name = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").name;
                                 
-            }
+            }*/
 
             evaluateMaxThrust();
             
@@ -165,14 +173,34 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
+			List<Part> vessel_parts = vessel.parts;
+			int engines = 0;
+			foreach (Part vessel_part in vessel_parts) {
+				foreach (PartModule vessel_part_module in vessel_part.Modules) {
+					var curEngine2 = vessel_part_module as ElectricEngineController;
+					if (curEngine2 != null) {
+						var curEngine3 = curEngine2.part.Modules["ModuleEngines"] as ModuleEngines;
+						if (curEngine3.isOperational) {
+							engines++;
+						}
+					}
+				}
+
+			}
+
+			if (engines <= 0) {
+				engines = 1;
+			}
 
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
-            if (curEngine.maxThrust <= 0) {
+            if (final_thrust_store <= 0) {
                 evaluateMaxThrust();
-                if (curEngine.maxThrust <= 0) {
-                    curEngine.maxThrust = initial_thrust;
+				if (final_thrust_store <= 0) {
+					final_thrust_store = initial_thrust;
                 }
             }
+
+			curEngine.maxThrust = final_thrust_store / engines;
             
 
             if (isupgraded) {
@@ -208,33 +236,18 @@ namespace FNPlugin {
                 list_of_propellants.Add(curprop);
             }
 
-            int engines = 0;
-            foreach (Part vessel_part in vessel_parts) {
-                foreach (PartModule vessel_part_module in vessel_part.Modules) {
-                    var curEngine2 = vessel_part_module as ElectricEngineController;
-                    if (curEngine2 != null) {
-                        var curEngine3 = curEngine2.part.Modules["ModuleEngines"] as ModuleEngines;
-                        if (curEngine3.isOperational) {
-                            engines++;
-                        }
-                    }
-                }
+            
 
-            }
-
-            if (engines <= 0) {
-                engines = 1;
-            }
-
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
+            /*if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
                 FNResourceManager megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
-                total_power_output = megamanager.getStableResourceSupply()/engines;
+                total_power_output = megamanager.getStableResourceSupply();
             }else {
                 total_power_output = 0;
-            }
-            
+            }*/
+			total_power_output = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);        
             
             float thrust_ratio = total_power_output / reference_power;
+			final_thrust_store = initial_thrust * thrust_ratio/ispMultiplier;
             curEngine.maxThrust = initial_thrust * thrust_ratio/ispMultiplier;
             FloatCurve newISP = new FloatCurve();
             newISP.Add(0, initial_isp * ispMultiplier);

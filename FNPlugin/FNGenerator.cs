@@ -12,11 +12,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float maxThermalPower;
         [KSPField(isPersistant = true)]
-        public bool IsEnabled;
+        public bool IsEnabled= true;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string generatorType;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Output Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power")]
         public string OutputPower;
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Max Power")]
+		public string MaxPowerStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
@@ -42,8 +44,15 @@ namespace FNPlugin
         protected bool hasScience = false;
         protected float myScience = 0;
 
-        protected bool responsible_for_megajoulemanager;
-        protected FNResourceManager megamanager;
+        //protected bool responsible_for_megajoulemanager;
+        //protected FNResourceManager megamanager;
+
+		//protected String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
+
+		public FNGenerator() : base() {
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
+			this.resources_to_supply = resources_to_supply;
+		}
 
         [KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
         public void ActivateGenerator() {
@@ -84,11 +93,13 @@ namespace FNPlugin
         
                 
         public override void OnStart(PartModule.StartState state) {
+			base.OnStart (state);
+
             Actions["ActivateGeneratorAction"].guiName = Events["ActivateGenerator"].guiName = String.Format("Activate Generator");
             Actions["DeactivateGeneratorAction"].guiName = Events["DeactivateGenerator"].guiName = String.Format("Deactivate Generator");
             Actions["ToggleGeneratorAction"].guiName = String.Format("Toggle Generator");
             if (state == StartState.Editor) { return; }
-
+			/*
             if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
                 megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
                 responsible_for_megajoulemanager = false;
@@ -98,7 +109,7 @@ namespace FNPlugin
                 responsible_for_megajoulemanager = true;
                 print("[WarpPlugin] Creating Megajoule Manager  for Vessel");
             }
-            
+            */
             this.part.force_activate();
             
             if (isupgraded) {
@@ -182,11 +193,18 @@ namespace FNPlugin
                     float outputPowerReport = -outputPower;
                     OutputPower = outputPowerReport.ToString("0.000") + "MW";
                     OverallEfficiency = percentOutputPower.ToString("0.0") + "%";
+					
                     //sectracker = DateTime.Now.Second;
                 //}
             }else{
                 OutputPower = "Generator Offline";
             }
+
+			if (totalEff >= 0) {
+				MaxPowerStr = (maxThermalPower*totalEff).ToString ("0.000") + "MW";
+			} else {
+				MaxPowerStr = (0).ToString() + "MW";
+			}
         }
 
         public float getMaxPowerOutput() {
@@ -204,7 +222,8 @@ namespace FNPlugin
         }
 
         public override void OnFixedUpdate() {
-			if (megamanager.getVessel() != vessel) {
+			/*
+			 * if (megamanager.getVessel() != vessel) {
 				FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).deleteManager(megamanager);
 			}
 
@@ -215,9 +234,13 @@ namespace FNPlugin
             }
 
 
+
             if (responsible_for_megajoulemanager) {
                 megamanager.update();
             }
+			 */
+
+			base.OnFixedUpdate ();
 
             if (!IsEnabled) { return; }
                  
@@ -229,15 +252,26 @@ namespace FNPlugin
                     IsEnabled = false;
                     carnotEff = 0;
                     ScreenMessages.PostScreenMessage("Generator Shutdown: No thermal power connected!");
+					return;
                 }
             }
-            totalEff = (float)carnotEff * pCarnotEff;
 
-            double thermaldt = maxThermalPower * TimeWarp.fixedDeltaTime;
+			List<PartResource> partresources = new List<PartResource>();
+			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Megajoules").id, partresources);
+			float currentmegajoules = 0;
+			foreach (PartResource partresource in partresources) {
+				currentmegajoules += (float)(partresource.maxAmount - partresource.amount);
+			}
+
+            totalEff = (float)carnotEff * pCarnotEff;
+			float thermal_power_currently_needed = (getCurrentResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules) / totalEff;
+            double thermaldt = Math.Min(maxThermalPower,thermal_power_currently_needed) * TimeWarp.fixedDeltaTime;
             //double inputThermalPower = 0;
             //if (thermaldt < maxThermalPowerDraw) {
                 //inputThermalPower = part.RequestResource("ThermalPower", thermaldt);
-            double inputThermalPower = consumePower(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+            double inputThermalPower = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+
             //}else {
             //    if (part.RequestResource("ThermalPower", maxThermalPowerDraw) >= maxThermalPowerDraw) {
             //        inputThermalPower = thermaldt;
@@ -249,11 +283,13 @@ namespace FNPlugin
             if (electricdtps > 1) {
                 electricdtps = electricdtps - 1;
                 //outputPower += (float)part.RequestResource("Megajoules", -electricdtps * TimeWarp.fixedDeltaTime);
-                outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
-                outputPower += (float)(part.RequestResource("ElectricCharge", -1000.0f * TimeWarp.fixedDeltaTime) / 1000.0);
+                //outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
+				//outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
+				outputPower -= (float)supplyFNResource(electricdtps * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+                outputPower += (part.RequestResource("ElectricCharge", -1000.0f * TimeWarp.fixedDeltaTime)) / 1000.0f;
             }else {
                 electricdtps = electricdtps * 1000;
-                outputPower += (float)(part.RequestResource("ElectricCharge", -electricdtps * TimeWarp.fixedDeltaTime) / 1000);
+                outputPower += (part.RequestResource("ElectricCharge", -(float)electricdtps * TimeWarp.fixedDeltaTime)) / 1000.0f;
             }
             outputPower = outputPower / TimeWarp.fixedDeltaTime;
             //outputPower = (float)part.RequestResource("Megajoules", -electricdt);

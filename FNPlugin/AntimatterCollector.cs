@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FNPlugin {
     public class AntimatterCollector : PartModule    {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Particle Flux")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
         public string ParticleFlux;
         [KSPField(isPersistant = true)]
         public float last_active_time;

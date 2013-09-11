@@ -17,14 +17,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
         private Vector3d heading_act;
-        private Vector3d old_orbit;
+        
         //private float warpspeed = 30000000.0f;
         public const float warpspeed = 29979245.8f;
         const float initial_megajoules_required = 1000;
         private float Megajoules_required = 1000;
-        private bool dowarpup = false;
-        private bool dowarpdown = false;
-        private int wcount = 0;
+                
         private float[] warp_factors = {0.1f,0.25f,0.5f,0.75f,1.0f,2.0f,3.0f,4.0f,5.0f,7.5f,10.0f,15f,20.0f};
 		[KSPField(isPersistant = true)]
         public int selected_factor = 0;
@@ -66,7 +64,7 @@ namespace FNPlugin
             Vessel vess = this.part.vessel;
             float atmosphere_height = vess.mainBody.maxAtmosphereAltitude;
             if (vess.altitude <= atmosphere_height && vess.mainBody.flightGlobalsIndex != 0) {
-                ScreenMessages.PostScreenMessage("Cannot activate warp drive within the atmosphere!");
+                ScreenMessages.PostScreenMessage("Cannot activate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
             
@@ -77,7 +75,7 @@ namespace FNPlugin
                 electrical_current_available += (float)resources.ElementAt(i).amount;
             }
             if (electrical_current_available < Megajoules_required * warp_factors[selected_factor]) {
-                ScreenMessages.PostScreenMessage("Warp drive charging!");
+                ScreenMessages.PostScreenMessage("Warp drive charging!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
             part.RequestResource("ExoticMatter", Megajoules_required * warp_factors[selected_factor]);
@@ -114,7 +112,7 @@ namespace FNPlugin
 
             float atmosphere_height = this.vessel.mainBody.maxAtmosphereAltitude;
             if (this.vessel.altitude <= atmosphere_height && vessel.mainBody.flightGlobalsIndex != 0) {
-                ScreenMessages.PostScreenMessage("Cannot deactivate warp drive within the atmosphere!");
+				ScreenMessages.PostScreenMessage("Cannot deactivate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
             IsEnabled = false;
@@ -392,12 +390,16 @@ namespace FNPlugin
 				maxExoticMatter += (float)partresource.maxAmount;
 			}
 
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && currentExoticMatter < maxExoticMatter) {
+            /*if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && currentExoticMatter < maxExoticMatter) {
                 FNResourceManager megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
                 float available_power = megamanager.getStableResourceSupply();
-                float power_returned = consumePower(available_power*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                float power_returned = consumeFNResource(available_power*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 part.RequestResource("ExoticMatter", -power_returned / 1000.0f);
-            }
+            }*/
+
+			float available_power = getStableResourceSupply (FNResourceManager.FNRESOURCE_MEGAJOULES);
+			float power_returned = consumeFNResource(available_power*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+			part.RequestResource("ExoticMatter", -power_returned / 1000.0f);
 
 
             if (!IsEnabled) {
