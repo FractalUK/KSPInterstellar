@@ -390,6 +390,8 @@ namespace FNPlugin
 				maxExoticMatter += (float)partresource.maxAmount;
 			}
 
+			float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * 1000;
+
             /*if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && currentExoticMatter < maxExoticMatter) {
                 FNResourceManager megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
                 float available_power = megamanager.getStableResourceSupply();
@@ -398,7 +400,7 @@ namespace FNPlugin
             }*/
 
 			float available_power = getStableResourceSupply (FNResourceManager.FNRESOURCE_MEGAJOULES);
-			float power_returned = consumeFNResource(available_power*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+			float power_returned = consumeFNResource(Math.Min(maxPowerDrawForExoticMatter*TimeWarp.fixedDeltaTime,available_power*TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
 			part.RequestResource("ExoticMatter", -power_returned / 1000.0f);
 
 
