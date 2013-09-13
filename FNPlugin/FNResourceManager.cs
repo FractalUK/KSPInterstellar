@@ -18,6 +18,7 @@ namespace FNPlugin {
         //protected Dictionary<MegajouleSuppliable, float> power_returned;
         protected float powersupply = 0;
         protected float stable_supply = 0;
+		protected float stored_stable_supply = 0;
 		protected float current_resource_demand = 0;
 
         protected float power_draw;
@@ -42,11 +43,13 @@ namespace FNPlugin {
 
         public float powerSupply(float power) {
             powersupply += power / TimeWarp.fixedDeltaTime;
+			stable_supply += (float) (power / TimeWarp.fixedDeltaTime);
             return power;
         }
 
         public double powerSupply(double power) {
             powersupply += (float) (power / TimeWarp.fixedDeltaTime);
+			stable_supply += (float) (power / TimeWarp.fixedDeltaTime);
             return power;
         }
 
@@ -73,6 +76,7 @@ namespace FNPlugin {
 			float power_min_seconds_units = power_seconds_units * rat_min;
 			float managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(current_resource_demand+getSpareResourceCapacity(),power_min_seconds_units));
 			powersupply += managed_supply_val_add;
+			stable_supply += power_seconds_units;
 			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
 		}
 
@@ -81,11 +85,12 @@ namespace FNPlugin {
 			double power_min_seconds_units = power_seconds_units * rat_min;
 			double managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(current_resource_demand+getSpareResourceCapacity(),power_min_seconds_units));
 			powersupply += (float) managed_supply_val_add;
+			stable_supply += (float) power_seconds_units;
 			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
 		}
 
         public float getStableResourceSupply() {
-            return stable_supply;
+            return stored_stable_supply;
         }
 
 		public float getCurrentResourceDemand() {
@@ -107,7 +112,7 @@ namespace FNPlugin {
 		}
 
         public void update() {
-            stable_supply = powersupply;
+			stored_stable_supply = stable_supply;
 			current_resource_demand = 0;
 			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES)) {
 				current_resource_demand = 1;
@@ -156,6 +161,7 @@ namespace FNPlugin {
 
             my_part.RequestResource(this.resource_name, -powersupply * TimeWarp.fixedDeltaTime);
             powersupply = 0;
+			stable_supply = 0;
             power_draws.Clear();
         }
     }
