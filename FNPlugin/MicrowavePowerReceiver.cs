@@ -166,6 +166,12 @@ namespace FNPlugin {
 				powerInput = 0;
 			}
 
+			float powerInputMegajoules = powerInput/1000.0f;
+			supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+			float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
+			supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+			/*
             if (powerInput > 1000) {
                 float powerInputMegajoules = (powerInput - 1000)/1000;
                 float powerInputKilojoules = 1000;
@@ -181,6 +187,8 @@ namespace FNPlugin {
 				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 part.RequestResource("ElectricCharge", -powerInput * TimeWarp.fixedDeltaTime);
             }
+            */
+
             activeCount++;
         }
 

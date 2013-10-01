@@ -295,8 +295,16 @@ namespace FNPlugin
             //}
             double electricdt = inputThermalPower * totalEff;
             double electricdtps = electricdt / TimeWarp.fixedDeltaTime;
-			double max_electricdtps = maxThermalPower * totalEff - 1;
+			double max_electricdtps = maxThermalPower * totalEff;
+			outputPower = 0;
+			if (electricdtps > 0.001) {
+				outputPower = -(float)supplyFNResourceFixedMax (electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+			} else {
+				outputPower = -(float)supplyFNResourceFixedMax (0, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+			}
+			//print (outputPower);
 			//print (max_electricdtps);
+			/*
             outputPower = 0;
             if (electricdtps > 1) {
                 electricdtps = electricdtps - 1;
@@ -310,6 +318,7 @@ namespace FNPlugin
                 electricdtps = electricdtps * 1000;
                 outputPower += (part.RequestResource("ElectricCharge", -(float)electricdtps * TimeWarp.fixedDeltaTime)) / 1000.0f;
             }
+            */
             outputPower = outputPower / TimeWarp.fixedDeltaTime;
             //outputPower = (float)part.RequestResource("Megajoules", -electricdt);
 

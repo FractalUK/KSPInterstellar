@@ -44,6 +44,8 @@ namespace FNPlugin {
 		protected float heat_production_f = 0;
 		protected float electrical_consumption_f = 0;
 
+		protected int shutdown_counter = 0;
+
 		const float thrust_efficiency = 0.72f;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Mode")]
@@ -220,6 +222,19 @@ namespace FNPlugin {
 				thrust_ratio = Mathf.Min (thrust_ratio, 1);
 			} else {
 				thrust_ratio = 1;
+
+				if (curEngine.currentThrottle > 0) {
+					shutdown_counter++;
+					if (shutdown_counter > 2) {
+						curEngine.Events ["Shutdown"].Invoke ();
+						ScreenMessages.PostScreenMessage ("Engines shutdown due to lack of Electrical Power (Megajoules)!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+						shutdown_counter = 0;
+						foreach (FXGroup fx_group in part.fxGroups) {
+							fx_group.setActive (false);
+						}
+
+					}
+				}
 			}
 
 			float thrust_to_use = thrust_per_engine;
@@ -228,6 +243,19 @@ namespace FNPlugin {
 			float temp_to_part_set = Mathf.Min(curEngine.currentThrottle * part.maxTemp * 0.8f,1);
 
 			curEngine.maxThrust = Mathf.Max(thrust_to_use*thrust_ratio,0.00001f);
+
+			if (thrust_to_use*thrust_ratio <= 0.0001f && curEngine.currentThrottle > 0) {
+				shutdown_counter++;
+				if (shutdown_counter > 2) {
+					curEngine.Events ["Shutdown"].Invoke ();
+					ScreenMessages.PostScreenMessage("Engines shutdown due to lack of Electrical Power (Megajoules)!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					shutdown_counter = 0;
+					foreach (FXGroup fx_group in part.fxGroups) {
+						fx_group.setActive (false);
+					}
+
+				}
+			}
 
             if (isupgraded) {
                 part.RequestResource("VacuumPlasma", -10);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FNPlugin {
     class FNResourceManager {
@@ -127,9 +128,7 @@ namespace FNPlugin {
         public void update() {
 			stored_stable_supply = stable_supply;
 			current_resource_demand = 0;
-			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES)) {
-				current_resource_demand = 1;
-			}
+
             //stored power
             List<PartResource> partresources = new List<PartResource>();
             my_part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resource_name).id, partresources);
@@ -138,6 +137,22 @@ namespace FNPlugin {
                 currentmegajoules += (float)partresource.amount;
             }
             powersupply += currentmegajoules;
+
+			//Prioritise supplying stock ElectricCharge resource
+			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES)) {
+				//current_resource_demand = 1;
+				List<PartResource> partresources2 = new List<PartResource> ();
+				my_part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("ElectricCharge").id, partresources2); 
+				float stock_electric_charge_needed = 0;
+				foreach (PartResource partresource in partresources2) {
+					stock_electric_charge_needed += (float)(partresource.maxAmount - partresource.amount);
+				}
+				float power_supplied = Math.Min(powersupply, stock_electric_charge_needed / 1000.0f);
+				current_resource_demand += stock_electric_charge_needed / 1000.0f;
+				powersupply -= power_supplied;
+
+				my_part.RequestResource ("ElectricCharge", -power_supplied * 1000.0);
+			}
 
 			//sort by power draw
 			//var power_draw_items = from pair in power_draws orderby pair.Value ascending select pair;
