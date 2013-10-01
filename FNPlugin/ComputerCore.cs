@@ -46,7 +46,7 @@ namespace FNPlugin {
 				ConfigNode config = PluginHelper.getPluginSaveFile ();
 
 				float science_to_transmit = Math.Min (currentscience, 100f);
-				part.RequestResource ("Science", science_to_transmit);
+				science_to_transmit = part.RequestResource ("Science", science_to_transmit);
 				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
 				data_packet.AddValue("science",science_to_transmit.ToString("E"));
 				data_packet.AddValue ("UT_sent", Planetarium.GetUniversalTime ().ToString ("E16"));

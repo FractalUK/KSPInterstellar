@@ -37,7 +37,7 @@ namespace FNPlugin {
 		protected bool play_up = true;
 
 		public MicrowavePowerReceiver() : base() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 		}
 
@@ -89,17 +89,6 @@ namespace FNPlugin {
 				}
 				anim.Play ();
 			}
-			/*
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
-                megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
-                responsible_for_megajoulemanager = false;
-
-            }
-            else {
-                megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).createManagerForVessel(this);
-                responsible_for_megajoulemanager = true;
-                print("[WarpPlugin] Creating Megajoule Manager  for Vessel");
-            }*/
 
             if (mycount == -1) {
                 mycount = dishcount;
@@ -142,20 +131,7 @@ namespace FNPlugin {
 
         public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
-			/*if (megamanager.getVessel() != vessel) {
-				FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).deleteManager(megamanager);
-			}
-
-            if (!FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
-                megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).createManagerForVessel(this);
-                responsible_for_megajoulemanager = true;
-                print("[WarpPlugin] Creating Megajoule Manager  for Vessel");
-            }
-
-            if (responsible_for_megajoulemanager) {
-                megamanager.update();
-            }*/
-                                    
+			                                   
 			ConfigNode config = PluginHelper.getPluginSaveFile();
             float powerInputIncr = 0;
             int activeSatsIncr = 0;
@@ -196,9 +172,13 @@ namespace FNPlugin {
                 //part.RequestResource("Megajoules", -powerInputMegajoules * TimeWarp.fixedDeltaTime);
                 //megamanager.powerSupply(powerInputMegajoules * TimeWarp.fixedDeltaTime);
 				supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+				float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
+				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 part.RequestResource("ElectricCharge", -powerInputKilojoules * TimeWarp.fixedDeltaTime);
             }
             else {
+				float waste_head_production = powerInput/1000.0f/efficiency * (1.0f - efficiency);
+				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 part.RequestResource("ElectricCharge", -powerInput * TimeWarp.fixedDeltaTime);
             }
             activeCount++;

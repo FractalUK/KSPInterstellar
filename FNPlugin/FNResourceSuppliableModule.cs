@@ -60,6 +60,19 @@ namespace FNPlugin {
 			return manager.powerSupply (supply);
 		}
 
+		public float supplyFNResourceFixedMax(float supply, float maxsupply, String resourcename) {
+			return (float)supplyFNResourceFixedMax ((double)supply, (double)maxsupply, resourcename);
+		}
+
+		public double supplyFNResourceFixedMax(double supply, double maxsupply, String resourcename) {
+			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+				return 0;
+			}
+
+			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+			return manager.powerSupplyFixedMax (supply,maxsupply);
+		}
+
 		public float supplyManagedFNResource(float supply, String resourcename) {
 			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
 				return 0;
@@ -112,6 +125,15 @@ namespace FNPlugin {
 
 			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 			return manager.getStableResourceSupply ();
+		}
+
+		public float getCurrentUnfilledResourceDemand(String resourcename) {
+			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+				return 0;
+			}
+
+			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+			return manager.getCurrentUnfilledResourceDemand ();
 		}
 
 		public override void OnStart(PartModule.StartState state) {

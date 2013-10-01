@@ -10,6 +10,8 @@ namespace FNPlugin
     class AlcubierreDrive : FNResourceSuppliableModule {
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
+		[KSPField(isPersistant = true)]
+		public bool IsCharging = true;
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
@@ -54,6 +56,35 @@ namespace FNPlugin
         protected AudioSource warp_sound;
         protected float tex_count;
         const float warp_size = 50000;
+
+		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
+		public void StartCharging() {
+			IsCharging = true;
+		}
+
+		[KSPEvent(guiActive = true, guiName = "Stop Charging", active = false)]
+		public void StopCharging() {
+			IsCharging = false;
+		}
+
+		[KSPAction("Start Charging")]
+		public void StartChargingAction(KSPActionParam param) {
+			StartCharging();
+		}
+
+		[KSPAction("Stop Charging")]
+		public void StopChargingAction(KSPActionParam param) {
+			StopCharging();
+		}
+
+		[KSPAction("Toggle Charging")]
+		public void ToggleChargingAction(KSPActionParam param) {
+			if (IsCharging) {
+				StopCharging();
+			} else {
+				StartCharging();
+			}
+		}
 
         [KSPEvent(guiActive = true, guiName = "Activate Warp Drive", active = true)]
         public void ActivateWarpDrive() {
@@ -186,7 +217,10 @@ namespace FNPlugin
         }
 
         public override void OnStart(PartModule.StartState state) {
-            Actions["ActivateWarpDriveAction"].guiName = Events["ActivateWarpDrive"].guiName = String.Format("Activate Warp Drive");
+			Actions["StartChargingAction"].guiName = Events["StartCharging"].guiName = String.Format("Start Charging");
+			Actions["StopChargingAction"].guiName = Events["StopCharging"].guiName = String.Format("Stop Charging");
+			Actions["ToggleChargingAction"].guiName = String.Format("Toggle Charging");
+			Actions["ActivateWarpDriveAction"].guiName = Events["ActivateWarpDrive"].guiName = String.Format("Activate Warp Drive");
             Actions["DeactivateWarpDriveAction"].guiName = Events["DeactivateWarpDrive"].guiName = String.Format("Deactivate Warp Drive");
 			Actions["ToggleWarpSpeedAction"].guiName = Events["ToggleWarpSpeed"].guiName = String.Format("Warp Speed (+)");
 			Actions["ToggleWarpSpeedDownAction"].guiName = Events["ToggleWarpSpeedDown"].guiName = String.Format("Warp Speed (-)");
@@ -337,6 +371,8 @@ namespace FNPlugin
         }
 
         public override void OnUpdate() {
+			Events["StartCharging"].active = !IsCharging;
+			Events["StopCharging"].active = IsCharging;
             Events["ActivateWarpDrive"].active = !IsEnabled;
             Events["DeactivateWarpDrive"].active = IsEnabled;
             Events["ToggleWarpSpeed"].active = !IsEnabled;
@@ -390,18 +426,12 @@ namespace FNPlugin
 				maxExoticMatter += (float)partresource.maxAmount;
 			}
 
-			float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * 1000;
-
-            /*if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && currentExoticMatter < maxExoticMatter) {
-                FNResourceManager megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
-                float available_power = megamanager.getStableResourceSupply();
-                float power_returned = consumeFNResource(available_power*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                part.RequestResource("ExoticMatter", -power_returned / 1000.0f);
-            }*/
-
-			float available_power = getStableResourceSupply (FNResourceManager.FNRESOURCE_MEGAJOULES);
-			float power_returned = consumeFNResource(Math.Min(maxPowerDrawForExoticMatter*TimeWarp.fixedDeltaTime,available_power*TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
-			part.RequestResource("ExoticMatter", -power_returned / 1000.0f);
+			if (IsCharging) {
+				float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * 1000;
+				float available_power = getStableResourceSupply (FNResourceManager.FNRESOURCE_MEGAJOULES);
+				float power_returned = consumeFNResource (Math.Min (maxPowerDrawForExoticMatter * TimeWarp.fixedDeltaTime, available_power * TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
+				part.RequestResource ("ExoticMatter", -power_returned / 1000.0f);
+			}
 
 
             if (!IsEnabled) {

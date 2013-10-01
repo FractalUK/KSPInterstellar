@@ -8,6 +8,7 @@ namespace FNPlugin {
     class FNResourceManager {
         public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
+		public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
                
         protected Vessel my_vessel;
         protected Part my_part;
@@ -42,9 +43,7 @@ namespace FNPlugin {
         }
 
         public float powerSupply(float power) {
-            powersupply += power / TimeWarp.fixedDeltaTime;
-			stable_supply += (float) (power / TimeWarp.fixedDeltaTime);
-            return power;
+            return (float) powerSupply ((double)power);
         }
 
         public double powerSupply(double power) {
@@ -52,6 +51,16 @@ namespace FNPlugin {
 			stable_supply += (float) (power / TimeWarp.fixedDeltaTime);
             return power;
         }
+
+		public float powerSupplyFixedMax(float power, float maxpower) {
+			return (float) powerSupplyFixedMax ((double)power,(double)maxpower);
+		}
+
+		public double powerSupplyFixedMax(double power, double maxpower) {
+			powersupply += (float) (power / TimeWarp.fixedDeltaTime);
+			stable_supply += (float) (maxpower / TimeWarp.fixedDeltaTime);
+			return power;
+		}
 
 		public float managedPowerSupply(float power) {
 			return managedPowerSupplyWithMinimum (power, 0);
@@ -74,7 +83,7 @@ namespace FNPlugin {
 		public float managedPowerSupplyWithMinimum(float power, float rat_min) {
 			float power_seconds_units = power / TimeWarp.fixedDeltaTime;
 			float power_min_seconds_units = power_seconds_units * rat_min;
-			float managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(current_resource_demand+getSpareResourceCapacity(),power_min_seconds_units));
+			float managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(getCurrentUnfilledResourceDemand()+getSpareResourceCapacity(),power_min_seconds_units));
 			powersupply += managed_supply_val_add;
 			stable_supply += power_seconds_units;
 			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
@@ -83,7 +92,7 @@ namespace FNPlugin {
 		public double managedPowerSupplyWithMinimum(double power, double rat_min) {
 			double power_seconds_units = power / TimeWarp.fixedDeltaTime;
 			double power_min_seconds_units = power_seconds_units * rat_min;
-			double managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(current_resource_demand+getSpareResourceCapacity(),power_min_seconds_units));
+			double managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(getCurrentUnfilledResourceDemand()+getSpareResourceCapacity(),power_min_seconds_units));
 			powersupply += (float) managed_supply_val_add;
 			stable_supply += (float) power_seconds_units;
 			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
@@ -95,6 +104,10 @@ namespace FNPlugin {
 
 		public float getCurrentResourceDemand() {
 			return current_resource_demand;
+		}
+
+		public float getCurrentUnfilledResourceDemand() {
+			return (current_resource_demand-powersupply);
 		}
 
         public Vessel getVessel() {
@@ -135,28 +148,44 @@ namespace FNPlugin {
             // check engines
 			foreach (KeyValuePair<FNResourceSuppliable, float> power_kvp in power_draw_items) {
                 FNResourceSuppliable ms = power_kvp.Key;
-				current_resource_demand += power_kvp.Value;
+
                 if (ms is ElectricEngineController || ms is FNNozzleController) {
                     float power = power_kvp.Value;
                     float power_supplied = Math.Min(powersupply, power);
                     powersupply -= power_supplied;
-                    //notify of supply
-                    ms.receiveFNResource(power_supplied * TimeWarp.fixedDeltaTime,this.resource_name);
+					current_resource_demand += power;
+					//notify of supply
+					ms.receiveFNResource(power_supplied * TimeWarp.fixedDeltaTime,this.resource_name);
                 }
 
             }
             // check others
 			foreach (KeyValuePair<FNResourceSuppliable, float> power_kvp in power_draw_items) {
                 FNResourceSuppliable ms = power_kvp.Key;
-                if (!(ms is ElectricEngineController) && !(ms is FNNozzleController)) {
+                if (!(ms is ElectricEngineController) && !(ms is FNNozzleController) && !(ms is FNRadiator)) {
                     float power = power_kvp.Value;
                     float power_supplied = Math.Min(powersupply, power);
                     powersupply -= power_supplied;
-                    //notify of supply
+					current_resource_demand += power;
+					//notify of supply
                     ms.receiveFNResource(power_supplied * TimeWarp.fixedDeltaTime, this.resource_name);
                 }
 
             }
+			// check radiators
+			foreach (KeyValuePair<FNResourceSuppliable, float> power_kvp in power_draw_items) {
+				FNResourceSuppliable ms = power_kvp.Key;
+				if (ms is FNRadiator) {
+					float power = power_kvp.Value;
+					float power_supplied = Math.Min(powersupply, power);
+					powersupply -= power_supplied;
+					//notify of supply
+					ms.receiveFNResource(power_supplied * TimeWarp.fixedDeltaTime, this.resource_name);
+				}
+
+			}
+
+
             powersupply -= currentmegajoules;
 
             my_part.RequestResource(this.resource_name, -powersupply * TimeWarp.fixedDeltaTime);

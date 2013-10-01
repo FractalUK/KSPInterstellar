@@ -40,6 +40,8 @@ namespace FNPlugin
         private VInfoBox fuel_gauge;
         protected float myScience = 0;
 
+		protected int shutdown_counter = 0;
+
         [KSPField(isPersistant = true)]
         private int fuel_mode = 1;
 
@@ -287,34 +289,50 @@ namespace FNPlugin
             if (curEngine.maxThrust <= 0 && curEngine.isEnabled && curEngine.currentThrottle > 0) {
                 setupPropellants();
                 if (curEngine.maxThrust <= 0) {
-                    curEngine.maxThrust = 0;
+                    curEngine.maxThrust = 0.000001f;
                 }
             }
 
+			//curEngine.flameout = false;
 
-            if (curEngine.currentThrottle > 0 && curEngine.isEnabled && assThermalPower > 0) {
+			if (curEngine.currentThrottle > 0 && curEngine.isEnabled && assThermalPower > 0) {
+
                 //float thermalReceived = part.RequestResource("ThermalPower", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
                 float thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
+				consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 if (thermalReceived >= assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle) {
+					shutdown_counter = 0;
                     float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
                     curEngine.maxThrust = thermalThrustPerSecond;
                 }
                 else {
-                    if (thermalReceived > 0) {
+                    if (thermalReceived/TimeWarp.fixedDeltaTime > 0.1f) {
+						shutdown_counter = 0;
                         float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
                         curEngine.maxThrust = thermalThrustPerSecond;
                     }
                     else {
-                        curEngine.maxThrust = 0f;
-                        curEngine.BurstFlameoutGroups();
+						//curEngine.maxThrust = 0.000001f;
+						shutdown_counter++;
+						if (shutdown_counter > 2) {
+							curEngine.Events ["Shutdown"].Invoke ();
+							ScreenMessages.PostScreenMessage("Engines shutdown due to lack of Thermal Power!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+							shutdown_counter = 0;
+							foreach (FXGroup fx_group in part.fxGroups) {
+								fx_group.setActive (false);
+							}
+
+						}
+
                     }
 
                 }
             }else {
-                if (assThermalPower <= 0) {
-                    curEngine.maxThrust = 0f;
-                }
-            }
+				if (assThermalPower <= 0) {
+					curEngine.maxThrust = 0.000001f;
+				}
+
+			}
             //curEngine.currentThrottle
             
         }

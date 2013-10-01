@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -33,6 +34,8 @@ namespace FNPlugin
         public float upgradeCost;
         [KSPField(isPersistant = false)]
         public float upgradedpCarnotEff;
+		[KSPField(isPersistant = false)]
+		public string animName;
 
         private float coldBathTemp = 500;
         public float hotBathTemp = 1;
@@ -43,6 +46,10 @@ namespace FNPlugin
 
         protected bool hasScience = false;
         protected float myScience = 0;
+		protected bool play_down = true;
+		protected bool play_up = true;
+
+		protected Animation anim;
 
         //protected bool responsible_for_megajoulemanager;
         //protected FNResourceManager megamanager;
@@ -99,18 +106,23 @@ namespace FNPlugin
             Actions["DeactivateGeneratorAction"].guiName = Events["DeactivateGenerator"].guiName = String.Format("Deactivate Generator");
             Actions["ToggleGeneratorAction"].guiName = String.Format("Toggle Generator");
             if (state == StartState.Editor) { return; }
-			/*
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
-                megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
-                responsible_for_megajoulemanager = false;
 
-            }else {
-                megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).createManagerForVessel(this);
-                responsible_for_megajoulemanager = true;
-                print("[WarpPlugin] Creating Megajoule Manager  for Vessel");
-            }
-            */
             this.part.force_activate();
+
+			anim = part.FindModelAnimators (animName).FirstOrDefault ();
+			if (anim != null) {
+				anim [animName].layer = 1;
+				if (!IsEnabled) {
+					anim [animName].normalizedTime = 1f;
+					anim [animName].speed = -1f;
+
+				} else {
+					anim [animName].normalizedTime = 0f;
+					anim [animName].speed = 1f;
+
+				}
+				anim.Play ();
+			}
             
             if (isupgraded) {
                 pCarnotEff = upgradedpCarnotEff;
@@ -187,6 +199,24 @@ namespace FNPlugin
 
             upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
 
+			if (IsEnabled) {
+				if (play_up) {
+					play_down = true;
+					play_up = false;
+					anim [animName].speed = 1f;
+					anim [animName].normalizedTime = 0f;
+					anim.Blend (animName, 2f);
+				}
+			} else {
+				if (play_down) {
+					play_down = false;
+					play_up = true;
+					anim [animName].speed = -1f;
+					anim [animName].normalizedTime = 1f;
+					anim.Blend (animName, 2f);
+				}
+			}
+
             if (IsEnabled) {
                 //if (DateTime.Now.Second - sectracker >= 1) {
                     float percentOutputPower = totalEff * 100.0f;
@@ -222,24 +252,6 @@ namespace FNPlugin
         }
 
         public override void OnFixedUpdate() {
-			/*
-			 * if (megamanager.getVessel() != vessel) {
-				FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).deleteManager(megamanager);
-			}
-
-            if (!FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel)) {
-                megamanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).createManagerForVessel(this);
-                responsible_for_megajoulemanager = true;
-                print("[WarpPlugin] Creating Megajoule Manager  for Vessel");
-            }
-
-
-
-            if (responsible_for_megajoulemanager) {
-                megamanager.update();
-            }
-			 */
-
 			base.OnFixedUpdate ();
 
             if (!IsEnabled) { return; }
@@ -264,12 +276,16 @@ namespace FNPlugin
 			}
 
             totalEff = (float)carnotEff * pCarnotEff;
-			float thermal_power_currently_needed = (getCurrentResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules) / totalEff;
+
+			float waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
+			float thermal_power_currently_needed = waste_heat_produced / totalEff;
             double thermaldt = Math.Min(maxThermalPower,thermal_power_currently_needed) * TimeWarp.fixedDeltaTime;
+			double wastedt = thermaldt * totalEff;
             //double inputThermalPower = 0;
             //if (thermaldt < maxThermalPowerDraw) {
                 //inputThermalPower = part.RequestResource("ThermalPower", thermaldt);
             double inputThermalPower = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+			consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
 
             //}else {
@@ -279,15 +295,18 @@ namespace FNPlugin
             //}
             double electricdt = inputThermalPower * totalEff;
             double electricdtps = electricdt / TimeWarp.fixedDeltaTime;
+			double max_electricdtps = maxThermalPower * totalEff - 1;
+			//print (max_electricdtps);
             outputPower = 0;
             if (electricdtps > 1) {
                 electricdtps = electricdtps - 1;
                 //outputPower += (float)part.RequestResource("Megajoules", -electricdtps * TimeWarp.fixedDeltaTime);
                 //outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
 				//outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
-				outputPower -= (float)supplyFNResource(electricdtps * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+				outputPower -= (float)supplyFNResourceFixedMax(electricdtps * TimeWarp.fixedDeltaTime,max_electricdtps* TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
                 outputPower += (part.RequestResource("ElectricCharge", -1000.0f * TimeWarp.fixedDeltaTime)) / 1000.0f;
             }else {
+				supplyFNResourceFixedMax(0,max_electricdtps* TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
                 electricdtps = electricdtps * 1000;
                 outputPower += (part.RequestResource("ElectricCharge", -(float)electricdtps * TimeWarp.fixedDeltaTime)) / 1000.0f;
             }

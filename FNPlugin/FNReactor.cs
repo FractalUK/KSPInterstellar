@@ -62,7 +62,7 @@ namespace FNPlugin {
         //protected FNResourceManager thermalmanager;
 
 		public FNReactor() : base() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER};
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 		}
         
@@ -143,17 +143,7 @@ namespace FNPlugin {
             Actions["ToggleReactorAction"].guiName = String.Format("Toggle Reactor");
             
             if (state == StartState.Editor) { return; }
-			/*
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).hasManagerForVessel(vessel)) {
-                thermalmanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).getManagerForVessel(vessel);
-                responsible_for_thermalmanager = false;
 
-            }else {
-                thermalmanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).createManagerForVessel(this);
-                responsible_for_thermalmanager = true;
-                print("[WarpPlugin] Creating ThermalPower Manager for Vessel");
-            }
-			*/
             List<PartResource> partresources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
             if (partresources.Count > 0) {
@@ -243,20 +233,6 @@ namespace FNPlugin {
         
         public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
-			/*
-            if (thermalmanager.getVessel() != vessel) {
-                FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).deleteManager(thermalmanager);
-            }
-
-            if (!FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).hasManagerForVessel(vessel)) {
-                thermalmanager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).createManagerForVessel(this);
-                responsible_for_thermalmanager = true;
-                print("[WarpPlugin] Creating ThermalPower Manager for Vessel");
-            }
-
-            if (responsible_for_thermalmanager) {
-                thermalmanager.update();
-            }*/
 
             if (UF6Rate > 0) {
                 isNuclear = true;
@@ -267,30 +243,26 @@ namespace FNPlugin {
                     float antimatter_provided = part.RequestResource("Antimatter", AntimatterRate * TimeWarp.fixedDeltaTime);
 
                     antimatter_pcnt = antimatter_provided / AntimatterRate / TimeWarp.fixedDeltaTime;
-
-                    //part.RequestResource("ThermalPower", -ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt);
-                    //thermalmanager.powerSupply(ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt);
-					//float thermal_power_received = thermalmanager.managedPowerSupply (ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt);
+					                    
 					float thermal_power_received = supplyManagedFNResource (ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 					float thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
 					ongoing_consumption_rate = thermal_power_pcnt;
 					float return_pcnt = 1-thermal_power_pcnt;
-					part.RequestResource("Antimatter", -antimatter_provided*return_pcnt);
+					part.RequestResource("Antimatter", -antimatter_provided*return_pcnt); //return antimatter from <100% power
 					powerPcnt = antimatter_pcnt*100.0f*thermal_power_pcnt;
                 }else {
                     float uf6_provided = part.RequestResource("UF6", UF6Rate * TimeWarp.fixedDeltaTime);
                     part.RequestResource("DUF6", -uf6_provided);
 
                     uf6_pcnt = uf6_provided / UF6Rate / TimeWarp.fixedDeltaTime;
-
-                    //part.RequestResource("ThermalPower", -ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt);
-                    //thermalmanager.powerSupply(ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt);
-					//float thermal_power_received = thermalmanager.managedPowerSupply (ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt);
+					                    
 					float thermal_power_received = supplyManagedFNResourceWithMinimum (ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt,0.3f, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 					float thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
 					ongoing_consumption_rate = thermal_power_pcnt;
 					float return_pcnt = 1-thermal_power_pcnt;
-					part.RequestResource("UF6", -uf6_provided*return_pcnt);
+					part.RequestResource("UF6", -uf6_provided*return_pcnt); //return UF6 from <100% power
 					powerPcnt = uf6_pcnt * 100.0f*thermal_power_pcnt;
                 }
                 if (Planetarium.GetUniversalTime() != 0) {
@@ -304,9 +276,10 @@ namespace FNPlugin {
         public override string GetInfo() {
 			if (UF6Rate > 0) {
 				float uf6_rate_per_day = UF6Rate * 86400;
-				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n", ReactorTemp, ThermalPower, uf6_rate_per_day);
+				float up_uf6_rate_per_day = upgradedUF6Rate * 86400;
+				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF6 Consumption: {5}L/day\n Upgrade Cost: {6} Science\n", ReactorTemp, ThermalPower, uf6_rate_per_day,upgradedReactorTemp,upgradedThermalPower,up_uf6_rate_per_day,upgradeCost);
 			} else {
-				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n", ReactorTemp, ThermalPower, AntimatterRate);
+				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec\n Upgrade Cost: {6} Science\n", ReactorTemp, ThermalPower, AntimatterRate,upgradedReactorTemp,upgradedThermalPower,upgradedAntimatterRate,upgradeCost);
 			}
         }
     }
