@@ -44,6 +44,9 @@ namespace FNPlugin
         private float sectracker = 0;
         protected float maxThermalPowerDraw;
 
+		//for microwave transmission
+		public float tPower;
+
         protected bool hasScience = false;
         protected float myScience = 0;
 		protected bool play_down = true;
@@ -231,6 +234,7 @@ namespace FNPlugin
             }
 
 			if (totalEff >= 0) {
+				tPower = maxThermalPower * totalEff;
 				MaxPowerStr = (maxThermalPower*totalEff).ToString ("0.000") + "MW";
 			} else {
 				MaxPowerStr = (0).ToString() + "MW";
