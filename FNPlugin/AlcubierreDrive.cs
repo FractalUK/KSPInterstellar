@@ -18,6 +18,10 @@ namespace FNPlugin
         public string originalName;
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
+		[KSPField(isPersistant = false)]
+		public float effectSize1;
+		[KSPField(isPersistant = false)]
+		public float effectSize2;
         private Vector3d heading_act;
         
         //private float warpspeed = 30000000.0f;
@@ -238,10 +242,10 @@ namespace FNPlugin
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
             Vector3 end_beam_pos = ship_pos + transform.up * warp_size;
             Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
-            warp_effect.transform.localScale = new Vector3(6.3f, mid_pos.magnitude, 6.3f);
+			warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
             warp_effect.transform.position = new Vector3(mid_pos.x, ship_pos.y+mid_pos.y, mid_pos.z);
             warp_effect.transform.rotation = part.transform.rotation;
-            warp_effect2.transform.localScale = new Vector3(2.45f, mid_pos.magnitude, 2.45f);
+			warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
             warp_effect2.transform.position = new Vector3(mid_pos.x, ship_pos.y + mid_pos.y, mid_pos.z);
             warp_effect2.transform.rotation = part.transform.rotation;
             //warp_effect.layer = LayerMask.NameToLayer("Ignore Raycast");
@@ -401,11 +405,11 @@ namespace FNPlugin
             Vector3 end_beam_pos = ship_pos + part.transform.up * warp_size;
             Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f ;
             warp_effect.transform.rotation = part.transform.rotation;
-            warp_effect.transform.localScale = new Vector3(6.2f, mid_pos.magnitude, 6.2f);
+			warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
             warp_effect.transform.position = new Vector3(ship_pos.x + mid_pos.x, ship_pos.y + mid_pos.y, ship_pos.z + mid_pos.z);
             warp_effect.transform.rotation = part.transform.rotation;
             warp_effect2.transform.rotation = part.transform.rotation;
-            warp_effect2.transform.localScale = new Vector3(2.4f, mid_pos.magnitude, 2.4f);
+			warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
             warp_effect2.transform.position = new Vector3(ship_pos.x + mid_pos.x, ship_pos.y + mid_pos.y, ship_pos.z + mid_pos.z);
             warp_effect2.transform.rotation = part.transform.rotation;
             
