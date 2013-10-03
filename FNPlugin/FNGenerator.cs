@@ -42,8 +42,7 @@ namespace FNPlugin
         private float outputPower;
         private float totalEff;
         private float sectracker = 0;
-        protected float maxThermalPowerDraw;
-
+        
         protected bool hasScience = false;
         protected float myScience = 0;
 		protected bool play_down = true;
@@ -141,44 +140,34 @@ namespace FNPlugin
         }
 
         public void recalculatePower() {
-            Part[] childParts = this.part.FindChildParts<Part>(true);
+            Part[] childParts = this.part.FindChildParts<Part>(false);
             PartModuleList childModules;
-            for (int i = 0; i < childParts.Length; ++i) {
-                childModules = childParts.ElementAt(i).Modules;
-                for (int j = 0; j < childModules.Count; ++j) {
-                    PartModule thisModule = childModules.GetModule(j);
-                    var thisModule2 = thisModule as FNReactor;
-                    if (thisModule2 != null) {
-                        FNReactor fnr = (FNReactor)thisModule;
-                        setHotBathTemp(fnr.getReactorTemp());
-                        maxThermalPower = fnr.getReactorThermalPower();
-                    }
 
-                }
-
-            }
+			foreach (Part childPart in childParts) {
+				childModules = childPart.Modules;
+				foreach (PartModule thisModule in childModules) {
+					var thisModule2 = thisModule as FNReactor;
+					if (thisModule2 != null) {
+						FNReactor fnr = (FNReactor)thisModule;
+						setHotBathTemp(fnr.getReactorTemp());
+						maxThermalPower = fnr.getReactorThermalPower();
+					}
+				}
+			}
 
             Part parent = this.part.parent;
             if (parent != null) {
                 childModules = parent.Modules;
-                for (int j = 0; j < childModules.Count; ++j) {
-                    PartModule thisModule = childModules.GetModule(j);
-                    var thisModule2 = thisModule as FNReactor;
-                    if (thisModule2 != null) {
-                        FNReactor fnr = (FNReactor)thisModule;
-                        setHotBathTemp(fnr.getReactorTemp());
-                        maxThermalPower = fnr.getReactorThermalPower();
-                    }
-
-                }
+				foreach (PartModule thisModule in childModules) {
+					var thisModule2 = thisModule as FNReactor;
+					if (thisModule2 != null) {
+						FNReactor fnr = (FNReactor)thisModule;
+						setHotBathTemp(fnr.getReactorTemp());
+						maxThermalPower = fnr.getReactorThermalPower();
+					}
+				}
             }
-
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThermalPower").id, partresources);
-            maxThermalPowerDraw = 0;
-            foreach (PartResource partresource in partresources) {
-                maxThermalPowerDraw += (float)partresource.maxAmount;
-            }
+			            
         }
 
         
@@ -200,7 +189,7 @@ namespace FNPlugin
             upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
 
 			if (IsEnabled) {
-				if (play_up) {
+				if (play_up && anim != null) {
 					play_down = true;
 					play_up = false;
 					anim [animName].speed = 1f;
@@ -208,7 +197,7 @@ namespace FNPlugin
 					anim.Blend (animName, 2f);
 				}
 			} else {
-				if (play_down) {
+				if (play_down && anim != null) {
 					play_down = false;
 					play_up = true;
 					anim [animName].speed = -1f;
@@ -254,6 +243,8 @@ namespace FNPlugin
         public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 
+			//print ("Generator Check-in 1 (" + vessel.GetName() + ")");
+
             if (!IsEnabled) { return; }
                  
             double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
@@ -268,6 +259,8 @@ namespace FNPlugin
                 }
             }
 
+			//print ("Generator Check-in 2 (" + vessel.GetName() + ")");
+
 			List<PartResource> partresources = new List<PartResource>();
 			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Megajoules").id, partresources);
 			float currentmegajoules = 0;
@@ -277,22 +270,19 @@ namespace FNPlugin
 
             totalEff = (float)carnotEff * pCarnotEff;
 
+			//print ("Generator Check-in 3 (" + vessel.GetName() + ")");
+
 			float waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
 			float thermal_power_currently_needed = waste_heat_produced / totalEff;
             double thermaldt = Math.Min(maxThermalPower,thermal_power_currently_needed) * TimeWarp.fixedDeltaTime;
 			double wastedt = thermaldt * totalEff;
-            //double inputThermalPower = 0;
-            //if (thermaldt < maxThermalPowerDraw) {
-                //inputThermalPower = part.RequestResource("ThermalPower", thermaldt);
+            
             double inputThermalPower = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
 			consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
+			//print ("Generator Check-in 4 (" + vessel.GetName() + ")");
 
-            //}else {
-            //    if (part.RequestResource("ThermalPower", maxThermalPowerDraw) >= maxThermalPowerDraw) {
-            //        inputThermalPower = thermaldt;
-            //    }
-            //}
+			            
             double electricdt = inputThermalPower * totalEff;
             double electricdtps = electricdt / TimeWarp.fixedDeltaTime;
 			double max_electricdtps = maxThermalPower * totalEff;
@@ -302,27 +292,10 @@ namespace FNPlugin
 			} else {
 				outputPower = -(float)supplyFNResourceFixedMax (0, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 			}
-			//print (outputPower);
-			//print (max_electricdtps);
-			/*
-            outputPower = 0;
-            if (electricdtps > 1) {
-                electricdtps = electricdtps - 1;
-                //outputPower += (float)part.RequestResource("Megajoules", -electricdtps * TimeWarp.fixedDeltaTime);
-                //outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
-				//outputPower -= (float)megamanager.powerSupply(electricdtps * TimeWarp.fixedDeltaTime);
-				outputPower -= (float)supplyFNResourceFixedMax(electricdtps * TimeWarp.fixedDeltaTime,max_electricdtps* TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
-                outputPower += (part.RequestResource("ElectricCharge", -1000.0f * TimeWarp.fixedDeltaTime)) / 1000.0f;
-            }else {
-				supplyFNResourceFixedMax(0,max_electricdtps* TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
-                electricdtps = electricdtps * 1000;
-                outputPower += (part.RequestResource("ElectricCharge", -(float)electricdtps * TimeWarp.fixedDeltaTime)) / 1000.0f;
-            }
-            */
+
             outputPower = outputPower / TimeWarp.fixedDeltaTime;
-            //outputPower = (float)part.RequestResource("Megajoules", -electricdt);
-
-
+            
+			//print ("Generator Check-in 5 (" + vessel.GetName() + ")");
             
         }
 

@@ -34,6 +34,7 @@ namespace FNPlugin {
             float power_taken = Math.Min(power, fnresource_supplied[resourcename]);
             fnresource_supplied[resourcename] -= power_taken;
             FNResourceManager mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+
             mega_manager.powerDraw(this, power);
             return power_taken;
         }
@@ -143,10 +144,14 @@ namespace FNPlugin {
 
 					if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
 						manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+						if (manager == null) {
+							manager = FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).getManagerForVessel (vessel);
+							print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+						}
 					}else {
 						manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).createManagerForVessel(this);
 
-						print("[WarpPlugin] Creating Resource Manager  for Vessel");
+						print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
 					}
 
 				}
@@ -162,11 +167,15 @@ namespace FNPlugin {
 					if (!FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).hasManagerForVessel (vessel)) {
 						manager = FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).createManagerForVessel (this);
 
-						print ("[WarpPlugin] Creating Resource Manager for Vessel");
+						print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
 
 
 					} else {
 						manager = FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).getManagerForVessel (vessel);
+						if (manager == null) {
+							manager = FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).getManagerForVessel (vessel);
+							print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+						}
 					}
 
 					if (manager.getPartModule ().vessel != this.vessel) {

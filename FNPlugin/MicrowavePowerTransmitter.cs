@@ -22,17 +22,21 @@ namespace FNPlugin {
                 
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = true)]
         public void ActivateTransmitter() {
-			anim [animName].speed = 1f;
-			anim [animName].normalizedTime = 0f;
-			anim.Blend (animName, 2f);
+			if (anim != null) {
+				anim [animName].speed = 1f;
+				anim [animName].normalizedTime = 0f;
+				anim.Blend (animName, 2f);
+			}
             IsEnabled = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Transmitter", active = false)]
         public void DeactivateTransmitter() {
-			anim [animName].speed = -1f;
-			anim [animName].normalizedTime = 1f;
-			anim.Blend (animName, 2f);
+			if (anim != null) {
+				anim [animName].speed = -1f;
+				anim [animName].normalizedTime = 1f;
+				anim.Blend (animName, 2f);
+			}
             IsEnabled = false;
         }
 
@@ -123,13 +127,11 @@ namespace FNPlugin {
 			}
 
             if (activeCount % 1000 == 9) {
-                ConfigNode config = ConfigNode.Load(PluginHelper.getPluginSaveFilePath());
-                if (config == null) {
-                    config = new ConfigNode();
-                }
+				ConfigNode config = PluginHelper.getPluginSaveFile();
                 //float inputPowerFixedAlt = (float) ((double)inputPower * (Math.Pow(FlightGlobals.Bodies[0].GetAltitude(vessel.transform.position), 2)) / PluginHelper.FIXED_SAT_ALTITUDE / PluginHelper.FIXED_SAT_ALTITUDE);
                 float inputPowerFixedAlt = inputPower / PluginHelper.getSatFloatCurve().Evaluate((float)FlightGlobals.Bodies[0].GetAltitude(vessel.transform.position));
                 string vesselIDSolar = vessel.id.ToString();
+
                 string outputPower = inputPowerFixedAlt.ToString("0.000");
                 if (!config.HasValue(vesselIDSolar)) {
                     config.AddValue(vesselIDSolar, outputPower);
@@ -140,6 +142,8 @@ namespace FNPlugin {
                 config.Save(PluginHelper.getPluginSaveFilePath());
 
             }
+
+
         }
 
 

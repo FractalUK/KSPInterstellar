@@ -127,6 +127,7 @@ namespace FNPlugin
                     if (thisModule2 != null) {
                         FNReactor fnr = (FNReactor)thisModule;
                         FloatCurve newISP = new FloatCurve();
+						FloatCurve vCurve = new FloatCurve ();
                         if (!currentpropellant_is_jet) {
                             maxISP = (float)Math.Sqrt((double)fnr.getReactorTemp()) * 17*ispMultiplier;
                             minISP = maxISP * 0.4f;
@@ -135,15 +136,32 @@ namespace FNPlugin
                             curEngine.useVelocityCurve = false;
                             curEngine.useEngineResponseTime = false;
                         }else {
-                            maxISP = 2500;
-                            newISP.Add(0, 1200);
-                            newISP.Add(0.3f, 2500);
-                            newISP.Add(1, 800);
+							if (thisModule2.getIsNuclear()) {
+								maxISP = 150;
+								newISP.Add(0, 100);
+								newISP.Add(0.3f, 150);
+								newISP.Add(1, 75);
+								vCurve.Add(0, 1);
+								vCurve.Add(400, 0.8f);
+								vCurve.Add(950, 0.9f);
+								vCurve.Add (1471, 0);
+							} else {
+								maxISP = 2500;
+								newISP.Add(0, 1200);
+								newISP.Add(0.3f, 2500);
+								newISP.Add(1, 800);
+								vCurve.Add(0, 1);
+								vCurve.Add(400, 0.8f);
+								vCurve.Add(1000, 0.9f);
+								vCurve.Add (2000, 0.5f);
+							}
+
                             curEngine.useVelocityCurve = true;
                             curEngine.useEngineResponseTime = true;
                         }
                         //ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
                         curEngine.atmosphereCurve = newISP;
+						curEngine.velocityCurve = vCurve;
                         assThermalPower = fnr.getReactorThermalPower();
                         engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
                         if (isLFO) {
@@ -165,6 +183,7 @@ namespace FNPlugin
                     if (thisModule2 != null) {
                         FNReactor fnr = (FNReactor)thisModule;
                         FloatCurve newISP = new FloatCurve();
+						FloatCurve vCurve = new FloatCurve ();
                         if (!currentpropellant_is_jet) {
                             maxISP = (float)Math.Sqrt((double)fnr.getReactorTemp()) * 17 * ispMultiplier;
                             minISP = maxISP * 0.4f;
@@ -174,15 +193,31 @@ namespace FNPlugin
                             curEngine.useEngineResponseTime = false;
                         }
                         else {
-                            maxISP = 2500;
-                            newISP.Add(0, 1200);
-                            newISP.Add(0.3f, 2500);
-                            newISP.Add(1, 800);
+							if (thisModule2.getIsNuclear()) {
+								maxISP = 150;
+								newISP.Add(0, 100);
+								newISP.Add(0.3f, 150);
+								newISP.Add(1, 75);
+								vCurve.Add(0, 1);
+								vCurve.Add(400, 0.8f);
+								vCurve.Add(950, 0.9f);
+								vCurve.Add (1471, 0);
+							} else {
+								maxISP = 2500;
+								newISP.Add(0, 1200);
+								newISP.Add(0.3f, 2500);
+								newISP.Add(1, 800);
+								vCurve.Add(0, 1);
+								vCurve.Add(400, 0.8f);
+								vCurve.Add(1000, 0.9f);
+								vCurve.Add (2000, 0.5f);
+							}
                             curEngine.useVelocityCurve = true;
                             curEngine.useEngineResponseTime = true;
                         }
                         //ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
                         curEngine.atmosphereCurve = newISP;
+						curEngine.velocityCurve = vCurve;
                         assThermalPower = fnr.getReactorThermalPower();
                         engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
                         if (isLFO) {
@@ -236,6 +271,8 @@ namespace FNPlugin
             Events["RetrofitEngine"].active = !isupgraded && isJet && myScience >= upgradeCost;
             Fields["upgradeCostStr"].guiActive = !isupgraded && isJet;
             Fields["engineType"].guiActive = isJet;
+
+			//print ("Nozzle Check-in 1 (" + vessel.GetName() + ")");
             
             ModuleEngines curEngineT = (ModuleEngines)this.part.Modules["ModuleEngines"];
             if (curEngineT.isOperational && !IsEnabled) {
@@ -243,6 +280,8 @@ namespace FNPlugin
                 part.force_activate();
                 
             }
+
+			//rint ("Nozzle Check-in 2 (" + vessel.GetName() + ")");
 
             List<PartResource> partresources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
@@ -260,30 +299,45 @@ namespace FNPlugin
             partresources = new List<PartResource>();
             part.GetConnectedResources(curEngineT.propellants[0].id, partresources);
 
+			//print ("Nozzle Check-in 3 (" + vessel.GetName() + ")");
+
             foreach (PartResource partresource in partresources) {
                 currentpropellant += (float) partresource.amount;
                 maxpropellant += (float)partresource.maxAmount;
             }
+
+			if (fuel_gauge != null  && fuel_gauge.infoBoxRef != null) {
             
-            if (curEngineT.isOperational) {
-                if (!fuel_gauge.infoBoxRef.expanded) {
-                    fuel_gauge.infoBoxRef.Expand();
-                }
-                fuel_gauge.length = 2;
-                if (maxpropellant > 0) {
-                    fuel_gauge.SetValue(currentpropellant / maxpropellant);
-                }else {
-                    fuel_gauge.SetValue(0);
-                }
-            }else {
-                if (!fuel_gauge.infoBoxRef.collapsed) {
-                    fuel_gauge.infoBoxRef.Collapse();
-                }
-            }
+				if (curEngineT.isOperational) {
+					if (!fuel_gauge.infoBoxRef.expanded) {
+						fuel_gauge.infoBoxRef.Expand ();
+					}
+					fuel_gauge.length = 2;
+					if (maxpropellant > 0) {
+						fuel_gauge.SetValue (currentpropellant / maxpropellant);
+					} else {
+						fuel_gauge.SetValue (0);
+					}
+				} else {
+					if (!fuel_gauge.infoBoxRef.collapsed) {
+						fuel_gauge.infoBoxRef.Collapse ();
+					}
+				}
+			}
+
+			//print ("Nozzle Check-in 4 (" + vessel.GetName() + ")");
         }
 
         public override void OnFixedUpdate() {
             ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
+
+
+
+			if (curEngine == null) {
+				return;
+			}
+
+
             //print(curEngine.currentThrottle.ToString() + "\n");
 
             if (curEngine.maxThrust <= 0 && curEngine.isEnabled && curEngine.currentThrottle > 0) {
@@ -306,22 +360,25 @@ namespace FNPlugin
                     curEngine.maxThrust = thermalThrustPerSecond;
                 }
                 else {
-                    if (thermalReceived/TimeWarp.fixedDeltaTime > 0.1f) {
+                    if (thermalReceived/TimeWarp.fixedDeltaTime > 0.0001f) {
 						shutdown_counter = 0;
                         float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
                         curEngine.maxThrust = thermalThrustPerSecond;
                     }
                     else {
 						//curEngine.maxThrust = 0.000001f;
-						shutdown_counter++;
-						if (shutdown_counter > 2) {
-							curEngine.Events ["Shutdown"].Invoke ();
-							ScreenMessages.PostScreenMessage("Engines shutdown due to lack of Thermal Power!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-							shutdown_counter = 0;
-							foreach (FXGroup fx_group in part.fxGroups) {
-								fx_group.setActive (false);
-							}
+						if (!curEngine.flameout) {
+							shutdown_counter++;
 
+							if (shutdown_counter > 2) {
+								curEngine.Events ["Shutdown"].Invoke ();
+								ScreenMessages.PostScreenMessage ("Engines shutdown due to lack of Thermal Power!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+								shutdown_counter = 0;
+								foreach (FXGroup fx_group in part.fxGroups) {
+									fx_group.setActive (false);
+								}
+
+							}
 						}
 
                     }
@@ -334,7 +391,7 @@ namespace FNPlugin
 
 			}
             //curEngine.currentThrottle
-            
+
         }
 
         public override string GetInfo() {

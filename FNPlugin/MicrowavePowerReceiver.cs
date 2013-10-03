@@ -27,6 +27,8 @@ namespace FNPlugin {
 
 		[KSPField(isPersistant = false)]
 		public string animName;
+		[KSPField(isPersistant = false)]
+		public float collectorArea = 1;
 
 		protected Animation anim;
 
@@ -149,15 +151,21 @@ namespace FNPlugin {
 							float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
 							float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 							float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
-							powerdissip = Math.Max (powerdissip, 1);
+							powerdissip = Math.Max (powerdissip/collectorArea, 1);
 							rangelosses += powerdissip;
-							powerInputIncr += inputPowerFixedAlt / powerdissip;
+							Vector3d direction_vector = (vess.transform.position-vessel.transform.position).normalized;
+							float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
+							facing_factor = Mathf.Max (0, facing_factor);
+							powerInputIncr += inputPowerFixedAlt / powerdissip*facing_factor;
 							activeSatsIncr++;
 						}
+
+
 					}
 					float atmosphericefficiency = (float)Math.Exp (-FlightGlobals.getStaticPressure (vessel.transform.position) / 5);
 					this.rangelosses = rangelosses / activeSatsIncr;
 					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
+
 					powerInput = powerInputIncr * efficiency * atmosphericefficiency;
 					connectedsatsf = activeSatsIncr;
 				}
@@ -171,24 +179,8 @@ namespace FNPlugin {
 			float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
 			supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-			/*
-            if (powerInput > 1000) {
-                float powerInputMegajoules = (powerInput - 1000)/1000;
-                float powerInputKilojoules = 1000;
-                //part.RequestResource("Megajoules", -powerInputMegajoules * TimeWarp.fixedDeltaTime);
-                //megamanager.powerSupply(powerInputMegajoules * TimeWarp.fixedDeltaTime);
-				supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
-				float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
-				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                part.RequestResource("ElectricCharge", -powerInputKilojoules * TimeWarp.fixedDeltaTime);
-            }
-            else {
-				float waste_head_production = powerInput/1000.0f/efficiency * (1.0f - efficiency);
-				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                part.RequestResource("ElectricCharge", -powerInput * TimeWarp.fixedDeltaTime);
-            }
-            */
 
+			//print ("Microwave Check-in (" + vessel.GetName() + ")");
             activeCount++;
         }
 

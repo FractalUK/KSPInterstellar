@@ -213,7 +213,7 @@ namespace FNPlugin {
 			//print (power_per_engine);
 			float power_received = consumeFNResource (power_per_engine * TimeWarp.fixedDeltaTime/thrust_efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime;
 			electrical_consumption_f = power_received;
-			float heat_to_produce = power_per_engine / thrust_efficiency * (1.0f - thrust_efficiency);
+			float heat_to_produce = power_received / TimeWarp.fixedDeltaTime * (1.0f - thrust_efficiency);
 			heat_production_f = supplyFNResource (heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
 			float thrust_ratio;
@@ -223,7 +223,7 @@ namespace FNPlugin {
 			} else {
 				thrust_ratio = 1;
 
-				if (curEngine.currentThrottle > 0) {
+				if (curEngine.currentThrottle * thrust_per_engine > 0.0001f  && !curEngine.flameout) {
 					shutdown_counter++;
 					if (shutdown_counter > 2) {
 						curEngine.Events ["Shutdown"].Invoke ();
@@ -234,6 +234,8 @@ namespace FNPlugin {
 						}
 
 					}
+				} else {
+					shutdown_counter = 0;
 				}
 			}
 
@@ -244,17 +246,19 @@ namespace FNPlugin {
 
 			curEngine.maxThrust = Mathf.Max(thrust_to_use*thrust_ratio,0.00001f);
 
-			if (thrust_to_use*thrust_ratio <= 0.0001f && curEngine.currentThrottle > 0) {
+			if (thrust_to_use * thrust_ratio <= 0.0001f && curEngine.currentThrottle * thrust_per_engine > 0.0001f  && !curEngine.flameout) {
 				shutdown_counter++;
 				if (shutdown_counter > 2) {
 					curEngine.Events ["Shutdown"].Invoke ();
-					ScreenMessages.PostScreenMessage("Engines shutdown due to lack of Electrical Power (Megajoules)!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					ScreenMessages.PostScreenMessage ("Engines shutdown due to lack of Electrical Power (Megajoules)!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 					shutdown_counter = 0;
 					foreach (FXGroup fx_group in part.fxGroups) {
 						fx_group.setActive (false);
 					}
 
 				}
+			} else {
+				shutdown_counter = 0;
 			}
 
             if (isupgraded) {
