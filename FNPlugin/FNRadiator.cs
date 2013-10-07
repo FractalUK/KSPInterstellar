@@ -196,8 +196,9 @@ namespace FNPlugin {
 			}
 
 			float atmosphere_height = vessel.mainBody.maxAtmosphereAltitude;
+			float vessel_height = (float) vessel.mainBody.GetAltitude (vessel.transform.position);
 			float conv_power_dissip = 0;
-			if (vessel.altitude <= atmosphere_height && vessel.mainBody.flightGlobalsIndex != 0) {
+			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) {
 				float pressure = (float) FlightGlobals.getStaticPressure (vessel.transform.position);
 				float dynamic_pressure = (float) (0.5*pressure*1.2041*vessel.srf_velocity.sqrMagnitude/101325.0);
 				pressure += dynamic_pressure;
@@ -210,7 +211,7 @@ namespace FNPlugin {
 				}
 				convectedThermalPower = consumeFNResource (conv_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
-				if (IsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-4) {
+				if (IsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-3) {
 					part.deactivate();
 
 					//part.breakingForce = 1;

@@ -47,6 +47,9 @@ namespace FNPlugin
         protected float myScience = 0;
 		protected bool play_down = true;
 		protected bool play_up = true;
+		protected FNReactor myReactor;
+
+		protected int shutdown_counter = 0;
 
 		protected Animation anim;
 
@@ -151,6 +154,7 @@ namespace FNPlugin
 						FNReactor fnr = (FNReactor)thisModule;
 						setHotBathTemp(fnr.getReactorTemp());
 						maxThermalPower = fnr.getReactorThermalPower();
+						myReactor = fnr;
 					}
 				}
 			}
@@ -164,6 +168,7 @@ namespace FNPlugin
 						FNReactor fnr = (FNReactor)thisModule;
 						setHotBathTemp(fnr.getReactorTemp());
 						maxThermalPower = fnr.getReactorThermalPower();
+						myReactor = fnr;
 					}
 				}
             }
@@ -246,18 +251,30 @@ namespace FNPlugin
 			//print ("Generator Check-in 1 (" + vessel.GetName() + ")");
 
             if (!IsEnabled) { return; }
+
+			if (myReactor != null) {
+				setHotBathTemp(myReactor.getReactorTemp());
+				maxThermalPower = myReactor.getReactorThermalPower();
+			}
                  
             double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-            if (carnotEff < 0) {
-                recalculatePower();
-                carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-                if (carnotEff < 0) {
-                    IsEnabled = false;
-                    carnotEff = 0;
-                    ScreenMessages.PostScreenMessage("Generator Shutdown: No thermal power connected!");
+			if (carnotEff < 0) {
+				recalculatePower ();
+
+				carnotEff = 1.0f - coldBathTemp / hotBathTemp;
+				if (carnotEff < 0) {
+					shutdown_counter++;
+					carnotEff = 0;
+					if (shutdown_counter > 10) {
+						IsEnabled = false;
+						ScreenMessages.PostScreenMessage ("Generator Shutdown: No thermal power connected!");
+
+					}
 					return;
-                }
-            }
+				}
+			} else {
+				shutdown_counter = 0;
+			}
 
 			//print ("Generator Check-in 2 (" + vessel.GetName() + ")");
 

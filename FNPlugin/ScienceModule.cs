@@ -253,7 +253,7 @@ namespace FNPlugin {
 						stupidity += proto_crew_member.stupidity;
 					}
 					stupidity = 1.5f - stupidity / 2.0f;
-					double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex) / ((float)Math.Sqrt (altitude_multiplier));
+					double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / ((float)Math.Sqrt (altitude_multiplier));
 					part.RequestResource ("Science", -science_to_add);
 				} else if (active_mode == 2) { // Antimatter persistence
 					double now = Planetarium.GetUniversalTime ();
@@ -362,7 +362,7 @@ namespace FNPlugin {
 					float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
 					altitude_multiplier = Math.Max (altitude_multiplier, 1);
 
-					science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex) / 86400 * global_rate_multipliers * stupidity / (Mathf.Sqrt (altitude_multiplier));
+					science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / 86400 * global_rate_multipliers * stupidity / (Mathf.Sqrt (altitude_multiplier));
 					part.RequestResource ("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
 				} else if (active_mode == 1) { // Fuel Reprocessing
 					List<PartResource> partresources = new List<PartResource> ();
@@ -406,7 +406,7 @@ namespace FNPlugin {
 						electrolysis_rate_f += part.RequestResource ("Oxidizer", -oxygen_rate * TimeWarp.fixedDeltaTime / density);
 						electrolysis_rate_f = electrolysis_rate_f / TimeWarp.fixedDeltaTime * density;
 					} else if (vessel.Landed) {
-						if (vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_MUN || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_IKE) {
+						if (vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_MUN || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_IKE || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_TYLO) {
 							//float more_electrical_power_provided = part.RequestResource("Megajoules", (baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime);
 							float more_electrical_power_provided = consumeFNResource ((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 							global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;

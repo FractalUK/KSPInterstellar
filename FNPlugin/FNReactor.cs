@@ -127,6 +127,22 @@ namespace FNPlugin {
             if (isNuclear) { return; }
             IsEnabled = !IsEnabled;
         }
+
+		public override void OnLoad(ConfigNode node) {
+			if (isupgraded) {
+				ThermalPower = upgradedThermalPower;
+				ReactorTemp = upgradedReactorTemp;
+				UF6Rate = upgradedUF6Rate;
+				reactorType = upgradedName;
+				AntimatterRate = upgradedAntimatterRate;
+			}else {
+				reactorType = originalName;
+			}
+
+			if (UF6Rate > 0) {
+				isNuclear = true;
+			}
+		}
 		      
 		        
         public override void OnStart(PartModule.StartState state) {
@@ -138,15 +154,6 @@ namespace FNPlugin {
             
             if (state == StartState.Editor) { return; }
 
-			if (isupgraded) {
-				ThermalPower = upgradedThermalPower;
-				ReactorTemp = upgradedReactorTemp;
-				UF6Rate = upgradedUF6Rate;
-				reactorType = upgradedName;
-				AntimatterRate = upgradedAntimatterRate;
-			}else {
-				reactorType = originalName;
-			}
 
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {

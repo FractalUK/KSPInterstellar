@@ -163,7 +163,7 @@ namespace FNPlugin {
 				float power_returned = consumeFNResource (upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime ;
 				float altitude_multiplier = (float) (vessel.altitude / (vessel.mainBody.Radius));
 				altitude_multiplier = Math.Max(altitude_multiplier, 1);
-				science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex) / 86400 * power_returned/upgradedMegajouleRate / ((float)Math.Sqrt(altitude_multiplier));
+				science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / 86400 * power_returned/upgradedMegajouleRate / ((float)Math.Sqrt(altitude_multiplier));
 				part.RequestResource("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
 			}
 		}

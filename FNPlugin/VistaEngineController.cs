@@ -90,6 +90,9 @@ namespace FNPlugin
 				curEngineT.currentThrottle = 0;
 				curEngineT.requestedThrottle = 0;
 				ScreenMessages.PostScreenMessage("Engines throttled down as they presently pose a radiation hazard!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+				foreach (FXGroup fx_group in part.fxGroups) {
+					fx_group.setActive (false);
+				}
 			}
 
 			System.Random rand = new System.Random (new System.DateTime().Millisecond);
@@ -98,7 +101,7 @@ namespace FNPlugin
 			List<Vessel> vessels_to_remove = new List<Vessel> ();
 			List<ProtoCrewMember> crew_to_remove = new List<ProtoCrewMember> ();
 			double death_prob = 1.0 - 1.0 * TimeWarp.fixedDeltaTime;
-			if (radhazard && throttle > 0) {
+			if (radhazard && throttle > 0 && !rad_safety_features) {
 				foreach (Vessel vess in vessels) {
 					float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 					if (distance < 2000 && vess != this.vessel && vess.GetCrewCount() > 0) {

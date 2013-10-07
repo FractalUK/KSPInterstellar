@@ -213,7 +213,7 @@ namespace FNPlugin {
 			//print (power_per_engine);
 			float power_received = consumeFNResource (power_per_engine * TimeWarp.fixedDeltaTime/thrust_efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime;
 			electrical_consumption_f = power_received;
-			float heat_to_produce = power_received / TimeWarp.fixedDeltaTime * (1.0f - thrust_efficiency);
+			float heat_to_produce = power_received * (1.0f - thrust_efficiency);
 			heat_production_f = supplyFNResource (heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
 			float thrust_ratio;
@@ -329,9 +329,9 @@ namespace FNPlugin {
 
         public static string getPropellantFilePath(bool isupgraded) {
             if (isupgraded) {
-                return KSPUtil.ApplicationRootPath + "gamedata/warpplugin/AdvElectricEnginePropellants.cfg";
+                return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/AdvElectricEnginePropellants.cfg";
             }else {
-                return KSPUtil.ApplicationRootPath + "gamedata/warpplugin/ElectricEnginePropellants.cfg";
+                return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/ElectricEnginePropellants.cfg";
             }
         }
 

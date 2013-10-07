@@ -97,8 +97,8 @@ namespace FNPlugin
             }
             
             Vessel vess = this.part.vessel;
-            float atmosphere_height = vess.mainBody.maxAtmosphereAltitude;
-            if (vess.altitude <= atmosphere_height && vess.mainBody.flightGlobalsIndex != 0) {
+            //float atmosphere_height = vess.mainBody.maxAtmosphereAltitude;
+            if (vess.altitude <= PluginHelper.getMaxAtmosphericAltitude(vess.mainBody) && vess.mainBody.flightGlobalsIndex != 0) {
                 ScreenMessages.PostScreenMessage("Cannot activate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }

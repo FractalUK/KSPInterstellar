@@ -12,7 +12,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         bool isHybrid = false;
         [KSPField(isPersistant = false)]
-        public bool isJet;
+        public bool isJet = false;
         
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string engineType = ":";
@@ -43,7 +43,7 @@ namespace FNPlugin
 		protected int shutdown_counter = 0;
 
         [KSPField(isPersistant = true)]
-        private int fuel_mode = 1;
+        public int fuel_mode = 0;
 
         [KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
         public void TogglePropellant() {
@@ -235,10 +235,22 @@ namespace FNPlugin
                 curEngine.SetupPropellant();
             }
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(curEngine.propellants[0].id, partresources);
+            //List<PartResource> partresources = new List<PartResource>();
+            //part.GetConnectedResources(curEngine.propellants[0].id, partresources);
 
-            if (partresources.Count == 0 && fuel_mode != 0) {
+			bool next_propellant = false;
+
+			List<ModuleEngines.Propellant> curEngine_propellants_list = new List<ModuleEngines.Propellant>();
+			curEngine_propellants_list = curEngine.propellants;
+			foreach(ModuleEngines.Propellant curEngine_propellant in curEngine_propellants_list) {
+				List<PartResource> partresources = new List<PartResource>();
+				part.GetConnectedResources(curEngine_propellant.id, partresources);
+				if(partresources.Count == 0) {
+					next_propellant = true;
+				}
+			}
+
+			if (next_propellant && fuel_mode != 1) {
                 TogglePropellant();
             }
             /*else {
@@ -400,9 +412,9 @@ namespace FNPlugin
 
         public static string getPropellantFilePath(bool isJet) {
             if (isJet) {
-                return KSPUtil.ApplicationRootPath + "gamedata/warpplugin/IntakeEnginePropellants.cfg";
+                return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/IntakeEnginePropellants.cfg";
             }else {
-                return KSPUtil.ApplicationRootPath + "gamedata/warpplugin/EnginePropellants.cfg";
+				return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/EnginePropellants.cfg";
             }
         }
 
