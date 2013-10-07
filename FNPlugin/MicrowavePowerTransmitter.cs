@@ -8,7 +8,7 @@ using UnityEngine;
 namespace FNPlugin {
 	class MicrowavePowerTransmitter : FNResourceSuppliableModule {
         [KSPField(isPersistant = true)]
-        bool transIsEnabled;
+        bool IsEnabled;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
         public string beamedpower;
         float inputPower = 0;
@@ -18,10 +18,10 @@ namespace FNPlugin {
 		bool microwave = false;
 		bool solar = false;
 
-		//[KSPField(isPersistant = false)]
-		//public string animName;
+		[KSPField(isPersistant = false)]
+		public string animName;
 
-		//protected Animation anim;
+		protected Animation anim;
 
                 
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = true)]
@@ -64,7 +64,7 @@ namespace FNPlugin {
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {
 				anim [animName].layer = 1;
-				if (!transIsEnabled) {
+				if (!IsEnabled) {
 					anim [animName].normalizedTime = 1f;
 					anim [animName].speed = -1f;
 
@@ -92,8 +92,8 @@ namespace FNPlugin {
         }
 
         public override void OnUpdate() {
-            Events["ActivateTransmitter"].active = !transIsEnabled;
-            Events["DeactivateTransmitter"].active = transIsEnabled;
+            Events["ActivateTransmitter"].active = !IsEnabled;
+            Events["DeactivateTransmitter"].active = IsEnabled;
 			if (inputPower > 1000) {
 				beamedpower = (inputPower / 1000).ToString ("0.000") + "MW";
 			} else {

@@ -16,7 +16,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
 		[KSPField(isPersistant = true)]
-		bool recIsEnabled;
+		bool IsEnabled;
 		bool aIsRelay;
         public float powerInput;
         private int connectedsatsf = 0;
@@ -49,12 +49,12 @@ namespace FNPlugin {
 
 		[KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
 		public void ActivateReceiver() {
-			recIsEnabled = true;
+			IsEnabled = true;
 		}
 
 		[KSPEvent(guiActive = true, guiName = "Disable Receiver", active = true)]
 		public void DisableReceiver() {
-			recIsEnabled = false;
+			IsEnabled = false;
 		}
 
 		[KSPAction("Activate Receiver")]
@@ -69,7 +69,7 @@ namespace FNPlugin {
 
 		[KSPAction("Toggle Receiver")]
 		public void ToggleReceiverAction(KSPActionParam param) {
-			recIsEnabled = !recIsEnabled;
+			IsEnabled = !IsEnabled;
 		}
 
         public override void OnStart(PartModule.StartState state) {
@@ -103,11 +103,11 @@ namespace FNPlugin {
         }
 
         public override void OnUpdate() {
-			Events["ActivateReceiver"].active = !recIsEnabled;
-			Events["DisableReceiver"].active = recIsEnabled;
+			Events["ActivateReceiver"].active = !IsEnabled;
+			Events["DisableReceiver"].active = IsEnabled;
 			Fields["toteff"].guiActive = (connectedsatsf > 0 || connectedrelaysf > 0);
 
-			if (recIsEnabled) {
+			if (IsEnabled) {
 				if (powerInput > 1000) {
 					beamedpower = (powerInput/1000).ToString () + "MW";
 				} else {
@@ -120,7 +120,7 @@ namespace FNPlugin {
 			connectedrelays = connectedrelaysf.ToString();
             toteff = totefff.ToString() + "%";
 
-			/*if (connectedsatsf > 0 || connectedrelaysf > 0) {
+			if (connectedsatsf > 0 || connectedrelaysf > 0) {
 				if (play_up) {
 					play_down = true;
 					play_up = false;
@@ -137,7 +137,7 @@ namespace FNPlugin {
 					anim.Blend (animName, 2f);
 				}
 
-			}*/
+			}
         }
 
         public override void OnFixedUpdate() {
@@ -148,7 +148,7 @@ namespace FNPlugin {
 			float powerInputRelay = 0;
             int activeSatsIncr = 0;
             float rangelosses = 0;
-            if (config != null && recIsEnabled) {
+            if (config != null && IsEnabled) {
 
 				//Check to see if active vessel is a relay - for now we do not want a relay to connect to another relay to prevent energy loops
 				String aid = vessel.id.ToString ();
@@ -184,8 +184,11 @@ namespace FNPlugin {
 								powerdissip = Math.Max (powerdissip, 1);
 								if (vgenType != "relay" && inputPowerFixedAlt > 0) {
 									rangelosses += powerdissip;
-									print ("powerdissip : " + powerdissip + " inputPowerFixedAlt : " + inputPowerFixedAlt);
-									powerInputIncr += inputPowerFixedAlt / powerdissip;
+									//Scale energy reception based on angle of reciever to transmitter
+									Vector3d direction_vector = (vess.transform.position-vessel.transform.position).normalized;
+									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
+									facing_factor = Mathf.Max (0, facing_factor);
+									powerInputIncr += inputPowerFixedAlt / powerdissip*facing_factor;
 									activeSatsIncr++;
 									connectedrelaysf = 0;
 									print ("warp: sat added - genType: " + vgenType);
@@ -193,7 +196,11 @@ namespace FNPlugin {
 								// only attach to one relay IF no sattilites are available for direct connection
 								else if(aIsRelay == false && activeSatsIncr < 1 && inputPowerFixedAlt > 0){
 									rangelosses = powerdissip;
-									powerInputRelay = inputPowerFixedAlt / powerdissip;
+									//Scale energy reception based on angle of reciever to transmitter
+									Vector3d direction_vector = (vess.transform.position-vessel.transform.position).normalized;
+									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
+									facing_factor = Mathf.Max (0, facing_factor);
+									powerInputRelay = inputPowerFixedAlt / powerdissip*facing_factor;
 									connectedrelaysf = 1;
 									activeSatsIncr = 0;
 									print ("warp: relay added");
@@ -228,21 +235,10 @@ namespace FNPlugin {
             }
 
 
-            if (powerInput > 1000) {
-				float powerInputMegajoules = (powerInput - 1000)/1000;
-				float powerInputKilojoules = 1000;
-				//part.RequestResource("Megajoules", -powerInputMegajoules * TimeWarp.fixedDeltaTime);
-				//megamanager.powerSupply(powerInputMegajoules * TimeWarp.fixedDeltaTime);
-				supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
-				float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
-				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                part.RequestResource("ElectricCharge", -powerInputKilojoules * TimeWarp.fixedDeltaTime);
-            }
-            else {
-				float waste_head_production = powerInput/1000.0f/efficiency * (1.0f - efficiency);
-				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                part.RequestResource("ElectricCharge", -powerInput * TimeWarp.fixedDeltaTime);
-            }
+			float powerInputMegajoules = powerInput/1000.0f;
+			supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+			float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
+			supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             //activeCount++;
         }
 
