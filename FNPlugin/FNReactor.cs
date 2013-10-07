@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FNPlugin {
     class FNReactor : FNResourceSuppliableModule    {
@@ -22,6 +23,8 @@ namespace FNPlugin {
         public float upgradedAntimatterRate;
         [KSPField(isPersistant = false)]
         public float UF6Rate;
+		[KSPField(isPersistant = false)]
+		public string animName;
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
         [KSPField(isPersistant = true)]
@@ -57,6 +60,10 @@ namespace FNPlugin {
         protected float myScience = 0;
 
 		protected float powerPcnt = 0;
+
+		protected Animation anim;
+		protected bool play_down = true;
+		protected bool play_up = true;
 
         //protected bool responsible_for_thermalmanager = false;
         //protected FNResourceManager thermalmanager;
@@ -120,21 +127,8 @@ namespace FNPlugin {
             if (isNuclear) { return; }
             IsEnabled = !IsEnabled;
         }
-
-        private bool init = false;
-
-        public override void OnLoad(ConfigNode node) {
-            if (isupgraded) {
-                ThermalPower = upgradedThermalPower;
-                ReactorTemp = upgradedReactorTemp;
-                UF6Rate = upgradedUF6Rate;
-                reactorType = upgradedName;
-                AntimatterRate = upgradedAntimatterRate;
-            }else {
-                reactorType = originalName;
-            }
-        }
-
+		      
+		        
         public override void OnStart(PartModule.StartState state) {
 			base.OnStart(state);
 
@@ -143,6 +137,31 @@ namespace FNPlugin {
             Actions["ToggleReactorAction"].guiName = String.Format("Toggle Reactor");
             
             if (state == StartState.Editor) { return; }
+
+			if (isupgraded) {
+				ThermalPower = upgradedThermalPower;
+				ReactorTemp = upgradedReactorTemp;
+				UF6Rate = upgradedUF6Rate;
+				reactorType = upgradedName;
+				AntimatterRate = upgradedAntimatterRate;
+			}else {
+				reactorType = originalName;
+			}
+
+			anim = part.FindModelAnimators (animName).FirstOrDefault ();
+			if (anim != null) {
+				anim [animName].layer = 1;
+				if (!IsEnabled) {
+					anim [animName].normalizedTime = 1f;
+					anim [animName].speed = -1f;
+
+				} else {
+					anim [animName].normalizedTime = 0f;
+					anim [animName].speed = 1f;
+
+				}
+				anim.Play ();
+			}
 
             List<PartResource> partresources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
@@ -183,7 +202,6 @@ namespace FNPlugin {
             
         }
 
-                
         public override void OnUpdate() {
             Events["ActivateReactor"].active = !IsEnabled && !isNuclear;
             Events["DeactivateReactor"].active = IsEnabled && !isNuclear;
@@ -193,20 +211,34 @@ namespace FNPlugin {
             coretempStr = ReactorTemp.ToString("0") + "K";
             //thermalISPStr = (Math.Sqrt(ReactorTemp) * 17).ToString("0.0") + "s";
 
+			if (IsEnabled) {
+				if (play_up && anim != null) {
+					play_down = true;
+					play_up = false;
+					anim [animName].speed = 1f;
+					anim [animName].normalizedTime = 0f;
+					anim.Blend (animName, 2f);
+				}
+			} else {
+				if (play_down && anim != null) {
+					play_down = false;
+					play_up = true;
+					anim [animName].speed = -1f;
+					anim [animName].normalizedTime = 1f;
+					anim.Blend (animName, 2f);
+				}
+			}
+
+            List<PartResource> partresources = new List<PartResource>();
+            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
+            float currentscience = 0;
+            foreach (PartResource partresource in partresources) {
+            	currentscience += (float)partresource.amount;
+            }
+            myScience = currentscience;
+
+            upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
             
-
-            //if (isNuclear) {
-                List<PartResource> partresources = new List<PartResource>();
-                part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-                float currentscience = 0;
-                foreach (PartResource partresource in partresources) {
-                    currentscience += (float)partresource.amount;
-                }
-                myScience = currentscience;
-
-                upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
-            //}
-
 			if (IsEnabled) {
 				if (antimatter_pcnt > 0 || uf6_pcnt > 0) {
 					statusStr = "Active (" + powerPcnt.ToString ("0.00") + "%)";
@@ -230,9 +262,14 @@ namespace FNPlugin {
             return ThermalPower;
         }
 
-        
-        public override void OnFixedUpdate() {
+		public bool getIsNuclear() {
+			return isNuclear;
+		}
+
+		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
+
+			//print ("Reactor Check-in 1 (" + vessel.GetName() + ")");
 
             if (UF6Rate > 0) {
                 isNuclear = true;
@@ -270,6 +307,8 @@ namespace FNPlugin {
                 }
                 
             }
+
+			//print ("Reactor Check-in 2 (" + vessel.GetName() + ")");
             
         }
 

@@ -164,7 +164,7 @@ namespace FNPlugin {
 			}
 
 			if (currentscience > 0) {
-				float science_to_transmit = Math.Min (currentscience, 100f);
+				double science_to_transmit = Math.Min (currentscience, 100f);
 				science_to_transmit = part.RequestResource ("Science", science_to_transmit);
 				ConfigNode config = PluginHelper.getPluginSaveFile ();
 				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
@@ -186,7 +186,7 @@ namespace FNPlugin {
 				double packet_ut = double.Parse (data_packet.GetValue ("UT_sent"));
 
 				// 30 minutes to receive packet
-				if (Planetarium.GetUniversalTime () - packet_ut <= 30 * 60) {
+				if (Planetarium.GetUniversalTime () - packet_ut <= 30.0 * 60.0) {
 					part.RequestResource ("Science", -double.Parse(data_packet.GetValue("science")));
 					found_good_packet = true;
 				}

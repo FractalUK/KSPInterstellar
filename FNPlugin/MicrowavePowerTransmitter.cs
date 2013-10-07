@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,18 +26,22 @@ namespace FNPlugin {
                 
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = true)]
         public void ActivateTransmitter() {
-			/*anim [animName].speed = 1f;
-			anim [animName].normalizedTime = 0f;
-			anim.Blend (animName, 2f);*/
-            transIsEnabled = true;
+			if (anim != null) {
+				anim [animName].speed = 1f;
+				anim [animName].normalizedTime = 0f;
+				anim.Blend (animName, 2f);
+			}
+            IsEnabled = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Transmitter", active = false)]
         public void DeactivateTransmitter() {
-			/*anim [animName].speed = -1f;
-			anim [animName].normalizedTime = 1f;
-			anim.Blend (animName, 2f);*/
-            transIsEnabled = false;
+			if (anim != null) {
+				anim [animName].speed = -1f;
+				anim [animName].normalizedTime = 1f;
+				anim.Blend (animName, 2f);
+			}
+            IsEnabled = false;
         }
 
         [KSPAction("Activate Transmitter")]
@@ -57,7 +61,7 @@ namespace FNPlugin {
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
 
-			/*anim = part.FindModelAnimators (animName).FirstOrDefault ();
+			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {
 				anim [animName].layer = 1;
 				if (!transIsEnabled) {
@@ -70,7 +74,7 @@ namespace FNPlugin {
 
 				}
 				anim.Play ();
-			}*/
+			}
                         
             List<Part> vesselparts = vessel.parts;
             for (int i = 0; i < vesselparts.Count; ++i) {
@@ -101,7 +105,7 @@ namespace FNPlugin {
             activeCount++;
 
 
-			if (transIsEnabled) {
+			if (IsEnabled) {
 				//List<PartResource> resources = new List<PartResource>();
 				//part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id, resources);
 				//float electrical_current_available = 0;
@@ -185,6 +189,10 @@ namespace FNPlugin {
 					config.Save (PluginHelper.getPluginSaveFilePath ());
 				}
             }
+
+
         }
+
+
     }
 }

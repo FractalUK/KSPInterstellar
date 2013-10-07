@@ -29,16 +29,18 @@ namespace FNPlugin {
         const float angle = 3.64773814E-10f;
         const float efficiency = 0.85f;
 
-		//[KSPField(isPersistant = false)]
-		//public string animName;
+		[KSPField(isPersistant = false)]
+		public string animName;
+		[KSPField(isPersistant = false)]
+		public float collectorArea = 1;
 
-		//protected Animation anim;
+		protected Animation anim;
 
         //protected bool responsible_for_megajoulemanager;
         //protected FNResourceManager megamanager;
 
-		//protected bool play_down = true;
-		//protected bool play_up = true;
+		protected bool play_down = true;
+		protected bool play_up = true;
 
 		public MicrowavePowerReceiver() : base() {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
@@ -70,16 +72,16 @@ namespace FNPlugin {
 			recIsEnabled = !recIsEnabled;
 		}
 
-		public override void OnStart(PartModule.StartState state) {
+        public override void OnStart(PartModule.StartState state) {
 			Actions["ActivateReceiverAction"].guiName = Events["ActivateReceiver"].guiName = String.Format("Activate Receiver");
 			Actions["DisableReceiverAction"].guiName = Events["DisableReceiver"].guiName = String.Format("Disable Receiver");
 			Actions["ToggleReceiverAction"].guiName = String.Format("Toggle Receiver");
 
 			base.OnStart (state);
-			if (state == StartState.Editor) { return; }
-			this.part.force_activate();
+            if (state == StartState.Editor) { return; }
+            this.part.force_activate();
 
-			/*anim = part.FindModelAnimators (animName).FirstOrDefault ();
+			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {
 				anim [animName].layer = 1;
 				if (connectedsatsf > 0 || connectedrelaysf > 0) {
@@ -244,24 +246,24 @@ namespace FNPlugin {
             //activeCount++;
         }
 
-		protected bool lineOfSightTo(Vessel vess) {
-			Vector3d a = vessel.transform.position;
-			Vector3d b = vess.transform.position;
-			foreach (CelestialBody referenceBody in FlightGlobals.Bodies) {
-				Vector3d refminusa = referenceBody.position - a;
-				Vector3d bminusa = b - a;
-				if (Vector3d.Dot(refminusa, bminusa) > 0) {
-					if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude) {
-						Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-						if (tang.magnitude < referenceBody.Radius) {
-							return false;
-						}
-					}
-				}
-			}
-			return true;
-		}
-	}
+        protected bool lineOfSightTo(Vessel vess) {
+            Vector3d a = vessel.transform.position;
+            Vector3d b = vess.transform.position;
+            foreach (CelestialBody referenceBody in FlightGlobals.Bodies) {
+                Vector3d refminusa = referenceBody.position - a;
+                Vector3d bminusa = b - a;
+                if (Vector3d.Dot(refminusa, bminusa) > 0) {
+                    if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude) {
+                        Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
+                        if (tang.magnitude < referenceBody.Radius) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+    }
 
-
+    
 }
