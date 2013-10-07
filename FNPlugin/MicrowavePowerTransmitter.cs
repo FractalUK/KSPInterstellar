@@ -106,12 +106,6 @@ namespace FNPlugin {
 
 
 			if (IsEnabled) {
-				//List<PartResource> resources = new List<PartResource>();
-				//part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id, resources);
-				//float electrical_current_available = 0;
-				//for (int i = 0; i < resources.Count; ++i) {
-				//    electrical_current_available += (float)resources.ElementAt(i).amount;
-				//}
 				List<Part> vesselparts = vessel.parts;
 				float electrical_current_available = 0;
 				for (int i = 0; i < vesselparts.Count; ++i) {
@@ -122,16 +116,14 @@ namespace FNPlugin {
 						var curMwRec = pml.GetModule (j) as MicrowavePowerReceiver;
 						var curSolarPan = pml.GetModule (j) as ModuleDeployableSolarPanel;
 						if (curFNGen != null) {
-							electrical_current_available += curFNGen.tPower * 1000;
-							//print ("warp: current available " + electrical_current_available);
+							electrical_current_available = curFNGen.getMaxPowerOutput() * 1000;
 							List<PartResource> partresources = new List<PartResource> ();
 							part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Megajoules").id, partresources);
-							float currentMJ = 0;
-							foreach (PartResource partresource in partresources) {
-								currentMJ += (float)partresource.amount;
-							}
-							if (currentMJ > electrical_current_available / 1000) {
-								part.RequestResource ("Megajoules", electrical_current_available / 1000 * TimeWarp.fixedDeltaTime);
+							float consumeMJ = curFNGen.getMaxPowerOutput () * TimeWarp.fixedDeltaTime;
+							float cvalue = consumeFNResource(consumeMJ,FNResourceManager.FNRESOURCE_MEGAJOULES);
+							//this will smoothly reduce transmitter power down to 0 if we are running out of megajoules (To give priority to other components onboard that are drawing power)
+							if (cvalue < consumeMJ) {
+								electrical_current_available = (curFNGen.getMaxPowerOutput () / consumeMJ) * cvalue;
 							}
 							nuclear = true;
 						} 
@@ -148,7 +140,6 @@ namespace FNPlugin {
 					}
 				}
 				inputPower = electrical_current_available;
-				//print ("warp: inputPower " + inputPower);
 			} else {
 				inputPower = 0;
 			}
@@ -180,10 +171,14 @@ namespace FNPlugin {
 					string outputPower = inputPowerFixedAlt.ToString ("0.000");
 					if (!config.HasValue (vesselIDSolar)) {
 						config.AddValue (vesselIDSolar, outputPower);
-						config.AddValue (vesselIDSolar + "type", genType);
 					} else {
 						config.SetValue (vesselIDSolar, outputPower);
+					}
+
+					if (!config.HasValue (vesselIDSolar + "type")) {
 						config.AddValue (vesselIDSolar + "type", genType);
+					} else {
+						config.SetValue (vesselIDSolar + "type", genType);
 					}
                 
 					config.Save (PluginHelper.getPluginSaveFilePath ());

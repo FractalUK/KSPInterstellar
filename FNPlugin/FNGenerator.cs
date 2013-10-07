@@ -48,9 +48,6 @@ namespace FNPlugin
 		protected bool play_down = true;
 		protected bool play_up = true;
 
-		//for microwave transmission
-		public float tPower;
-
 		protected Animation anim;
 
         //protected bool responsible_for_megajoulemanager;
@@ -223,7 +220,6 @@ namespace FNPlugin
             }
 
 			if (totalEff >= 0) {
-				tPower = maxThermalPower * totalEff;
 				MaxPowerStr = (maxThermalPower*totalEff).ToString ("0.000") + "MW";
 			} else {
 				MaxPowerStr = (0).ToString() + "MW";
