@@ -242,7 +242,7 @@ namespace FNPlugin
         }
 
         public override string GetInfo() {
-            return String.Format("Max Thermal Power: {0}MW\n Percent of Carnot Efficiency: {1}%", maxThermalPower,pCarnotEff*100);
+			return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff*100, upgradedpCarnotEff*100);
         }
 
         public override void OnFixedUpdate() {

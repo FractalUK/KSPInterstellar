@@ -29,7 +29,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = true)]
-        private int fuel_mode = 0;
+        public int fuel_mode = 1;
         protected float total_power_output = 0;
         protected float reference_power = 8000;
         protected float initial_thrust = 0;
@@ -68,6 +68,11 @@ namespace FNPlugin {
             evaluateMaxThrust();
 
         }
+
+		[KSPAction("Toggle Propellant")]
+		public void TogglePropellantAction(KSPActionParam param) {
+			TogglePropellant();
+		}
         
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitEngine() {
@@ -109,6 +114,8 @@ namespace FNPlugin {
         
         public override void OnStart(PartModule.StartState state) {
 			base.OnStart (state);
+
+			Actions["TogglePropellantAction"].guiName = Events["TogglePropellant"].guiName = String.Format("Toggle Propellant");
 
             if (state == StartState.Editor) { return; }
             //this.part.force_activate();

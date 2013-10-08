@@ -13,7 +13,7 @@ namespace FNPlugin {
             CelestialBody crefbody = FlightGlobals.fetch.bodies[refBody];
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
 
-            double atmosphere_height = crefbody.maxAtmosphereAltitude;
+			double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude (crefbody);
             if (altitude <= atmosphere_height && crefbody.flightGlobalsIndex != 0) {
                 return 0;
             }

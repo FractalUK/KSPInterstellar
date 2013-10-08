@@ -34,7 +34,9 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public string originalName;
         [KSPField(isPersistant = false)]
-        public float upgradeCost;
+		public float upgradeCost;
+		[KSPField(isPersistant = true)]
+		public bool breedtritium = false;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
@@ -45,6 +47,10 @@ namespace FNPlugin {
         //public string thermalISPStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr;
+
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Tritium")]
+		public string tritiumBreedRate;
+
         [KSPField(isPersistant = true)]
         public float last_active_time;
 		[KSPField(isPersistant = true)]
@@ -64,6 +70,10 @@ namespace FNPlugin {
 		protected Animation anim;
 		protected bool play_down = true;
 		protected bool play_up = true;
+
+		protected float tritium_rate = 0;
+		protected float tritium_produced_f = 0;
+
 
         //protected bool responsible_for_thermalmanager = false;
         //protected FNResourceManager thermalmanager;
@@ -85,6 +95,18 @@ namespace FNPlugin {
             if (isNuclear) { return; }
             IsEnabled = false;
         }
+
+		[KSPEvent(guiActive = true, guiName = "Enable Tritium Breeding", active = false)]
+		public void BreedTritium() {
+			if (!isNuclear) { return; }
+			breedtritium = true;
+		}
+
+		[KSPEvent(guiActive = true, guiName = "Disable Tritium Breeding", active = true)]
+		public void StopBreedTritium() {
+			if (!isNuclear) { return; }
+			breedtritium = false;
+		}
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitReactor() {
@@ -141,7 +163,13 @@ namespace FNPlugin {
 
 			if (UF6Rate > 0) {
 				isNuclear = true;
+
+				if (ThermalPower > 0) {
+					tritium_rate = ThermalPower/1000.0f/28800.0f;
+				}
 			}
+
+
 		}
 		      
 		        
@@ -213,7 +241,10 @@ namespace FNPlugin {
             Events["ActivateReactor"].active = !IsEnabled && !isNuclear;
             Events["DeactivateReactor"].active = IsEnabled && !isNuclear;
             Events["RetrofitReactor"].active = !isupgraded && hasScience && myScience >= upgradeCost;
+			Events["BreedTritium"].active = !breedtritium && isNuclear;
+			Events["StopBreedTritium"].active = breedtritium && isNuclear;
             Fields["upgradeCostStr"].guiActive = !isupgraded;
+			Fields["tritiumBreedRate"].guiActive = breedtritium && isNuclear;
 
             coretempStr = ReactorTemp.ToString("0") + "K";
             //thermalISPStr = (Math.Sqrt(ReactorTemp) * 17).ToString("0.0") + "s";
@@ -245,6 +276,8 @@ namespace FNPlugin {
             myScience = currentscience;
 
             upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+
+			tritiumBreedRate = (tritium_produced_f * 86400).ToString ("0.00") + " Kg/day";
             
 			if (IsEnabled) {
 				if (antimatter_pcnt > 0 || uf6_pcnt > 0) {
@@ -308,6 +341,9 @@ namespace FNPlugin {
 					float return_pcnt = 1-thermal_power_pcnt;
 					part.RequestResource("UF6", -uf6_provided*return_pcnt); //return UF6 from <100% power
 					powerPcnt = uf6_pcnt * 100.0f*thermal_power_pcnt;
+
+					float lith_used = part.RequestResource ("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
+					tritium_produced_f = -part.RequestResource ("Tritium", -lith_used)/TimeWarp.fixedDeltaTime;
                 }
                 if (Planetarium.GetUniversalTime() != 0) {
                     last_active_time = (float) Planetarium.GetUniversalTime();
