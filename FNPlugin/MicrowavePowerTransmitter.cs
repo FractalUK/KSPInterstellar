@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,13 +6,17 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
-    class MicrowavePowerTransmitter : PartModule {
+	class MicrowavePowerTransmitter : FNResourceSuppliableModule {
         [KSPField(isPersistant = true)]
         bool IsEnabled;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
         public string beamedpower;
         float inputPower = 0;
         private int activeCount = 0;
+
+		bool nuclear = false;
+		bool microwave = false;
+		bool solar = false;
 
 		[KSPField(isPersistant = false)]
 		public string animName;
@@ -90,8 +94,11 @@ namespace FNPlugin {
         public override void OnUpdate() {
             Events["ActivateTransmitter"].active = !IsEnabled;
             Events["DeactivateTransmitter"].active = IsEnabled;
-            
-            beamedpower = inputPower.ToString("0.000") + "KW";
+			if (inputPower > 1000) {
+				beamedpower = (inputPower / 1000).ToString ("0.000") + "MW";
+			} else {
+				beamedpower = inputPower.ToString ("0.000") + "KW";
+			}
         }
 
         public override void OnFixedUpdate() {
@@ -99,48 +106,83 @@ namespace FNPlugin {
 
 
 			if (IsEnabled) {
-				//List<PartResource> resources = new List<PartResource>();
-				//part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ElectricCharge").id, resources);
-				//float electrical_current_available = 0;
-				//for (int i = 0; i < resources.Count; ++i) {
-				//    electrical_current_available += (float)resources.ElementAt(i).amount;
-				//}
 				List<Part> vesselparts = vessel.parts;
 				float electrical_current_available = 0;
 				for (int i = 0; i < vesselparts.Count; ++i) {
 					Part cPart = vesselparts.ElementAt (i);
 					PartModuleList pml = cPart.Modules;
 					for (int j = 0; j < pml.Count; ++j) {
+						var curFNGen = pml.GetModule (j) as FNGenerator;
+						var curMwRec = pml.GetModule (j) as MicrowavePowerReceiver;
 						var curSolarPan = pml.GetModule (j) as ModuleDeployableSolarPanel;
-						if (curSolarPan != null) {
-                            
+						if (curFNGen != null) {
+							electrical_current_available = curFNGen.getMaxPowerOutput() * 1000;
+							List<PartResource> partresources = new List<PartResource> ();
+							part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Megajoules").id, partresources);
+							float consumeMJ = curFNGen.getMaxPowerOutput () * TimeWarp.fixedDeltaTime;
+							float cvalue = consumeFNResource(consumeMJ,FNResourceManager.FNRESOURCE_MEGAJOULES);
+							//this will smoothly reduce transmitter power down to 0 if we are running out of megajoules (To give priority to other components onboard that are drawing power)
+							if (cvalue < consumeMJ) {
+								electrical_current_available = (curFNGen.getMaxPowerOutput () / consumeMJ) * cvalue;
+							}
+							nuclear = true;
+						} 
+						else if (curMwRec != null && nuclear == false) {
+							electrical_current_available = curMwRec.powerInput;
+							part.RequestResource ("ElectricCharge", electrical_current_available * TimeWarp.fixedDeltaTime);
+							microwave = true;
+						}
+						else if (curSolarPan != null && nuclear == false && microwave == false) {
 							electrical_current_available += curSolarPan.flowRate;
+							part.RequestResource ("ElectricCharge", electrical_current_available * TimeWarp.fixedDeltaTime);
+							solar = true;
 						}
 					}
 				}
-
-				//inputPower = (float)part.RequestResource("ElectricCharge", electrical_current_available * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
-				part.RequestResource ("ElectricCharge", electrical_current_available * TimeWarp.fixedDeltaTime);
 				inputPower = electrical_current_available;
 			} else {
 				inputPower = 0;
 			}
 
             if (activeCount % 1000 == 9) {
-				ConfigNode config = PluginHelper.getPluginSaveFile();
-                //float inputPowerFixedAlt = (float) ((double)inputPower * (Math.Pow(FlightGlobals.Bodies[0].GetAltitude(vessel.transform.position), 2)) / PluginHelper.FIXED_SAT_ALTITUDE / PluginHelper.FIXED_SAT_ALTITUDE);
-                float inputPowerFixedAlt = inputPower / PluginHelper.getSatFloatCurve().Evaluate((float)FlightGlobals.Bodies[0].GetAltitude(vessel.transform.position));
-                string vesselIDSolar = vessel.id.ToString();
-
-                string outputPower = inputPowerFixedAlt.ToString("0.000");
-                if (!config.HasValue(vesselIDSolar)) {
-                    config.AddValue(vesselIDSolar, outputPower);
-                }else {
-                    config.SetValue(vesselIDSolar, outputPower);
+                ConfigNode config = ConfigNode.Load(PluginHelper.getPluginSaveFilePath());
+				string genType = "undefined";
+                if (config == null) {
+                    config = new ConfigNode();
                 }
+                //float inputPowerFixedAlt = (float) ((double)inputPower * (Math.Pow(FlightGlobals.Bodies[0].GetAltitude(vessel.transform.position), 2)) / PluginHelper.FIXED_SAT_ALTITUDE / PluginHelper.FIXED_SAT_ALTITUDE);
+				float inputPowerFixedAlt = 0;
+				if (nuclear == true) {
+					inputPowerFixedAlt = inputPower;
+					print ("warp: nuclear inputPower " + inputPowerFixedAlt);
+					genType = "nuclear";
+				} else if (microwave == true) {
+					inputPowerFixedAlt = inputPower;
+					print ("warp: relay inputPower " + inputPowerFixedAlt);
+					genType = "relay";
+				} else if (solar == true) {
+					inputPowerFixedAlt = inputPower / PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vessel.transform.position));
+					print ("warp: solar inputPower " + inputPowerFixedAlt);
+					genType = "solar";
+				}
                 
-                config.Save(PluginHelper.getPluginSaveFilePath());
+				if (genType != "undefined") {
+					string vesselIDSolar = vessel.id.ToString ();
+					string outputPower = inputPowerFixedAlt.ToString ("0.000");
+					if (!config.HasValue (vesselIDSolar)) {
+						config.AddValue (vesselIDSolar, outputPower);
+					} else {
+						config.SetValue (vesselIDSolar, outputPower);
+					}
 
+					if (!config.HasValue (vesselIDSolar + "type")) {
+						config.AddValue (vesselIDSolar + "type", genType);
+					} else {
+						config.SetValue (vesselIDSolar + "type", genType);
+					}
+                
+					config.Save (PluginHelper.getPluginSaveFilePath ());
+				}
             }
 
 
