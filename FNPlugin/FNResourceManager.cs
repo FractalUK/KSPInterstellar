@@ -139,7 +139,7 @@ namespace FNPlugin {
             powersupply += currentmegajoules;
 
 			//Prioritise supplying stock ElectricCharge resource
-			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES)) {
+			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
 				//current_resource_demand = 1;
 				List<PartResource> partresources2 = new List<PartResource> ();
 				my_part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("ElectricCharge").id, partresources2); 

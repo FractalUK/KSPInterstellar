@@ -36,6 +36,17 @@ namespace FNPlugin {
 		protected float radiatedThermalPower;
 		protected float convectedThermalPower;
 		protected float myScience = 0;
+		protected float current_rad_temp = 0;
+
+		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
+		public void RetrofitRadiator() {
+			if (isupgraded || myScience < upgradeCost) { return; }
+
+			isupgraded = true;
+			radiatorType = upgradedName;
+			radiatorTemp = upgradedRadiatorTemp;
+			radiatorTempStr = radiatorTemp + "K";
+		}
 
 		public override void OnStart(PartModule.StartState state) {
 
@@ -52,8 +63,11 @@ namespace FNPlugin {
 		}
 
 		public override void OnUpdate() {
+			Events["RetrofitRadiator"].active = !isupgraded && myScience >= upgradeCost;
+
 			thermalPowerDissipStr = radiatedThermalPower.ToString ("0.000") + "MW";
 			thermalPowerConvStr = convectedThermalPower.ToString ("0.000") + "MW";
+			radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + radiatorTemp.ToString("0.0") + "K";
 
 			float currentscience = 0;
 			List<PartResource> partresources = new List<PartResource>();
@@ -70,6 +84,8 @@ namespace FNPlugin {
 			float thermal_power_dissip = (float)(FNRadiator.stefan_const * radiatorArea * Math.Pow (radiatorTemp, 4) / 1e6) * TimeWarp.fixedDeltaTime;
 			radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
+			current_rad_temp = (float) (Math.Min(Math.Pow (radiatedThermalPower*1e6 / (FNRadiator.stefan_const * radiatorArea), 0.25),radiatorTemp));
+			current_rad_temp = Mathf.Max(current_rad_temp,FlightGlobals.getExternalTemperature((float)vessel.altitude,vessel.mainBody)+273.16f);
 
 			float vessel_height = (float) vessel.mainBody.GetAltitude (vessel.transform.position);
 			float conv_power_dissip = 0;

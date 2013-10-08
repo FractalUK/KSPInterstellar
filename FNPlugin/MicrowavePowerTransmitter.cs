@@ -145,11 +145,9 @@ namespace FNPlugin {
 			}
 
             if (activeCount % 1000 == 9) {
-                ConfigNode config = ConfigNode.Load(PluginHelper.getPluginSaveFilePath());
+				ConfigNode config = PluginHelper.getPluginSaveFile ();
 				string genType = "undefined";
-                if (config == null) {
-                    config = new ConfigNode();
-                }
+                
                 //float inputPowerFixedAlt = (float) ((double)inputPower * (Math.Pow(FlightGlobals.Bodies[0].GetAltitude(vessel.transform.position), 2)) / PluginHelper.FIXED_SAT_ALTITUDE / PluginHelper.FIXED_SAT_ALTITUDE);
 				float inputPowerFixedAlt = 0;
 				if (nuclear == true) {

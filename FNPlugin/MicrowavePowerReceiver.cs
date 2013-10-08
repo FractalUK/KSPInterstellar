@@ -191,7 +191,7 @@ namespace FNPlugin {
 									powerInputIncr += inputPowerFixedAlt / powerdissip*facing_factor;
 									activeSatsIncr++;
 									connectedrelaysf = 0;
-									print ("warp: sat added - genType: " + vgenType);
+									//print ("warp: sat added - genType: " + vgenType);
 								}
 								// only attach to one relay IF no sattilites are available for direct connection
 								else if(aIsRelay == false && activeSatsIncr < 1 && inputPowerFixedAlt > 0){
@@ -203,7 +203,7 @@ namespace FNPlugin {
 									powerInputRelay = inputPowerFixedAlt / powerdissip*facing_factor;
 									connectedrelaysf = 1;
 									activeSatsIncr = 0;
-									print ("warp: relay added");
+									//print ("warp: relay added");
 								}
 							}
 						}
@@ -216,20 +216,20 @@ namespace FNPlugin {
 						totefff = efficiency * atmosphericefficiency*100/rangelosses;
 						powerInput = powerInputIncr * efficiency * atmosphericefficiency;
 						connectedsatsf = activeSatsIncr;
-						print ("warp: connected sat");
+						//print ("warp: connected sat");
 					}
 					else if (connectedrelaysf > 0 && powerInputRelay > 0) {
 						this.rangelosses = rangelosses / connectedrelaysf;
 						totefff = efficiency * atmosphericefficiency*100/rangelosses;
 						powerInput = powerInputRelay * efficiency * atmosphericefficiency;
 						connectedsatsf = 0;
-						print("warp: connected relay");
+						//print("warp: connected relay");
 					}
 					else {
 						connectedrelaysf = 0;
 						connectedsatsf = 0;
 						powerInput = 0;
-						print ("warp: no active sats or relays available");
+						//print ("warp: no active sats or relays available");
 					}
                 //}
             }

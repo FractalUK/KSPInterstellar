@@ -45,6 +45,7 @@ namespace FNPlugin {
 		protected Animation anim;
 		protected float radiatedThermalPower;
 		protected float convectedThermalPower;
+		protected float current_rad_temp;
 		protected float myScience = 0;
 		protected Vector3 oldrot;
 		protected float directionrotate = 1;
@@ -143,6 +144,7 @@ namespace FNPlugin {
 
 			thermalPowerDissipStr = radiatedThermalPower.ToString ("0.000") + "MW";
 			thermalPowerConvStr = convectedThermalPower.ToString ("0.000") + "MW";
+			radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + radiatorTemp.ToString("0.0") + "K";
 
 			float currentscience = 0;
 			List<PartResource> partresources = new List<PartResource>();
@@ -159,15 +161,13 @@ namespace FNPlugin {
 			if (IsEnabled) {
 				float thermal_power_dissip = (float)(stefan_const * radiatorArea * Math.Pow (radiatorTemp, 4) / 1e6) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
-				float emiss_val = radiatedThermalPower / thermal_power_dissip / TimeWarp.fixedDeltaTime;
+
+				current_rad_temp = (float) (Math.Min(Math.Pow (radiatedThermalPower*1e6 / (stefan_const * radiatorArea), 0.25),radiatorTemp));
+				current_rad_temp = Mathf.Max(current_rad_temp,FlightGlobals.getExternalTemperature((float)vessel.altitude,vessel.mainBody)+273.16f);
 
 				Vector3 pivrot = pivot.rotation.eulerAngles;
 
 				pivot.Rotate (Vector3.up * 5f * TimeWarp.fixedDeltaTime * directionrotate);
-
-				float x = 0;
-				float y = 0;
-				float z = 0;
 
 				Vector3 sunpos = FlightGlobals.Bodies [0].transform.position;
 				Vector3 flatVectorToTarget = sunpos - transform.position;
@@ -190,6 +190,9 @@ namespace FNPlugin {
 
 				float thermal_power_dissip = (float)(stefan_const * radiatorArea * Math.Pow (radiatorTemp, 4) / 1e7) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+
+				current_rad_temp = (float) (Math.Min(Math.Pow (radiatedThermalPower*1e6 / (stefan_const * radiatorArea), 0.25),radiatorTemp));
+				current_rad_temp = Mathf.Max(current_rad_temp,FlightGlobals.getExternalTemperature((float)vessel.altitude,vessel.mainBody)+273.16f);
 
 				part.maximum_drag = 0.2f;
 				part.minimum_drag = 0.2f;

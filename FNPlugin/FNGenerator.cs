@@ -36,6 +36,8 @@ namespace FNPlugin
         public float upgradedpCarnotEff;
 		[KSPField(isPersistant = false)]
 		public string animName;
+		[KSPField(isPersistant = true)]
+		public bool generatorInit = false;
 
         private float coldBathTemp = 500;
         public float hotBathTemp = 1;
@@ -134,6 +136,11 @@ namespace FNPlugin
             }
             print("[WarpPlugin] Configuring Generator");
             recalculatePower();
+
+			if (generatorInit == false) {
+				generatorInit = true;
+				IsEnabled = true;
+			}
 
             List<PartResource> partresources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
@@ -251,12 +258,7 @@ namespace FNPlugin
 			//print ("Generator Check-in 1 (" + vessel.GetName() + ")");
 
             if (!IsEnabled) { return; }
-
-			if (myReactor != null) {
-				setHotBathTemp(myReactor.getReactorTemp());
-				maxThermalPower = myReactor.getReactorThermalPower();
-			}
-                 
+						                 
             double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
 			if (carnotEff < 0) {
 				recalculatePower ();
@@ -265,10 +267,10 @@ namespace FNPlugin
 				if (carnotEff < 0) {
 					shutdown_counter++;
 					carnotEff = 0;
-					if (shutdown_counter > 10) {
+					if (shutdown_counter > 20) {
 						IsEnabled = false;
 						ScreenMessages.PostScreenMessage ("Generator Shutdown: No thermal power connected!");
-
+						print ("[WarpPlugin] Generator Shutdown - no thermal power");
 					}
 					return;
 				}
