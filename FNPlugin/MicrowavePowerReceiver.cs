@@ -181,7 +181,7 @@ namespace FNPlugin {
 								float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
 								float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 								float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
-								powerdissip = Math.Max (powerdissip, 1);
+								powerdissip = Math.Max (powerdissip/collectorArea, 1);
 								if (vgenType != "relay" && inputPowerFixedAlt > 0) {
 									rangelosses += powerdissip;
 									//Scale energy reception based on angle of reciever to transmitter
