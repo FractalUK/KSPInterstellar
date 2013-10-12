@@ -42,11 +42,6 @@ namespace FNPlugin {
 		protected bool play_down = true;
 		protected bool play_up = true;
 
-		public MicrowavePowerReceiver() : base() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
-			this.resources_to_supply = resources_to_supply;
-		}
-
 		[KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
 		public void ActivateReceiver() {
 			IsEnabled = true;
@@ -141,6 +136,9 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
+			this.resources_to_supply = resources_to_supply;
+
 			base.OnFixedUpdate ();
 			                                   
 			ConfigNode config = PluginHelper.getPluginSaveFile();
@@ -181,7 +179,7 @@ namespace FNPlugin {
 								float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
 								float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 								float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
-								powerdissip = Math.Max (powerdissip/collectorArea, 1);
+								powerdissip = Math.Max (powerdissip/collectorArea, 1); 
 								if (vgenType != "relay" && inputPowerFixedAlt > 0) {
 									rangelosses += powerdissip;
 									//Scale energy reception based on angle of reciever to transmitter

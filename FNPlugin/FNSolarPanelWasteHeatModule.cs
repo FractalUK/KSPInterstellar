@@ -11,13 +11,10 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Heat Production")]
 		public string heatProductionStr = ":";
 
-
-		public FNSolarPanelWasteHeatModule () : base()	{
+		public override void OnStart(PartModule.StartState state) {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
-		}
 
-		public override void OnStart(PartModule.StartState state) {
 			base.OnStart (state);
 
 			if (state == StartState.Editor) { return; }
