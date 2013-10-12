@@ -37,7 +37,9 @@ namespace FNPlugin {
 		public float upgradeCost;
 		[KSPField(isPersistant = true)]
 		public bool breedtritium = false;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+		[KSPField(isPersistant = false)]
+		public float radius; 
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
         public string coretempStr;
@@ -77,12 +79,7 @@ namespace FNPlugin {
 
         //protected bool responsible_for_thermalmanager = false;
         //protected FNResourceManager thermalmanager;
-
-		public FNReactor() : base() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER,FNResourceManager.FNRESOURCE_WASTEHEAT};
-			this.resources_to_supply = resources_to_supply;
-		}
-        
+		       
 
         [KSPEvent(guiActive = true, guiName = "Activate Reactor", active = false)]
         public void ActivateReactor() {
@@ -174,6 +171,9 @@ namespace FNPlugin {
 		      
 		        
         public override void OnStart(PartModule.StartState state) {
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER,FNResourceManager.FNRESOURCE_WASTEHEAT};
+			this.resources_to_supply = resources_to_supply;
+
 			base.OnStart(state);
 
             Actions["ActivateReactorAction"].guiName = Events["ActivateReactor"].guiName = String.Format("Activate Reactor");
@@ -231,6 +231,27 @@ namespace FNPlugin {
 					float uf6_to_take = (float)Math.Min(uf6_current_amount, UF6Rate * time_diff*ongoing_consumption_rate);
                     part.RequestResource("UF6", uf6_to_take);
                     part.RequestResource("DUF6", -uf6_to_take);
+
+					if(breedtritium) {
+						List<PartResource> lithium_resources = new List<PartResource>();
+						part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Lithium").id, lithium_resources);
+						float lithium_current_amount = 0;
+						foreach (PartResource lithium_resource in lithium_resources) {
+							lithium_current_amount += (float)lithium_resource.amount;
+						}
+
+						List<PartResource> tritium_resources = new List<PartResource>();
+						part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Tritium").id, tritium_resources);
+						float tritium_missing_amount = 0;
+						foreach (PartResource tritium_resource in tritium_resources) {
+							tritium_missing_amount += (float)(tritium_resource.maxAmount-tritium_resource.amount);
+						}
+
+						float lithium_to_take = (float) Math.Min(tritium_rate*time_diff*ongoing_consumption_rate,lithium_current_amount);
+						float tritium_to_add = (float) -Math.Min(tritium_rate*time_diff*ongoing_consumption_rate,tritium_missing_amount);
+						part.RequestResource("Lithium",lithium_to_take);
+						part.RequestResource("Tritium",tritium_to_add);
+					}
                 }
             }
 
@@ -306,6 +327,10 @@ namespace FNPlugin {
 			return isNuclear;
 		}
 
+		public float getRadius() {
+			return radius;
+		}
+
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 
@@ -342,8 +367,10 @@ namespace FNPlugin {
 					part.RequestResource("UF6", -uf6_provided*return_pcnt); //return UF6 from <100% power
 					powerPcnt = uf6_pcnt * 100.0f*thermal_power_pcnt;
 
-					float lith_used = part.RequestResource ("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
-					tritium_produced_f = -part.RequestResource ("Tritium", -lith_used)/TimeWarp.fixedDeltaTime;
+					if (breedtritium) {
+						float lith_used = part.RequestResource ("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
+						tritium_produced_f = -part.RequestResource ("Tritium", -lith_used) / TimeWarp.fixedDeltaTime;
+					}
                 }
                 if (Planetarium.GetUniversalTime() != 0) {
                     last_active_time = (float) Planetarium.GetUniversalTime();

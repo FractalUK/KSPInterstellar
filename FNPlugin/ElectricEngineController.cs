@@ -51,11 +51,6 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Mode")]
         public string fuelmode;
 
-		public ElectricEngineController() : base() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT};
-			this.resources_to_supply = resources_to_supply;
-		}
-
         [KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
         public void TogglePropellant() {
 
@@ -113,6 +108,9 @@ namespace FNPlugin {
         }
         
         public override void OnStart(PartModule.StartState state) {
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT};
+			this.resources_to_supply = resources_to_supply;
+
 			base.OnStart (state);
 
 			Actions["TogglePropellantAction"].guiName = Events["TogglePropellant"].guiName = String.Format("Toggle Propellant");
@@ -129,7 +127,13 @@ namespace FNPlugin {
                 initial_isp = curEngine.atmosphereCurve.Evaluate(0);
             }
 
-            engineType = originalName;
+			if(isupgraded) {
+				engineType = upgradedName;
+			}else{
+				engineType = originalName;
+			}
+
+            
 			evaluateMaxThrust();
             
         }
@@ -246,12 +250,13 @@ namespace FNPlugin {
 				}
 			}
 
-			float thrust_to_use = thrust_per_engine;
-
+			//float thrust_to_use = thrust_per_engine;
+			float thrust_to_use = thrust_efficiency*2000.0f*power_received / (curEngine.atmosphereCurve.Evaluate (0) * 9.81f);
 
 			float temp_to_part_set = Mathf.Min(curEngine.currentThrottle * part.maxTemp * 0.8f,1);
 
-			curEngine.maxThrust = Mathf.Max(thrust_to_use*thrust_ratio,0.00001f);
+			//curEngine.maxThrust = Mathf.Max(thrust_to_use*thrust_ratio,0.00001f);
+			curEngine.maxThrust = Mathf.Max(thrust_to_use,0.00001f);
 
 			if (thrust_to_use * thrust_ratio <= 0.0001f && curEngine.currentThrottle * thrust_per_engine > 0.0001f  && !curEngine.flameout) {
 				shutdown_counter++;
@@ -269,7 +274,21 @@ namespace FNPlugin {
 			}
 
             if (isupgraded) {
-                part.RequestResource("VacuumPlasma", -10);
+				float vacuum_plasma_needed = 0;
+				float vacuum_plasma_current = 0;
+				List<PartResource> vacuum_resources = new List<PartResource>();
+				part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").id, vacuum_resources);
+
+				foreach (PartResource partresource in vacuum_resources) {
+					vacuum_plasma_needed += (float)(partresource.maxAmount-partresource.amount);
+					vacuum_plasma_current += (float)partresource.amount;
+				}
+
+				if (vessel.altitude < PluginHelper.getMaxAtmosphericAltitude (vessel.mainBody)) {
+					part.RequestResource ("VacuumPlasma", vacuum_plasma_current);
+				} else {
+					part.RequestResource ("VacuumPlasma", -vacuum_plasma_needed);
+				}
             }
         }
 
@@ -343,8 +362,19 @@ namespace FNPlugin {
         }
 
         public static ConfigNode[] getPropellants(bool isupgraded) {
-            ConfigNode config = ConfigNode.Load(getPropellantFilePath(isupgraded));
+            ConfigNode config = ConfigNode.Load(getPropellantFilePath(false));
+			ConfigNode config2 = ConfigNode.Load(getPropellantFilePath(true));
             ConfigNode[] propellantlist = config.GetNodes("PROPELLANTS");
+			ConfigNode[] propellantlist2 = config2.GetNodes("PROPELLANTS");
+
+			if (isupgraded) {
+				propellantlist = propellantlist2.Concat(propellantlist).ToArray();
+			}
+
+			if (config == null || config2 == null) {
+				PluginHelper.showInstallationErrorMessage ();
+			}
+
             return propellantlist;
         }
     }

@@ -154,8 +154,10 @@ namespace FNPlugin {
 				multiplier = 7.5f;
 			} else if (refbody == REF_BODY_KERBIN) {
 				multiplier = 1f;
-			} else {
-				multiplier = 0;
+			} else if (refbody == REF_BODY_KERBOL) {
+				multiplier = 15f;
+			}else {
+				multiplier = 0f;
 			}
 
 			if (landed) {
@@ -258,6 +260,15 @@ namespace FNPlugin {
 			}
 
 			Destroy (this);
+		}
+
+		protected static bool warning_displayed = false;
+
+		public static void showInstallationErrorMessage() {
+			if (!warning_displayed) {
+				PopupDialog.SpawnPopupDialog ("KSP Interstellar Installation Error", "KSP Interstellar is unable to detect files required for the functioning of this rocket.  Please make sure that this mod has been installed to [Base KSP directory]/GameData/WarpPlugin.", "OK", false, HighLogic.Skin);
+				warning_displayed = true;
+			}
 		}
 
         

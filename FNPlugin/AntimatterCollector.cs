@@ -24,7 +24,7 @@ namespace FNPlugin {
                 float lat = (float) vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
                 float vessel_avg_alt = (float) (vessel.orbit.ApR + vessel.orbit.PeR) / 2.0f;
                 float vessel_inclination = (float)vessel.orbit.inclination;
-                float flux = (VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, vessel_avg_alt, vessel_inclination) + VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, vessel_avg_alt, 90))/2.0f;
+				float flux = (VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, vessel_avg_alt, vessel_inclination) + VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, vessel_avg_alt, 90))/2.0f;
                 //vessel.orbit.
                 double antimatter_to_add = time_diff*flux;
                 part.RequestResource("Antimatter", -antimatter_to_add);

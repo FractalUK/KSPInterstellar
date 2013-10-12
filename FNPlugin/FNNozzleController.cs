@@ -28,6 +28,8 @@ namespace FNPlugin
         public string originalName;
         [KSPField(isPersistant = false)]
         public string upgradedName;
+		[KSPField(isPersistant = false)]
+		public float radius; 
 
         private float maxISP;
         private float minISP;
@@ -164,6 +166,16 @@ namespace FNPlugin
 						curEngine.velocityCurve = vCurve;
                         assThermalPower = fnr.getReactorThermalPower();
                         engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+
+						float heat_exchanger_thrust_divisor = 1;
+						if (radius > fnr.getRadius ()) {
+							heat_exchanger_thrust_divisor = fnr.getRadius () * fnr.getRadius () / radius / radius;
+						}else{
+							heat_exchanger_thrust_divisor = radius * radius / fnr.getRadius () / fnr.getRadius ();
+						}
+
+						engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
+
                         if (isLFO) {
                             engineMaxThrust = engineMaxThrust*1.5f;
                         }
@@ -220,6 +232,20 @@ namespace FNPlugin
 						curEngine.velocityCurve = vCurve;
                         assThermalPower = fnr.getReactorThermalPower();
                         engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+
+						float heat_exchanger_thrust_divisor = 1;
+						if (radius > fnr.getRadius ()) {
+							heat_exchanger_thrust_divisor = fnr.getRadius () * fnr.getRadius () / radius / radius;
+						}else{
+							heat_exchanger_thrust_divisor = radius * radius / fnr.getRadius () / fnr.getRadius ();
+						}
+
+						if (fnr.getRadius () == 0 || radius == 0) {
+							heat_exchanger_thrust_divisor = 1;
+						}
+
+						engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
+
                         if (isLFO) {
                             engineMaxThrust = engineMaxThrust * 1.5f;
                         }
@@ -421,6 +447,11 @@ namespace FNPlugin
         public static ConfigNode[] getPropellants(bool isJet) {
             ConfigNode config = ConfigNode.Load(getPropellantFilePath(isJet));
             ConfigNode[] propellantlist = config.GetNodes("PROPELLANTS");
+
+			if (config == null) {
+				PluginHelper.showInstallationErrorMessage ();
+			}
+
             return propellantlist;
         }
 
@@ -430,6 +461,11 @@ namespace FNPlugin
             ConfigNode[] propellantlist = config.GetNodes("PROPELLANTS");
             ConfigNode[] propellantlist2 = config2.GetNodes("PROPELLANTS");
             propellantlist = propellantlist.Concat(propellantlist2).ToArray();
+
+			if (config == null || config2 == null) {
+				PluginHelper.showInstallationErrorMessage ();
+			}
+
             return propellantlist;
         }
         

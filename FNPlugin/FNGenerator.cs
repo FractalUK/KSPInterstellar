@@ -60,11 +60,6 @@ namespace FNPlugin
 
 		//protected String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
 
-		public FNGenerator() : base() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
-			this.resources_to_supply = resources_to_supply;
-		}
-
         [KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
         public void ActivateGenerator() {
             IsEnabled = true;
@@ -104,6 +99,9 @@ namespace FNPlugin
         
                 
         public override void OnStart(PartModule.StartState state) {
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
+			this.resources_to_supply = resources_to_supply;
+
 			base.OnStart (state);
 
             Actions["ActivateGeneratorAction"].guiName = Events["ActivateGenerator"].guiName = String.Format("Activate Generator");
