@@ -231,6 +231,12 @@ namespace FNPlugin {
 					}
                 //}
             }
+			else {
+				connectedrelaysf = 0;
+				connectedsatsf = 0;
+				powerInput = 0;
+				//print ("warp: no active sats or relays available");
+			}
 
 
 			float powerInputMegajoules = powerInput/1000.0f;
