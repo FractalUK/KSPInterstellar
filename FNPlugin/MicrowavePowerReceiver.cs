@@ -244,7 +244,19 @@ namespace FNPlugin {
 			float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
 			supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             //activeCount++;
+
+			List<Part> vessel_parts = this.vessel.parts;
+			foreach (Part vessel_part in vessel_parts) {
+				var thisModule = vessel_part.Modules["FNNozzleController"] as FNNozzleController;
+				if (thisModule != null) {
+					thisModule.setupPropellants();
+				}
+			}
         }
+
+		public float getMegajoules() {
+			return powerInput/1000;
+		}
 
         protected bool lineOfSightTo(Vessel vess) {
             Vector3d a = vessel.transform.position;

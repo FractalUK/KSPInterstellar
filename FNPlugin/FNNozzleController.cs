@@ -20,6 +20,8 @@ namespace FNPlugin
         public string upgradeCostStr = ":";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Mode")]
         public string fuelmode;
+		[KSPField(isPersistant = false, guiActive = true, guiName = "TWR Limit")]
+		public string twr;
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = false)]
@@ -41,6 +43,11 @@ namespace FNPlugin
         private ConfigNode[] propellants;
         private VInfoBox fuel_gauge;
         protected float myScience = 0;
+
+		private bool isReactor = false;
+		private bool isMicrowave = false;
+		private int thrustLimitRatio = 0;
+		private float thrustLimiter = 0;
 
 		protected int shutdown_counter = 0;
 
@@ -64,6 +71,33 @@ namespace FNPlugin
         public void TogglePropellantAction(KSPActionParam param) {
             TogglePropellant();
         }
+
+		[KSPEvent(guiActive = true, guiName = "TWR Limiter", active = true)]
+		public void TWRLimiter() {
+			if (thrustLimitRatio < 5) {
+				thrustLimitRatio++;
+			} else {
+				thrustLimitRatio = 0;
+			}
+
+			float vesselMass = vessel.GetTotalMass ();
+
+			if (thrustLimitRatio > 0) {
+				thrustLimiter = vesselMass * thrustLimitRatio * 10;
+			} else {
+				thrustLimiter = 0;
+			}
+
+			print ("Warp vesselMass: " + vesselMass.ToString() + " thrustLimiter " + thrustLimiter.ToString());
+
+			setupPropellants();
+
+		}
+
+		[KSPAction("TWR Limiter")]
+		public void TWRLimiterAction(KSPActionParam param) {
+			TWRLimiter();
+		}
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitEngine() {
@@ -104,7 +138,7 @@ namespace FNPlugin
                 if (curprop.drawStackGauge) {
                     curprop.drawStackGauge = false;
                     if (currentpropellant_is_jet) {
-                        print("Atmosphere");
+                        //print("Atmosphere");
                         fuel_gauge.SetMessage("Atmosphere");
                     }else {
                         fuel_gauge.SetMessage(curprop.name);
@@ -126,61 +160,63 @@ namespace FNPlugin
                 for (int j = 0; j < childModules.Count; ++j) {
                     PartModule thisModule = childModules.GetModule(j);
                     var thisModule2 = thisModule as FNReactor;
-                    if (thisModule2 != null) {
-                        FNReactor fnr = (FNReactor)thisModule;
-                        FloatCurve newISP = new FloatCurve();
+					if (thisModule2 != null) {
+						FNReactor fnr = (FNReactor)thisModule;
+						FloatCurve newISP = new FloatCurve ();
 						FloatCurve vCurve = new FloatCurve ();
-                        if (!currentpropellant_is_jet) {
-                            maxISP = (float)Math.Sqrt((double)fnr.getReactorTemp()) * 17*ispMultiplier;
-                            minISP = maxISP * 0.4f;
-                            newISP.Add(0, maxISP, 0, 0);
-                            newISP.Add(1, minISP, 0, 0);
-                            curEngine.useVelocityCurve = false;
-                            curEngine.useEngineResponseTime = false;
-                        }else {
-							if (thisModule2.getIsNuclear()) {
+						if (!currentpropellant_is_jet) {
+							maxISP = (float)Math.Sqrt ((double)fnr.getReactorTemp ()) * 17 * ispMultiplier;
+							minISP = maxISP * 0.4f;
+							newISP.Add (0, maxISP, 0, 0);
+							newISP.Add (1, minISP, 0, 0);
+							curEngine.useVelocityCurve = false;
+							curEngine.useEngineResponseTime = false;
+						} else {
+							if (thisModule2.getIsNuclear ()) {
 								maxISP = 150;
-								newISP.Add(0, 100);
-								newISP.Add(0.3f, 150);
-								newISP.Add(1, 75);
-								vCurve.Add(0, 1);
-								vCurve.Add(400, 0.8f);
-								vCurve.Add(950, 0.9f);
+								newISP.Add (0, 100);
+								newISP.Add (0.3f, 150);
+								newISP.Add (1, 75);
+								vCurve.Add (0, 1);
+								vCurve.Add (400, 0.8f);
+								vCurve.Add (950, 0.9f);
 								vCurve.Add (1471, 0);
 							} else {
 								maxISP = 2500;
-								newISP.Add(0, 1200);
-								newISP.Add(0.3f, 2500);
-								newISP.Add(1, 800);
-								vCurve.Add(0, 1);
-								vCurve.Add(400, 0.8f);
-								vCurve.Add(1000, 0.9f);
+								newISP.Add (0, 1200);
+								newISP.Add (0.3f, 2500);
+								newISP.Add (1, 800);
+								vCurve.Add (0, 1);
+								vCurve.Add (400, 0.8f);
+								vCurve.Add (1000, 0.9f);
 								vCurve.Add (2000, 0.5f);
 							}
 
-                            curEngine.useVelocityCurve = true;
-                            curEngine.useEngineResponseTime = true;
-                        }
-                        //ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
-                        curEngine.atmosphereCurve = newISP;
+							curEngine.useVelocityCurve = true;
+							curEngine.useEngineResponseTime = true;
+						}
+						//ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
+						curEngine.atmosphereCurve = newISP;
 						curEngine.velocityCurve = vCurve;
-                        assThermalPower = fnr.getReactorThermalPower();
-                        engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+						assThermalPower = fnr.getReactorThermalPower ();
+						engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
 
 						float heat_exchanger_thrust_divisor = 1;
 						if (radius > fnr.getRadius ()) {
 							heat_exchanger_thrust_divisor = fnr.getRadius () * fnr.getRadius () / radius / radius;
-						}else{
+						} else {
 							heat_exchanger_thrust_divisor = radius * radius / fnr.getRadius () / fnr.getRadius ();
 						}
 
 						engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
 
-                        if (isLFO) {
-                            engineMaxThrust = engineMaxThrust*1.5f;
-                        }
-                        curEngine.maxThrust = engineMaxThrust;
-                    }
+						if (isLFO) {
+							engineMaxThrust = engineMaxThrust * 1.5f;
+						}
+						curEngine.maxThrust = engineMaxThrust;
+
+						isReactor = true;
+					}
 
                 }
 
@@ -251,9 +287,143 @@ namespace FNPlugin
                         }
                         curEngine.maxThrust = engineMaxThrust;
 
+						isReactor = true;
+						print ("warp: Reactor MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString ());
                     }
+
                 }
             }
+
+			if (isReactor == false) {
+				//int activeEngines = vessel.parts.SelectMany(p => p.Modules).OfType<ModuleEngines>().Count(m => m.isEnabled);
+
+				int activeEngines = 0;
+				List<Part> vessel_parts = this.vessel.parts;
+				foreach (Part vessel_part in vessel_parts) {
+					foreach (PartModule vessel_part_module in vessel_part.Modules) {
+						var curEngine2 = vessel_part_module as FNNozzleController;
+						if (curEngine2 != null) {
+							var curEngine3 = curEngine2.part.Modules["ModuleEngines"] as ModuleEngines;
+							if (curEngine3.isOperational) {
+								activeEngines++;
+							}
+						}
+					}
+
+				}
+
+				List<Part> vesselparts = this.vessel.parts;
+				for (int i = 0; i < vesselparts.Count; ++i) {
+					Part cPart = vesselparts.ElementAt (i);
+					PartModuleList pml = cPart.Modules;
+					for (int j = 0; j < pml.Count; ++j) {
+						var thisModule = pml.GetModule (j) as MicrowavePowerReceiver;
+						if (thisModule != null) {
+							MicrowavePowerReceiver mpr = (MicrowavePowerReceiver)thisModule;
+							FloatCurve newISP = new FloatCurve();
+							FloatCurve vCurve = new FloatCurve ();
+							if (mpr.getMegajoules () > 0) {
+								if (!currentpropellant_is_jet) {
+									maxISP = (float)Math.Sqrt((double)mpr.getMegajoules() * 4) * 17 * ispMultiplier;
+									minISP = maxISP * 0.4f;
+									newISP.Add(0, maxISP, 0, 0);
+									newISP.Add(1, minISP, 0, 0);
+									curEngine.useVelocityCurve = false;
+									curEngine.useEngineResponseTime = false;
+									/*
+									maxISP = 720;
+									minISP = 720;
+									newISP.Add (0, maxISP, 0, 0);
+									newISP.Add (1, minISP, 0, 0);
+									curEngine.useVelocityCurve = false;
+									curEngine.useEngineResponseTime = false;
+									*/
+								} else {
+									/*
+									maxISP = 150;
+									newISP.Add (0, 100);
+									newISP.Add (0.3f, 150);
+									newISP.Add (1, 75);
+									vCurve.Add (0, 1);
+									vCurve.Add (400, 0.8f);
+									vCurve.Add (950, 0.9f);
+									vCurve.Add (1471, 0);
+									*/
+									//maxISP = (float)Math.Sqrt((double)mpr.getMegajoules() * 4) * 17 * ispMultiplier;
+									//minISP = maxISP * 0.4f;
+									//newISP.Add(0, maxISP, 0, 0);
+									//newISP.Add(1, minISP, 0, 0);
+
+									maxISP = 2500;
+									newISP.Add(0, 1200);
+									newISP.Add(0.3f, 2500);
+									newISP.Add(1, 800);
+									vCurve.Add(0, 1);
+									vCurve.Add(400, 0.8f);
+									vCurve.Add(1000, 0.9f);
+									vCurve.Add (2000, 0.5f);
+
+									curEngine.useVelocityCurve = true;
+									curEngine.useEngineResponseTime = true;
+
+								}
+							} else {
+								maxISP = 2500;
+								newISP.Add(0, 1200);
+								newISP.Add(0.3f, 2500);
+								newISP.Add(1, 800);
+								curEngine.useVelocityCurve = false;
+								curEngine.useEngineResponseTime = false;
+							}
+
+								
+							//ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
+							curEngine.atmosphereCurve = newISP;
+							curEngine.velocityCurve = vCurve;
+							if (activeEngines > 0) {
+								assThermalPower = mpr.getMegajoules () / activeEngines;
+							} else {
+								assThermalPower = 0;
+							}
+							if (activeEngines > 0) {
+								if (thrustLimitRatio == 0 || 54 * (assThermalPower / 275) <= thrustLimiter) {
+									engineMaxThrust = 54 * (assThermalPower / 275);
+									twr = "Max thrust";
+								} else {
+									twr = thrustLimitRatio.ToString () + ":1";
+									engineMaxThrust = thrustLimiter;
+								}
+							} else {
+								engineMaxThrust = 0;
+							}
+							
+							print ("Warp activeEngines: " + activeEngines.ToString());
+							//engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+
+							/*float heat_exchanger_thrust_divisor = 1;
+							if (radius > fnr.getRadius ()) {
+								heat_exchanger_thrust_divisor = fnr.getRadius () * fnr.getRadius () / radius / radius;
+							}else{
+								heat_exchanger_thrust_divisor = radius * radius / fnr.getRadius () / fnr.getRadius ();
+							}
+
+							if (fnr.getRadius () == 0 || radius == 0) {
+								heat_exchanger_thrust_divisor = 1;
+							}
+
+							engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
+*/
+							if (isLFO) {
+								engineMaxThrust = engineMaxThrust * 1.5f;
+							}
+							curEngine.maxThrust = engineMaxThrust;
+
+							isMicrowave = true;
+							print ("warp: Microwave MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString ());
+						}
+					}
+				}
+			}
 
             if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null) {
                 curEngine.propellants.Clear();
@@ -388,10 +558,18 @@ namespace FNPlugin
 			//curEngine.flameout = false;
 
 			if (curEngine.currentThrottle > 0 && curEngine.isEnabled && assThermalPower > 0) {
+				float thermalReceived = 0;
+				if(isMicrowave == false){
+					thermalReceived = part.RequestResource("ThermalPower", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
+                	thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
+				}
+				else{
+					thermalReceived = part.RequestResource("Megajoules", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
+					thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_MEGAJOULES);
+					//consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
+				}
 
-                //float thermalReceived = part.RequestResource("ThermalPower", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
-                float thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
-				consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 if (thermalReceived >= assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle) {
 					shutdown_counter = 0;
                     float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
