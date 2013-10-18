@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -230,7 +229,11 @@ namespace FNPlugin {
 						//print ("warp: no active sats or relays available");
 					}
                 //}
-            }
+            }else{
+				connectedrelaysf = 0;
+				connectedsatsf = 0;
+				powerInput = 0;
+			}
 
 
 			float powerInputMegajoules = powerInput/1000.0f;

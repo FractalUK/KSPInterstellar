@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WarpPlugin</RootNamespace>
     <AssemblyName>WarpPlugin</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProductVersion>12.0.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -40,10 +40,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Assembly-CSharp">
-      <HintPath>C:\Games\Kerbal Space Program 0.21.1\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>C:\Games\Kerbal Space Program 0.22\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>C:\Games\Kerbal Space Program 0.21.1\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>C:\Games\Kerbal Space Program 0.22\KSP_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +73,7 @@
     <Compile Include="FNRadiator.cs" />
     <Compile Include="FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="FNStaticRadiator.cs" />
+    <Compile Include="AntimatterStorageTank.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

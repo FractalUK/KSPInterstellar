@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -154,67 +153,11 @@ namespace FNPlugin {
 			IsEnabled = false;
             
         }
-
-		[KSPEvent(guiActive = true, guiName = "Transmit Scientific Data", active = true)]
-		public void TransmitPacket() {
-			List<PartResource> partresources = new List<PartResource>();
-			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-			float currentscience = 0;
-			foreach (PartResource partresource in partresources) {
-				currentscience += (float)partresource.amount;
-			}
-
-			if (currentscience > 0) {
-				double science_to_transmit = Math.Min (currentscience-0.001f, 100f);
-				science_to_transmit = part.RequestResource ("Science", science_to_transmit);
-				ConfigNode config = PluginHelper.getPluginSaveFile ();
-				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
-				data_packet.AddValue("science",science_to_transmit.ToString("E"));
-				data_packet.AddValue ("UT_sent", Planetarium.GetUniversalTime ().ToString ("E16"));
-				config.Save (PluginHelper.getPluginSaveFilePath ());
-			}
-					
-
-		}
-
-		[KSPEvent(guiActive = true, guiName = "Receive Scientific Data", active = false)]
-		public void ReceivePacket() {
-			ConfigNode config = PluginHelper.getPluginSaveFile ();
-
-			bool found_good_packet = false;
-			while (config.HasNode ("DATA_PACKET") && !found_good_packet) {
-				ConfigNode data_packet = config.GetNode ("DATA_PACKET");
-				double packet_ut = double.Parse (data_packet.GetValue ("UT_sent"));
-
-				// 30 minutes to receive packet
-				if (Planetarium.GetUniversalTime () - packet_ut <= 30.0 * 60.0) {
-					part.RequestResource ("Science", -double.Parse(data_packet.GetValue("science")));
-					found_good_packet = true;
-				}
-
-				config.RemoveNode ("DATA_PACKET");
-			}
-
-			if (config.HasNode ("DATA_PACKET")) {
-
-			} else {
-				Events ["ReceivePacket"].active = false;
-			}
-
-			config.Save (PluginHelper.getPluginSaveFilePath ());
-
-		}
-                
+		              
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
 
 			ConfigNode config = PluginHelper.getPluginSaveFile ();
-
-			if (config.HasNode ("DATA_PACKET")) {
-				Events ["ReceivePacket"].active = true;
-			} else {
-				Events ["ReceivePacket"].active = false;
-			}
 
             part.force_activate();
 
@@ -255,7 +198,10 @@ namespace FNPlugin {
 					}
 					stupidity = 1.5f - stupidity / 2.0f;
 					double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / ((float)Math.Sqrt (altitude_multiplier));
-					part.RequestResource ("Science", -science_to_add);
+					//part.RequestResource ("Science", -science_to_add);
+					if (ResearchAndDevelopment.Instance != null) {
+						ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_to_add;
+					}
 				} else if (active_mode == 2) { // Antimatter persistence
 					double now = Planetarium.GetUniversalTime ();
 					double time_diff = now - last_active_time;
@@ -376,20 +322,24 @@ namespace FNPlugin {
 						altitude_multiplier = Math.Max (altitude_multiplier, 1);
 
 						science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / 86400.0f * global_rate_multipliers * stupidity / (Mathf.Sqrt (altitude_multiplier));
-						part.RequestResource ("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
+						//part.RequestResource ("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
+						//ScienceSubject subject = new ScienceSubject ();
+						if (ResearchAndDevelopment.Instance != null) {
+							ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
+						}
 					} else if (active_mode == 1) { // Fuel Reprocessing
 						List<PartResource> partresources = new List<PartResource> ();
 						part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("DUF6").id, partresources);
-						float currentDUF6 = 0;
+						double currentDUF6 = 0;
 						foreach (PartResource partresource in partresources) {
-							currentDUF6 += (float)partresource.amount;
+							currentDUF6 += partresource.amount;
 						}
 						if (currentDUF6 > minDUF6) {
-							float amount_to_reprocess = currentDUF6 - minDUF6;
-							float duf6removed = part.RequestResource ("DUF6", baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0f * global_rate_multipliers);
-							float uf6added = part.RequestResource ("UF6", -duf6removed);
-							float duf6removedperhour = duf6removed / TimeWarp.fixedDeltaTime * 3600.0f;
-							reprocessing_rate_f = amount_to_reprocess / duf6removedperhour;
+							double amount_to_reprocess = currentDUF6 - minDUF6;
+							double duf6removed = part.RequestResource ("DUF6", baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * global_rate_multipliers);
+							double uf6added = part.RequestResource ("UF6", -duf6removed);
+							double duf6removedperhour = duf6removed / TimeWarp.fixedDeltaTime * 3600.0;
+							reprocessing_rate_f = (float) (amount_to_reprocess / duf6removedperhour);
 						} else { // Finished, hurray!
 							IsEnabled = false;
 						}
@@ -469,14 +419,7 @@ namespace FNPlugin {
 
 				last_active_time = (float)Planetarium.GetUniversalTime ();
 			} else {
-				List<PartResource> partresources = new List<PartResource> ();
-				part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("DUF6").id, partresources);
-				float currentDUF6 = 0;
-				foreach (PartResource partresource in partresources) {
-					currentDUF6 += (float)partresource.amount;
-				}
 
-				minDUF6 = currentDUF6;
 			}
         }
 

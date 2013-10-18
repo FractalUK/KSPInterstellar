@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -39,6 +38,8 @@ namespace FNPlugin {
 		public bool breedtritium = false;
 		[KSPField(isPersistant = false)]
 		public float radius; 
+		[KSPField(isPersistant = false)]
+		public string upgradeTechReq = null;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
@@ -50,6 +51,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr;
 
+
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Tritium")]
 		public string tritiumBreedRate;
 
@@ -57,6 +59,9 @@ namespace FNPlugin {
         public float last_active_time;
 		[KSPField(isPersistant = true)]
 		public float ongoing_consumption_rate;
+		[KSPField(isPersistant = true)]
+		public bool reactorInit = false;
+
 
 		protected float antimatter_pcnt;
 		protected float uf6_pcnt;
@@ -64,8 +69,7 @@ namespace FNPlugin {
         protected bool hasScience = false;
 
         protected bool isNuclear = false;
-
-        protected float myScience = 0;
+		     
 
 		protected float powerPcnt = 0;
 
@@ -75,6 +79,9 @@ namespace FNPlugin {
 
 		protected float tritium_rate = 0;
 		protected float tritium_produced_f = 0;
+
+		protected bool hasrequiredupgrade = false;
+		protected int deactivate_timer = 0;
 
 
         //protected bool responsible_for_thermalmanager = false;
@@ -107,25 +114,11 @@ namespace FNPlugin {
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitReactor() {
-            if (isupgraded || !hasScience || myScience < upgradeCost) { return; } 
-            isupgraded = true;
-            ThermalPower = upgradedThermalPower;
-            ReactorTemp = upgradedReactorTemp;
-            UF6Rate = upgradedUF6Rate;
-            AntimatterRate = upgradedAntimatterRate;
-            List<Part> vessel_parts = this.vessel.parts;
-            foreach (Part vessel_part in vessel_parts) {
-                var thisModule = vessel_part.Modules["FNNozzleController"] as FNNozzleController;
-                if (thisModule != null) {
-                    thisModule.setupPropellants();
-                }
-                var thisModule2 = vessel_part.Modules["FNGenerator"] as FNGenerator;
-                if (thisModule2 != null) {
-                    thisModule2.recalculatePower();
-                }
-            }
-            reactorType = upgradedName;
-            part.RequestResource("Science", upgradeCost);
+			if (ResearchAndDevelopment.Instance == null) { return;} 
+			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; } 
+			upgradePart ();
+			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+          
             //IsEnabled = false;
         }
 
@@ -148,6 +141,8 @@ namespace FNPlugin {
         }
 
 		public override void OnLoad(ConfigNode node) {
+
+
 			if (isupgraded) {
 				ThermalPower = upgradedThermalPower;
 				ReactorTemp = upgradedReactorTemp;
@@ -168,6 +163,33 @@ namespace FNPlugin {
 
 
 		}
+
+		public void upgradePart() {
+			isupgraded = true;
+			ThermalPower = upgradedThermalPower;
+			ReactorTemp = upgradedReactorTemp;
+			UF6Rate = upgradedUF6Rate;
+			AntimatterRate = upgradedAntimatterRate;
+
+			refreshDependantParts ();
+
+			reactorType = upgradedName;
+		}
+
+		public void refreshDependantParts() {
+			List<FNNozzleController> nozzles = this.vessel.FindPartModulesImplementing<FNNozzleController> ();
+			List<FNGenerator> generators = this.vessel.FindPartModulesImplementing<FNGenerator> ();
+			foreach (FNNozzleController nozzle in nozzles) {
+				if (nozzle.hasStarted()) {
+					nozzle.setupPropellants ();
+				}
+			}
+			foreach (FNGenerator generator in generators) {
+				if (generator.hasStarted()) {
+					generator.recalculatePower ();
+				}
+			}
+		}
 		      
 		        
         public override void OnStart(PartModule.StartState state) {
@@ -182,6 +204,33 @@ namespace FNPlugin {
             
             if (state == StartState.Editor) { return; }
 
+			bool manual_upgrade = false;
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+				if(upgradeTechReq != null) {
+					if(PluginHelper.hasTech(upgradeTechReq)) {
+						hasrequiredupgrade = true;
+					}else if(upgradeTechReq == "none") {
+						manual_upgrade = true;
+					}
+				}else{
+					manual_upgrade = true;
+				}
+			}else{
+				hasrequiredupgrade = true;
+			}
+
+			if (reactorInit == false) {
+				reactorInit = true;
+				if(hasrequiredupgrade) {
+					upgradePart();
+				}
+			}
+
+
+
+			if(manual_upgrade) {
+				hasrequiredupgrade = true;
+			}
 
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {
@@ -198,12 +247,7 @@ namespace FNPlugin {
 				anim.Play ();
 			}
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            if (partresources.Count > 0) {
-                hasScience = true;
-            }
-            //hasScience = true;
+            
             this.part.force_activate();
 
             //print(last_active_time);
@@ -255,17 +299,23 @@ namespace FNPlugin {
                 }
             }
 
-            
+			//refreshDependantParts();
         }
 
         public override void OnUpdate() {
             Events["ActivateReactor"].active = !IsEnabled && !isNuclear;
             Events["DeactivateReactor"].active = IsEnabled && !isNuclear;
-            Events["RetrofitReactor"].active = !isupgraded && hasScience && myScience >= upgradeCost;
+			if (ResearchAndDevelopment.Instance != null) {
+				Events ["RetrofitReactor"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			} else {
+				Events ["RetrofitReactor"].active = false;
+			}
 			Events["BreedTritium"].active = !breedtritium && isNuclear;
 			Events["StopBreedTritium"].active = breedtritium && isNuclear;
             Fields["upgradeCostStr"].guiActive = !isupgraded;
 			Fields["tritiumBreedRate"].guiActive = breedtritium && isNuclear;
+
+
 
             coretempStr = ReactorTemp.ToString("0") + "K";
             //thermalISPStr = (Math.Sqrt(ReactorTemp) * 17).ToString("0.0") + "s";
@@ -288,15 +338,10 @@ namespace FNPlugin {
 				}
 			}
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            float currentscience = 0;
-            foreach (PartResource partresource in partresources) {
-            	currentscience += (float)partresource.amount;
-            }
-            myScience = currentscience;
-
-            upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+            
+			if (ResearchAndDevelopment.Instance != null) {
+				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
+			} 
 
 			tritiumBreedRate = (tritium_produced_f * 86400).ToString ("0.00") + " Kg/day";
             
@@ -341,6 +386,16 @@ namespace FNPlugin {
             }
 
             if (IsEnabled) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
+					IsEnabled = false;
+					deactivate_timer++;
+					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
+						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					}
+					return;
+				}
+				deactivate_timer = 0;
+
                 if (!isNuclear) {
                     float antimatter_provided = part.RequestResource("Antimatter", AntimatterRate * TimeWarp.fixedDeltaTime);
 
@@ -391,5 +446,32 @@ namespace FNPlugin {
 				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec\n Upgrade Cost: {6} Science\n", ReactorTemp, ThermalPower, AntimatterRate,upgradedReactorTemp,upgradedThermalPower,upgradedAntimatterRate,upgradeCost);
 			}
         }
+
+		public static double getTemperatureofHottestReactor(Vessel vess) {
+			List<FNReactor> reactors = vess.FindPartModulesImplementing<FNReactor> ();
+			double temp = 0;
+			foreach (FNReactor reactor in reactors) {
+				if (reactor != null) {
+					if (reactor.getReactorTemp () > temp) {
+						temp = reactor.getReactorTemp ();
+					}
+				}
+			}
+			return temp;
+		}
+
+		public static bool hasActiveReactors(Vessel vess) {
+			List<FNReactor> reactors = vess.FindPartModulesImplementing<FNReactor> ();
+			foreach (FNReactor reactor in reactors) {
+				if (reactor != null) {
+					if (reactor.IsEnabled) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+
     }
 }

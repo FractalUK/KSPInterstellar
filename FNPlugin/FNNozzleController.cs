@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FNPlugin
 {
@@ -30,6 +29,10 @@ namespace FNPlugin
         public string upgradedName;
 		[KSPField(isPersistant = false)]
 		public float radius; 
+		[KSPField(isPersistant = true)]
+		public bool engineInit = false;
+		[KSPField(isPersistant = false)]
+		public string upgradeTechReq = null;
 
         private float maxISP;
         private float minISP;
@@ -40,7 +43,9 @@ namespace FNPlugin
         private float ispMultiplier = 1;
         private ConfigNode[] propellants;
         private VInfoBox fuel_gauge;
-        protected float myScience = 0;
+		protected bool hasrequiredupgrade = false;
+        
+		protected bool hasstarted = false;
 
 		protected int shutdown_counter = 0;
 
@@ -67,7 +72,8 @@ namespace FNPlugin
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitEngine() {
-            if (isupgraded || myScience < upgradeCost) { return; } // || !hasScience || myScience < upgradeCost) { return; }
+			if (ResearchAndDevelopment.Instance == null) { return;} 
+			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; } // || !hasScience || myScience < upgradeCost) { return; }
             isupgraded = true;
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             if (curEngine != null) {
@@ -75,6 +81,8 @@ namespace FNPlugin
                 propellants = FNNozzleController.getPropellantsHybrid();
                 isHybrid = true;
             }
+
+			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
 
         }
 
@@ -295,18 +303,49 @@ namespace FNPlugin
             }else {
                 propellants = getPropellants(isJet);
             }
+
+			bool manual_upgrade = false;
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+				if(upgradeTechReq != null) {
+					if(PluginHelper.hasTech(upgradeTechReq)) {
+						hasrequiredupgrade = true;
+					}else if(upgradeTechReq == "none") {
+						manual_upgrade = true;
+					}
+				}else{
+					manual_upgrade = true;
+				}
+			}else{
+				hasrequiredupgrade = true;
+			}
+
+			if (engineInit == false) {
+				engineInit = true;
+				if(hasrequiredupgrade) {
+					isupgraded = true;
+				}
+			}
+
+			if(manual_upgrade) {
+				hasrequiredupgrade = true;
+			}
+
             engineType = originalName;
             if (isupgraded) {
                 engineType = upgradedName;
             }
 
             setupPropellants();
-            
+			hasstarted = true;
             
         }
 
         public override void OnUpdate() {
-            Events["RetrofitEngine"].active = !isupgraded && isJet && myScience >= upgradeCost;
+			if (ResearchAndDevelopment.Instance != null) {
+				Events ["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			} else {
+				Events ["RetrofitEngine"].active = false;
+			}
             Fields["upgradeCostStr"].guiActive = !isupgraded && isJet;
             Fields["engineType"].guiActive = isJet;
 
@@ -321,20 +360,14 @@ namespace FNPlugin
 
 			//rint ("Nozzle Check-in 2 (" + vessel.GetName() + ")");
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            float currentscience = 0;
-            foreach (PartResource partresource in partresources) {
-                currentscience += (float)partresource.amount;
-            }
-            myScience = currentscience;
-
-            upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+			if (ResearchAndDevelopment.Instance != null) {
+				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
+			}
 
             float currentpropellant = 0;
             float maxpropellant = 0;
 
-            partresources = new List<PartResource>();
+			List<PartResource> partresources = new List<PartResource>();
             part.GetConnectedResources(curEngineT.propellants[0].id, partresources);
 
 			//print ("Nozzle Check-in 3 (" + vessel.GetName() + ")");
@@ -435,6 +468,10 @@ namespace FNPlugin
         public override string GetInfo() {
             return String.Format("Engine parameters determined by attached reactor.");
         }
+
+		public bool hasStarted() {
+			return hasstarted;
+		}
 
         public static string getPropellantFilePath(bool isJet) {
             if (isJet) {

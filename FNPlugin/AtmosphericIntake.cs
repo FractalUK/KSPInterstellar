@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FNPlugin  {
     class AtmosphericIntake : PartModule {
@@ -23,11 +22,21 @@ namespace FNPlugin  {
         }
 
         public override void OnFixedUpdate() {
-            float resourcedensity = PartResourceLibrary.Instance.GetDefinition("IntakeAtm").density;
-            float airdensity = (float) part.vessel.atmDensity;
-            float airspeed = (float) part.vessel.srf_velocity.magnitude+10;
-            float air = airspeed * airdensity * area / resourcedensity * TimeWarp.fixedDeltaTime;
-            airf = air/TimeWarp.fixedDeltaTime*resourcedensity;
+            double resourcedensity = PartResourceLibrary.Instance.GetDefinition("IntakeAtm").density;
+			double airdensity =  part.vessel.atmDensity;
+			double airspeed = part.vessel.srf_velocity.magnitude+10;
+			double air = airspeed * airdensity * area / resourcedensity * TimeWarp.fixedDeltaTime;
+            airf = (float) (air/TimeWarp.fixedDeltaTime*resourcedensity);
+
+			List<PartResource> intake_atm_resources = new List<PartResource>();
+			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("IntakeAtm").id, intake_atm_resources);
+			double intake_atm_missing_amount = 0;
+			foreach (PartResource intake_atm_resource in intake_atm_resources) {
+				intake_atm_missing_amount += intake_atm_resource.maxAmount - intake_atm_resource.amount;
+			}
+
+			air = Math.Min (intake_atm_missing_amount, air);
+
             part.RequestResource("IntakeAtm",-air);
         }
 

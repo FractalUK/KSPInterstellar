@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FNPlugin {
     class ISRUScoop : FNResourceSuppliableModule {
@@ -54,14 +53,21 @@ namespace FNPlugin {
             float airspeed = (float)part.vessel.srf_velocity.magnitude + 10;
             float powerrequirements = scoopair / 0.01f * 6f;
             if (respcent > 0) {
-                float air = airspeed * airdensity * scoopair / resourcedensity * TimeWarp.fixedDeltaTime;
-                float scoopedAtm = part.RequestResource("IntakeAtm", air);
+				List<PartResource> intake_atm_resources = new List<PartResource>();
+				part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("IntakeAtm").id, intake_atm_resources);
+				double intake_atm_current_amount = 0;
+				foreach (PartResource intake_atm_resource in intake_atm_resources) {
+					intake_atm_current_amount += intake_atm_resource.amount;
+				}
+                double air = airspeed * airdensity * scoopair / resourcedensity * TimeWarp.fixedDeltaTime;
+				air = Math.Min (air, intake_atm_current_amount);
+                double scoopedAtm = part.RequestResource("IntakeAtm", air);
                 //float powerreceived = part.RequestResource("Megajoules", powerrequirements * TimeWarp.fixedDeltaTime);
                 float powerreceived = consumeFNResource(powerrequirements * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
                 float powerpcnt = powerreceived / powerrequirements / TimeWarp.fixedDeltaTime;
                 if (drawCount % 2 == 0) {
-                    resflowf = part.RequestResource(PluginHelper.atomspheric_resources_tocollect[currentresource], -scoopedAtm * powerpcnt * respcent * 0.2f);
-                    resflowf = -resflowf / TimeWarp.fixedDeltaTime/2;
+                    resflowf = (float) part.RequestResource(PluginHelper.atomspheric_resources_tocollect[currentresource], -scoopedAtm * powerpcnt * respcent * 0.2);
+                    resflowf = -resflowf / TimeWarp.fixedDeltaTime/2.0f;
                 }
                 
             }

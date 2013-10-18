@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FNPlugin {
     abstract class FNResourceSuppliableModule :PartModule, FNResourceSuppliable{
@@ -23,7 +22,7 @@ namespace FNPlugin {
 
         public float consumeFNResource(float power, String resourcename) {
             //print("preConsuming Resource");
-            
+			power = Math.Max (power, 0);
             if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
                 return 0;
             }
@@ -44,15 +43,11 @@ namespace FNPlugin {
         }
 
 		public float supplyFNResource(float supply, String resourcename) {
-			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
-				return 0;
-			}
-
-			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.powerSupply (supply);
+			return (float) supplyFNResource ((double)supply, resourcename);
 		}
 
 		public double supplyFNResource(double supply, String resourcename) {
+			supply = Math.Max (supply, 0);
 			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
 				return 0;
 			}
@@ -66,6 +61,8 @@ namespace FNPlugin {
 		}
 
 		public double supplyFNResourceFixedMax(double supply, double maxsupply, String resourcename) {
+			supply = Math.Max (supply, 0);
+			maxsupply = Math.Max (maxsupply, 0);
 			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
 				return 0;
 			}
@@ -75,15 +72,11 @@ namespace FNPlugin {
 		}
 
 		public float supplyManagedFNResource(float supply, String resourcename) {
-			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
-				return 0;
-			}
-
-			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.managedPowerSupply (supply);
+			return (float)supplyManagedFNResource ((double)supply, resourcename);
 		}
 
 		public double supplyManagedFNResource(double supply, String resourcename) {
+			supply = Math.Max (supply, 0);
 			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
 				return 0;
 			}
@@ -93,15 +86,12 @@ namespace FNPlugin {
 		}
 
 		public float supplyManagedFNResourceWithMinimum(float supply, float rat_min, String resourcename) {
-			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
-				return 0;
-			}
-
-			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.managedPowerSupplyWithMinimum (supply,rat_min);
+			return (float)supplyManagedFNResourceWithMinimum ((double)supply, (double)rat_min, resourcename);
 		}
 
 		public double supplyManagedFNResourceWithMinimum(double supply, double rat_min, String resourcename) {
+			supply = Math.Max (supply, 0);
+			rat_min = Math.Max (rat_min, 0);
 			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
 				return 0;
 			}
@@ -135,6 +125,15 @@ namespace FNPlugin {
 
 			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 			return manager.getCurrentUnfilledResourceDemand ();
+		}
+
+		public double getResourceBarRatio(String resourcename) {
+			if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+				return 0;
+			}
+
+			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+			return manager.getResourceBarRatio ();
 		}
 
 		public override void OnStart(PartModule.StartState state) {
