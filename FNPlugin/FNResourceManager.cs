@@ -10,6 +10,7 @@ namespace FNPlugin {
         public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
 		public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
+		public const string FNRESOURCE_INTAKEATM = "IntakeAtm";
                
         protected Vessel my_vessel;
         protected Part my_part;
