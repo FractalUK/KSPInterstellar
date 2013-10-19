@@ -94,6 +94,12 @@ namespace FNPlugin {
             IsEnabled = true;
         }
 
+		[KSPEvent(guiName = "Repair Reactor", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
+		public void MaintainReactor() {
+			if (!isNuclear) { return; }
+			IsEnabled = true;
+		}
+
         [KSPEvent(guiActive = true, guiName = "Deactivate Reactor", active = true)]
         public void DeactivateReactor() {
             if (isNuclear) { return; }
@@ -312,6 +318,7 @@ namespace FNPlugin {
 			}
 			Events["BreedTritium"].active = !breedtritium && isNuclear;
 			Events["StopBreedTritium"].active = breedtritium && isNuclear;
+			Events ["MaintainReactor"].guiActiveUnfocused = !IsEnabled && isNuclear;
 			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 			Fields["tritiumBreedRate"].guiActive = breedtritium && isNuclear;
 
