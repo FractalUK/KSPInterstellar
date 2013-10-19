@@ -231,7 +231,7 @@ namespace FNPlugin {
 			} else {
 				Events ["RetrofitRadiator"].active = false;
 			}
-			Fields["upgradeCostStr"].guiActive = !isupgraded;
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 
 			if (ResearchAndDevelopment.Instance != null) {
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";

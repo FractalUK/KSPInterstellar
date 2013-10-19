@@ -1,21 +1,23 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="MicrowavePowerReceiver.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="VanAllen.cs">
     <Files>
-      <File FileName="DTMagnetometer.cs" Line="1" Column="1" />
-      <File FileName="MicrowavePowerReceiver.cs" Line="5" Column="12" />
-      <File FileName="FNGenerator.cs" Line="1" Column="1" />
-      <File FileName="FNResourceManager.cs" Line="1" Column="1" />
-      <File FileName="ScienceModule.cs" Line="1" Column="1" />
-      <File FileName="FNNozzleController.cs" Line="1" Column="1" />
-      <File FileName="FNReactor.cs" Line="1" Column="1" />
-      <File FileName="ElectricEngineController.cs" Line="1" Column="1" />
-      <File FileName="VistaEngineController.cs" Line="1" Column="1" />
-      <File FileName="FNRadiator.cs" Line="1" Column="1" />
-      <File FileName="FNSolarPanelWasteHeatModule.cs" Line="1" Column="1" />
-      <File FileName="MicrowavePowerTransmitter.cs" Line="1" Column="1" />
-      <File FileName="AlcubierreDrive.cs" Line="1" Column="1" />
-      <File FileName="FNStaticRadiator.cs" Line="1" Column="1" />
+      <File FileName="DTMagnetometer.cs" Line="26" Column="81" />
+      <File FileName="MicrowavePowerReceiver.cs" Line="5" Column="1" />
+      <File FileName="FNGenerator.cs" Line="120" Column="40" />
+      <File FileName="FNResourceManager.cs" Line="255" Column="60" />
+      <File FileName="ScienceModule.cs" Line="202" Column="52" />
+      <File FileName="FNNozzleController.cs" Line="312" Column="7" />
+      <File FileName="FNReactor.cs" Line="213" Column="21" />
+      <File FileName="ElectricEngineController.cs" Line="140" Column="21" />
+      <File FileName="VistaEngineController.cs" Line="5" Column="1" />
+      <File FileName="FNRadiator.cs" Line="329" Column="111" />
+      <File FileName="FNSolarPanelWasteHeatModule.cs" Line="29" Column="73" />
+      <File FileName="MicrowavePowerTransmitter.cs" Line="5" Column="1" />
+      <File FileName="AlcubierreDrive.cs" Line="377" Column="7" />
+      <File FileName="AntimatterStorageTank.cs" Line="97" Column="41" />
+      <File FileName="ComputerCore.cs" Line="47" Column="60" />
+      <File FileName="VanAllen.cs" Line="85" Column="39" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

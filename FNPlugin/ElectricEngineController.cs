@@ -174,7 +174,7 @@ namespace FNPlugin {
 			} else {
 				Events ["RetrofitEngine"].active = false;
 			}
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 			           
 			electricalPowerConsumptionStr = electrical_consumption_f.ToString ("0.00") + " MW";
 			efficiencyStr = (thrust_efficiency * 100.0f).ToString ("0") + "%";

@@ -346,7 +346,7 @@ namespace FNPlugin
 			} else {
 				Events ["RetrofitEngine"].active = false;
 			}
-            Fields["upgradeCostStr"].guiActive = !isupgraded && isJet;
+			Fields["upgradeCostStr"].guiActive = !isupgraded && isJet && hasrequiredupgrade;
             Fields["engineType"].guiActive = isJet;
 
 			//print ("Nozzle Check-in 1 (" + vessel.GetName() + ")");

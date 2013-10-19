@@ -207,7 +207,7 @@ namespace FNPlugin
 			} else {
 				Events ["RetrofitReactor"].active = false;
 			}
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
+            Fields["upgradeCostStr"].guiActive = !isupgraded  && hasrequiredupgrade;
 			Fields["OverallEfficiency"].guiActive = IsEnabled;
 			Fields["MaxPowerStr"].guiActive = IsEnabled;
 

@@ -128,7 +128,7 @@ namespace FNPlugin {
 			} else {
 				Events ["RetrofitCore"].active = false;
 			}
-			Fields["upgradeCostStr"].guiActive = !isupgraded;
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 			Fields["nameStr"].guiActive = isupgraded;
 			Fields["scienceRate"].guiActive = isupgraded;
 

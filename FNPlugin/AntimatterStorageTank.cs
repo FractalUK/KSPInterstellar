@@ -127,10 +127,24 @@ namespace FNPlugin {
 
 				cur_explosion_size += TimeWarp.fixedDeltaTime * explosion_size * explosion_size / explosion_time;
 				lightGameObject.transform.localScale = new Vector3(Mathf.Sqrt(cur_explosion_size), Mathf.Sqrt(cur_explosion_size), Mathf.Sqrt(cur_explosion_size));
-				lightGameObject.light.range = Mathf.Sqrt (cur_explosion_size) * 1.5f;
+				lightGameObject.light.range = Mathf.Sqrt (cur_explosion_size) * 15f;
 				if (Mathf.Sqrt(cur_explosion_size) > explosion_size) {
 					TimeWarp.SetRate (0, true);
 					vessel.GoOffRails();
+
+					Vessel[] list_of_vessels_to_explode = FlightGlobals.Vessels.ToArray ();
+					foreach (Vessel vess_to_explode in list_of_vessels_to_explode) {
+						if (Vector3d.Distance (vess_to_explode.transform.position, vessel.transform.position) <= explosion_size) {
+							if (vess_to_explode.packed == false) {
+								Part[] parts_to_explode = vess_to_explode.Parts.ToArray();
+								foreach (Part part_to_explode in parts_to_explode) {
+									if (part_to_explode != null) {
+										part_to_explode.explode ();	
+									}
+								}
+							}
+						}
+					}
 
 					Part[] explode_parts = vessel.Parts.ToArray ();
 					foreach (Part explode_part in explode_parts) {

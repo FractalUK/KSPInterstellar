@@ -312,7 +312,7 @@ namespace FNPlugin {
 			}
 			Events["BreedTritium"].active = !breedtritium && isNuclear;
 			Events["StopBreedTritium"].active = breedtritium && isNuclear;
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 			Fields["tritiumBreedRate"].guiActive = breedtritium && isNuclear;
 
 

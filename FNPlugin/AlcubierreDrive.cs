@@ -412,7 +412,7 @@ namespace FNPlugin
             Events["ActivateWarpDrive"].active = !IsEnabled;
             Events["DeactivateWarpDrive"].active = IsEnabled;
             Events["ToggleWarpSpeed"].active = !IsEnabled;
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 			if (ResearchAndDevelopment.Instance != null) {
 				Events ["RetrofitDrive"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 			} else {
