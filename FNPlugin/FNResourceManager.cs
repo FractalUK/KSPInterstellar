@@ -253,6 +253,9 @@ namespace FNPlugin {
 				double vessel_mass = my_vessel.GetTotalMass ();
 				double passive_dissip = passive_temp_p4 * FNRadiator.stefan_const * vessel_mass * 2.0;
 				power_extract += passive_dissip*TimeWarp.fixedDeltaTime;
+				if (power_extract < 0 && PluginHelper.isThermalDissipationDisabled ()) {
+					power_extract = 0;
+				}
 			}
 
 			my_part.RequestResource(this.resource_name, power_extract);

@@ -29,10 +29,27 @@ namespace FNPlugin {
         public static string[] atomspheric_resources_tocollect = { "Oxidizer", "LiquidFuel", "Argon","Deuterium"};
 
 		protected static bool plugin_init = false;
+		protected static bool is_thermal_dissip_disabled_init = false;
+		protected static bool is_thermal_dissip_disabled = false;
 
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
         }
+
+		public static bool isThermalDissipationDisabled() {
+			if (!is_thermal_dissip_disabled_init) {
+				ConfigNode conf = getPluginSaveFile ();
+				if (conf.HasValue ("thermal_off")) {
+					is_thermal_dissip_disabled = bool.Parse(conf.GetValue ("thermal_off"));
+					is_thermal_dissip_disabled_init = true;
+				} else {
+					is_thermal_dissip_disabled_init = true;
+					is_thermal_dissip_disabled = false;
+				}
+			} 
+
+			return is_thermal_dissip_disabled;
+		}
 
 		public static bool hasTech(string techid) {
 			try{
