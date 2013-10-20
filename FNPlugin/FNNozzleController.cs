@@ -481,6 +481,79 @@ namespace FNPlugin
             Fields["engineType"].guiActive = isJet;
 
 			//print ("Nozzle Check-in 1 (" + vessel.GetName() + ")");
+
+			//Modify any connected standard intakeAir parts to function as AtmosphericIntakes
+ 			List<ModuleResourceIntake> mris = vessel.FindPartModulesImplementing<ModuleResourceIntake> ();
+			if (mris != null) {
+				foreach (ModuleResourceIntake mri in mris) {
+					if (mri.resourceName == "IntakeAir") {
+						float intakeArea = mri.area;
+						try {
+							String path = "WarpPlugin/Overrides/" + mri.moduleName + "/" + mri.moduleName;
+
+							ConfigNode config_override = null;
+
+							if (GameDatabase.Instance.ExistsConfigNode (path)) {
+								config_override = GameDatabase.Instance.GetConfigNode (path);
+							}
+							List<ConfigNode> config_nodes = new List<ConfigNode> ();
+							//ConfigNode.ConfigNodeList config_nodes = new ConfigNode.ConfigNodeList();
+
+							if (config_override != null) {
+								foreach (ConfigNode conf_node in config_override.nodes) {
+									config_nodes.Add (conf_node);
+								}
+							}
+
+							if (config_nodes.Count > 0) {
+								print ("[WarpPlugin] PartLoader making update to : " + mri.part.name + " part");
+							}
+
+							foreach (ConfigNode config_part_item in config_nodes) {
+								if (config_part_item.name == "RESOURCEADD") {
+									mri.part.AddResource (config_part_item);
+								} else if (config_part_item.name == "MODULEADD") {
+									mri.part.AddModule (config_part_item);
+									AtmosphericIntake aipm = (AtmosphericIntake)mri.part.Modules ["AtmosphericIntake"];
+									aipm.area = intakeArea;
+									aipm.part.force_activate ();
+								} else if (config_part_item.name == "MODULEREMOVE") {
+									mri.part.RemoveModule (mri);
+								}
+							}
+
+						} catch (Exception ex) {
+							print ("[WarpPlugin] Exception caught adding to: " + mri.part.name + " part");
+						}
+					}
+				}
+
+				// Add resource manager for IntakeAtm (This should be revised but it was a quick copy paste job to save time)
+				FNResourceManager manager;
+
+				if (!FNResourceOvermanager.getResourceOvermanagerForResource ("IntakeAtm").hasManagerForVessel (vessel)) {
+					manager = FNResourceOvermanager.getResourceOvermanagerForResource ("IntakeAtm").createManagerForVessel (this);
+
+					print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + "IntakeAtm" + ")");
+
+
+				} else {
+					manager = FNResourceOvermanager.getResourceOvermanagerForResource ("IntakeAtm").getManagerForVessel (vessel);
+					if (manager == null) {
+						manager = FNResourceOvermanager.getResourceOvermanagerForResource ("IntakeAtm").createManagerForVessel (this);
+						print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + "IntakeAtm" + ")");
+					}
+				}
+
+				if (manager.getPartModule ().vessel != this.vessel) {
+					manager.updatePartModule (this);
+				}
+
+				if (manager.getPartModule () == this) {
+					manager.update ();
+				}
+
+			}
             
             ModuleEngines curEngineT = (ModuleEngines)this.part.Modules["ModuleEngines"];
             if (curEngineT.isOperational && !IsEnabled) {
