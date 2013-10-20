@@ -76,7 +76,7 @@ namespace FNPlugin {
 				anim.Play ();
 			}
                         
-            List<Part> vesselparts = vessel.parts;
+            /*List<Part> vesselparts = vessel.parts;
             for (int i = 0; i < vesselparts.Count; ++i) {
                 Part cPart = vesselparts.ElementAt(i);
                 PartModuleList pml = cPart.Modules;
@@ -86,7 +86,9 @@ namespace FNPlugin {
                         curSolarPan.powerCurve = PluginHelper.getSatFloatCurve();
                     }
                 }
-            }
+            }*/
+
+			vessel.FindPartModulesImplementing<ModuleDeployableSolarPanel>().ForEach(curSolarPan => curSolarPan.powerCurve = PluginHelper.getSatFloatCurve());
 
 
         }
@@ -106,6 +108,42 @@ namespace FNPlugin {
 
 
 			if (IsEnabled) {
+
+				float electrical_current_available = 0;
+
+				List<FNGenerator> FNGens = vessel.FindPartModulesImplementing<FNGenerator>();
+				foreach (FNGenerator curFNGen in FNGens) {
+					//fnnc.setupPropellants();
+					electrical_current_available = curFNGen.getMaxPowerOutput() * 1000;
+					List<PartResource> partresources = new List<PartResource> ();
+					part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Megajoules").id, partresources);
+					float consumeMJ = curFNGen.getMaxPowerOutput () * TimeWarp.fixedDeltaTime;
+					float cvalue = consumeFNResource(consumeMJ,FNResourceManager.FNRESOURCE_MEGAJOULES);
+					//this will smoothly reduce transmitter power down to 0 if we are running out of megajoules (To give priority to other components onboard that are drawing power)
+					if (cvalue < consumeMJ) {
+						electrical_current_available = (curFNGen.getMaxPowerOutput () / consumeMJ) * cvalue;
+					}
+					nuclear = true;
+				}
+				List<MicrowavePowerReceiver> MWRecs = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
+				foreach (MicrowavePowerReceiver curMWRec in MWRecs) {
+					electrical_current_available = curMWRec.powerInput;
+					part.RequestResource ("ElectricCharge", electrical_current_available * TimeWarp.fixedDeltaTime);
+					microwave = true;
+				}
+				List<ModuleDeployableSolarPanel> solarPans = vessel.FindPartModulesImplementing<ModuleDeployableSolarPanel>();
+				foreach (ModuleDeployableSolarPanel curSolarPan in solarPans) {
+					electrical_current_available += curSolarPan.flowRate;
+					part.RequestResource ("ElectricCharge", electrical_current_available * TimeWarp.fixedDeltaTime);
+					solar = true;
+				}
+
+
+				/*
+				var curFNGen = pml.GetModule (j) as FNGenerator;
+				var curMwRec = pml.GetModule (j) as MicrowavePowerReceiver;
+				var curSolarPan = pml.GetModule (j) as ModuleDeployableSolarPanel;
+
 				List<Part> vesselparts = vessel.parts;
 				float electrical_current_available = 0;
 				for (int i = 0; i < vesselparts.Count; ++i) {
@@ -139,6 +177,7 @@ namespace FNPlugin {
 						}
 					}
 				}
+				*/
 				inputPower = electrical_current_available;
 			} else {
 				inputPower = 0;

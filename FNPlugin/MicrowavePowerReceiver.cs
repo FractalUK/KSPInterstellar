@@ -245,13 +245,8 @@ namespace FNPlugin {
 			supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             //activeCount++;
 
-			List<Part> vessel_parts = this.vessel.parts;
-			foreach (Part vessel_part in vessel_parts) {
-				var thisModule = vessel_part.Modules["FNNozzleController"] as FNNozzleController;
-				if (thisModule != null) {
-					thisModule.setupPropellants();
-				}
-			}
+			vessel.FindPartModulesImplementing<FNNozzleController>().ForEach(fnnc => fnnc.setupPropellants());
+
         }
 
 		public float getMegajoules() {
