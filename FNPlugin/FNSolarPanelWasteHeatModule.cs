@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -37,6 +36,15 @@ namespace FNPlugin {
 			if (solarPanel != null) {
 				float solar_rate = solarPanel.flowRate*TimeWarp.fixedDeltaTime;
 				float heat_rate = solar_rate * 0.5f/1000.0f;
+
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.98 && solarPanel.panelState == ModuleDeployableSolarPanel.panelStates.EXTENDED) {
+					solarPanel.Retract ();
+					if (FlightGlobals.ActiveVessel == vessel) {
+						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Solar Panel retraction occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					}
+					return;
+				}
+
 				wasteheat_production_f = supplyFNResource(heat_rate,FNResourceManager.FNRESOURCE_WASTEHEAT)/TimeWarp.fixedDeltaTime*1000.0f;
 			}
 

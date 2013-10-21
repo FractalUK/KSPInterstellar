@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -29,13 +28,16 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = true)]
-        public int fuel_mode = 1;
+		public int fuel_mode = 1;
+		[KSPField(isPersistant = true)]
+		public bool engineInit = false;
+		[KSPField(isPersistant = false)]
+		public string upgradeTechReq;
         protected float total_power_output = 0;
         protected float reference_power = 8000;
         protected float initial_thrust = 0;
         protected float initial_isp = 0;
         protected int eval_counter = 0;
-        protected float myScience = 0;
         protected ConfigNode upgrade_resource;
         protected float ispMultiplier = 1;
         protected ConfigNode[] propellants;
@@ -43,6 +45,7 @@ namespace FNPlugin {
 		protected float final_thrust_store = 0;
 		protected float heat_production_f = 0;
 		protected float electrical_consumption_f = 0;
+		protected bool hasrequiredupgrade = false;
 
 		protected int shutdown_counter = 0;
 
@@ -71,7 +74,8 @@ namespace FNPlugin {
         
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitEngine() {
-            if (isupgraded || myScience < upgradeCost) { return; } // || !hasScience || myScience < upgradeCost) { return; }
+			if (ResearchAndDevelopment.Instance == null) { return;} 
+			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
             isupgraded = true;
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             if (curEngine != null) {
@@ -97,7 +101,7 @@ namespace FNPlugin {
                 //curEngine.propellants[1].id = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").id;
                 //curEngine.propellants[1].name = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").name;
                 engineType = upgradedName;
-				part.RequestResource("Science", upgradeCost);
+				ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
                 evaluateMaxThrust();
             }
             
@@ -127,6 +131,32 @@ namespace FNPlugin {
                 initial_isp = curEngine.atmosphereCurve.Evaluate(0);
             }
 
+			bool manual_upgrade = false;
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+				if(upgradeTechReq != null) {
+					if(PluginHelper.hasTech(upgradeTechReq)) {
+						hasrequiredupgrade = true;
+					}else if(upgradeTechReq == "none") {
+						manual_upgrade = true;
+					}
+				}else{
+					manual_upgrade = true;
+				}
+			}else{
+				hasrequiredupgrade = true;
+			}
+
+			if (engineInit == false) {
+				engineInit = true;
+				if(hasrequiredupgrade) {
+					isupgraded = true;
+				}
+			}
+
+			if(manual_upgrade) {
+				hasrequiredupgrade = true;
+			}
+
 			if(isupgraded) {
 				engineType = upgradedName;
 			}else{
@@ -139,21 +169,19 @@ namespace FNPlugin {
         }
 
         public override void OnUpdate() {
-            Events["RetrofitEngine"].active = !isupgraded && myScience >= upgradeCost;
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
-
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            float currentscience = 0;
-            foreach (PartResource partresource in partresources) {
-                currentscience += (float)partresource.amount;
-            }
-            myScience = currentscience;
-
+            if (ResearchAndDevelopment.Instance != null) {
+				Events ["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			} else {
+				Events ["RetrofitEngine"].active = false;
+			}
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
+			           
 			electricalPowerConsumptionStr = electrical_consumption_f.ToString ("0.00") + " MW";
 			efficiencyStr = (thrust_efficiency * 100.0f).ToString ("0") + "%";
 			heatProductionStr = heat_production_f.ToString ("0.00") + " MW";
-            upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+			if (ResearchAndDevelopment.Instance != null) {
+				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
+			}
 
             ModuleEngines curEngineT = (ModuleEngines)this.part.Modules["ModuleEngines"];
             if (curEngineT.isOperational && !IsEnabled) {
@@ -164,7 +192,7 @@ namespace FNPlugin {
             float currentpropellant = 0;
             float maxpropellant = 0;
 
-            partresources = new List<PartResource>();
+			List<PartResource> partresources = new List<PartResource>();
             part.GetConnectedResources(curEngineT.propellants[0].id, partresources);
 
             foreach (PartResource partresource in partresources) {

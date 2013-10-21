@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 
 namespace FNPlugin { 
 	class ComputerCore : FNResourceSuppliableModule {
@@ -34,64 +33,19 @@ namespace FNPlugin {
 		[KSPField(isPersistant = true)]
 		public float last_active_time;
 
-		protected float myScience = 0;
+		[KSPField(isPersistant = true)]
+		public bool coreInit = false;
+		[KSPField(isPersistant = false)]
+		public string upgradeTechReq;
+
 		protected float science_rate_f;
-
-		[KSPEvent(guiActive = true, guiName = "Transmit Scientific Data", active = true)]
-		public void TransmitPacket() {
-			List<PartResource> partresources = new List<PartResource>();
-			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-			float currentscience = 0;
-			foreach (PartResource partresource in partresources) {
-				currentscience += (float)partresource.amount;
-			}
-
-			if (currentscience > 0) {
-				ConfigNode config = PluginHelper.getPluginSaveFile ();
-
-				float science_to_transmit = Math.Min (currentscience-0.001f, 100f);
-				science_to_transmit = part.RequestResource ("Science", science_to_transmit);
-				ConfigNode data_packet = config.AddNode ("DATA_PACKET");
-				data_packet.AddValue("science",science_to_transmit.ToString("E"));
-				data_packet.AddValue ("UT_sent", Planetarium.GetUniversalTime ().ToString ("E16"));
-				config.Save (PluginHelper.getPluginSaveFilePath ());
-			}
-
-
-		}
-
-		[KSPEvent(guiActive = true, guiName = "Receive Scientific Data", active = false)]
-		public void ReceivePacket() {
-			ConfigNode config = PluginHelper.getPluginSaveFile ();
-
-			bool found_good_packet = false;
-			while (config.HasNode ("DATA_PACKET") && !found_good_packet) {
-				ConfigNode data_packet = config.GetNode ("DATA_PACKET");
-				double packet_ut = double.Parse (data_packet.GetValue ("UT_sent"));
-
-				// 30 minutes to receive packet
-				if (Planetarium.GetUniversalTime () - packet_ut <= 30 * 60) {
-					part.RequestResource ("Science", -double.Parse(data_packet.GetValue("science")));
-					found_good_packet = true;
-				}
-
-				config.RemoveNode ("DATA_PACKET");
-			}
-
-			if (config.HasNode ("DATA_PACKET")) {
-
-			} else {
-				Events ["ReceivePacket"].active = false;
-			}
-
-			config.Save (PluginHelper.getPluginSaveFilePath ());
-
-		}
+		protected bool hasrequiredupgrade = false;
 
 
 		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
 		public void RetrofitCore() {
-			if (isupgraded || myScience < upgradeCost) { return; } // || !hasScience || myScience < upgradeCost) { return; }
+			if (ResearchAndDevelopment.Instance == null) { return;} 
+			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; } 
 
 			var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
 			curReaction.PitchTorque = 5;
@@ -105,17 +59,36 @@ namespace FNPlugin {
 
 			computercoreType = upgradedName;
 			isupgraded = true;
-			part.RequestResource("Science", upgradeCost);
+			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
 		}
 
 		public override void OnStart(PartModule.StartState state) {
 			if (state == StartState.Editor) { return; }
 
-			ConfigNode config = PluginHelper.getPluginSaveFile ();
-			if (config.HasNode ("DATA_PACKET")) {
-				Events ["ReceivePacket"].active = true;
-			} else {
-				Events ["ReceivePacket"].active = false;
+			bool manual_upgrade = false;
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+				if(upgradeTechReq != null) {
+					if(PluginHelper.hasTech(upgradeTechReq)) {
+						hasrequiredupgrade = true;
+					}else if(upgradeTechReq == "none") {
+						manual_upgrade = true;
+					}
+				}else{
+					manual_upgrade = true;
+				}
+			}else{
+				hasrequiredupgrade = true;
+			}
+
+			if (coreInit == false) {
+				coreInit = true;
+				if(hasrequiredupgrade) {
+					isupgraded = true;
+				}
+			}
+
+			if(manual_upgrade) {
+				hasrequiredupgrade = true;
 			}
 
 			if (isupgraded) {
@@ -133,7 +106,9 @@ namespace FNPlugin {
 				altitude_multiplier = Math.Max (altitude_multiplier, 1);
 
 				double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / ((float)Math.Sqrt (altitude_multiplier));
-				part.RequestResource ("Science", -science_to_add);
+				if (ResearchAndDevelopment.Instance != null) {
+					ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_to_add;
+				}
 
 				var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
 				curReaction.PitchTorque = 5;
@@ -148,8 +123,12 @@ namespace FNPlugin {
 		}
 
 		public override void OnUpdate() {
-			Events["RetrofitCore"].active = !isupgraded && myScience >= upgradeCost;
-			Fields["upgradeCostStr"].guiActive = !isupgraded;
+			if (ResearchAndDevelopment.Instance != null) {
+				Events ["RetrofitCore"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			} else {
+				Events ["RetrofitCore"].active = false;
+			}
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 			Fields["nameStr"].guiActive = isupgraded;
 			Fields["scienceRate"].guiActive = isupgraded;
 
@@ -163,8 +142,9 @@ namespace FNPlugin {
 			float scienceratetmp = science_rate_f * 86400 ;
 			scienceRate = scienceratetmp.ToString("0.000") + "/Day";
 
-			myScience = currentscience;
-			upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+			if (ResearchAndDevelopment.Instance != null) {
+				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
+			}
 		}
 
 		public override void OnFixedUpdate() {
@@ -177,7 +157,10 @@ namespace FNPlugin {
 				float altitude_multiplier = (float) (vessel.altitude / (vessel.mainBody.Radius));
 				altitude_multiplier = Math.Max(altitude_multiplier, 1);
 				science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / 86400 * power_returned/upgradedMegajouleRate / ((float)Math.Sqrt(altitude_multiplier));
-				part.RequestResource("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
+				//part.RequestResource("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
+				if (ResearchAndDevelopment.Instance != null) {
+					ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
+				}
 			}
 			last_active_time = (float)Planetarium.GetUniversalTime ();
 		}

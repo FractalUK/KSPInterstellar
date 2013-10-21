@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin
@@ -23,6 +22,11 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public float effectSize2;
         private Vector3d heading_act;
+
+		[KSPField(isPersistant = true)]
+		public bool warpInit = false;
+		[KSPField(isPersistant = false)]
+		public string upgradeTechReq;
         
         //private float warpspeed = 30000000.0f;
         public const float warpspeed = 29979245.8f;
@@ -32,7 +36,6 @@ namespace FNPlugin
         private float[] warp_factors = {0.1f,0.25f,0.5f,0.75f,1.0f,2.0f,3.0f,4.0f,5.0f,7.5f,10.0f,15f,20.0f};
 		[KSPField(isPersistant = true)]
         public int selected_factor = 0;
-        protected float myScience;
         protected float mass_divisor = 10f;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -60,6 +63,7 @@ namespace FNPlugin
         protected AudioSource warp_sound;
         protected float tex_count;
         const float warp_size = 50000;
+		protected bool hasrequiredupgrade;
 
 		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
 		public void StartCharging() {
@@ -210,13 +214,15 @@ namespace FNPlugin
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitDrive() {
-            if (isupgraded || myScience < upgradeCost) { return; }
+			if (ResearchAndDevelopment.Instance == null) { return;} 
+			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; } 
+
             isupgraded = true;
             
             warpdriveType = upgradedName;
             mass_divisor = 40f;
             //recalculatePower();
-            part.RequestResource("Science", upgradeCost);
+			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
             //IsEnabled = false;
         }
 
@@ -361,6 +367,32 @@ namespace FNPlugin
                 warp_sound.loop = true;
             }
 
+			bool manual_upgrade = false;
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+				if(upgradeTechReq != null) {
+					if(PluginHelper.hasTech(upgradeTechReq)) {
+						hasrequiredupgrade = true;
+					}else if(upgradeTechReq == "none") {
+						manual_upgrade = true;
+					}
+				}else{
+					manual_upgrade = true;
+				}
+			}else{
+				hasrequiredupgrade = true;
+			}
+
+			if (warpInit == false) {
+				warpInit = true;
+				if(hasrequiredupgrade) {
+					isupgraded = true;
+				}
+			}
+
+			if(manual_upgrade) {
+				hasrequiredupgrade = true;
+			}
+
             if (isupgraded) {
                 warpdriveType = upgradedName;
                 mass_divisor = 40f;
@@ -380,20 +412,18 @@ namespace FNPlugin
             Events["ActivateWarpDrive"].active = !IsEnabled;
             Events["DeactivateWarpDrive"].active = IsEnabled;
             Events["ToggleWarpSpeed"].active = !IsEnabled;
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
-            Events["RetrofitDrive"].active = !isupgraded && myScience >= upgradeCost;
-
+			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
+			if (ResearchAndDevelopment.Instance != null) {
+				Events ["RetrofitDrive"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			} else {
+				Events ["RetrofitDrive"].active = false;
+			}
+            
             LightSpeedFactor = warp_factors[selected_factor].ToString("0.00") + "c";
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            float currentscience = 0;
-            foreach (PartResource partresource in partresources) {
-                currentscience += (float)partresource.amount;
-            }
-            myScience = currentscience;
-
-            upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+			if (ResearchAndDevelopment.Instance != null) {
+				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
+			}
 
             
         }

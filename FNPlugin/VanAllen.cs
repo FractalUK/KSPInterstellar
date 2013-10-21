@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 
 namespace FNPlugin {
     class VanAllen {
@@ -52,8 +51,10 @@ namespace FNPlugin {
             double relrp = rp / crefkerbin.Radius;
             double relrt = rt / crefkerbin.rotationPeriod;
 
+
+
             double altituded = ((double)altitude)+rp;
-            double Bmag = B0 * relrt * Math.Pow((rp / altituded), 3) * Math.Sqrt(1 + 3 * Math.Pow(Math.Cos(lat), 2));
+            double Bmag = B0 * relrt *relmp * Math.Pow((rp / altituded), 3) * Math.Sqrt(1 + 3 * Math.Pow(Math.Cos(lat), 2)) * getSpecialMagneticFieldScaling(refBody);
 
             return (float)Bmag;
         }
@@ -71,7 +72,7 @@ namespace FNPlugin {
             double relrt = rt / crefkerbin.rotationPeriod;
 
             double altituded = ((double)altitude) + rp;
-            double Bmag = -2 * relrt * B0 * Math.Pow((rp / altituded), 3) * Math.Cos(lat);
+			double Bmag = -2 * relrt *relmp * B0 * Math.Pow((rp / altituded), 3) * Math.Cos(lat)* getSpecialMagneticFieldScaling(refBody);
 
             return (float)Bmag;
         }
@@ -89,10 +90,30 @@ namespace FNPlugin {
             double relrt = rt / crefkerbin.rotationPeriod;
 
             double altituded = ((double)altitude) + rp;
-            double Bmag = -relrt * B0 * Math.Pow((rp / altituded), 3) * Math.Sin(lat);
+			double Bmag = -relrt *relmp* B0 * Math.Pow((rp / altituded), 3) * Math.Sin(lat)* getSpecialMagneticFieldScaling(refBody);
 
             return (float)Bmag;
         }
+
+		public static double getSpecialMagneticFieldScaling(int refBody) {
+			double special_scaling = 1;
+			if (refBody == PluginHelper.REF_BODY_TYLO) {
+				special_scaling = 6;
+			}
+			if (refBody == PluginHelper.REF_BODY_LAYTHE) {
+				special_scaling = 4;
+			}
+			if (refBody == PluginHelper.REF_BODY_MOHO) {
+				special_scaling = 2;
+			}
+			if (refBody == PluginHelper.REF_BODY_MUN || refBody == PluginHelper.REF_BODY_IKE) {
+				special_scaling = 0.2;
+			}
+			if (refBody == PluginHelper.REF_BODY_GILLY || refBody == PluginHelper.REF_BODY_BOP || refBody == PluginHelper.REF_BODY_POL) {
+				special_scaling = 0.05;
+			}
+			return special_scaling;
+		}
 
         
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -35,6 +34,7 @@ namespace FNPlugin {
 		public float collectorArea = 1;
 
 		protected Animation anim;
+		protected int deactivate_timer = 0;
 
         //protected bool responsible_for_megajoulemanager;
         //protected FNResourceManager megamanager;
@@ -147,6 +147,15 @@ namespace FNPlugin {
             int activeSatsIncr = 0;
             float rangelosses = 0;
             if (config != null && IsEnabled) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
+					IsEnabled = false;
+					deactivate_timer++;
+					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
+						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					}
+					return;
+				}
+				deactivate_timer = 0;
 
 				//Check to see if active vessel is a relay - for now we do not want a relay to connect to another relay to prevent energy loops
 				String aid = vessel.id.ToString ();
@@ -230,12 +239,10 @@ namespace FNPlugin {
 						//print ("warp: no active sats or relays available");
 					}
                 //}
-            }
-			else {
+            }else{
 				connectedrelaysf = 0;
 				connectedsatsf = 0;
 				powerInput = 0;
-				//print ("warp: no active sats or relays available");
 			}
 
 

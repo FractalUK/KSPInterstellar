@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin
@@ -38,6 +37,8 @@ namespace FNPlugin
 		public string animName;
 		[KSPField(isPersistant = true)]
 		public bool generatorInit = false;
+		[KSPField(isPersistant = false)]
+		public string upgradeTechReq;
 
         private float coldBathTemp = 500;
         public float hotBathTemp = 1;
@@ -46,14 +47,20 @@ namespace FNPlugin
         private float sectracker = 0;
         
         protected bool hasScience = false;
-        protected float myScience = 0;
+        
 		protected bool play_down = true;
 		protected bool play_up = true;
 		protected FNReactor myReactor;
 
+		protected bool hasrequiredupgrade = false;
+
+		protected double last_draw_update = 0.0;
+
 		protected int shutdown_counter = 0;
 
 		protected Animation anim;
+
+		protected bool hasstarted = false;
 
         //protected bool responsible_for_megajoulemanager;
         //protected FNResourceManager megamanager;
@@ -87,12 +94,13 @@ namespace FNPlugin
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitReactor() {
-            if (isupgraded || !hasScience || myScience < upgradeCost) { return; }
+			if (ResearchAndDevelopment.Instance == null) { return;} 
+			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
             isupgraded = true;
             pCarnotEff = upgradedpCarnotEff;
             generatorType = upgradedName;
             //recalculatePower();
-            part.RequestResource("Science", upgradeCost);
+			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
             //IsEnabled = false;
         }
 
@@ -125,6 +133,22 @@ namespace FNPlugin
 				}
 				anim.Play ();
 			}
+
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+				if(PluginHelper.hasTech(upgradeTechReq)) {
+					hasrequiredupgrade = true;
+				}
+			}else{
+				hasrequiredupgrade = true;
+			}
+
+			if (generatorInit == false) {
+				generatorInit = true;
+				IsEnabled = true;
+				if(hasrequiredupgrade) {
+					isupgraded = true;
+				}
+			}
             
             if (isupgraded) {
                 pCarnotEff = upgradedpCarnotEff;
@@ -135,16 +159,9 @@ namespace FNPlugin
             print("[WarpPlugin] Configuring Generator");
             recalculatePower();
 
-			if (generatorInit == false) {
-				generatorInit = true;
-				IsEnabled = true;
-			}
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            if (partresources.Count > 0) {
-                hasScience = true;
-            }
+			hasstarted = true;
+            
         }
 
         public void recalculatePower() {
@@ -185,18 +202,18 @@ namespace FNPlugin
         public override void OnUpdate() {
             Events["ActivateGenerator"].active = !IsEnabled;
             Events["DeactivateGenerator"].active = IsEnabled;
-            Events["RetrofitReactor"].active = !isupgraded && hasScience && myScience >= upgradeCost;
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
+			if (ResearchAndDevelopment.Instance != null) {
+				Events ["RetrofitReactor"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			} else {
+				Events ["RetrofitReactor"].active = false;
+			}
+            Fields["upgradeCostStr"].guiActive = !isupgraded  && hasrequiredupgrade;
+			Fields["OverallEfficiency"].guiActive = IsEnabled;
+			Fields["MaxPowerStr"].guiActive = IsEnabled;
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-            float currentscience = 0;
-            foreach (PartResource partresource in partresources) {
-                currentscience += (float)partresource.amount;
-            }
-            myScience = currentscience;
-
-            upgradeCostStr = currentscience.ToString("0") + "/" + upgradeCost.ToString("0") + " Science";
+			if (ResearchAndDevelopment.Instance != null) {
+				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
+			}
 
 			if (IsEnabled) {
 				if (play_up && anim != null) {
@@ -216,24 +233,29 @@ namespace FNPlugin
 				}
 			}
 
-            if (IsEnabled) {
-                //if (DateTime.Now.Second - sectracker >= 1) {
-                    float percentOutputPower = totalEff * 100.0f;
-                    float outputPowerReport = -outputPower;
-                    OutputPower = outputPowerReport.ToString("0.000") + "MW";
-                    OverallEfficiency = percentOutputPower.ToString("0.0") + "%";
-					
-                    //sectracker = DateTime.Now.Second;
-                //}
-            }else{
+			if (IsEnabled) {
+				float percentOutputPower = totalEff * 100.0f;
+				float outputPowerReport = -outputPower;
+                    
+
+				if (Environment.TickCount - last_draw_update > 40) {
+					OutputPower = outputPowerReport.ToString ("0.000") + "MW";
+					OverallEfficiency = percentOutputPower.ToString ("0.0") + "%";
+
+					if (totalEff >= 0) {
+						MaxPowerStr = (maxThermalPower*totalEff).ToString ("0.000") + "MW";
+					} else {
+						MaxPowerStr = (0).ToString() + "MW";
+					}
+
+					last_draw_update = Environment.TickCount;
+				}
+
+			} else {
                 OutputPower = "Generator Offline";
             }
 
-			if (totalEff >= 0) {
-				MaxPowerStr = (maxThermalPower*totalEff).ToString ("0.000") + "MW";
-			} else {
-				MaxPowerStr = (0).ToString() + "MW";
-			}
+
         }
 
         public float getMaxPowerOutput() {
@@ -246,6 +268,10 @@ namespace FNPlugin
             hotBathTemp = temp;
         }
 
+		public bool hasStarted() {
+			return hasstarted;
+		}
+
         public override string GetInfo() {
 			return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff*100, upgradedpCarnotEff*100);
         }
@@ -256,18 +282,31 @@ namespace FNPlugin
 			//print ("Generator Check-in 1 (" + vessel.GetName() + ")");
 
             if (!IsEnabled) { return; }
-						                 
-            double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-			if (carnotEff < 0) {
-				recalculatePower ();
 
+			if (FNRadiator.hasRadiatorsForVessel (vessel)) {
+				coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
+			} else {
+				coldBathTemp = hotBathTemp;
+			}
+            double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
+			if (carnotEff <= 0) {
+				recalculatePower ();
+				if (!FNRadiator.hasRadiatorsForVessel (vessel)) {
+					coldBathTemp = hotBathTemp;
+				}
 				carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-				if (carnotEff < 0) {
+				if (carnotEff <= 0) {
 					shutdown_counter++;
 					carnotEff = 0;
 					if (shutdown_counter > 20) {
 						IsEnabled = false;
-						ScreenMessages.PostScreenMessage ("Generator Shutdown: No thermal power connected!");
+						if (FlightGlobals.ActiveVessel == vessel) {
+							if (FNRadiator.hasRadiatorsForVessel (vessel)) {
+								ScreenMessages.PostScreenMessage ("Generator Shutdown: No thermal power available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+							} else {
+								ScreenMessages.PostScreenMessage ("Generator Shutdown: No radiators available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+							}
+						}
 						print ("[WarpPlugin] Generator Shutdown - no thermal power");
 					}
 					return;
@@ -284,7 +323,7 @@ namespace FNPlugin
 			foreach (PartResource partresource in partresources) {
 				currentmegajoules += (float)(partresource.maxAmount - partresource.amount);
 			}
-
+			currentmegajoules = currentmegajoules / TimeWarp.fixedDeltaTime;
             totalEff = (float)carnotEff * pCarnotEff;
 
 			//print ("Generator Check-in 3 (" + vessel.GetName() + ")");
@@ -315,6 +354,8 @@ namespace FNPlugin
 			//print ("Generator Check-in 5 (" + vessel.GetName() + ")");
             
         }
+
+
 
 
     }

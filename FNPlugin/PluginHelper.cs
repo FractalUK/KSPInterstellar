@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -30,10 +29,49 @@ namespace FNPlugin {
         public static string[] atomspheric_resources_tocollect = { "Oxidizer", "LiquidFuel", "Argon","Deuterium"};
 
 		protected static bool plugin_init = false;
+		protected static bool is_thermal_dissip_disabled_init = false;
+		protected static bool is_thermal_dissip_disabled = false;
 
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
         }
+
+		public static bool isThermalDissipationDisabled() {
+			if (!is_thermal_dissip_disabled_init) {
+				ConfigNode conf = getPluginSaveFile ();
+				if (conf.HasValue ("thermal_off")) {
+					is_thermal_dissip_disabled = bool.Parse(conf.GetValue ("thermal_off"));
+					is_thermal_dissip_disabled_init = true;
+				} else {
+					is_thermal_dissip_disabled_init = true;
+					is_thermal_dissip_disabled = false;
+				}
+			} 
+
+			return is_thermal_dissip_disabled;
+		}
+
+		public static bool hasTech(string techid) {
+			try{
+				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+				ConfigNode config = ConfigNode.Load (persistentfile);
+				ConfigNode gameconf = config.GetNode ("GAME");
+				ConfigNode[] scenarios = gameconf.GetNodes ("SCENARIO");
+				foreach (ConfigNode scenario in scenarios) {
+					if (scenario.GetValue ("name") == "ResearchAndDevelopment") {
+						ConfigNode[] techs = scenario.GetNodes ("Tech");
+						foreach (ConfigNode technode in techs) {
+							if (technode.GetValue ("id") == techid) {
+								return true;
+							}
+						}
+					}
+				}
+				return false;
+			} catch (Exception ex) {
+				return false;
+			}
+		}
 
 		public static ConfigNode getPluginSaveFile() {
 			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
