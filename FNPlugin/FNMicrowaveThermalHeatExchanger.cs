@@ -102,6 +102,9 @@ namespace FNPlugin  {
 		}
 
 		public float getThermalPower() {
+			if (availableMegajoules < 40) {
+				availableMegajoules = 39;
+			}
 			return availableMegajoules;
 		}
 

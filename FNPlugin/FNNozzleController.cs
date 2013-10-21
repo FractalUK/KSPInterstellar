@@ -39,6 +39,11 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public string upgradeTechReq = null;
 
+		[KSPField(isPersistant = false)]
+		public bool engineAutoShutdown = false;
+		[KSPField(isPersistant = false)]
+		public bool engineAtmospheric = false;
+
         private float maxISP;
         private float minISP;
         private float assThermalPower;
@@ -56,7 +61,9 @@ namespace FNPlugin
 		private int thrustLimitRatio = 0;
 		private float thrustLimiter = 0;
 		private float intakeAtmThrustLimiter = 1;
-		bool engineAutoShutdown = false;
+		private float activeEngines = 0;
+		private float availableAtmosphere = 0;
+
 
 		protected int shutdown_counter = 0;
 
@@ -169,7 +176,7 @@ namespace FNPlugin
                 list_of_propellants.Add(curprop);
             }
 
-			int activeEngines = 0;
+			activeEngines = 0;
 			List<FNNozzleController> fnncs = vessel.FindPartModulesImplementing<FNNozzleController>();
 			foreach (FNNozzleController fnnc in fnncs) {
 				var me = fnnc.part.Modules["ModuleEngines"] as ModuleEngines;
@@ -178,7 +185,7 @@ namespace FNPlugin
 				}
 			}
 
-			float availableAtmosphere = 0;
+			availableAtmosphere = 0;
 			List<AtmosphericIntake> ais = vessel.FindPartModulesImplementing<AtmosphericIntake>();
 			foreach (AtmosphericIntake ai in ais) {
 				if (ai.getAtmosphericOutput () > 0) {
@@ -188,6 +195,13 @@ namespace FNPlugin
 						availableAtmosphere += ai.getAtmosphericOutput ();
 					}
 				}
+			}
+
+			var curNozzle = curEngine.part.Modules["FNNozzleController"] as FNNozzleController;
+			if (currentpropellant_is_jet) {
+				curNozzle.engineAtmospheric = true;
+			} else {
+				curNozzle.engineAtmospheric = false;
 			}
 
             Part[] childParts = this.part.FindChildParts<Part>(true);
@@ -251,9 +265,7 @@ namespace FNPlugin
 						if (isLFO) {
 							engineMaxThrust = engineMaxThrust * 1.5f;
 						}
-						curEngine.maxThrust = engineMaxThrust;
 
-						print ("warp: Reactor MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString ());
 					}
 					else if (thisModule3 != null) {
 						FNMicrowaveThermalHeatExchanger mthe = (FNMicrowaveThermalHeatExchanger)thisModule;
@@ -302,11 +314,6 @@ namespace FNPlugin
 						if (isLFO) {
 							engineMaxThrust = engineMaxThrust * 1.5f;
 						}
-						curEngine.maxThrust = engineMaxThrust;
-
-						//float atmosphereRequired = engineMaxThrust / (curEngine.realIsp * 9.81f);
-
-						//print ("warp: Microwave MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString () + " Engine ISP " + curEngine.realIsp + " Atmosphere Required: " + atmosphereRequired.ToString());
 					}
 
                 }
@@ -377,7 +384,7 @@ namespace FNPlugin
                         if (isLFO) {
                             engineMaxThrust = engineMaxThrust * 1.5f;
                         }
-                        curEngine.maxThrust = engineMaxThrust;
+
                     }
 					else if (thisModule3 != null) {
 						FNMicrowaveThermalHeatExchanger mthe = (FNMicrowaveThermalHeatExchanger)thisModule;
@@ -421,6 +428,7 @@ namespace FNPlugin
 							engineMaxThrust = thrustLimiter;
 						}
 
+
 						float heat_exchanger_thrust_divisor = 1;
 						if (radius > mthe.getRadius ()) {
 							heat_exchanger_thrust_divisor = mthe.getRadius () * mthe.getRadius () / radius / radius;
@@ -434,70 +442,60 @@ namespace FNPlugin
 							engineMaxThrust = engineMaxThrust * 1.5f;
 						}
 
-						//prevent jet flameouts
-						if (curEngine.currentThrottle > 0 && engineMaxThrust > 0 && currentpropellant_is_jet) {
-							//debug current atmosphere in use
-							float currentAtmosphereConsumption = (engineMaxThrust * curEngine.currentThrottle) / (curEngine.realIsp * 9.81f);
-							//print ("Warp FNNC: Throttle: " + vessel.ctrlState.mainThrottle + " Max Thrust: " + engineMaxThrust + " Current Atmopshere: " + currentAtmosphereConsumption);
-
-
-							float maxAtmosphereRequired = engineMaxThrust / (curEngine.realIsp * 9.81f);
-							intakeAtmThrustLimiter = availableAtmosphere / maxAtmosphereRequired;
-							float intakeAtmP = intakeAtmThrustLimiter * 100;
-							if (intakeAtmThrustLimiter > 1) {
-								intakeAtmThrustLimiter = 1;
-							} else if (intakeAtmThrustLimiter < 1) {
-								//limit max thrust to available atmopshere (possibly smoother but commented out, my ultimate goal here is to get the engine throttle FX animated correctly)
-								engineMaxThrust = engineMaxThrust * intakeAtmThrustLimiter;
-								thrustLimit = "IntakeAtm " + intakeAtmP.ToString ("00.000") + "%";
-								if(curEngine.currentThrottle > intakeAtmThrustLimiter){
-
-									//animate throttle (doesn't work, but would be nice)
-									/*
-									foreach (FXGroup fx_group in part.fxGroups) {
-										//fx_group.setActive (false);
-										fx_group.Power = intakeAtmThrustLimiter; // didn't work
-										fx_group.SetPower (intakeAtmThrustLimiter); //didn't work
-										print ("Debug: " + intakeAtmThrustLimiter); // fires - from 1 down to 0 
-									}*/
-
-
-									/* //(optionally) we could limit mainThrottle of vessel instead of maxThrust to provide additional feedback to users, however, that would effect other non-thermal engines which may be throttled up (the following code will only reduce throttle, more would be needed to increase throttle)
-									 * //I left this snippet in here more as a reference in case we want to use it for something else later...
-									 * if (float.IsNaN(intakeAtmThrustLimiter)) intakeAtmThrustLimiter = 0; // setting FlightCtrlState to NaN will cause very bad things to happen
-									 * FlightInputHandler.state.mainThrottle = intakeAtmThrustLimiter;
-									 */
-
-								}
-							}
-
-							//print ("warp FNNC: Microwave MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString () + " Engine ISP " + curEngine.realIsp + " Max Atmosphere Required: " + maxAtmosphereRequired.ToString() + " Current Atmosphere Required: " + atmosphereRequired.ToString());
-							//print ("Warp FNNC: Atmosphere Max Thrust: " + engineMaxThrust.ToString () + " Max Atmosphere Required: " + maxAtmosphereRequired.ToString () + " Atm Limter " + intakeAtmThrustLimiter + " Atmosphere limit: " + maxAtmosphereRequired * intakeAtmThrustLimiter);
-						}
-						else if(!currentpropellant_is_jet && intakeAtmThrustLimiter < 1){
-							intakeAtmThrustLimiter = 1;
-						}
-
-						//This will shutdown engine if less than 40MW of power is available or IntakeAtm reaches 0, this is equal to the ThermalPower of the unupgraded 1.25m reactor
-
-						if (assThermalPower < 40 || intakeAtmThrustLimiter == 0) {
-							if(curEngine.isOperational == true){
-								curEngine.Events ["Shutdown"].Invoke ();
-								engineAutoShutdown = true;
-							}
-							if(assThermalPower < 40){
-								thrustLimit = "Insufficient Power";
-							}
-						} else {
-							if(curEngine.isOperational == false && engineAutoShutdown == true){
-								curEngine.Events ["Activate"].Invoke ();
-								engineAutoShutdown = false;
-							}
-							curEngine.maxThrust = engineMaxThrust;
-						}
 					}
 
                 }
+
+				//prevent jet flameouts
+				if (currentpropellant_is_jet) {
+					if (curEngine.maxThrust > 0 && availableAtmosphere > 0 && curEngine.realIsp > 0) {
+						float maxAtmosphereRequired = engineMaxThrust / (curEngine.realIsp * 9.81f);
+						intakeAtmThrustLimiter = availableAtmosphere / maxAtmosphereRequired;
+					}
+
+					if (intakeAtmThrustLimiter <= 0) {
+						intakeAtmThrustLimiter = 0.0001f;
+					}
+
+
+					if (intakeAtmThrustLimiter > 1) {
+						intakeAtmThrustLimiter = 1;
+					} else if (intakeAtmThrustLimiter < 1) {
+
+						print ("Warp FNNC: Microwave MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString () + " Engine ISP " + curEngine.realIsp);
+
+						//limit max thrust to available atmopshere (possibly smoother but commented out, my ultimate goal here is to get the engine throttle FX animated correctly)
+						engineMaxThrust = engineMaxThrust * intakeAtmThrustLimiter;
+
+						float intakeAtmP = intakeAtmThrustLimiter * 100;
+						thrustLimit = "IntakeAtm " + intakeAtmP.ToString ("00.000") + "%";
+
+						/*if(curEngine.currentThrottle > intakeAtmThrustLimiter){
+
+							//animate throttle (this code doesn't work, but would be nice)
+							foreach (FXGroup fx_group in part.fxGroups) {
+								fx_group.Power = intakeAtmThrustLimiter; // didn't work
+								fx_group.SetPower (intakeAtmThrustLimiter); //didn't work
+								print ("Debug: " + intakeAtmThrustLimiter); // fires - from 1 down to 0 
+							}
+
+
+							//(optionally) we could limit mainThrottle of vessel instead of maxThrust to provide additional feedback to users, however, that would effect other non-thermal engines which may be throttled up (the following code will only reduce throttle, more would be needed to increase throttle)
+							//I left this snippet in here more as a reference in case we want to use it for something else later...
+							if (float.IsNaN(intakeAtmThrustLimiter)) intakeAtmThrustLimiter = 0; // setting FlightCtrlState to NaN will cause very bad things to happen
+							FlightInputHandler.state.mainThrottle = intakeAtmThrustLimiter;
+
+						}*/
+					}
+
+					print ("Warp FNNC: Atmosphere Max Thrust: " + engineMaxThrust.ToString () + " Atm Limter " + intakeAtmThrustLimiter);
+				}
+				else {
+					intakeAtmThrustLimiter = 1;
+				}
+
+				curEngine.maxThrust = engineMaxThrust;
+
             }
 
             if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null) {
@@ -521,7 +519,7 @@ namespace FNPlugin
 				}
 			}
 
-			if (next_propellant && fuel_mode != 1) {
+			if (next_propellant && fuel_mode != 0) {
                 TogglePropellant();
             }
             /*else {
@@ -710,23 +708,57 @@ namespace FNPlugin
         }
 
         public override void OnFixedUpdate() {
+			if (vessel != FlightGlobals.ActiveVessel)
+			{
+				return;
+			}
+
             ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
-
-
 
 			if (curEngine == null) {
 				return;
 			}
 
+			//curEngine.part.FindModulesImplementing (FNNozzleController);
+
+			var curNozzle = curEngine.part.Modules["FNNozzleController"] as FNNozzleController;
+
+			//This will shutdown engine if less than 40MW of power is available or IntakeAtm reaches (near) 0, this is equal to the ThermalPower of the unupgraded 1.25m reactor
+			if (curNozzle.fuelmode == "Atmosphere") {
+				print (curNozzle.fuelmode);
+			}
+			if (assThermalPower < 40 || (curNozzle.engineAtmospheric && availableAtmosphere < 0.0001f) || curEngine.maxThrust < 0.0001f ) {
+				if(curEngine.isOperational == true){
+					curEngine.Events ["Shutdown"].Invoke ();
+					curNozzle.engineAutoShutdown = true;
+				}
+				setupPropellants();
+			} else {
+				if(curNozzle.engineAutoShutdown == true && curEngine.isOperational == false){
+					curEngine.Events ["Activate"].Invoke ();
+					curNozzle.engineAutoShutdown = false;
+				}
+				setupPropellants();
+			}
+
+			if(assThermalPower < 40){
+				thrustLimit = "Insufficient Power";
+			}
+			else if(curNozzle.engineAtmospheric && availableAtmosphere < 0.0001f){
+				thrustLimit = "Insufficent Atmosphere";
+			}
+
+			print ("AutoShutdown: " + curNozzle.engineAutoShutdown.ToString ()); 
+
 
             //print(curEngine.currentThrottle.ToString() + "\n");
-
+			/*
             if (curEngine.maxThrust <= 0 && curEngine.isEnabled && curEngine.currentThrottle > 0) {
                 setupPropellants();
                 if (curEngine.maxThrust <= 0) {
                     curEngine.maxThrust = 0.000001f;
                 }
-            }
+            }*/
 
 			//curEngine.flameout = false;
 
@@ -735,7 +767,7 @@ namespace FNPlugin
                 //float thermalReceived = part.RequestResource("ThermalPower", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
                 float thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                if (thermalReceived >= assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle) {
+                /*if (thermalReceived >= assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle) {
 					shutdown_counter = 0;
                     float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
                     curEngine.maxThrust = thermalThrustPerSecond;
@@ -764,7 +796,7 @@ namespace FNPlugin
 
                     }
 
-                }
+                }*/
             }else {
 				if (assThermalPower <= 0) {
 					curEngine.maxThrust = 0.000001f;
