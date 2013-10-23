@@ -62,6 +62,7 @@ namespace FNPlugin {
 		protected float deut_rate_f = 0;
 
 		protected bool play_down = true;
+		protected double science_awaiting_addition = 0;
 
 		protected Animation anim;
 		protected Animation anim2;
@@ -168,18 +169,23 @@ namespace FNPlugin {
 				anim [animName1].layer = 1;
 				anim2 [animName2].layer = 1;
 				if (IsEnabled) {
-					anim [animName1].normalizedTime = 0f;
-					anim [animName1].speed = -1f;
-					anim2 [animName2].normalizedTime = 0f;
-					anim2 [animName2].speed = -1f;
+					//anim [animName1].normalizedTime = 1f;
+					//anim2 [animName2].normalizedTime = 1f;
+					//anim [animName1].speed = -1f;
+					//anim2 [animName2].speed = -1f;
+					anim.Blend (animName1, 1, 0);
+					anim2.Blend (animName2, 1, 0);
 				} else {
-					anim [animName1].normalizedTime = 1f;
-					anim [animName1].speed = 1f;
-					anim2 [animName2].normalizedTime = 1f;
-					anim2 [animName2].speed = 1f;
+					//anim [animName1].normalizedTime = 0f;
+					//anim2 [animName2].normalizedTime = 0f;
+					//anim [animName1].speed = 1f;
+					//anim2 [animName2].speed = 1f;
+					anim.Blend (animName1, 0, 0);
+					anim2.Blend (animName2, 0, 0);
+					play_down = false;
 				}
-				anim.Play ();
-				anim2.Play ();
+				//anim.Play ();
+				//anim2.Play ();
 			}
 
             if (IsEnabled && last_active_time != 0) {
@@ -199,9 +205,8 @@ namespace FNPlugin {
 					stupidity = 1.5f - stupidity / 2.0f;
 					double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / ((float)Math.Sqrt (altitude_multiplier));
 					//part.RequestResource ("Science", -science_to_add);
-					if (ResearchAndDevelopment.Instance != null) {
-						ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_to_add;
-					}
+					science_awaiting_addition = science_to_add;
+
 				} else if (active_mode == 2) { // Antimatter persistence
 					double now = Planetarium.GetUniversalTime ();
 					double time_diff = now - last_active_time;
@@ -301,6 +306,11 @@ namespace FNPlugin {
             crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
             global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
 
+
+			if (ResearchAndDevelopment.Instance != null) {
+				ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
+				science_awaiting_addition = 0;
+			}
             
 
 			if (IsEnabled) {

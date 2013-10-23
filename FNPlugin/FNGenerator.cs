@@ -331,9 +331,10 @@ namespace FNPlugin
 			float waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
 			float thermal_power_currently_needed = waste_heat_produced / totalEff;
             double thermaldt = Math.Min(maxThermalPower,thermal_power_currently_needed) * TimeWarp.fixedDeltaTime;
-			double wastedt = thermaldt * totalEff;
+
             
             double inputThermalPower = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+			double wastedt = inputThermalPower * totalEff;
 			consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
 			//print ("Generator Check-in 4 (" + vessel.GetName() + ")");

@@ -27,6 +27,8 @@ namespace FNPlugin {
         public string originalName;
         [KSPField(isPersistant = false)]
         public string upgradedName;
+		[KSPField(isPersistant = false)]
+		public float maxPower;
         [KSPField(isPersistant = true)]
 		public int fuel_mode = 1;
 		[KSPField(isPersistant = true)]
@@ -123,7 +125,7 @@ namespace FNPlugin {
             //this.part.force_activate();
 
             fuel_gauge = part.stackIcon.DisplayInfo();
-            propellants = getPropellants(isupgraded);
+            
 
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             if (curEngine != null) {
@@ -150,8 +152,16 @@ namespace FNPlugin {
 				engineInit = true;
 				if(hasrequiredupgrade) {
 					isupgraded = true;
+					ConfigNode node = new ConfigNode("RESOURCE");
+					node.AddValue("name", "VacuumPlasma");
+					node.AddValue("maxAmount", 10);
+					node.AddValue("amount", 10);
+					part.AddResource(node);
+					fuel_mode = 0;
 				}
 			}
+
+			propellants = getPropellants(isupgraded);
 
 			if(manual_upgrade) {
 				hasrequiredupgrade = true;
@@ -163,7 +173,7 @@ namespace FNPlugin {
 				engineType = originalName;
 			}
 
-            
+
 			evaluateMaxThrust();
             
         }
@@ -248,7 +258,7 @@ namespace FNPlugin {
             }
             
 			float thrust_per_engine = final_thrust_store / engines;
-			float power_per_engine = 0.5f*curEngine.currentThrottle*thrust_per_engine*curEngine.atmosphereCurve.Evaluate (0)/1000.0f*9.81f;
+			float power_per_engine = Math.Min(0.5f*curEngine.currentThrottle*thrust_per_engine*curEngine.atmosphereCurve.Evaluate (0)/1000.0f*9.81f,maxPower);
 			//print (power_per_engine);
 			float power_received = consumeFNResource (power_per_engine * TimeWarp.fixedDeltaTime/thrust_efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime;
 			electrical_consumption_f = power_received;

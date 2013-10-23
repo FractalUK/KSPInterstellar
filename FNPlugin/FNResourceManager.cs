@@ -162,6 +162,7 @@ namespace FNPlugin {
 			} else {
 				resource_bar_ratio = 0;
 			}
+			double missingmegajoules = maxmegajoules - currentmegajoules;
             powersupply += currentmegajoules;
 
 			double demand_supply_ratio = Math.Min (powersupply / stored_current_demand, 1.0);
@@ -257,6 +258,12 @@ namespace FNPlugin {
 				if (power_extract < 0 && PluginHelper.isThermalDissipationDisabled ()) {
 					power_extract = 0;
 				}
+			}
+
+			if (power_extract > 0) {
+				power_extract = Math.Min (power_extract, currentmegajoules);
+			} else if (power_extract < 0) {
+				power_extract = Math.Max (power_extract, -missingmegajoules);
 			}
 
 			my_part.RequestResource(this.resource_name, power_extract);
