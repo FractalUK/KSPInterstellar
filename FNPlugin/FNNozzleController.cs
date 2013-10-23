@@ -333,6 +333,12 @@ namespace FNPlugin
             engineType = originalName;
             if (isupgraded) {
                 engineType = upgradedName;
+				var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
+				if (curEngine != null) {
+					engineType = upgradedName;
+					propellants = FNNozzleController.getPropellantsHybrid();
+					isHybrid = true;
+				}
             }
 
             setupPropellants();

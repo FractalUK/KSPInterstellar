@@ -178,16 +178,13 @@ namespace FNPlugin {
 			//orig_emissive_colour = part.renderer.material.GetTexture (emissive_property_name);
 			if (anim != null) {
 				anim [animName].layer = 1;
-				if (!IsEnabled) {
-					anim [animName].normalizedTime = 1f;
-					anim [animName].speed = -1f;
 
+				if (IsEnabled) {
+					anim.Blend (animName, 1, 0);
 				} else {
-					anim [animName].normalizedTime = 0f;
-					anim [animName].speed = 1f;
-
+					anim.Blend (animName, 0, 0);
 				}
-				anim.Play ();
+				//anim.Play ();
 			}
 
 			if (isDeployable) {
@@ -347,7 +344,7 @@ namespace FNPlugin {
 		public override string GetInfo() {
 			float thermal_power_dissip = (float)(stefan_const * radiatorArea * Math.Pow (radiatorTemp, 4) / 1e6);
 			float thermal_power_dissip2 = (float)(stefan_const * radiatorArea * Math.Pow (upgradedRadiatorTemp, 4) / 1e6);
-			return String.Format("Waste Heat Radiated\n Present: {0} MW\n After Upgrade: {1} MW\n Upgrade Cost: {2} Science", thermal_power_dissip,thermal_power_dissip2,upgradeCost);
+			return String.Format("Waste Heat Radiated\n Present: {0} MW\n After Upgrade: {1} MW", thermal_power_dissip,thermal_power_dissip2);
 		}
 
 	}

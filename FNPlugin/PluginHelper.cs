@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using System.Reflection;
 
 namespace FNPlugin {
 	[KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
-    public class PluginHelper : MonoBehaviour {
+	public class PluginHelper : MonoBehaviour {
         public const double FIXED_SAT_ALTITUDE = 13599840256;
         public const int REF_BODY_KERBOL = 0;
         public const int REF_BODY_KERBIN = 1;
@@ -266,31 +267,46 @@ namespace FNPlugin {
 						}
 
 						foreach (ConfigNode config_part_item in config_nodes) {
-							if(config_part_item.name == "RESOURCE") {
-								PartResource pr = prefab_available_part.AddResource(config_part_item);
-
-								if(available_part.resourceInfo.Length == 0) {
-									available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-								}else{
-									available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-								}
-							}else if(config_part_item.name == "MODULE") {
-								PartModule pm = prefab_available_part.AddModule(config_part_item);
-
-								if(available_part.moduleInfo.Length == 0) {
-									if(pm.GetInfo() != null) {
-										available_part.moduleInfo = pm.GetInfo();
+							if(config_part_item != null) {
+								if(config_part_item.name == "RESOURCE") {
+									PartResource pr = prefab_available_part.AddResource(config_part_item);
+									if(available_part.resourceInfo != null && pr != null) {	
+										if(available_part.resourceInfo.Length == 0) {
+											available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+										}else{
+											available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+										}
 									}
-								}else{
-									if(pm.GetInfo() != null) {
-										available_part.moduleInfo = "\n" + pm.GetInfo();
+								}else if(config_part_item.name == "MODULE") {
+									//print ("[WarpPlugin] blah: " + prefab_available_part.name + " " + config_part_item.GetValue("name"));
+
+									Type type = AssemblyLoader.GetClassByName(typeof(PartModule), config_part_item.GetValue("name"));
+
+									PartModule pm = null;
+									if(type != null) {
+										pm = prefab_available_part.gameObject.AddComponent(type) as PartModule;
+										prefab_available_part.Modules.Add(pm);
 									}
+
+									//print ("[WarpPlugin] blahblah: " + prefab_available_part.name);
+									if(available_part.moduleInfo != null && pm != null) {	
+										if(available_part.moduleInfo.Length == 0) {
+											if(pm.GetInfo().Length >0) {
+												available_part.moduleInfo = pm.GetInfo();
+											}
+										}else{
+											if(pm.GetInfo().Length >0) {
+												available_part.moduleInfo = available_part.moduleInfo + "\n" + pm.GetInfo();
+											}
+										}
+									}
+									//print ("[WarpPlugin] blahblahblah: " + prefab_available_part.name);
 								}
 							}
 						}
 
 					}catch(Exception ex) {
-						print ("[WarpPlugin] Exception caught adding to: " + prefab_available_part.name + " part");
+						print ("[WarpPlugin] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
 					}
 
 
@@ -298,6 +314,22 @@ namespace FNPlugin {
 			}
 
 			Destroy (this);
+		}
+
+		public static bool Awaken(PartModule module)
+		{
+			// thanks to Mu and Kine for help with this bit of Dark Magic. 
+			// KINEMORTOBESTMORTOLOLOLOL
+			if (module == null)
+				return false;
+			object[] paramList = new object[] { };
+			MethodInfo awakeMethod = typeof(PartModule).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+
+			if (awakeMethod == null)
+				return false;
+
+			awakeMethod.Invoke(module, paramList);
+			return true;
 		}
 
 		protected static bool warning_displayed = false;

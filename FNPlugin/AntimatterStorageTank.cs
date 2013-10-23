@@ -108,6 +108,7 @@ namespace FNPlugin {
 				}
 
 				if (chargestatus <= 0) {
+					chargestatus = 0;
 					explode_counter++;
 					if (explode_counter > 5) {
 						doExplode ();
@@ -116,7 +117,9 @@ namespace FNPlugin {
 					explode_counter = 0;
 				}
 			} else {
-
+				if (chargestatus > MAX_STORED_CHARGE) {
+					chargestatus = MAX_STORED_CHARGE;
+				}
 			}
 
 			if (exploding && lightGameObject != null) {
