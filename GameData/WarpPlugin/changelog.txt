@@ -1,3 +1,16 @@
+Version 0.7.1
+-Added new KIWI nuclear reactor model by ZZZ
+-1.25m Plasma Thruster has maximum 25GW power throughput and reduced mass to 1.  2.5m Plasma Thruster has maximum 200GW power throughput, mass remains 6.
+-Rewrote Atmospheric Intakes/Scoops
+-Atmospheric Scoop no longer requires attached intake
+-Fixed Hybrid Thermal Turbojet auto-upgrade
+-Fixed Plasma Thruster auto-upgrade
+-Fixed UF6/DUF6 draw/supply to make them even
+-Fixed Science lab persistent science
+-Fixed exception in PartLoader
+-Fixed generator consuming all waste heat when reactor inactive
+-Improved resource manager performance at high time acceleration
+
 Version 0.7
 -Integration with stock science system/career mode
 -Added tech tree extension using TreeLoader
