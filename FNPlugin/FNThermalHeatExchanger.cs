@@ -6,7 +6,10 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin  {
-	class FNMicrowaveThermalHeatExchanger : FNResourceSuppliableModule {
+	class FNThermalHeatExchanger : FNResourceSuppliableModule {
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
+		public string thermalpower;
+
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = true;
 		[KSPField(isPersistant = false)]
@@ -37,36 +40,48 @@ namespace FNPlugin  {
 			IsEnabled = !IsEnabled;
 		}
 
-		float availableMegajoules = 0;
+		float availableThermalPower = 0;
 		int activeExchangers = 0;
 
-		public void setupMicrowaveThermalPower(){
+		public void setupThermalPower(){
 			//skip calculations on other vessels
 			if (vessel != FlightGlobals.ActiveVessel)
 			{
 				return;
 			}
 
-			availableMegajoules = 0;
+			availableThermalPower = 0;
 			activeExchangers = 0;
 
-			List<FNMicrowaveThermalHeatExchanger> mthes = vessel.FindPartModulesImplementing<FNMicrowaveThermalHeatExchanger>();
-			foreach (FNMicrowaveThermalHeatExchanger mthe in mthes) {
+			List<FNThermalHeatExchanger> mthes = vessel.FindPartModulesImplementing<FNThermalHeatExchanger>();
+			foreach (FNThermalHeatExchanger mthe in mthes) {
 				if (mthe.IsEnabled == true) {
 					activeExchangers++;
 				}
 			}
 
-			/*List<MicrowavePowerReceiver> mprs = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
+			List<MicrowavePowerReceiver> mprs = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
 			foreach (MicrowavePowerReceiver mpr in mprs) {
-				if (mpr.getMegajoules () > 0 && activeExchangers > 0) {
-					availableMegajoules = mpr.getMegajoules () / activeExchangers;
-				} else {
-					availableMegajoules = 0;
+				if (mpr.isThermalReciever) {
+					if (mpr.getMegajoules () > 0 && activeExchangers > 0) {
+						availableThermalPower += mpr.getMegajoules () / activeExchangers;
+					}
 				}
-			}*/
+			}
 
-			availableMegajoules = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) / activeExchangers;
+			List<FNReactor> fnrs = vessel.FindPartModulesImplementing<FNReactor>();
+			foreach (FNReactor fnr in fnrs) {
+				if (fnr.IsEnabled) {
+					if (fnr.getReactorThermalPower() > 0 && activeExchangers > 0) {
+						availableThermalPower += fnr.getReactorThermalPower() / activeExchangers;
+					}
+				}
+			}
+
+			//availableThermalPower = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) / activeExchangers;
+			//availableThermalPower = (getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers) * TimeWarp.fixedDeltaTime;
+
+			thermalpower = availableThermalPower.ToString () + "MW";
 		}
 
 		public override void OnStart(PartModule.StartState state) {
@@ -82,7 +97,7 @@ namespace FNPlugin  {
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
 
-			setupMicrowaveThermalPower ();
+			setupThermalPower ();
 		}
 
 		public override void OnUpdate() {
@@ -92,9 +107,9 @@ namespace FNPlugin  {
 
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
-			setupMicrowaveThermalPower ();
-			supplyFNResource(availableMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_THERMALPOWER);
-			consumeFNResource(availableMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
+			setupThermalPower ();
+			//supplyFNResource(availableThermalPower * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_THERMALPOWER);
+			//consumeFNResource(availableThermalPower * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
 		}
 
 		public float getRadius() {
@@ -102,10 +117,7 @@ namespace FNPlugin  {
 		}
 
 		public float getThermalPower() {
-			if (availableMegajoules < 40) {
-				availableMegajoules = 39;
-			}
-			return availableMegajoules;
+			return availableThermalPower;
 		}
 
 	}

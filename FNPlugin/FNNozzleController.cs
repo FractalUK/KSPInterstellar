@@ -43,6 +43,10 @@ namespace FNPlugin
 		public bool engineAutoShutdown = false;
 		[KSPField(isPersistant = false)]
 		public bool engineAtmospheric = false;
+		[KSPField(isPersistant = false)]
+		public bool engineMicrowave = false;
+		[KSPField(isPersistant = false)]
+		public bool engineHeatExchanger = false;
 
         private float maxISP;
         private float minISP;
@@ -210,54 +214,59 @@ namespace FNPlugin
                 childModules = childParts.ElementAt(i).Modules;
                 for (int j = 0; j < childModules.Count; ++j) {
                     PartModule thisModule = childModules.GetModule(j);
-                    var thisModule2 = thisModule as FNReactor;
-					var thisModule3 = thisModule as FNMicrowaveThermalHeatExchanger;
+					var thisModule2 = thisModule as FNReactor;
+					var thisModule3 = thisModule as FNThermalHeatExchanger;
+					var thisModule4 = thisModule as MicrowavePowerReceiver;
 					if (thisModule2 != null) {
 						FNReactor fnr = (FNReactor)thisModule;
-						FloatCurve newISP = new FloatCurve ();
+						FloatCurve newISP = new FloatCurve();
 						FloatCurve vCurve = new FloatCurve ();
 						if (!currentpropellant_is_jet) {
-							maxISP = (float)Math.Sqrt ((double)fnr.getReactorTemp ()) * 17 * ispMultiplier;
+							maxISP = (float)Math.Sqrt((double)fnr.getReactorTemp()) * 17 * ispMultiplier;
 							minISP = maxISP * 0.4f;
-							newISP.Add (0, maxISP, 0, 0);
-							newISP.Add (1, minISP, 0, 0);
+							newISP.Add(0, maxISP, 0, 0);
+							newISP.Add(1, minISP, 0, 0);
 							curEngine.useVelocityCurve = false;
 							curEngine.useEngineResponseTime = false;
-						} else {
-							if (thisModule2.getIsNuclear ()) {
+						}
+						else {
+							if (thisModule2.getIsNuclear()) {
 								maxISP = 150;
-								newISP.Add (0, 100);
-								newISP.Add (0.3f, 150);
-								newISP.Add (1, 75);
-								vCurve.Add (0, 1);
-								vCurve.Add (400, 0.8f);
-								vCurve.Add (950, 0.9f);
+								newISP.Add(0, 100);
+								newISP.Add(0.3f, 150);
+								newISP.Add(1, 75);
+								vCurve.Add(0, 1);
+								vCurve.Add(400, 0.8f);
+								vCurve.Add(950, 0.9f);
 								vCurve.Add (1471, 0);
 							} else {
 								maxISP = 2500;
-								newISP.Add (0, 1200);
-								newISP.Add (0.3f, 2500);
-								newISP.Add (1, 800);
-								vCurve.Add (0, 1);
-								vCurve.Add (400, 0.8f);
-								vCurve.Add (1000, 0.9f);
+								newISP.Add(0, 1200);
+								newISP.Add(0.3f, 2500);
+								newISP.Add(1, 800);
+								vCurve.Add(0, 1);
+								vCurve.Add(400, 0.8f);
+								vCurve.Add(1000, 0.9f);
 								vCurve.Add (2000, 0.5f);
 							}
-
 							curEngine.useVelocityCurve = true;
 							curEngine.useEngineResponseTime = true;
 						}
 						//ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
 						curEngine.atmosphereCurve = newISP;
 						curEngine.velocityCurve = vCurve;
-						assThermalPower = fnr.getReactorThermalPower ();
+						assThermalPower = fnr.getReactorThermalPower();
 						engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
 
 						float heat_exchanger_thrust_divisor = 1;
 						if (radius > fnr.getRadius ()) {
 							heat_exchanger_thrust_divisor = fnr.getRadius () * fnr.getRadius () / radius / radius;
-						} else {
+						}else{
 							heat_exchanger_thrust_divisor = radius * radius / fnr.getRadius () / fnr.getRadius ();
+						}
+
+						if (fnr.getRadius () == 0 || radius == 0) {
+							heat_exchanger_thrust_divisor = 1;
 						}
 
 						engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
@@ -268,21 +277,25 @@ namespace FNPlugin
 
 					}
 					else if (thisModule3 != null) {
-						FNMicrowaveThermalHeatExchanger mthe = (FNMicrowaveThermalHeatExchanger)thisModule;
+						FNThermalHeatExchanger the = (FNThermalHeatExchanger)thisModule;
+						if (!the.isEnabled) {
+							the.Events ["ActivateHeatExchanger"].Invoke ();
+						}
 						FloatCurve newISP = new FloatCurve ();
 						FloatCurve vCurve = new FloatCurve ();
+						assThermalPower = the.getThermalPower ();
+						float thermalReceiverTemp = assThermalPower;
+						if (thermalReceiverTemp > 1500) {
+							thermalReceiverTemp = 1500;
+						}
+						maxISP = (float)Math.Sqrt (thermalReceiverTemp) * 17 * ispMultiplier;
+						minISP = maxISP * 0.4f;
+						newISP.Add (0, maxISP, 0, 0);
+						newISP.Add (1, minISP, 0, 0);
 						if (!currentpropellant_is_jet) {
-							maxISP = (float)Math.Sqrt ((double)mthe.getThermalPower() * 4) * 17 * ispMultiplier;
-							minISP = maxISP * 0.4f;
-							newISP.Add (0, maxISP, 0, 0);
-							newISP.Add (1, minISP, 0, 0);
 							curEngine.useVelocityCurve = false;
 							curEngine.useEngineResponseTime = false;
 						} else {
-							maxISP = 2500;
-							newISP.Add (0, 1200);
-							newISP.Add (0.3f, 2500);
-							newISP.Add (1, 800);
 							vCurve.Add (0, 1);
 							vCurve.Add (400, 0.8f);
 							vCurve.Add (1000, 0.9f);
@@ -290,29 +303,77 @@ namespace FNPlugin
 							curEngine.useVelocityCurve = true;
 							curEngine.useEngineResponseTime = true;
 						}
-						//ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
+
 						curEngine.atmosphereCurve = newISP;
 						curEngine.velocityCurve = vCurve;
-						assThermalPower = mthe.getThermalPower ();
-						if (thrustLimitRatio == 0 || 54 * (assThermalPower / 275) <= thrustLimiter) {
-							engineMaxThrust = 54 * (assThermalPower / 275);
-							thrustLimit = "Max thrust";
-						} else {
-							thrustLimit = thrustLimitRatio.ToString () + ":1";
-							engineMaxThrust = thrustLimiter;
-						}
+
+						engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+
 
 						float heat_exchanger_thrust_divisor = 1;
-						if (radius > mthe.getRadius ()) {
-							heat_exchanger_thrust_divisor = mthe.getRadius () * mthe.getRadius () / radius / radius;
+						if (radius > the.getRadius ()) {
+							heat_exchanger_thrust_divisor = the.getRadius () * the.getRadius () / radius / radius;
 						} else {
-							heat_exchanger_thrust_divisor = radius * radius / mthe.getRadius () / mthe.getRadius ();
+							heat_exchanger_thrust_divisor = radius * radius / the.getRadius () / the.getRadius ();
 						}
 
 						engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
 
 						if (isLFO) {
 							engineMaxThrust = engineMaxThrust * 1.5f;
+						}
+
+						engineHeatExchanger = true;
+
+					}
+					else if (thisModule4 != null) {
+						MicrowavePowerReceiver mpr = (MicrowavePowerReceiver)thisModule;
+						if (mpr.isThermalReciever) {
+							if (!mpr.isEnabled) {
+								mpr.Events ["ActivateReceiver"].Invoke ();
+							}
+							FloatCurve newISP = new FloatCurve ();
+							FloatCurve vCurve = new FloatCurve ();
+							assThermalPower = mpr.getMegajoules ();
+							float thermalReceiverTemp = assThermalPower;
+							if (thermalReceiverTemp > 3000) {
+								thermalReceiverTemp = 3000;
+							}
+							maxISP = (float)Math.Sqrt (thermalReceiverTemp) * 17 * ispMultiplier;
+							minISP = maxISP * 0.4f;
+							newISP.Add (0, maxISP, 0, 0);
+							newISP.Add (1, minISP, 0, 0);
+							if (!currentpropellant_is_jet) {
+								curEngine.useVelocityCurve = false;
+								curEngine.useEngineResponseTime = false;
+							} else {
+								vCurve.Add (0, 1);
+								vCurve.Add (400, 0.8f);
+								vCurve.Add (1000, 0.9f);
+								vCurve.Add (2000, 0.5f);
+								curEngine.useVelocityCurve = true;
+								curEngine.useEngineResponseTime = true;
+							}
+
+							curEngine.atmosphereCurve = newISP;
+							curEngine.velocityCurve = vCurve;
+
+							engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+
+							float heat_exchanger_thrust_divisor = 1;
+							if (radius > mpr.getRadius ()) {
+								heat_exchanger_thrust_divisor = mpr.getRadius () * mpr.getRadius () / radius / radius;
+							} else {
+								heat_exchanger_thrust_divisor = radius * radius / mpr.getRadius () / mpr.getRadius ();
+							}
+
+							engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
+
+							if (isLFO) {
+								engineMaxThrust = engineMaxThrust * 1.5f;
+							}
+
+							engineMicrowave = true;
 						}
 					}
 
@@ -326,7 +387,8 @@ namespace FNPlugin
                 for (int j = 0; j < childModules.Count; ++j) {
                     PartModule thisModule = childModules.GetModule(j);
                     var thisModule2 = thisModule as FNReactor;
-					var thisModule3 = thisModule as FNMicrowaveThermalHeatExchanger;
+					var thisModule3 = thisModule as FNThermalHeatExchanger;
+					var thisModule4 = thisModule as MicrowavePowerReceiver;
                     if (thisModule2 != null) {
                         FNReactor fnr = (FNReactor)thisModule;
                         FloatCurve newISP = new FloatCurve();
@@ -387,27 +449,25 @@ namespace FNPlugin
 
                     }
 					else if (thisModule3 != null) {
-						FNMicrowaveThermalHeatExchanger mthe = (FNMicrowaveThermalHeatExchanger)thisModule;
+						FNThermalHeatExchanger the = (FNThermalHeatExchanger)thisModule;
+						if (!the.isEnabled) {
+							the.Events ["ActivateHeatExchanger"].Invoke ();
+						}
 						FloatCurve newISP = new FloatCurve ();
 						FloatCurve vCurve = new FloatCurve ();
+						assThermalPower = the.getThermalPower ();
+						float thermalReceiverTemp = assThermalPower;
+						if (thermalReceiverTemp > 1500) {
+							thermalReceiverTemp = 1500;
+						}
+						maxISP = (float)Math.Sqrt (thermalReceiverTemp) * 17 * ispMultiplier;
+						minISP = maxISP * 0.4f;
+						newISP.Add (0, maxISP, 0, 0);
+						newISP.Add (1, minISP, 0, 0);
 						if (!currentpropellant_is_jet) {
-							maxISP = (float)Math.Sqrt ((double)mthe.getThermalPower() * 4) * 17 * ispMultiplier;
-							minISP = maxISP * 0.4f;
-							// if recieved thermal power decreases below a certain threshhold it will completely deplete fuel supply
-							//since the new thrust/throttle limiting code will not engage fast enough to prevent that from happening, this code will prevent ISP reduction beyond that found at around 40MW of power
-							if (maxISP < 215 || minISP < 86) {
-								maxISP = 215;
-								minISP = 86;
-							}
-							newISP.Add (0, maxISP, 0, 0);
-							newISP.Add (1, minISP, 0, 0);
 							curEngine.useVelocityCurve = false;
 							curEngine.useEngineResponseTime = false;
 						} else {
-							maxISP = 2500;
-							newISP.Add (0, 1200);
-							newISP.Add (0.3f, 2500);
-							newISP.Add (1, 800);
 							vCurve.Add (0, 1);
 							vCurve.Add (400, 0.8f);
 							vCurve.Add (1000, 0.9f);
@@ -415,25 +475,17 @@ namespace FNPlugin
 							curEngine.useVelocityCurve = true;
 							curEngine.useEngineResponseTime = true;
 						}
-						//ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
+
 						curEngine.atmosphereCurve = newISP;
 						curEngine.velocityCurve = vCurve;
-						assThermalPower = mthe.getThermalPower ();
 
-						if (thrustLimitRatio == 0 || 54 * (assThermalPower / 275) <= thrustLimiter) {
-							engineMaxThrust = 54 * (assThermalPower / 275);
-							thrustLimit = "Max Power";
-						} else {
-							thrustLimit = thrustLimitRatio.ToString () + ":1";
-							engineMaxThrust = thrustLimiter;
-						}
-
+						engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
 
 						float heat_exchanger_thrust_divisor = 1;
-						if (radius > mthe.getRadius ()) {
-							heat_exchanger_thrust_divisor = mthe.getRadius () * mthe.getRadius () / radius / radius;
+						if (radius > the.getRadius ()) {
+							heat_exchanger_thrust_divisor = the.getRadius () * the.getRadius () / radius / radius;
 						} else {
-							heat_exchanger_thrust_divisor = radius * radius / mthe.getRadius () / mthe.getRadius ();
+							heat_exchanger_thrust_divisor = radius * radius / the.getRadius () / the.getRadius ();
 						}
 
 						engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
@@ -442,61 +494,122 @@ namespace FNPlugin
 							engineMaxThrust = engineMaxThrust * 1.5f;
 						}
 
+						engineHeatExchanger = true;
+
+					}
+					else if (thisModule4 != null) {
+						MicrowavePowerReceiver mpr = (MicrowavePowerReceiver)thisModule;
+						if (mpr.isThermalReciever) {
+							if (!mpr.isEnabled) {
+								mpr.Events ["ActivateReceiver"].Invoke ();
+							}
+							FloatCurve newISP = new FloatCurve ();
+							FloatCurve vCurve = new FloatCurve ();
+							assThermalPower = mpr.getMegajoules ();
+							float thermalReceiverTemp = assThermalPower;
+							if (thermalReceiverTemp > 3000) {
+								thermalReceiverTemp = 3000;
+							}
+							maxISP = (float)Math.Sqrt (thermalReceiverTemp) * 17 * ispMultiplier;
+							minISP = maxISP * 0.4f;
+							newISP.Add (0, maxISP, 0, 0);
+							newISP.Add (1, minISP, 0, 0);
+							if (!currentpropellant_is_jet) {
+								curEngine.useVelocityCurve = false;
+								curEngine.useEngineResponseTime = false;
+							} else {
+								vCurve.Add (0, 1);
+								vCurve.Add (400, 0.8f);
+								vCurve.Add (1000, 0.9f);
+								vCurve.Add (2000, 0.5f);
+								curEngine.useVelocityCurve = true;
+								curEngine.useEngineResponseTime = true;
+							}
+							//ModuleEngines curEngine = (ModuleEngines)this.part.Modules["ModuleEngines"];
+							curEngine.atmosphereCurve = newISP;
+							curEngine.velocityCurve = vCurve;
+
+							engineMaxThrust = 2000 * assThermalPower / maxISP / 9.81f;
+
+							float heat_exchanger_thrust_divisor = 1;
+							if (radius > mpr.getRadius ()) {
+								heat_exchanger_thrust_divisor = mpr.getRadius () * mpr.getRadius () / radius / radius;
+							} else {
+								heat_exchanger_thrust_divisor = radius * radius / mpr.getRadius () / mpr.getRadius ();
+							}
+
+							engineMaxThrust = engineMaxThrust * heat_exchanger_thrust_divisor;
+
+							if (isLFO) {
+								engineMaxThrust = engineMaxThrust * 1.5f;
+							}
+
+							engineMicrowave = true;
+						}
 					}
 
                 }
 
-				//prevent jet flameouts
-				if (currentpropellant_is_jet) {
-					if (curEngine.maxThrust > 0 && availableAtmosphere > 0 && curEngine.realIsp > 0) {
-						float maxAtmosphereRequired = engineMaxThrust / (curEngine.realIsp * 9.81f);
-						intakeAtmThrustLimiter = availableAtmosphere / maxAtmosphereRequired;
-					}
+            }
 
-					if (intakeAtmThrustLimiter <= 0) {
-						intakeAtmThrustLimiter = 0.0001f;
-					}
+			//twr limiter
+			if (thrustLimitRatio == 0 || engineMaxThrust <= thrustLimiter) {
+				thrustLimit = "Max Power";
+			} else {
+				thrustLimit = thrustLimitRatio.ToString () + ":1";
+				engineMaxThrust = thrustLimiter;
+			}
+
+			//prevent jet flameouts
+			if (currentpropellant_is_jet) {
+				if (engineMaxThrust > 0 && availableAtmosphere > 0 && curEngine.realIsp > 0) {
+					float maxAtmosphereRequired = engineMaxThrust / (curEngine.realIsp * 9.81f);
+					intakeAtmThrustLimiter = availableAtmosphere / maxAtmosphereRequired;
+				}
+
+				if (intakeAtmThrustLimiter <= 0) {
+					intakeAtmThrustLimiter = 0.0001f;
+				}
 
 
-					if (intakeAtmThrustLimiter > 1) {
-						intakeAtmThrustLimiter = 1;
-					} else if (intakeAtmThrustLimiter < 1) {
+				if (intakeAtmThrustLimiter > 1) {
+					intakeAtmThrustLimiter = 1;
+				} else if (intakeAtmThrustLimiter < 1) {
 
-						print ("Warp FNNC: Microwave MaxThrust: " + engineMaxThrust.ToString () + " ThermalPower: " + assThermalPower.ToString () + " Engine ISP " + curEngine.realIsp);
+					//print ("Warp FNNC: Microwave MaxThrust: " + engineMaxThrust.ToString ());
 
-						//limit max thrust to available atmopshere (possibly smoother but commented out, my ultimate goal here is to get the engine throttle FX animated correctly)
-						engineMaxThrust = engineMaxThrust * intakeAtmThrustLimiter;
+					//limit max thrust to available atmopshere
+					engineMaxThrust = engineMaxThrust * intakeAtmThrustLimiter;
 
-						float intakeAtmP = intakeAtmThrustLimiter * 100;
-						thrustLimit = "IntakeAtm " + intakeAtmP.ToString ("00.000") + "%";
+					float intakeAtmP = intakeAtmThrustLimiter * 100;
+					thrustLimit = "IntakeAtm " + intakeAtmP.ToString ("00.000") + "%";
 
-						/*if(curEngine.currentThrottle > intakeAtmThrustLimiter){
+					if(curEngine.currentThrottle > intakeAtmThrustLimiter){
 
 							//animate throttle (this code doesn't work, but would be nice)
-							foreach (FXGroup fx_group in part.fxGroups) {
+							foreach (FXGroup fx_group in curEngine.part.fxGroups) {
 								fx_group.Power = intakeAtmThrustLimiter; // didn't work
-								fx_group.SetPower (intakeAtmThrustLimiter); //didn't work
+								//fx_group.SetPower (intakeAtmThrustLimiter); //didn't work
 								print ("Debug: " + intakeAtmThrustLimiter); // fires - from 1 down to 0 
 							}
 
 
 							//(optionally) we could limit mainThrottle of vessel instead of maxThrust to provide additional feedback to users, however, that would effect other non-thermal engines which may be throttled up (the following code will only reduce throttle, more would be needed to increase throttle)
 							//I left this snippet in here more as a reference in case we want to use it for something else later...
-							if (float.IsNaN(intakeAtmThrustLimiter)) intakeAtmThrustLimiter = 0; // setting FlightCtrlState to NaN will cause very bad things to happen
-							FlightInputHandler.state.mainThrottle = intakeAtmThrustLimiter;
+							//if (float.IsNaN(intakeAtmThrustLimiter)) intakeAtmThrustLimiter = 0; // setting FlightCtrlState to NaN will cause very bad things to happen
+							//FlightInputHandler.state.mainThrottle = intakeAtmThrustLimiter;
 
-						}*/
-					}
-
-					print ("Warp FNNC: Atmosphere Max Thrust: " + engineMaxThrust.ToString () + " Atm Limter " + intakeAtmThrustLimiter);
-				}
-				else {
-					intakeAtmThrustLimiter = 1;
+						}
 				}
 
-				curEngine.maxThrust = engineMaxThrust;
+				//print ("Warp FNNC: Atmosphere Max Thrust: " + engineMaxThrust.ToString () + "Atm Avail " + availableAtmosphere + " Atm Limter " + intakeAtmThrustLimiter + " ThermalPower: " + assThermalPower.ToString () + " Engine ISP " + curEngine.realIsp);
+			}
+			else {
+				intakeAtmThrustLimiter = 1;
+			}
 
-            }
+			//set max thrust on current engine
+			curEngine.maxThrust = engineMaxThrust;
 
             if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null) {
                 curEngine.propellants.Clear();
@@ -522,7 +635,7 @@ namespace FNPlugin
 			if (next_propellant && fuel_mode != 0) {
                 TogglePropellant();
             }
-            /*else {
+            /* else {
                 if ((!isJet && currentpropellant_is_jet) || (isJet && !currentpropellant_is_jet)) {
                     TogglePropellant();
                 }
@@ -590,7 +703,7 @@ namespace FNPlugin
  			List<ModuleResourceIntake> mris = vessel.FindPartModulesImplementing<ModuleResourceIntake> ();
 			if (mris != null) {
 				foreach (ModuleResourceIntake mri in mris) {
-					if (mri.resourceName == "IntakeAir") {
+					if (mri.resourceName == "IntakeAir" && mri.part.Modules["AtmosphericIntake"] == null) {
 						float intakeArea = mri.area;
 						try {
 							String path = "WarpPlugin/Overrides/" + mri.moduleName + "/" + mri.moduleName;
@@ -601,7 +714,6 @@ namespace FNPlugin
 								config_override = GameDatabase.Instance.GetConfigNode (path);
 							}
 							List<ConfigNode> config_nodes = new List<ConfigNode> ();
-							//ConfigNode.ConfigNodeList config_nodes = new ConfigNode.ConfigNodeList();
 
 							if (config_override != null) {
 								foreach (ConfigNode conf_node in config_override.nodes) {
@@ -622,7 +734,23 @@ namespace FNPlugin
 									aipm.area = intakeArea;
 									aipm.part.force_activate ();
 								} else if (config_part_item.name == "MODULEREMOVE") {
-									mri.part.RemoveModule (mri);
+									//Failed attempts at removing IntakeAir resource
+									/*
+									//the loop method
+									PartResourceList prl = mri.part.Resources;
+									for (int p = prl.Count-1; p >= 0; p--) {
+										PartResource thisResource = prl.Get(p);
+										if(thisResource.name == "IntakeAir"){
+											mri.part.Resources.list.RemoveAt(p);
+										}
+									}
+									//the linq method
+									mri.part.Resources.list = mri.part.Resources.list.Where(r => r.name != "IntakeAir").ToList();
+									*/
+
+									//remove the module (works but commenting out for now so we can retain the mri IntakeAir functionality)
+									//mri.part.RemoveModule (mri);
+
 								}
 							}
 
@@ -723,22 +851,21 @@ namespace FNPlugin
 
 			var curNozzle = curEngine.part.Modules["FNNozzleController"] as FNNozzleController;
 
-			//This will shutdown engine if less than 40MW of power is available or IntakeAtm reaches (near) 0, this is equal to the ThermalPower of the unupgraded 1.25m reactor
-			if (curNozzle.fuelmode == "Atmosphere") {
-				print (curNozzle.fuelmode);
+			if (curNozzle.engineAtmospheric || curNozzle.engineHeatExchanger || curNozzle.engineMicrowave) {
+				setupPropellants ();
 			}
+
+			//This will shutdown engine if less than 40MW of power is available or IntakeAtm reaches (near) 0, this is equal to the ThermalPower of the unupgraded 1.25m reactor
 			if (assThermalPower < 40 || (curNozzle.engineAtmospheric && availableAtmosphere < 0.0001f) || curEngine.maxThrust < 0.0001f ) {
 				if(curEngine.isOperational == true){
 					curEngine.Events ["Shutdown"].Invoke ();
 					curNozzle.engineAutoShutdown = true;
 				}
-				setupPropellants();
 			} else {
 				if(curNozzle.engineAutoShutdown == true && curEngine.isOperational == false){
 					curEngine.Events ["Activate"].Invoke ();
 					curNozzle.engineAutoShutdown = false;
 				}
-				setupPropellants();
 			}
 
 			if(assThermalPower < 40){
@@ -748,68 +875,25 @@ namespace FNPlugin
 				thrustLimit = "Insufficent Atmosphere";
 			}
 
-			print ("AutoShutdown: " + curNozzle.engineAutoShutdown.ToString ()); 
-
-
-            //print(curEngine.currentThrottle.ToString() + "\n");
-			/*
-            if (curEngine.maxThrust <= 0 && curEngine.isEnabled && curEngine.currentThrottle > 0) {
-                setupPropellants();
-                if (curEngine.maxThrust <= 0) {
-                    curEngine.maxThrust = 0.000001f;
-                }
-            }*/
-
-			//curEngine.flameout = false;
-
 			if (curEngine.currentThrottle > 0 && curEngine.isEnabled && assThermalPower > 0) {
 
                 //float thermalReceived = part.RequestResource("ThermalPower", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
                 float thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                /*if (thermalReceived >= assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle) {
-					shutdown_counter = 0;
-                    float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
-                    curEngine.maxThrust = thermalThrustPerSecond;
-                }
-                else {
-                    if (thermalReceived/TimeWarp.fixedDeltaTime > 0.0001f) {
-						shutdown_counter = 0;
-                        float thermalThrustPerSecond = thermalReceived / TimeWarp.fixedDeltaTime / curEngine.currentThrottle * engineMaxThrust / assThermalPower;
-                        curEngine.maxThrust = thermalThrustPerSecond;
-                    }
-                    else {
-						//curEngine.maxThrust = 0.000001f;
-						if (!curEngine.flameout) {
-							shutdown_counter++;
-
-							if (shutdown_counter > 2) {
-								curEngine.Events ["Shutdown"].Invoke ();
-								ScreenMessages.PostScreenMessage ("Engines shutdown due to lack of Thermal Power!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-								shutdown_counter = 0;
-								foreach (FXGroup fx_group in part.fxGroups) {
-									fx_group.setActive (false);
-								}
-
-							}
-						}
-
-                    }
-
-                }*/
+                
             }else {
 				if (assThermalPower <= 0) {
 					curEngine.maxThrust = 0.000001f;
 				}
 
 			}
-            //curEngine.currentThrottle
+
 			powerConsumptionStr = (assThermalPower*curEngine.currentThrottle).ToString() + "MW";
 
         }
 
         public override string GetInfo() {
-            return String.Format("Engine parameters determined by attached reactor.");
+            return String.Format("Engine parameters determined by attached thermal power source.");
         }
 
 		public bool hasStarted() {
