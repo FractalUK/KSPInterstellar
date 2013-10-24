@@ -15,7 +15,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
 		[KSPField(isPersistant = true)]
-		bool IsEnabled;
+		public bool IsEnabled;
 		bool aIsRelay;
         public float powerInput;
         private int connectedsatsf = 0;
@@ -153,7 +153,7 @@ namespace FNPlugin {
             int activeSatsIncr = 0;
             float rangelosses = 0;
             if (config != null && IsEnabled) {
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReciever) {
 					IsEnabled = false;
 					deactivate_timer++;
 					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
@@ -234,7 +234,21 @@ namespace FNPlugin {
 									facing_factor = Mathf.Max (0, facing_factor);
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								} else {
-
+									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
+									//facing_factor = Vector3.Dot (part.transform.up, direction_vector);
+									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
+									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
+									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
+									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
+									facing_factorr = Mathf.Max (0, facing_factorr);
+									facing_factorl = Mathf.Max (0, facing_factorl);
+									facing_factorf = Mathf.Max (0, facing_factorf);
+									facing_factorb = Mathf.Max (0, facing_factorb);
+									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
+									if (facing_factor > 1) {
+										facing_factor = 1;
+									}
+									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
 								connectedrelaysf = 1;
 								activeSatsIncr = 0;
