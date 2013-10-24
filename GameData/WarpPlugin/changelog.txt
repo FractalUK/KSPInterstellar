@@ -1,0 +1,165 @@
+Version 0.7.1
+-Added new KIWI nuclear reactor model by ZZZ
+-1.25m Plasma Thruster has maximum 25GW power throughput and reduced mass to 1.  2.5m Plasma Thruster has maximum 200GW power throughput, mass remains 6.
+-Rewrote Atmospheric Intakes/Scoops
+-Atmospheric Scoop no longer requires attached intake
+-Fixed Hybrid Thermal Turbojet auto-upgrade
+-Fixed Plasma Thruster auto-upgrade
+-Fixed UF6/DUF6 draw/supply to make them even
+-Fixed Science lab persistent science
+-Fixed exception in PartLoader
+-Fixed generator consuming all waste heat when reactor inactive
+-Improved resource manager performance at high time acceleration
+
+Version 0.7
+-Integration with stock science system/career mode
+-Added tech tree extension using TreeLoader
+-Added magnetospheric science experiment
+-Added antimatter tank created by ZZZ
+-Nuclear Reactors that shutdown from overheating can be restored by Kerbal EVA work
+-Generator cold bath Temperature based off average radiator temperature - efficiency goes down with increased temperature!
+-Antimatter Tanks must be powered
+-Reactors, Microwave receivers and Solar panels shutdown when WasteHeat bar reaches 95%
+-Radiators won't get hotter than reactor temperature
+-Radiators will explode if the waste heat bar reaches 100%
+-Fixed Microwave Receiver power detection/reception when disabled
+-Fixed DUF6 reprocessing
+
+Version 0.6.2
+-Added Duna ISRU, water electrolysis with extra energy cost for baking water out of the soil
+-Added persistence to Computer Core science production and reactor Lithium consumption/Tritium production
+-Added warning message for undetectable propellant files
+-Changed nuclear reactor base power outputs to 1.5MW, 40MW, 500MW and 3GW
+-Revised down nuclear reactor masses to 0.225, 1.5, 8 and 28
+-Changed vista engine to require 2.5GW of power (instead of 1.5GW), upped vista thrust to 1100kN
+-Kerbol now has scientific value
+-Reconfigured attachment node strengths of 3.75m for better structural integrity
+-Reduced mass of thermal rocket nozzles, 3.75m now mass = 3, 2.5m now mass = 1.5 and 1.25m now mass 0.4.  Throttle will scale down with ratio of attachment areas if you use the wrong size nozzle on the wrong size reactor.
+-Removed all constructors and placed initialised code in OnStart methods (this should help avoid various unity related problems)
+-Fixed Solar Panel collector area code
+-Fixed science lab antimatter persistence
+-Fixed multiple generator to one reactor plasma engine bug
+-Fixed Science lab malfunctioning after vessel switch
+-Amount of DUF6 that is reprocessable will drop after each reprocessing cycle
+
+Version 0.6.1
+-Added waste heat generation to all stock Solar Panels
+-Added Lithium and Deuterium/Tritium Tanks
+-Added Inline radiators created by Kerbtrek
+-Added microwave nuclear transmission and relay functionality created by Conti
+-Better inverse square law for all stock Solar Panels
+-Nuclear reactors can turn Lithium into Tritium using Tritium Breeding option
+-Changed DT Vista to use Tritium instead of Lithium fuel
+-Changed DT Vista to capacity 15 Deuterium and 15 Tritium
+-Added Lithium fuel option for Plasma engines
+-Small rebalancing to science to incentivise landing on planets, landing will grant you double the science rate on most planets/moons,2.5x on Eve and 3x on Tylo
+-Electrolysis of Aluminium/Oxygen possible on Tylo
+-Radiation safety features not engaging quickly enough will no longer endanger Kerbal lives
+-Plasma engine heat generation fixed
+-ThermalPower flow changed to ALL_VESSEL
+-Lithium and Deuterium now pumpable
+-Generators and Engines not properly detected upgraded Reactor fixed
+-Propellant loader path fixed for Linux compatability
+-Fixed atmospheric altitude detection - stops improper radiator detachment
+-Improved thermal rocket propellant autodetection
+-Fixed 1.25m antimatter reactor antimatter consumption rates
+
+Version 0.6
+-Added WasteHeat and Radiators
+-Added lots of models created by ZZZ (Antimatter reactor, 2 generators, DT magnetometers, phased array transmitters/receivers etc)
+-Added deuterium centrifuge option to science lab
+-Electric charge now provided in needed amounts by generator, rather than arbitrary 1000 figure
+-Changed nuclear turbojet parameters such that, with some effort, it can be used to fly
+-Warp effects scale to proper size
+-Fixed Thermal engine NullReferenceException when not physics loaded but not selected ship
+-Microwave beamed receiver now must be pointed at the transmitter or losses will occur
+-Fixed Megajoule utilisation/plasma engine bugs
+-Fixed MechJeb prevent overheats locking the throttle at zero
+
+
+Version 0.5.1
+-Fixed energy consumption continuing while ExoticMatter full bug
+-Fixed energy generation stopping when Megajoules full + Plasma engine thrust bug
+
+Version 0.5
+-Added DT Vista Engine Inertial Fusion engine (Credit to ZZZ for the amazing modelling work on this engine)
+-Added science lab IVA (Credit to ZZZ)
+-Added power management system
+-Added science transmission/reception options to computer core
+-Added option to harvest Deuterium from Jool's atmosphere
+-Added on/off options to Microwave Receiver
+-Warp drive no longer selectable as root part
+-Fixed science lab antimatter production
+-Fixed resource management system unpredictability on docking/undocking
+-Fixed science lab loading bug
+-Fixed plasma engine incorrectly detecting number of active engines bug
+
+Version 0.4.2
+-Science Lab Loading Bug Fixed
+-Plasma Engine upgrade cost not being deducted bug fixed.
+
+Version 0.4.1
+-Added Antimatter Factory resource persistence
+-Added science transmission/receipt
+-Fixed Computer Core Upgrade
+-Fixed Plasma Engine Upgrade
+-Fixed incorrect resource deprived display
+-Fixed unlimited warp drive deactivation to gain speed bug
+-Fixed warp drive still consuming resources after fully charged bug
+
+Version 0.4
+-Rebranded to KSP Interstellar
+-Beta phase begins
+-Warp Drive, Antimatter Collector, Science lab Models added
+-Warp Animation and Sound
+-New parts (2 more warp drives, computer core)
+-Space solar parts now animate according to their function (Receivers deploy when they are receiving some power, Transmitters deploy when activated)
+-New resource handler - should result in much better performance all round, especially at high timewarp speeds
+-Resource prioritisation prevents you have to turn off generators to power engines
+-Plasma thruster now scales its thrust depending upon how many plasma thrusters are attached and active
+-Plasma thruster default propellant is now LiquidFuel, can also use Argon or Xenon (LiquidFuel is best for Isp, Xenon best for thrust, Argon in the middle)
+-Upgrades added for warp drive, antimatter reactors and thermal turbojet
+-Thermal turbojet can now use stock Air Intakes for propellant as well as my Atmospheric Intakes
+-Warp Drives now use ExoticMatter, generated by power, rather than by acting as a huge battery for Megajoules
+-Fixed Warp Vector persistence bug, should again be safe to activate the warp drive, leave the game and then deactivate the warp drive when you next return.
+-Prevented Thermal Rockets functioning with no ThermalPower source
+
+Version 0.3.2
+-Fixed negative thrust and negative efficiency bugs when parts are loaded in atypical orders
+-Fixed science rate when science labs are not active
+-Altered science rate to account for stupidity of Kerbal crews (stupid Kerbals generate less science while clever Kerbals generate more)
+
+Version 0.3.1
+-Science is now generated passively even when science labs are not the active vessel.
+-Antimatter and Uranium is now used passively by vessels even when inactive (provided the reactor is enabled)
+-Updated antimatter matter tank model to the one created by SpaceK531
+-Now capable of performing water electrolysis on the icy surface of Vall
+
+Version 0.3
+New Features:
+-Science and upgradeable parts: Build science labs to collect science and use it to develop upgrades for certain rocket parts.
+-Nuclear Fuel Reprocessing: Turn your depleted nuclear fuel back into useful fissionable material
+-More In Situ Resource Utilisation: Electrolysis of water and aluminium oxide.
+-Antimatter factory: Produce antimatter with huge amounts of power
+-Added Aluminium Hybrid Rocket
+-Added Liquid Fuel tanks
+-Added propellant options to nuclear thermal rockets - burn liquid fuel+oxidiser, liquid fuel or kethane.
+
+Bug Fixes:
+-Fixed Thermal Rocket flameout behaviour
+-Fixed Ship-breaking bug when Brayton Turbine becomes the root vessel part
+-Plasma engine now detects the power ouput of generators on the ship it is attached to and calculates thrust accordingly.
+
+Version 0.2
+Changes:
+-Warp Drive required power now scales with rocket mass, big rockets need more power.
+-Added new nuclear reactors and tiny brayton turbine.
+-Added Microwave solar power transmitter/receiver system.
+-Added planetary magnetic probe.
+-Added atmospheric intakes/scoop.
+
+
+Bugfixes:
+-Fixed Thermal Rocket Nozzle behaviour with manual activation and staging.  It will no longer function in any circumstance without thermal power from a reactor.
+-Fixed Brayton Cycle Gas turbines generating power with no input.
+-Thermal Turbojet now functions with the same mechanism as the Thermal Rocket Nozzle and scales output properly depending upon attached reactor.

@@ -1,4 +1,11 @@
-FNPlugin/bin
+bin
 WarpPlugin.userprefs
 FNPlugin/obj
 WarpPlugin.csproj
+WarpPlugin.dll
+*.png
+*.tga
+*.mu
+*.mbm
+*.ogg
+*.psd

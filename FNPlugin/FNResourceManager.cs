@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,7 @@ namespace FNPlugin {
 		public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
 		public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
 		protected const double passive_temp_p4 = 2947.295521;
+		public const string FNRESOURCE_INTAKEATM = "IntakeAtm";
                
         protected Vessel my_vessel;
         protected Part my_part;
@@ -161,6 +162,7 @@ namespace FNPlugin {
 			} else {
 				resource_bar_ratio = 0;
 			}
+			double missingmegajoules = maxmegajoules - currentmegajoules;
             powersupply += currentmegajoules;
 
 			double demand_supply_ratio = Math.Min (powersupply / stored_current_demand, 1.0);
@@ -256,6 +258,12 @@ namespace FNPlugin {
 				if (power_extract < 0 && PluginHelper.isThermalDissipationDisabled ()) {
 					power_extract = 0;
 				}
+			}
+
+			if (power_extract > 0) {
+				power_extract = Math.Min (power_extract, currentmegajoules);
+			} else if (power_extract < 0) {
+				power_extract = Math.Max (power_extract, -missingmegajoules);
 			}
 
 			my_part.RequestResource(this.resource_name, power_extract);

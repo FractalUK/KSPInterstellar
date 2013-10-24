@@ -404,30 +404,38 @@ namespace FNPlugin {
 				deactivate_timer = 0;
 
                 if (!isNuclear) {
-                    float antimatter_provided = part.RequestResource("Antimatter", AntimatterRate * TimeWarp.fixedDeltaTime);
+					List<PartResource> antimatter_resources = new List<PartResource>();
+					part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Antimatter").id, antimatter_resources);
+					double antimatter_current_amount = 0;
+					foreach (PartResource antimatter_resource in antimatter_resources) {
+						antimatter_current_amount += antimatter_resource.amount;
+					}
+                    double antimatter_provided = part.RequestResource("Antimatter", Math.Min(AntimatterRate * TimeWarp.fixedDeltaTime,antimatter_current_amount));
 
-                    antimatter_pcnt = antimatter_provided / AntimatterRate / TimeWarp.fixedDeltaTime;
-					                    
-					float thermal_power_received = supplyManagedFNResource (ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    antimatter_pcnt = (float) (antimatter_provided / AntimatterRate / TimeWarp.fixedDeltaTime);
+
+					double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt,0);
+					double thermal_power_received = supplyManagedFNResource (power_to_supply, FNResourceManager.FNRESOURCE_THERMALPOWER);
 					supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
-					float thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
-					ongoing_consumption_rate = thermal_power_pcnt;
-					float return_pcnt = 1-thermal_power_pcnt;
+					double thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
+					ongoing_consumption_rate = (float) thermal_power_pcnt;
+					double return_pcnt = 1-thermal_power_pcnt;
 					part.RequestResource("Antimatter", -antimatter_provided*return_pcnt); //return antimatter from <100% power
-					powerPcnt = antimatter_pcnt*100.0f*thermal_power_pcnt;
+					powerPcnt = (float) (antimatter_pcnt*100.0f*thermal_power_pcnt);
                 }else {
-                    float uf6_provided = part.RequestResource("UF6", UF6Rate * TimeWarp.fixedDeltaTime);
+                    double uf6_provided = part.RequestResource("UF6", UF6Rate * TimeWarp.fixedDeltaTime);
                     part.RequestResource("DUF6", -uf6_provided);
 
-                    uf6_pcnt = uf6_provided / UF6Rate / TimeWarp.fixedDeltaTime;
-					                    
-					float thermal_power_received = supplyManagedFNResourceWithMinimum (ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt,0.3f, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    uf6_pcnt = (float) (uf6_provided / UF6Rate / TimeWarp.fixedDeltaTime);
+					double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt,0);                    
+					double thermal_power_received = supplyManagedFNResourceWithMinimum (power_to_supply,0.3f, FNResourceManager.FNRESOURCE_THERMALPOWER);
 					supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
-					float thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
-					ongoing_consumption_rate = thermal_power_pcnt;
-					float return_pcnt = 1-thermal_power_pcnt;
-					part.RequestResource("UF6", -uf6_provided*return_pcnt); //return UF6 from <100% power
-					powerPcnt = uf6_pcnt * 100.0f*thermal_power_pcnt;
+					double thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
+					ongoing_consumption_rate = (float) thermal_power_pcnt;
+					double return_pcnt = 1-thermal_power_pcnt;
+					double uf6_returned = part.RequestResource("UF6", -uf6_provided*return_pcnt); //return UF6 from <100% power
+					part.RequestResource ("DUF6", -uf6_returned);
+					powerPcnt = (float) (uf6_pcnt * 100.0f*thermal_power_pcnt);
 
 					if (breedtritium) {
 						float lith_used = part.RequestResource ("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
@@ -448,9 +456,9 @@ namespace FNPlugin {
 			if (UF6Rate > 0) {
 				float uf6_rate_per_day = UF6Rate * 86400;
 				float up_uf6_rate_per_day = upgradedUF6Rate * 86400;
-				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF6 Consumption: {5}L/day\n Upgrade Cost: {6} Science\n", ReactorTemp, ThermalPower, uf6_rate_per_day,upgradedReactorTemp,upgradedThermalPower,up_uf6_rate_per_day,upgradeCost);
+				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF6 Consumption: {5}L/day", ReactorTemp, ThermalPower, uf6_rate_per_day,upgradedReactorTemp,upgradedThermalPower,up_uf6_rate_per_day);
 			} else {
-				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec\n Upgrade Cost: {6} Science\n", ReactorTemp, ThermalPower, AntimatterRate,upgradedReactorTemp,upgradedThermalPower,upgradedAntimatterRate,upgradeCost);
+				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec", ReactorTemp, ThermalPower, AntimatterRate,upgradedReactorTemp,upgradedThermalPower,upgradedAntimatterRate);
 			}
         }
 

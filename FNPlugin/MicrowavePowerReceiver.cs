@@ -15,7 +15,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
 		[KSPField(isPersistant = true)]
-		bool IsEnabled;
+		public bool IsEnabled;
 		bool aIsRelay;
         public float powerInput;
         private int connectedsatsf = 0;
@@ -32,6 +32,12 @@ namespace FNPlugin {
 		public string animName;
 		[KSPField(isPersistant = false)]
 		public float collectorArea = 1;
+		[KSPField(isPersistant = false)]
+		public bool isThermalReciever;
+		[KSPField(isPersistant = false)]
+		public float radius;
+		[KSPField(isPersistant = false)]
+		public bool isInlineReciever;
 
 		protected Animation anim;
 		protected int deactivate_timer = 0;
@@ -136,7 +142,7 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT,FNResourceManager.FNRESOURCE_THERMALPOWER};
 			this.resources_to_supply = resources_to_supply;
 
 			base.OnFixedUpdate ();
@@ -147,7 +153,7 @@ namespace FNPlugin {
             int activeSatsIncr = 0;
             float rangelosses = 0;
             if (config != null && IsEnabled) {
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReciever) {
 					IsEnabled = false;
 					deactivate_timer++;
 					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
@@ -169,75 +175,109 @@ namespace FNPlugin {
 				}
 
                 //if (activeCount % 100 == 0) {
-                    List<Vessel> vessels = FlightGlobals.Vessels;
-                    //print(vessels.Count.ToString() + "\n");
+                List<Vessel> vessels = FlightGlobals.Vessels;
+				//print(vessels.Count.ToString() + "\n");
 
-					//loop through vessels and attempt to add any active sattilites
-                    foreach (Vessel vess in vessels) {
-						String vid = vess.id.ToString();
-						String vname = vess.vesselName.ToString().ToLower();
-                        //print(vid + "\n");
+				//loop through vessels and attempt to add any active sattilites
+				foreach (Vessel vess in vessels) {
+					String vid = vess.id.ToString ();
+					String vname = vess.vesselName.ToString ().ToLower ();
+					//print(vid + "\n");
 
-						//prevent adding active vessel as sat, skip calculations on debris, only add vessels with config value and line of sight to active vessel
-						if (vess.isActiveVessel == false && vname.IndexOf("debris") == -1 && config.HasValue(vid) == true && lineOfSightTo(vess) == true) {
-							String powerinputsat = config.GetValue (vid);
-							String vgenType = config.GetValue (vid + "type");
-							// if sat is not relay/nuclear check that it has line of site to sun
-							// NOTE: we need to add a check for relay to check lineOfSiteToSource(vess), and if solar a lineOfSiteFromSourceToSun - to check that the source which it is relaying is still attached to it, and if it is a solar source that it is recieving solar energy
-							if((vgenType == "solar" && PluginHelper.lineOfSightToSun(vess)) || vgenType == "relay" || vgenType == "nuclear") {
-								float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
-								float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
-								float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
-								powerdissip = Math.Max (powerdissip/collectorArea, 1); 
-								if (vgenType != "relay" && inputPowerFixedAlt > 0) {
-									rangelosses += powerdissip;
+					//prevent adding active vessel as sat, skip calculations on debris, only add vessels with config value and line of sight to active vessel
+					if (vess.isActiveVessel == false && vname.IndexOf ("debris") == -1 && config.HasValue (vid) == true && lineOfSightTo (vess) == true) {
+						String powerinputsat = config.GetValue (vid);
+						String vgenType = config.GetValue (vid + "type");
+						// if sat is not relay/nuclear check that it has line of site to sun
+						// NOTE: we need to add a check for relay to check lineOfSiteToSource(vess), and if solar a lineOfSiteFromSourceToSun - to check that the source which it is relaying is still attached to it, and if it is a solar source that it is recieving solar energy
+						if ((vgenType == "solar" && PluginHelper.lineOfSightToSun (vess)) || vgenType == "relay" || vgenType == "nuclear") {
+							float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
+							float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
+							float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
+							powerdissip = Math.Max (powerdissip / collectorArea, 1); 
+							if (vgenType != "relay" && inputPowerFixedAlt > 0) {
+								rangelosses += powerdissip;
+								if (!isInlineReciever) {
 									//Scale energy reception based on angle of reciever to transmitter
-									Vector3d direction_vector = (vess.transform.position-vessel.transform.position).normalized;
+									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
 									facing_factor = Mathf.Max (0, facing_factor);
-									powerInputIncr += inputPowerFixedAlt / powerdissip*facing_factor;
-									activeSatsIncr++;
-									connectedrelaysf = 0;
-									//print ("warp: sat added - genType: " + vgenType);
+									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
+								} else {
+									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
+									//facing_factor = Vector3.Dot (part.transform.up, direction_vector);
+									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
+									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
+									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
+									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
+									facing_factorr = Mathf.Max (0, facing_factorr);
+									facing_factorl = Mathf.Max (0, facing_factorl);
+									facing_factorf = Mathf.Max (0, facing_factorf);
+									facing_factorb = Mathf.Max (0, facing_factorb);
+									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
+									if (facing_factor > 1) {
+										facing_factor = 1;
+									}
+									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
+								activeSatsIncr++;
+								connectedrelaysf = 0;
+								//print ("warp: sat added - genType: " + vgenType);
+							}
 								// only attach to one relay IF no sattilites are available for direct connection
-								else if(aIsRelay == false && activeSatsIncr < 1 && inputPowerFixedAlt > 0){
-									rangelosses = powerdissip;
+								else if (aIsRelay == false && activeSatsIncr < 1 && inputPowerFixedAlt > 0) {
+								rangelosses = powerdissip;
+								if (!isInlineReciever) {
 									//Scale energy reception based on angle of reciever to transmitter
-									Vector3d direction_vector = (vess.transform.position-vessel.transform.position).normalized;
+									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
 									facing_factor = Mathf.Max (0, facing_factor);
-									powerInputRelay = inputPowerFixedAlt / powerdissip*facing_factor;
-									connectedrelaysf = 1;
-									activeSatsIncr = 0;
-									//print ("warp: relay added");
+									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
+								} else {
+									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
+									//facing_factor = Vector3.Dot (part.transform.up, direction_vector);
+									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
+									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
+									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
+									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
+									facing_factorr = Mathf.Max (0, facing_factorr);
+									facing_factorl = Mathf.Max (0, facing_factorl);
+									facing_factorf = Mathf.Max (0, facing_factorf);
+									facing_factorb = Mathf.Max (0, facing_factorb);
+									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
+									if (facing_factor > 1) {
+										facing_factor = 1;
+									}
+									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
+								connectedrelaysf = 1;
+								activeSatsIncr = 0;
+								//print ("warp: relay added");
 							}
 						}
-                    }
-
-                    float atmosphericefficiency = (float) Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
-
-					if (activeSatsIncr > 0 && powerInputIncr > 0) {
-						this.rangelosses = rangelosses / activeSatsIncr;
-						totefff = efficiency * atmosphericefficiency*100/rangelosses;
-						powerInput = powerInputIncr * efficiency * atmosphericefficiency;
-						connectedsatsf = activeSatsIncr;
-						//print ("warp: connected sat");
 					}
-					else if (connectedrelaysf > 0 && powerInputRelay > 0) {
-						this.rangelosses = rangelosses / connectedrelaysf;
-						totefff = efficiency * atmosphericefficiency*100/rangelosses;
-						powerInput = powerInputRelay * efficiency * atmosphericefficiency;
-						connectedsatsf = 0;
-						//print("warp: connected relay");
-					}
-					else {
+				}
+
+                float atmosphericefficiency = (float) Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
+
+				if (activeSatsIncr > 0 && powerInputIncr > 0) {
+					this.rangelosses = rangelosses / activeSatsIncr;
+					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
+					powerInput = powerInputIncr * efficiency * atmosphericefficiency;
+					connectedsatsf = activeSatsIncr;
+					//print ("warp: connected sat");
+				} else if (connectedrelaysf > 0 && powerInputRelay > 0) {
+					this.rangelosses = rangelosses / connectedrelaysf;
+					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
+					powerInput = powerInputRelay * efficiency * atmosphericefficiency;
+					connectedsatsf = 0;
+					//print("warp: connected relay");
+				} else {
 						connectedrelaysf = 0;
 						connectedsatsf = 0;
 						powerInput = 0;
 						//print ("warp: no active sats or relays available");
-					}
+				}
                 //}
             }else{
 				connectedrelaysf = 0;
@@ -247,11 +287,30 @@ namespace FNPlugin {
 
 
 			float powerInputMegajoules = powerInput/1000.0f;
-			supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
-			float waste_head_production = powerInput/1000.0f/ efficiency * (1.0f - efficiency);
-			supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-            //activeCount++;
+			if (!isThermalReciever) {
+				supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+				float waste_head_production = powerInputMegajoules / efficiency * (1.0f - efficiency);
+				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+				//activeCount++;
+			} else {
+				if (powerInputMegajoules - 1 > 0) {
+					supplyFNResource (powerInputMegajoules - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					supplyFNResource (1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES); //revise this later to only supply megajoules as needed
+				} else {
+					supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+				}
+				//vessel.FindPartModulesImplementing<FNNozzleController> ().ForEach (fnnc => fnnc.setupPropellants ());
+			}
+
         }
+
+		public float getMegajoules() {
+			return powerInput/1000;
+		}
+
+		public float getRadius() {
+			return radius;
+		}
 
         protected bool lineOfSightTo(Vessel vess) {
             Vector3d a = vessel.transform.position;

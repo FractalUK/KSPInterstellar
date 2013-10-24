@@ -47,30 +47,28 @@ namespace FNPlugin {
 
         public override void OnFixedUpdate() {
             drawCount++;
-            float resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
-            float respcent = PluginHelper.getAtmosphereResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
-            float airdensity = (float)part.vessel.atmDensity;
-            float airspeed = (float)part.vessel.srf_velocity.magnitude + 10;
-            float powerrequirements = scoopair / 0.01f * 6f;
-            if (respcent > 0) {
-				List<PartResource> intake_atm_resources = new List<PartResource>();
-				part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("IntakeAtm").id, intake_atm_resources);
-				double intake_atm_current_amount = 0;
-				foreach (PartResource intake_atm_resource in intake_atm_resources) {
-					intake_atm_current_amount += intake_atm_resource.amount;
-				}
-                double air = airspeed * airdensity * scoopair / resourcedensity * TimeWarp.fixedDeltaTime;
-				air = Math.Min (air, intake_atm_current_amount);
-                double scoopedAtm = part.RequestResource("IntakeAtm", air);
-                //float powerreceived = part.RequestResource("Megajoules", powerrequirements * TimeWarp.fixedDeltaTime);
-                float powerreceived = consumeFNResource(powerrequirements * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES);
-                float powerpcnt = powerreceived / powerrequirements / TimeWarp.fixedDeltaTime;
-                if (drawCount % 2 == 0) {
-                    resflowf = (float) part.RequestResource(PluginHelper.atomspheric_resources_tocollect[currentresource], -scoopedAtm * powerpcnt * respcent * 0.2);
-                    resflowf = -resflowf / TimeWarp.fixedDeltaTime/2.0f;
-                }
+            double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
+            double respcent = PluginHelper.getAtmosphereResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
+            double airdensity = part.vessel.atmDensity/1000;
+            //float airspeed = (float)part.vessel.srf_velocity.magnitude + 10;
+            double powerrequirements = scoopair / 0.01f * 6f;
+
+			double airspeed = part.vessel.srf_velocity.magnitude+40.0;
+			double air = airspeed * airdensity * scoopair / resourcedensity;
+
+
+			if (respcent > 0  && vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) {
+
+				double scoopedAtm = air*respcent;
+
+				float powerreceived = Math.Max (consumeFNResource (powerrequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+				float powerpcnt = (float) (powerreceived / powerrequirements / TimeWarp.fixedDeltaTime);
+
+				resflowf = (float)part.RequestResource (PluginHelper.atomspheric_resources_tocollect [currentresource], -scoopedAtm * powerpcnt*TimeWarp.fixedDeltaTime);
+				resflowf = -resflowf / TimeWarp.fixedDeltaTime;
+
                 
-            }
+			} 
         }
 
     }
