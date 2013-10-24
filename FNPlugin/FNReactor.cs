@@ -394,10 +394,11 @@ namespace FNPlugin {
 
             if (IsEnabled) {
 				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
-					IsEnabled = false;
+
 					deactivate_timer++;
 					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
 						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+						IsEnabled = false;
 					}
 					return;
 				}
