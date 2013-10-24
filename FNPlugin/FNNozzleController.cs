@@ -956,7 +956,7 @@ namespace FNPlugin
 			if (curEngine.currentThrottle > 0 && curEngine.isEnabled && assThermalPower > 0) {
 
                 //float thermalReceived = part.RequestResource("ThermalPower", assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle);
-                float thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                float thermalReceived = consumeFNResource(assThermalPower * TimeWarp.fixedDeltaTime * curEngine.currentThrottle * intakeAtmThrustLimiter, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				consumeFNResource(thermalReceived, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 
             }else {
