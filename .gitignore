@@ -2,10 +2,10 @@ FNPlugin/bin
 WarpPlugin.userprefs
 FNPlugin/obj
 WarpPlugin.csproj
-+WarpPlugin.dll
-+*.png
-+*.tga
-+*.mu
-+*.mbm
-+*.ogg
-+*.psd
+WarpPlugin.dll
+*.png
+*.tga
+*.mu
+*.mbm
+*.ogg
+*.psd
