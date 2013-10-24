@@ -760,8 +760,8 @@ namespace FNPlugin
 			if (mris != null) {
 				foreach (ModuleResourceIntake mri in mris) {
 					if (mri.resourceName == "IntakeAir" && mri.part.Modules["AtmosphericIntake"] == null) {
-						float intakeArea = mri.area;
-
+						float intakeArea = mri.area * mri.unitScalar * mri.maxIntakeSpeed;
+						//print ("IntakeArea: " + intakeArea);
 						try {
 							String path = "WarpPlugin/Overrides/" + mri.moduleName + "/" + mri.moduleName;
 
@@ -790,7 +790,7 @@ namespace FNPlugin
 								} else if (config_part_item.name == "MODULEADD") {
 									mri.part.AddModule (config_part_item);
 									AtmosphericIntake aipm = (AtmosphericIntake)mri.part.Modules ["AtmosphericIntake"];
-									aipm.area = intakeArea * 4;
+									aipm.area = intakeArea;
 									aipm.hasAirIntake = true;
 									aipm.part.force_activate ();
 								} else if (config_part_item.name == "MODULEREMOVE") {
