@@ -60,7 +60,8 @@ namespace FNPlugin {
 		protected Vector3 original_eulers;
 		protected Transform pivot;
 		protected Texture orig_emissive_colour;
-		protected double last_draw_update = 0.0;
+		protected long last_draw_update = 0;
+        protected long update_count = 0;
 		protected bool hasrequiredupgrade;
 		protected int explode_counter = 0;
 
@@ -234,13 +235,16 @@ namespace FNPlugin {
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
 			}
 
-			if (Environment.TickCount - last_draw_update > 40) {
-				thermalPowerDissipStr = radiatedThermalPower.ToString ("0.000") + "MW";
-				thermalPowerConvStr = convectedThermalPower.ToString ("0.000") + "MW";
-				radiatorTempStr = current_rad_temp.ToString ("0.0") + "K / " + radiatorTemp.ToString ("0.0") + "K";
+			
+            if (update_count - last_draw_update > 8) {
+                thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
+                thermalPowerConvStr = convectedThermalPower.ToString("0.000") + "MW";
+                radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + radiatorTemp.ToString("0.0") + "K";
 
-				last_draw_update = Environment.TickCount;
-			}
+                last_draw_update = update_count;
+            }
+			
+            update_count++;
 		}
 
 		public override void OnFixedUpdate() {
