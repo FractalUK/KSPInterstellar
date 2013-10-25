@@ -280,9 +280,10 @@ namespace FNPlugin{
 			foreach(ModuleEngines.Propellant curEngine_propellant in curEngine_propellants_list) {
 				List<PartResource> partresources = new List<PartResource>();
 				part.GetConnectedResources(curEngine_propellant.id, partresources);
-				if(partresources.Count == 0 || PartResourceLibrary.Instance.GetDefinition(curEngine_propellant.name) == null) {
+
+				if (partresources.Count == 0 || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name)) {
 					next_propellant = true;
-				}
+				} 
 			}
 			// do the switch if needed
 			if (next_propellant && fuel_mode != 1) {
@@ -361,7 +362,7 @@ namespace FNPlugin{
 				updateIspEngineParams ();
 				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position), 1.0);
 				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
-
+				double ispratio = currentIsp / maxISP;
 				// scale down thrust if it's attached to the wrong sized reactor
 				float heat_exchanger_thrust_divisor = 1;
 				if (radius > myAttachedReactor.getRadius ()) {
@@ -380,7 +381,7 @@ namespace FNPlugin{
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				// set up TWR limiter if on
 				double throttle_limit = vessel.GetTotalMass () * thrustLimitRatio * 9.81;
-				double engineMaxThrust = Math.Max(2000.0 * thermal_power_received / currentIsp / 9.81 * heat_exchanger_thrust_divisor,0.01);
+				double engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio,0.01);
 				double throttle = engineMaxThrust;
 				if (throttle_limit > 0) {
 					throttle = Math.Min (throttle, throttle_limit);
