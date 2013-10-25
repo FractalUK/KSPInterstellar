@@ -191,11 +191,6 @@ namespace FNPlugin{
 
 				updatePropellantBar ();
 
-				if (thrustLimitRatio == 0) {
-					thrustLimit = "Prevent Flameout";
-				} else {
-					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
-				}
 			}
 		}
 
@@ -324,6 +319,7 @@ namespace FNPlugin{
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
 			assThermalPower = myAttachedReactor.getThermalPower();
+
 		}
 
 		public float getAtmosphericLimit() {
@@ -394,11 +390,19 @@ namespace FNPlugin{
 				} 
 				// amount of fuel being used at max throttle with no atmospheric limits
 				fuel_flow_rate = engineMaxThrust / g0 / currentIsp/myAttachedEngine.currentThrottle/atmospheric_limit/0.005; // fuel flow rate at max throttle
+
+				if (thrustLimitRatio > 0 && getAtmosphericLimit () == 1) {
+					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
+				} else if (getAtmosphericLimit () < 1) {
+					thrustLimit = "IntakeAtm " + (getAtmosphericLimit () * 100).ToString ("00.000") + "%";
+				} else {
+					thrustLimit = "Max Power";
+				}
 			} else {
 				fuel_flow_rate = 0;
 				if (myAttachedReactor == null && myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0) {
 					myAttachedEngine.Events ["Shutdown"].Invoke ();
-					ScreenMessages.PostScreenMessage ("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					ScreenMessages.PostScreenMessage ("Engine Shutdown: No thermal power source attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 				}
 			}
 		}
