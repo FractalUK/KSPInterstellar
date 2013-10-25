@@ -35,7 +35,7 @@ namespace FNPlugin  {
             double resourcedensity = PartResourceLibrary.Instance.GetDefinition("IntakeAtm").density;
 			double airdensity =  part.vessel.atmDensity/1000;
 
-			double airspeed = part.vessel.srf_velocity.magnitude+40.0;
+			double airspeed = part.vessel.srf_velocity.magnitude+100.0;
 			double air = airspeed * airdensity * area / resourcedensity * TimeWarp.fixedDeltaTime;
 
             airf = (float) (1000.0*air/TimeWarp.fixedDeltaTime*resourcedensity);

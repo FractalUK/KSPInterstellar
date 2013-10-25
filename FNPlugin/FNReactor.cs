@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-    class FNReactor : FNResourceSuppliableModule    {
+    class FNReactor : FNResourceSuppliableModule, FNThermalSource    {
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
         [KSPField(isPersistant = false)]
@@ -177,28 +177,12 @@ namespace FNPlugin {
 			UF6Rate = upgradedUF6Rate;
 			AntimatterRate = upgradedAntimatterRate;
 
-			refreshDependantParts ();
+			//refreshDependantParts ();
 
 			reactorType = upgradedName;
 		}
-
-		public void refreshDependantParts() {
-			List<FNNozzleController> nozzles = this.vessel.FindPartModulesImplementing<FNNozzleController> ();
-			List<FNGenerator> generators = this.vessel.FindPartModulesImplementing<FNGenerator> ();
-			foreach (FNNozzleController nozzle in nozzles) {
-				if (nozzle.hasStarted()) {
-					nozzle.setupPropellants ();
-				}
-			}
-			foreach (FNGenerator generator in generators) {
-				if (generator.hasStarted()) {
-					generator.recalculatePower ();
-				}
-			}
-		}
-		      
-		        
-        public override void OnStart(PartModule.StartState state) {
+		     
+		public override void OnStart(PartModule.StartState state) {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 
@@ -367,11 +351,11 @@ namespace FNPlugin {
 			}
         }
 
-        public float getReactorTemp() {
+        public float getCoreTemp() {
             return ReactorTemp;
         }
 
-        public float getReactorThermalPower() {
+        public float getThermalPower() {
             return ThermalPower;
         }
 
@@ -396,9 +380,11 @@ namespace FNPlugin {
 				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
 
 					deactivate_timer++;
-					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
-						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					if (deactivate_timer > 3) {
 						IsEnabled = false;
+						if (FlightGlobals.ActiveVessel == vessel) {
+							ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+						}
 					}
 					return;
 				}
@@ -417,7 +403,9 @@ namespace FNPlugin {
 
 					double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * antimatter_pcnt,0);
 					double thermal_power_received = supplyManagedFNResource (power_to_supply, FNResourceManager.FNRESOURCE_THERMALPOWER);
-					supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+					if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) < 0.95) {
+						supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+					}
 					double thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
 					ongoing_consumption_rate = (float) thermal_power_pcnt;
 					double return_pcnt = 1-thermal_power_pcnt;
@@ -430,7 +418,9 @@ namespace FNPlugin {
                     uf6_pcnt = (float) (uf6_provided / UF6Rate / TimeWarp.fixedDeltaTime);
 					double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * uf6_pcnt,0);                    
 					double thermal_power_received = supplyManagedFNResourceWithMinimum (power_to_supply,0.3f, FNResourceManager.FNRESOURCE_THERMALPOWER);
-					supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+					if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) < 0.95) {
+						supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+					}
 					double thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
 					ongoing_consumption_rate = (float) thermal_power_pcnt;
 					double return_pcnt = 1-thermal_power_pcnt;
@@ -468,8 +458,8 @@ namespace FNPlugin {
 			double temp = 0;
 			foreach (FNReactor reactor in reactors) {
 				if (reactor != null) {
-					if (reactor.getReactorTemp () > temp) {
-						temp = reactor.getReactorTemp ();
+					if (reactor.getCoreTemp () > temp) {
+						temp = reactor.getCoreTemp ();
 					}
 				}
 			}

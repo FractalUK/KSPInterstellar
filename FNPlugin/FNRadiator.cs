@@ -182,7 +182,7 @@ namespace FNPlugin {
 				if (IsEnabled) {
 					anim.Blend (animName, 1, 0);
 				} else {
-					anim.Blend (animName, 0, 0);
+					//anim.Blend (animName, 0, 0);
 				}
 				//anim.Play ();
 			}

@@ -37,7 +37,7 @@ namespace FNPlugin {
             power_draws = new Dictionary<FNResourceSuppliable,float>();
             this.resource_name = resource_name;
 
-			if (resource_name == FNRESOURCE_WASTEHEAT) {
+			if (resource_name == FNRESOURCE_WASTEHEAT || resource_name == FNRESOURCE_THERMALPOWER) {
 				flow_type = FNRESOURCE_FLOWTYPE_EVEN;
 			} else {
 				flow_type = FNRESOURCE_FLOWTYPE_SMALLEST_FIRST;

@@ -180,8 +180,8 @@ namespace FNPlugin {
 					//anim2 [animName2].normalizedTime = 0f;
 					//anim [animName1].speed = 1f;
 					//anim2 [animName2].speed = 1f;
-					anim.Blend (animName1, 0, 0);
-					anim2.Blend (animName2, 0, 0);
+					//anim.Blend (animName1, 0, 0);
+					//anim2.Blend (animName2, 0, 0);
 					play_down = false;
 				}
 				//anim.Play ();
@@ -308,7 +308,9 @@ namespace FNPlugin {
 
 
 			if (ResearchAndDevelopment.Instance != null) {
-				ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
+				if(!double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition)) {
+					ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
+				}
 				science_awaiting_addition = 0;
 			}
             
@@ -335,7 +337,9 @@ namespace FNPlugin {
 						//part.RequestResource ("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
 						//ScienceSubject subject = new ScienceSubject ();
 						if (ResearchAndDevelopment.Instance != null) {
-							ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
+							if (!double.IsNaN (science_awaiting_addition) && !double.IsInfinity (science_awaiting_addition)) {
+								ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
+							}
 						}
 					} else if (active_mode == 1) { // Fuel Reprocessing
 						List<PartResource> partresources = new List<PartResource> ();
