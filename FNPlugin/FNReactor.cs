@@ -7,11 +7,11 @@ using UnityEngine;
 namespace FNPlugin {
     class FNReactor : FNResourceSuppliableModule, FNThermalSource    {
         [KSPField(isPersistant = false)]
-        public float ReactorTemp;
+        public float ThermalTemp;
         [KSPField(isPersistant = false)]
         public float ThermalPower;
         [KSPField(isPersistant = false)]
-        public float upgradedReactorTemp;
+        public float upgradedThermalTemp;
         [KSPField(isPersistant = false)]
         public float upgradedThermalPower;
         [KSPField(isPersistant = false)]
@@ -151,7 +151,7 @@ namespace FNPlugin {
 
 			if (isupgraded) {
 				ThermalPower = upgradedThermalPower;
-				ReactorTemp = upgradedReactorTemp;
+				ThermalTemp = upgradedThermalTemp;
 				UF6Rate = upgradedUF6Rate;
 				reactorType = upgradedName;
 				AntimatterRate = upgradedAntimatterRate;
@@ -173,7 +173,7 @@ namespace FNPlugin {
 		public void upgradePart() {
 			isupgraded = true;
 			ThermalPower = upgradedThermalPower;
-			ReactorTemp = upgradedReactorTemp;
+			ThermalTemp = upgradedThermalTemp;
 			UF6Rate = upgradedUF6Rate;
 			AntimatterRate = upgradedAntimatterRate;
 
@@ -308,8 +308,8 @@ namespace FNPlugin {
 
 
 
-            coretempStr = ReactorTemp.ToString("0") + "K";
-            //thermalISPStr = (Math.Sqrt(ReactorTemp) * 17).ToString("0.0") + "s";
+            coretempStr = ThermalTemp.ToString("0") + "K";
+            //thermalISPStr = (Math.Sqrt(ThermalTemp) * 17).ToString("0.0") + "s";
 
 			if (IsEnabled) {
 				if (play_up && anim != null) {
@@ -351,8 +351,8 @@ namespace FNPlugin {
 			}
         }
 
-        public float getCoreTemp() {
-            return ReactorTemp;
+        public float getThermalTemp() {
+            return ThermalTemp;
         }
 
         public float getThermalPower() {
@@ -447,9 +447,9 @@ namespace FNPlugin {
 			if (UF6Rate > 0) {
 				float uf6_rate_per_day = UF6Rate * 86400;
 				float up_uf6_rate_per_day = upgradedUF6Rate * 86400;
-				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF6 Consumption: {5}L/day", ReactorTemp, ThermalPower, uf6_rate_per_day,upgradedReactorTemp,upgradedThermalPower,up_uf6_rate_per_day);
+				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF6 Consumption: {5}L/day", ThermalTemp, ThermalPower, uf6_rate_per_day,upgradedThermalTemp,upgradedThermalPower,up_uf6_rate_per_day);
 			} else {
-				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec", ReactorTemp, ThermalPower, AntimatterRate,upgradedReactorTemp,upgradedThermalPower,upgradedAntimatterRate);
+				return String.Format ("Core Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec", ThermalTemp, ThermalPower, AntimatterRate,upgradedThermalTemp,upgradedThermalPower,upgradedAntimatterRate);
 			}
         }
 
@@ -458,8 +458,8 @@ namespace FNPlugin {
 			double temp = 0;
 			foreach (FNReactor reactor in reactors) {
 				if (reactor != null) {
-					if (reactor.getCoreTemp () > temp) {
-						temp = reactor.getCoreTemp ();
+					if (reactor.getThermalTemp () > temp) {
+						temp = reactor.getThermalTemp ();
 					}
 				}
 			}

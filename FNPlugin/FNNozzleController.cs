@@ -291,7 +291,7 @@ namespace FNPlugin{
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
-			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getCoreTemp ()) * 17.0 * ispMultiplier);
+			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getThermalTemp ()) * 17.0 * ispMultiplier);
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);

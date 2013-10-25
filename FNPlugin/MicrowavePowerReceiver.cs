@@ -43,7 +43,7 @@ namespace FNPlugin {
 
 
 		[KSPField(isPersistant = false)]
-		public float ReactorTemp;
+		public float ThermalTemp;
 		[KSPField(isPersistant = false)]
 		public float ThermalPower;
 		[KSPField(isPersistant = false)]
@@ -368,7 +368,7 @@ namespace FNPlugin {
 					supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				}
 				ThermalPower = powerInputMegajoules;
-				if(ThermalPower > 3000) { ReactorTemp = 3000; } else { ReactorTemp = ThermalPower; };
+				if(ThermalPower > 3000) { ThermalTemp = 3000; } else { ThermalTemp = ThermalPower; };
 				//vessel.FindPartModulesImplementing<FNNozzleController> ().ForEach (fnnc => fnnc.setupPropellants ());
 			}
 
@@ -378,8 +378,8 @@ namespace FNPlugin {
 			return powerInput/1000;
 		}
 
-        public float getCoreTemp() {
-            return ReactorTemp;
+        public float getThermalTemp() {
+            return ThermalTemp;
         }
 
         public float getThermalPower() {
