@@ -377,7 +377,7 @@ namespace FNPlugin{
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				// set up TWR limiter if on
 				double throttle_limit = vessel.GetTotalMass () * thrustLimitRatio * 9.81;
-				double engineMaxThrust = Math.Max(2000.0 * assThermalPower / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio,0.01);
+				double engineMaxThrust = Math.Max(2000.0 * (thermal_power_received/myAttachedEngine.currentThrottle) / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio,0.01);
 				double throttle = engineMaxThrust;
 				if (throttle_limit > 0) {
 					throttle = Math.Min (throttle, throttle_limit);
