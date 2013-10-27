@@ -191,11 +191,6 @@ namespace FNPlugin{
 
 				updatePropellantBar ();
 
-				if (thrustLimitRatio == 0) {
-					thrustLimit = "Prevent Flameout";
-				} else {
-					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
-				}
 			}
 		}
 
@@ -296,7 +291,7 @@ namespace FNPlugin{
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
-			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getCoreTemp ()) * 17.0 * ispMultiplier);
+			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getThermalTemp ()) * 17.0 * ispMultiplier);
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);
@@ -324,6 +319,7 @@ namespace FNPlugin{
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
 			assThermalPower = myAttachedReactor.getThermalPower();
+
 		}
 
 		public float getAtmosphericLimit() {
@@ -401,11 +397,19 @@ namespace FNPlugin{
 				} 
 				// amount of fuel being used at max throttle with no atmospheric limits
 				fuel_flow_rate = engineMaxThrust / g0 / currentIsp/myAttachedEngine.currentThrottle/atmospheric_limit/0.005; // fuel flow rate at max throttle
+
+				if (thrustLimitRatio > 0 && getAtmosphericLimit () == 1) {
+					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
+				} else if (getAtmosphericLimit () < 1) {
+					thrustLimit = "IntakeAtm " + (getAtmosphericLimit () * 100).ToString ("00.000") + "%";
+				} else {
+					thrustLimit = "Max Power";
+				}
 			} else {
 				fuel_flow_rate = 0;
 				if (myAttachedReactor == null && myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0) {
 					myAttachedEngine.Events ["Shutdown"].Invoke ();
-					ScreenMessages.PostScreenMessage ("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					ScreenMessages.PostScreenMessage ("Engine Shutdown: No thermal power source attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 				}
 			}
 		}
