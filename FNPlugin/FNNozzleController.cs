@@ -359,6 +359,9 @@ namespace FNPlugin{
 			static_updating = true;
 
 			if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
+				if (!myAttachedReactor.isActive()) {
+					myAttachedReactor.enableIfPossible();
+				}
 				updateIspEngineParams ();
 				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position), 1.0);
 				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
@@ -377,11 +380,15 @@ namespace FNPlugin{
 				// get the flameout safety limit
 				float atmospheric_limit = getAtmosphericLimit ();
 				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
-				float power_ratio = (float)(thermal_power_received / assThermalPower);
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+				float power_ratio = 0.0f;
+				double engineMaxThrust = 0.01;
+				if (assThermalPower > 0) {
+					power_ratio = (float)(thermal_power_received / assThermalPower);
+					engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio/myAttachedEngine.currentThrottle,0.01);
+				} 
 				// set up TWR limiter if on
 				double throttle_limit = vessel.GetTotalMass () * thrustLimitRatio * 9.81;
-				double engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio,0.01);
 				double throttle = engineMaxThrust;
 				if (throttle_limit > 0) {
 					throttle = Math.Min (throttle, throttle_limit);

@@ -367,6 +367,16 @@ namespace FNPlugin {
 			return radius;
 		}
 
+		public bool isActive() {
+			return IsEnabled;
+		}
+
+		public void enableIfPossible() {
+			if (!isNuclear && !IsEnabled) {
+				IsEnabled = true;
+			}
+		}
+
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 

@@ -11,6 +11,10 @@ namespace FNPlugin{
 
 		float getRadius();
 
+		bool isActive();
+
+		void enableIfPossible();
+
 	}
 }
 
