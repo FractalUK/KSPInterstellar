@@ -237,38 +237,51 @@ namespace FNPlugin {
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								} else {
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
-									//facing_factor = Vector3.Dot (part.transform.up, direction_vector);
-									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
 									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
 									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
+									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
 									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
-									facing_factorr = Mathf.Max (0, facing_factorr);
 									facing_factorl = Mathf.Max (0, facing_factorl);
 									facing_factorf = Mathf.Max (0, facing_factorf);
+									facing_factorr = Mathf.Max (0, facing_factorr);
 									facing_factorb = Mathf.Max (0, facing_factorb);
-									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
+									float facing_factor = facing_factorl + facing_factorf + facing_factorr + facing_factorb;
 
 									if (facing_factor > 1) {
 										facing_factor = 1;
 									}
 
+									print (Vector3.Dot (-part.transform.right, direction_vector));
+
+									float[] ff = { facing_factorl, facing_factorf, facing_factorr, facing_factorb };
+									float sff = ff.Max ();
+
+									if (facing_factorl == sff) {
+										maxPowerVector = 0f;
+									} else if (facing_factorf == sff) {
+										maxPowerVector = 0.25f;
+									} else if (facing_factorr == sff) {
+										maxPowerVector = 0.5f;
+									} else if (facing_factorb == sff) {
+										maxPowerVector = 0.75f;
+									}
+
+
 									if (inputPowerFixedAlt > maxPowerSourceAmt) {
 										maxPowerSourceAmt = inputPowerFixedAlt;
 										maxPowerSource = vid;
-										if (maxPowerVector > facing_factorl) {
-											animR [animRName].speed = -0.5f;
+										if (maxPowerVector > animR[animRName].normalizedTime) {
+											animR [animRName].speed = 0.01f;
 										} else {
-											animR [animRName].speed = 0.5f;
+											animR [animRName].speed = -0.01f;
 										}
-										maxPowerVector = facing_factorl;
 									} else if (maxPowerSource == vid) {
-										if (maxPowerVector > facing_factorl) {
-											animR [animRName].speed = -0.5f;
+										if (maxPowerVector > animR[animRName].normalizedTime) {
+											animR [animRName].speed = 0.01f;
 										} else {
-											animR [animRName].speed = 0.5f;
+											animR [animRName].speed = -0.01f;
 										}
 										maxPowerSourceAmt = inputPowerFixedAlt;
-										maxPowerVector = facing_factorl;
 									}
 
 									//print ("Source " + maxPowerSource + " Amount " + maxPowerSourceAmt + " Vector " + maxPowerVector);
