@@ -368,8 +368,7 @@ namespace FNPlugin {
 			float powerInputMegajoules = powerInput/1000.0f;
 
 			if (!isThermalReciever) {
-				float test = supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-				print ("Supplied " + test.ToString());
+				supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 				float waste_head_production = powerInputMegajoules / efficiency * (1.0f - efficiency);
 				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				//activeCount++;
