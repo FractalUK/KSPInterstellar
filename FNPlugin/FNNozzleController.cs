@@ -377,10 +377,10 @@ namespace FNPlugin{
 				float atmospheric_limit = getAtmosphericLimit ();
 				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-				float power_ratio = 0.0f;
+				float powerRatio = 0.0f;
 				double engineMaxThrust = 0.01;
 				if (assThermalPower > 0) {
-					power_ratio = (float)(thermal_power_received / assThermalPower);
+					powerRatio = (float)(thermal_power_received / assThermalPower);
 					engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio/myAttachedEngine.currentThrottle,0.01);
 				} 
 				// set up TWR limiter if on
