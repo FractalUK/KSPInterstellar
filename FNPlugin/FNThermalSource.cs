@@ -9,6 +9,8 @@ namespace FNPlugin{
 
 		bool getIsNuclear();
 
+		bool getIsThermalHeatExchanger();
+
 		float getRadius();
 
 		bool isActive();

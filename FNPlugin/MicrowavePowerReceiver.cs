@@ -409,6 +409,10 @@ namespace FNPlugin {
 			return false;
 		}
 
+		public bool getIsThermalHeatExchanger() {
+			return false;
+		}
+
 		public float getRadius() {
 			return radius;
 		}
@@ -416,7 +420,6 @@ namespace FNPlugin {
 		public bool isActive() {
 			return IsEnabled;
 		}
-
 
 		public void enableIfPossible() {
 			if (!IsEnabled) {

@@ -363,6 +363,10 @@ namespace FNPlugin {
 			return isNuclear;
 		}
 
+		public bool getIsThermalHeatExchanger() {
+			return false;
+		}
+
 		public float getRadius() {
 			return radius;
 		}

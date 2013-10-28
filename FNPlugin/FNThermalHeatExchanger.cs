@@ -11,7 +11,7 @@ namespace FNPlugin  {
 		public string thermalpower;
 
 		[KSPField(isPersistant = true)]
-		public bool IsEnabled = true;
+		public bool IsEnabled = false;
 		[KSPField(isPersistant = false)]
 		public float ThermalPower;
 		[KSPField(isPersistant = false)]
@@ -44,35 +44,47 @@ namespace FNPlugin  {
 			IsEnabled = !IsEnabled;
 		}
 
-		int activeExchangers = 0;
+		//int activeExchangers = 0;
+		int activeThermalEngines = 0;
 
 		public void setupThermalPower(){
-			//skip calculations on other vessels
 			if (vessel != FlightGlobals.ActiveVessel)
 			{
 				return;
 			}
-
 			ThermalPower = 0;
-			activeExchangers = 0;
+			//activeExchangers = 0;
+			activeThermalEngines = 0;
 
-			List<FNThermalHeatExchanger> mthes = vessel.FindPartModulesImplementing<FNThermalHeatExchanger>();
-			foreach (FNThermalHeatExchanger mthe in mthes) {
-				if (mthe.IsEnabled == true) {
+			/*List<FNThermalHeatExchanger> thes = vessel.FindPartModulesImplementing<FNThermalHeatExchanger>();
+			foreach (FNThermalHeatExchanger the in thes) {
+				if (the.IsEnabled == true) {
 					activeExchangers++;
+				}
+			}*/
+
+			List<FNNozzleController> fnncs = vessel.FindPartModulesImplementing<FNNozzleController>();
+			foreach (FNNozzleController fnnc in fnncs) {
+				ModuleEngines me = fnnc.part.Modules["ModuleEngines"] as ModuleEngines;
+				if (me != null) {
+					if (me.isOperational == true) {
+						activeThermalEngines++;
+					}
 				}
 			}
 
 			List<FNThermalSource> fntss = vessel.FindPartModulesImplementing<FNThermalSource>();
 			foreach (FNThermalSource fnts in fntss) {
-				if (fnts.getThermalPower() > 0 && activeExchangers > 0) {
-					ThermalPower += fnts.getThermalPower() / activeExchangers;
+				if (fnts.getThermalPower() > 0 && activeThermalEngines > 0 && !fnts.getIsThermalHeatExchanger()) {
+					ThermalPower += fnts.getThermalPower() / activeThermalEngines;
 				}
 			}
 
 			if (ThermalPower > 1500) { ThermalTemp = 1500; } else { ThermalTemp = ThermalPower; }
 
 			thermalpower = ThermalPower.ToString () + "MW";
+
+			print ("ActiveThermalEngines : " + activeThermalEngines + " ThermalPower " + ThermalPower);
 		}
 
 		public override void OnStart(PartModule.StartState state) {
@@ -99,6 +111,8 @@ namespace FNPlugin  {
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 			setupThermalPower ();
+			//supplyFNResource(ThermalPower * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_THERMALPOWER);
+			//consumeFNResource(ThermalPower * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_THERMALPOWER);
 		}
 
 		public float getThermalTemp() {
@@ -119,6 +133,10 @@ namespace FNPlugin  {
 
 		public bool isActive() {
 			return IsEnabled;
+		}
+
+		public bool getIsThermalHeatExchanger() {
+			return true;
 		}
 
 
