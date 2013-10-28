@@ -38,7 +38,7 @@ namespace FNPlugin {
         protected float total_power_output = 0;
         protected float reference_power = 8000;
         protected float initial_thrust = 0;
-        protected float initial_isp = 0;
+        protected float initial_isp = 11213.0f;
         protected int eval_counter = 0;
         protected ConfigNode upgrade_resource;
         protected float ispMultiplier = 1;
@@ -398,6 +398,32 @@ namespace FNPlugin {
                 return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/ElectricEnginePropellants.cfg";
             }
         }
+
+		public override string GetInfo() {
+			bool upgraded = false;
+			if (HighLogic.CurrentGame != null) {
+				if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+					if (PluginHelper.hasTech (upgradeTechReq)) {
+						upgraded = true;
+					}
+				} else {
+					upgraded = true;
+				}
+			} else {
+				upgraded = false;
+			}
+			ConfigNode[] prop_nodes = getPropellants(upgraded);
+			string return_str = "";
+			float thrust_per_mw = 0.013089f;
+			foreach (ConfigNode propellant_node in prop_nodes) {
+				float ispMultiplier = float.Parse(propellant_node.GetValue("ispMultiplier"));
+				float ispProp = initial_isp * ispMultiplier;
+				float thrustProp = thrust_per_mw / ispMultiplier;
+				string guiname = propellant_node.GetValue("guiName");
+				return_str = return_str + "--" + guiname + "--\n" + "Thrust: " + thrustProp.ToString ("0.0000") + " kN per MW\n" + "ISP: " + ispProp.ToString ("0.0") + "s\n";
+			}
+			return return_str;
+		}
 
         public static ConfigNode[] getPropellants(bool isupgraded) {
             ConfigNode config = ConfigNode.Load(getPropellantFilePath(false));

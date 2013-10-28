@@ -34,6 +34,7 @@ namespace FNPlugin{
 
 		//External
 		public bool static_updating = false;
+		public bool static_updating2 = false;
 
 		//GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -69,6 +70,7 @@ namespace FNPlugin{
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
+		static Dictionary<string, double> fuel_flow_amounts = new Dictionary<string, double>();
 
 		[KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
 		public void TogglePropellant() {
@@ -247,7 +249,7 @@ namespace FNPlugin{
 				if(chosenpropellant.HasValue("isJet")) {
 					currentpropellant_is_jet = bool.Parse(chosenpropellant.GetValue("isJet"));
 				}
-				print (currentpropellant_is_jet);
+				//print (currentpropellant_is_jet);
 
 				ModuleEngines.Propellant curprop = new ModuleEngines.Propellant();
 				curprop.Load(assprops[i]);
@@ -357,6 +359,7 @@ namespace FNPlugin{
 		public override void OnFixedUpdate() {
 			//tell static helper methods we are currently updating things
 			static_updating = true;
+			static_updating2 = true;
 
 			if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
 				if (!myAttachedReactor.isActive()) {
@@ -410,6 +413,34 @@ namespace FNPlugin{
 			}
 		}
 
+		public override string GetInfo() {
+			bool upgraded = false;
+			if (HighLogic.CurrentGame != null) {
+				if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+					if (PluginHelper.hasTech (upgradeTechReq)) {
+						upgraded = true;
+					}
+				} else {
+					upgraded = true;
+				}
+			} else {
+				upgraded = false;
+			}
+			ConfigNode[] prop_nodes;
+			if(upgraded && isJet) {
+				prop_nodes = getPropellantsHybrid();
+			}else{
+				prop_nodes = getPropellants(isJet);
+			}
+			string return_str = "Thrust: Variable\n";
+			foreach (ConfigNode propellant_node in prop_nodes) {
+				float ispMultiplier = float.Parse(propellant_node.GetValue("ispMultiplier"));
+				string guiname = propellant_node.GetValue("guiName");
+				return_str = return_str + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString ("0.00") + " x 17 x Sqrt(Core Temperature)" + "\n";
+			}
+			return return_str;
+		}
+
 
 		// Static Methods
 		// Amount of intake air available to use of a particular resource type
@@ -444,29 +475,58 @@ namespace FNPlugin{
 			}
 
 			if (intake_amounts.ContainsKey (resourcename)) {
-				return intake_amounts [resourcename]*0.98;
+				return intake_amounts [resourcename]*0.97;
 			}
 
 			return 0.1;
 		}
 
 		// enumeration of the fuel useage rates of all jets on a vessel
-		public static double getFuelRateThermalJetsForVessel(Vessel vess, string resourname) {
+		public static double getFuelRateThermalJetsForVessel (Vessel vess, string resourcename) {
 			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
-			double enum_rate = 0;
+
+			bool updating = true;
 			foreach (FNNozzleController nozzle in nozzles) {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
 				if (prop_node != null) {
-					ConfigNode[] assprops = prop_node[nozzle.fuel_mode].GetNodes("PROPELLANT");
+					ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
 					if (prop_node [nozzle.fuel_mode] != null) {
-						if (assprops[0].GetValue ("name").Equals(resourname)) {
-							enum_rate += nozzle.getNozzleFlowRate ();
+						if (assprops [0].GetValue ("name").Equals (resourcename)) {
+							if (!nozzle.static_updating2) {
+								updating = false;
+							}
+
 						}
 					}
 				}
 			}
-			//print (enum_rate);
-			return enum_rate;
+
+			if (updating) {
+				double enum_rate = 0;
+				foreach (FNNozzleController nozzle in nozzles) {
+					ConfigNode[] prop_node = nozzle.getPropellants ();
+					if (prop_node != null) {
+						ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
+						if (prop_node [nozzle.fuel_mode] != null) {
+							if (assprops [0].GetValue ("name").Equals (resourcename)) {
+								enum_rate += nozzle.getNozzleFlowRate ();
+								nozzle.static_updating2 = false;
+							}
+						}
+					}
+				}
+				if (fuel_flow_amounts.ContainsKey (resourcename)) {
+					fuel_flow_amounts [resourcename] = enum_rate;
+				} else {
+					fuel_flow_amounts.Add (resourcename, enum_rate);
+				}
+			}
+
+			if (fuel_flow_amounts.ContainsKey (resourcename)) {
+				return fuel_flow_amounts [resourcename];
+			}
+
+			return 0.1;
 		}
 
 		public static string getPropellantFilePath(bool isJet) {

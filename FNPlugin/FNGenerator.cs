@@ -232,7 +232,7 @@ namespace FNPlugin {
 				double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
 				totalEff = (float)(carnotEff * pCarnotEff);
 
-				if (totalEff < 0) {
+				if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) {
 					return;
 				}
 

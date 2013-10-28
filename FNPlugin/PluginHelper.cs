@@ -246,6 +246,14 @@ namespace FNPlugin {
 								}
 
 							}
+
+							if(prefab_available_part.FindModulesImplementing<ElectricEngineController>().Count() > 0) {
+								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineController>().First().GetInfo();
+							}
+
+							if(prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0) {
+								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
+							}
 						}
 						//String path11 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Additions/" + available_part.name + ".cfg";
 						//String path21 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Replacements/" + available_part.name + ".cfg";
