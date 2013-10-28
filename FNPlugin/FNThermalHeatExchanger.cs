@@ -117,6 +117,17 @@ namespace FNPlugin  {
 			return radius;
 		}
 
+		public bool isActive() {
+			return IsEnabled;
+		}
+
+
+		public void enableIfPossible() {
+			if (!IsEnabled) {
+				IsEnabled = true;
+			}
+		}
+
 	}
 }
 

@@ -251,8 +251,7 @@ namespace FNPlugin {
 										facing_factor = 1;
 									}
 
-									print (Vector3.Dot (-part.transform.right, direction_vector));
-
+									/* //animation testing
 									float[] ff = { facing_factorl, facing_factorf, facing_factorr, facing_factorb };
 									float sff = ff.Max ();
 
@@ -289,6 +288,7 @@ namespace FNPlugin {
 
 									animR [animRName].normalizedTime = maxPowerVector;
 									animR.Blend (animRName, 2f);
+									*/
 
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
@@ -405,6 +405,17 @@ namespace FNPlugin {
 
 		public float getRadius() {
 			return radius;
+		}
+
+		public bool isActive() {
+			return IsEnabled;
+		}
+
+
+		public void enableIfPossible() {
+			if (!IsEnabled) {
+				IsEnabled = true;
+			}
 		}
 
 		protected bool lineOfSightTo(Vessel vess) {
