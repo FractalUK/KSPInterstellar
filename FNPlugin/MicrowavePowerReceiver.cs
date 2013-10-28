@@ -98,20 +98,22 @@ namespace FNPlugin {
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
 
-			animR = part.FindModelAnimators (animRName).FirstOrDefault ();
-			if (animR != null) {
-				animR [animRName].layer = 1;
-				animR [animRName].normalizedTime = 0f;
-				animR [animRName].speed = 0.001f;
-				animR.Play ();
-			}
+			if (isThermalReciever) {
+				animR = part.FindModelAnimators (animRName).FirstOrDefault ();
+				if (animR != null) {
+					animR [animRName].layer = 1;
+					animR [animRName].normalizedTime = 0f;
+					animR [animRName].speed = 0.001f;
+					animR.Play ();
+				}
 
-			animT = part.FindModelAnimators (animTName).FirstOrDefault ();
-			if (animT != null) {
-				animT [animTName].layer = 1;
-				animT [animTName].normalizedTime = 0f;
-				animT [animTName].speed = 0.001f;
-				animT.Play ();
+				animT = part.FindModelAnimators (animTName).FirstOrDefault ();
+				if (animT != null) {
+					animT [animTName].layer = 1;
+					animT [animTName].normalizedTime = 0f;
+					animT [animTName].speed = 0.001f;
+					animT.Play ();
+				}
 			}
 
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
@@ -306,7 +308,7 @@ namespace FNPlugin {
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
 									facing_factor = Mathf.Max (0, facing_factor);
-									relayInput += inputPowerFixedAlt / powerdissip * facing_factor;
+									relayInput = inputPowerFixedAlt / powerdissip * facing_factor;
 								} else {
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
@@ -339,8 +341,6 @@ namespace FNPlugin {
 
 				float atmosphericefficiency = (float) Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
 
-				print ("MaxRelay: " + maxRelaySourcePower + " SatInput " + satInput);
-
 				if (activeSats > 0 && satInput > 0 && satInput > maxRelaySourcePower) {
 					this.rangelosses = rangelosses / activeSats;
 					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
@@ -364,23 +364,25 @@ namespace FNPlugin {
 				powerInput = 0;
 			}
 
+
 			float powerInputMegajoules = powerInput/1000.0f;
 
-			float animateTemp = powerInputMegajoules / 3000; //3000K is max temp
-			if (animateTemp > 1) {
-				animateTemp = 1;
-			}
-
-			animT [animTName].speed = 0.001f;
-			animT [animTName].normalizedTime = animateTemp;
-			animT.Blend (animTName, 2f);
-
 			if (!isThermalReciever) {
-				supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+				float test = supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+				print ("Supplied " + test.ToString());
 				float waste_head_production = powerInputMegajoules / efficiency * (1.0f - efficiency);
 				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				//activeCount++;
 			} else {
+				float animateTemp = powerInputMegajoules / 3000; //3000K is max temp
+				if (animateTemp > 1) {
+					animateTemp = 1;
+				}
+
+				animT [animTName].speed = 0.001f;
+				animT [animTName].normalizedTime = animateTemp;
+				animT.Blend (animTName, 2f);
+
 				ThermalPower = powerInputMegajoules;
 				if (ThermalPower - 1 > 0) {
 					supplyFNResource (ThermalPower - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
