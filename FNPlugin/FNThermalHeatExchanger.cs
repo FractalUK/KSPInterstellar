@@ -83,8 +83,6 @@ namespace FNPlugin  {
 			if (ThermalPower > 1500) { ThermalTemp = 1500; } else { ThermalTemp = ThermalPower; }
 
 			thermalpower = ThermalPower.ToString () + "MW";
-
-			print ("ActiveThermalEngines : " + activeThermalEngines + " ThermalPower " + ThermalPower);
 		}
 
 		public override void OnStart(PartModule.StartState state) {

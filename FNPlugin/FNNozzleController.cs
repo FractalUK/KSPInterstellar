@@ -242,7 +242,7 @@ namespace FNPlugin{
 				if(chosenpropellant.HasValue("isJet")) {
 					currentpropellant_is_jet = bool.Parse(chosenpropellant.GetValue("isJet"));
 				}
-				print (currentpropellant_is_jet);
+				//print (currentpropellant_is_jet);
 
 				ModuleEngines.Propellant curprop = new ModuleEngines.Propellant();
 				curprop.Load(assprops[i]);
