@@ -174,6 +174,10 @@ namespace FNPlugin {
 		}
 
 		public override void OnFixedUpdate() {
+			if (vessel != FlightGlobals.ActiveVessel)
+			{
+				return;
+			}
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT,FNResourceManager.FNRESOURCE_THERMALPOWER};
 			this.resources_to_supply = resources_to_supply;
 
@@ -188,7 +192,7 @@ namespace FNPlugin {
 				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReciever) {
 					IsEnabled = false;
 					deactivate_timer++;
-					if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2) {
+					if (deactivate_timer > 2) {
 						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 					}
 					return;
@@ -247,9 +251,10 @@ namespace FNPlugin {
 									facing_factorb = Mathf.Max (0, facing_factorb);
 									float facing_factor = facing_factorl + facing_factorf + facing_factorr + facing_factorb;
 
-									if (facing_factor > 1) {
+									//collector area is now based on the surface area of cylinder / surface area of 3m circle (to scale for standard 3m circular collector area = 1) / 4 (to divide by sides). max facing_factor is now 4 which will scale power vs collector area accurately.
+									/*if (facing_factor > 1) {
 										facing_factor = 1;
-									}
+									}*/ 
 
 									/* //animation testing
 									float[] ff = { facing_factorl, facing_factorf, facing_factorr, facing_factorb };
@@ -307,19 +312,20 @@ namespace FNPlugin {
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								} else {
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
-									//facing_factor = Vector3.Dot (part.transform.up, direction_vector);
-									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
 									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
 									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
+									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
 									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
-									facing_factorr = Mathf.Max (0, facing_factorr);
 									facing_factorl = Mathf.Max (0, facing_factorl);
 									facing_factorf = Mathf.Max (0, facing_factorf);
+									facing_factorr = Mathf.Max (0, facing_factorr);
 									facing_factorb = Mathf.Max (0, facing_factorb);
-									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
-									if (facing_factor > 1) {
+									float facing_factor = facing_factorl + facing_factorf + facing_factorr + facing_factorb;
+
+									//collector area is now based on the surface area of cylinder / surface area of 3m circle (to scale for standard 3m circular collector area = 1) / 4 (to divide by sides). max facing_factor is now 4 which will scale power vs collector area accurately.
+									/*if (facing_factor > 1) {
 										facing_factor = 1;
-									}
+									}*/ 
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
 								connectedrelaysf = 1;
@@ -374,13 +380,13 @@ namespace FNPlugin {
 				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				//activeCount++;
 			} else {
-				if (powerInputMegajoules - 1 > 0) {
-					supplyFNResource (powerInputMegajoules - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+				ThermalPower = powerInputMegajoules;
+				if (ThermalPower - 1 > 0) {
+					supplyFNResource (ThermalPower - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 					supplyFNResource (1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES); //revise this later to only supply megajoules as needed
 				} else {
-					supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					supplyFNResource (ThermalPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				}
-				ThermalPower = powerInputMegajoules;
 				if(ThermalPower > 3000) { ThermalTemp = 3000; } else { ThermalTemp = ThermalPower; };
 				//vessel.FindPartModulesImplementing<FNNozzleController> ().ForEach (fnnc => fnnc.setupPropellants ());
 			}
