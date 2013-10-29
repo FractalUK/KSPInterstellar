@@ -152,11 +152,13 @@ namespace FNPlugin {
 			}
 
 			foreach (AttachNode attach_node in part.attachNodes) {
-				List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource> ();
-				if (sources.Count > 0) {
-					myAttachedReactor = sources.First ();
-					if (myAttachedReactor != null) {
-						break;
+				if(attach_node.attachedPart != null) {
+					List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource> ();
+					if (sources.Count > 0) {
+						myAttachedReactor = sources.First ();
+						if (myAttachedReactor != null) {
+							break;
+						}
 					}
 				}
 			}

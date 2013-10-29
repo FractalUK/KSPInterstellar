@@ -16,6 +16,7 @@ namespace FNPlugin {
 		public string statusStr;
 
 		bool charging = false;
+		bool should_charge = true;
 		float explosion_time = 0.35f;
 		bool exploding = false;
 		float explosion_size = 5000;
@@ -25,6 +26,16 @@ namespace FNPlugin {
 		GameObject lightGameObject;
 
 		const float MAX_STORED_CHARGE = 1000;
+
+		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
+		public void StartCharge() {
+			should_charge = true;
+		}
+
+		[KSPEvent(guiActive = true, guiName = "Stop Charging", active = true)]
+		public void StopCharge() {
+			should_charge = false;
+		}
 
 		public void doExplode() {
 			if (current_antimatter <= 0.1f) {
@@ -61,16 +72,26 @@ namespace FNPlugin {
 		}
 
 		public override void OnUpdate() {
+			Events ["StartCharge"].active = current_antimatter <= 0.1 && !should_charge;
+			Events ["StopCharge"].active = current_antimatter <= 0.1 && should_charge;
 			chargeStatusStr = chargestatus.ToString ("0.0") + "/" + MAX_STORED_CHARGE.ToString ("0.0");
 
 			if (chargestatus <= 60 && !charging && current_antimatter > 0.1) {
 				ScreenMessages.PostScreenMessage("Warning!: Antimatter storage unpowered, tank explosion in: " + chargestatus.ToString("0") + "s", 1.0f, ScreenMessageStyle.UPPER_CENTER);
 			}
 
-			if (charging) {
-				statusStr = "Charging.";
+			if (current_antimatter > 0.1) {
+				if (charging) {
+					statusStr = "Charging.";
+				} else {
+					statusStr = "Discharging!";
+				}
 			} else {
-				statusStr = "Discharging!";
+				if (should_charge) {
+					statusStr = "Charging.";
+				} else {
+					statusStr = "No Power Required.";
+				}
 			}
 		}
 
@@ -84,7 +105,7 @@ namespace FNPlugin {
 			}
 			current_antimatter = antimatter_current_amount;
 			explosion_size = Mathf.Sqrt (antimatter_current_amount)*5.0f;
-			if (chargestatus > 0) {
+			if (chargestatus > 0 && (should_charge || (current_antimatter > 0.1))) {
 				chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
 			}
 			if (chargestatus < MAX_STORED_CHARGE) {
