@@ -246,6 +246,23 @@ namespace FNPlugin {
 								}
 
 							}
+
+							if(prefab_available_part.FindModulesImplementing<ElectricEngineController>().Count() > 0) {
+								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineController>().First().GetInfo();
+							}
+
+							if(prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0) {
+								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
+							}
+							/*
+							if(prefab_available_part.CrewCapacity > 0) {
+								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
+								FNModuleRadiation pm = null;
+								if(type != null) {
+									pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
+									prefab_available_part.Modules.Add(pm);
+								}
+							}*/
 						}
 						//String path11 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Additions/" + available_part.name + ".cfg";
 						//String path21 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Replacements/" + available_part.name + ".cfg";

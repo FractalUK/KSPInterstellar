@@ -337,7 +337,7 @@ namespace FNPlugin {
 						//part.RequestResource ("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
 						//ScienceSubject subject = new ScienceSubject ();
 						if (ResearchAndDevelopment.Instance != null) {
-							if (!double.IsNaN (science_awaiting_addition) && !double.IsInfinity (science_awaiting_addition)) {
+							if (!double.IsNaN (science_rate_f) && !double.IsInfinity (science_rate_f)) {
 								ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
 							}
 						}

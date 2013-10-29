@@ -390,7 +390,7 @@ namespace FNPlugin {
                 isNuclear = true;
             }
 
-            if (IsEnabled) {
+            if (IsEnabled && ThermalPower > 0 && (AntimatterRate >0 || UF6Rate >0)) {
 				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
 
 					deactivate_timer++;
@@ -436,6 +436,7 @@ namespace FNPlugin {
 						supplyFNResource (thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 					}
 					double thermal_power_pcnt = thermal_power_received / ThermalPower/TimeWarp.fixedDeltaTime;
+					//print ("TP: " + thermal_power_pcnt);
 					ongoing_consumption_rate = (float) thermal_power_pcnt;
 					double return_pcnt = 1-thermal_power_pcnt;
 					double uf6_returned = part.RequestResource("UF6", -uf6_provided*return_pcnt); //return UF6 from <100% power

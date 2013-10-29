@@ -151,15 +151,15 @@ namespace FNPlugin {
 				float inputPowerFixedAlt = 0;
 				if (nuclear == true) {
 					inputPowerFixedAlt = inputPower;
-					print ("warp: nuclear inputPower " + inputPowerFixedAlt);
+					//print ("warp: nuclear inputPower " + inputPowerFixedAlt);
 					genType = "nuclear";
 				} else if (microwave == true) {
 					inputPowerFixedAlt = inputPower;
-					print ("warp: relay inputPower " + inputPowerFixedAlt);
+					//print ("warp: relay inputPower " + inputPowerFixedAlt);
 					genType = "relay";
 				} else if (solar == true) {
 					inputPowerFixedAlt = inputPower / PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vessel.transform.position));
-					print ("warp: solar inputPower " + inputPowerFixedAlt);
+					//print ("warp: solar inputPower " + inputPowerFixedAlt);
 					genType = "solar";
 				}
                 

@@ -25,6 +25,7 @@ namespace FNPlugin {
 		protected double stored_stable_supply = 0;
 		protected double current_resource_demand = 0;
 		protected double high_priority_resource_demand = 0;
+		protected double charge_resource_demand = 0;
 		protected int flow_type = 0;
 
 		protected double resource_bar_ratio = 0;
@@ -145,10 +146,12 @@ namespace FNPlugin {
 			stored_stable_supply = stable_supply;
 			double stored_current_demand = current_resource_demand;
 			double stored_current_hp_demand = high_priority_resource_demand;
+			double stored_current_charge_demand = charge_resource_demand;
 
 			//Debug.Log ("D: " + current_resource_demand.ToString("0.000") + " S: " + stable_supply.ToString("0.000"));
 			current_resource_demand = 0;
 			high_priority_resource_demand = 0;
+			charge_resource_demand = 0;
 
             //stored power
             List<PartResource> partresources = new List<PartResource>();
@@ -167,8 +170,20 @@ namespace FNPlugin {
 			double missingmegajoules = maxmegajoules - currentmegajoules;
             powersupply += currentmegajoules;
 
-			double demand_supply_ratio = Math.Min (powersupply / stored_current_demand, 1.0);
-			double high_priority_demand_supply_ratio = Math.Min (powersupply / stored_current_hp_demand, 1.0);
+			double demand_supply_ratio = 0;
+			double high_priority_demand_supply_ratio = 0;
+
+			if (high_priority_resource_demand > 0) {
+				high_priority_demand_supply_ratio = Math.Min ((powersupply-stored_current_charge_demand) / stored_current_hp_demand, 1.0);
+			} else {
+				high_priority_demand_supply_ratio = 1.0;
+			}
+
+			if (stored_current_demand > 0) {
+				demand_supply_ratio = Math.Min ((powersupply-stored_current_charge_demand-stored_current_hp_demand) / stored_current_demand, 1.0);
+			} else {
+				demand_supply_ratio = 1.0;
+			}
 
 			//Prioritise supplying stock ElectricCharge resource
 			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
@@ -181,7 +196,7 @@ namespace FNPlugin {
 				}
 				double power_supplied = Math.Min(powersupply, stock_electric_charge_needed / 1000.0/TimeWarp.fixedDeltaTime);
 				current_resource_demand += stock_electric_charge_needed / 1000.0/TimeWarp.fixedDeltaTime;
-
+				charge_resource_demand += stock_electric_charge_needed / 1000.0/TimeWarp.fixedDeltaTime;
 				//Debug.Log("Supply: " + powersupply.ToString("0.0") + " Supplied" + power_supplied.ToString("0.0"));
 
 				//powersupply -= power_supplied;
