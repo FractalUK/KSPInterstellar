@@ -31,8 +31,6 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false)]
 		public string animName;
 		[KSPField(isPersistant = false)]
-		public string animRName;
-		[KSPField(isPersistant = false)]
 		public string animTName;
 		[KSPField(isPersistant = false)]
 		public float collectorArea = 1;
@@ -53,8 +51,9 @@ namespace FNPlugin {
 		protected float maxRelaySourcePower;
 
 		protected Animation anim;
-		protected Animation animR;
 		protected Animation animT;
+
+		protected float tTime = 0;
 
 		protected int deactivate_timer = 0;
 
@@ -99,19 +98,11 @@ namespace FNPlugin {
 			this.part.force_activate();
 
 			if (isThermalReciever) {
-				animR = part.FindModelAnimators (animRName).FirstOrDefault ();
-				if (animR != null) {
-					animR [animRName].layer = 1;
-					animR [animRName].normalizedTime = 0f;
-					animR [animRName].speed = 0.001f;
-					animR.Play ();
-				}
-
 				animT = part.FindModelAnimators (animTName).FirstOrDefault ();
 				if (animT != null) {
 					animT [animTName].layer = 1;
 					animT [animTName].normalizedTime = 0f;
-					animT [animTName].speed = 0.001f;
+					animT [animTName].speed = 1f;
 					animT.Play ();
 				}
 			}
@@ -253,50 +244,6 @@ namespace FNPlugin {
 									facing_factorb = Mathf.Max (0, facing_factorb);
 									float facing_factor = facing_factorl + facing_factorf + facing_factorr + facing_factorb;
 
-									//collector area is now based on the surface area of cylinder / surface area of 3m circle (to scale for standard 3m circular collector area = 1) / 4 (to divide by sides). max facing_factor is now 4 which will scale power vs collector area accurately.
-									/*if (facing_factor > 1) {
-										facing_factor = 1;
-									}*/ 
-
-									/* //animation testing
-									float[] ff = { facing_factorl, facing_factorf, facing_factorr, facing_factorb };
-									float sff = ff.Max ();
-
-									if (facing_factorl == sff) {
-										maxPowerVector = 0f;
-									} else if (facing_factorf == sff) {
-										maxPowerVector = 0.25f;
-									} else if (facing_factorr == sff) {
-										maxPowerVector = 0.5f;
-									} else if (facing_factorb == sff) {
-										maxPowerVector = 0.75f;
-									}
-
-
-									if (inputPowerFixedAlt > maxPowerSourceAmt) {
-										maxPowerSourceAmt = inputPowerFixedAlt;
-										maxPowerSource = vid;
-										if (maxPowerVector > animR[animRName].normalizedTime) {
-											animR [animRName].speed = 0.01f;
-										} else {
-											animR [animRName].speed = -0.01f;
-										}
-									} else if (maxPowerSource == vid) {
-										if (maxPowerVector > animR[animRName].normalizedTime) {
-											animR [animRName].speed = 0.01f;
-										} else {
-											animR [animRName].speed = -0.01f;
-										}
-										maxPowerSourceAmt = inputPowerFixedAlt;
-									}
-
-									//print ("Source " + maxPowerSource + " Amount " + maxPowerSourceAmt + " Vector " + maxPowerVector);
-
-
-									animR [animRName].normalizedTime = maxPowerVector;
-									animR.Blend (animRName, 2f);
-									*/
-
 									satInput += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
 								activeSats++;
@@ -321,10 +268,6 @@ namespace FNPlugin {
 									facing_factorb = Mathf.Max (0, facing_factorb);
 									float facing_factor = facing_factorl + facing_factorf + facing_factorr + facing_factorb;
 
-									//collector area is now based on the surface area of cylinder / surface area of 3m circle (to scale for standard 3m circular collector area = 1) / 4 (to divide by sides). max facing_factor is now 4 which will scale power vs collector area accurately.
-									/*if (facing_factor > 1) {
-										facing_factor = 1;
-									}*/ 
 									relayInput = inputPowerFixedAlt / powerdissip * facing_factor;
 								}
 
@@ -378,9 +321,17 @@ namespace FNPlugin {
 					animateTemp = 1;
 				}
 
-				animT [animTName].speed = 0.001f;
-				animT [animTName].normalizedTime = animateTemp;
-				animT.Blend (animTName, 2f);
+				if (animateTemp > tTime) {
+					tTime += 0.01f;
+					animT [animTName].speed = 1f;
+					animT [animTName].normalizedTime = tTime;
+					animT.Blend (animTName, 2f);
+				} else {
+					tTime -= 0.01f;
+					animT [animTName].speed = -1f;
+					animT [animTName].normalizedTime = tTime;
+					animT.Blend (animTName, 2f);
+				}
 
 				ThermalPower = powerInputMegajoules;
 				if (ThermalPower - 1 > 0) {
