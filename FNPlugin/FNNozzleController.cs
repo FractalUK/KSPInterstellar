@@ -359,7 +359,7 @@ namespace FNPlugin{
 			static_updating = true;
 			static_updating2 = true;
 
-			if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
+			if (myAttachedEngine.isOperational && myAttachedReactor != null) {
 				if (!myAttachedReactor.isActive()) {
 					myAttachedReactor.enableIfPossible();
 				}
