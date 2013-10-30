@@ -393,13 +393,13 @@ namespace FNPlugin{
 					engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio/myAttachedEngine.currentThrottle,0.01);
 				} 
 				// set up TWR limiter if on
-				double throttle_limit = vessel.GetTotalMass () * thrustLimitRatio * 9.81;
-				double throttle = engineMaxThrust;
-				if (throttle_limit > 0) {
-					throttle = Math.Min (throttle, throttle_limit);
+				double thrust_limit = vessel.GetTotalMass () * thrustLimitRatio * 9.81;
+				double engine_thrust = engineMaxThrust;
+				if (thrustLimitRatio > 0) {
+					engine_thrust = Math.Min (engineMaxThrust, thrust_limit);
 				}
 				// engine thrust fixed
-				myAttachedEngine.maxThrust = (float)throttle;
+				myAttachedEngine.maxThrust = (float)engine_thrust;
 				// control fx groups
 				foreach (FXGroup fx_group in part.fxGroups) {
 					fx_group.Power = powerRatio;
