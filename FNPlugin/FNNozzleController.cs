@@ -403,7 +403,6 @@ namespace FNPlugin{
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
 				//print (myAttachedEngine.currentThrottle);
 				myAttachedEngine.maxThrust = (float)engine_thrust;
-				//myAttachedEngine.CalculateThrust ();
 				// control fx groups
 				foreach (FXGroup fx_group in part.fxGroups) {
 					fx_group.Power = powerRatio;
@@ -490,7 +489,7 @@ namespace FNPlugin{
 
 			if (intake_amounts.ContainsKey (resourcename)) {
 				//double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.1*getEnginesRunningOfTypeForVessel(vess,resourcename), 0);
-				double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.001, 0);
+				double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.01, 0);
 				return intake_to_return;
 			}
 
@@ -558,6 +557,7 @@ namespace FNPlugin{
 				} else {
 					fuel_flow_amounts.Add (resourcename, enum_rate);
 				}
+				//print (enum_rate);
 			}
 
 			if (fuel_flow_amounts.ContainsKey (resourcename)) {
