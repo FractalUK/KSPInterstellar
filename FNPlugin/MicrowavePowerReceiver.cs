@@ -27,6 +27,7 @@ namespace FNPlugin {
 		private float rangelosses;
 		const float angle = 3.64773814E-10f;
 		const float efficiency = 0.85f;
+		const float alpha = 0.01980198019801980198019801980198f;
 
 		[KSPField(isPersistant = false)]
 		public string animName;
@@ -334,11 +335,15 @@ namespace FNPlugin {
 				}
 
 				ThermalPower = powerInputMegajoules;
+				float cur_thermal_power;
 				if (ThermalPower - 1 > 0) {
-					supplyFNResource (ThermalPower - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					cur_thermal_power = supplyFNResource (powerInputMegajoules -1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER)/TimeWarp.fixedDeltaTime;
+					ThermalPower = cur_thermal_power * alpha + (1.0f - alpha) * ThermalPower;
+					//supplyFNResource (ThermalPower - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 					supplyFNResource (1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES); //revise this later to only supply megajoules as needed
 				} else {
-					supplyFNResource (ThermalPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+					cur_thermal_power = supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER)/TimeWarp.fixedDeltaTime;
+					ThermalPower = cur_thermal_power * alpha + (1.0f - alpha) * ThermalPower;
 				}
 				if(ThermalPower > 3000) { ThermalTemp = 3000; } else { ThermalTemp = ThermalPower; };
 				//vessel.FindPartModulesImplementing<FNNozzleController> ().ForEach (fnnc => fnnc.setupPropellants ());
