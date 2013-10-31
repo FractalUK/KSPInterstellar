@@ -22,6 +22,8 @@ namespace FNPlugin{
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
 		[KSPField(isPersistant = false)]
+		public bool flameFxOn = true;
+		[KSPField(isPersistant = false)]
 		public float upgradeCost;
 		[KSPField(isPersistant = false)]
 		public string originalName;
@@ -415,6 +417,28 @@ namespace FNPlugin{
 				} else {
 					thrustLimit = "Max Power";
 				}
+
+				//Toggle flame animation between jet and fuel propellants
+				if (currentpropellant_is_jet && flameFxOn) {
+					foreach (FXGroup fx_group in myAttachedEngine.part.fxGroups) {
+						foreach(GameObject fx_emitter in fx_group.fxEmitters){
+							if(fx_emitter.name.IndexOf("fx_exhaustFlame_blue") != -1){
+								fx_emitter.SetActive (false);
+								flameFxOn = false;
+							}
+						}
+					}
+				} else if(!currentpropellant_is_jet && !flameFxOn) {
+					foreach (FXGroup fx_group in myAttachedEngine.part.fxGroups) {
+						foreach(GameObject fx_emitter in fx_group.fxEmitters){
+							if(fx_emitter.name.IndexOf("fx_exhaustFlame_blue") != -1){
+								fx_emitter.SetActive (true);
+								flameFxOn = true;
+							}
+						}
+					}
+				}
+
 			} else {
 				fuel_flow_rate = 0;
 				if (myAttachedReactor == null && myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0) {
