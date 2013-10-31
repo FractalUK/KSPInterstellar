@@ -357,11 +357,10 @@ namespace FNPlugin{
 
 		public override void OnFixedUpdate() {
 			//tell static helper methods we are currently updating things
-
-			if (myAttachedEngine.isOperational && myAttachedReactor != null) {
-				if (!myAttachedReactor.isActive()) {
-					myAttachedReactor.enableIfPossible();
-				}
+			if (!myAttachedReactor.isActive()) {
+				myAttachedReactor.enableIfPossible();
+			}
+			if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
 				updateIspEngineParams ();
 				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position), 1.0);
 				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
