@@ -20,7 +20,7 @@ namespace FNPlugin {
 		private int connectedsatsf = 0;
 		private int connectedrelaysf = 0;
 		private int activeReceivers = 0;
-		private int mycount = -1;
+		private int activeThermalReceivers = 0;
 		private float totefff;
 		private float rangelosses;
 		const float angle = 3.64773814E-10f;
@@ -29,6 +29,7 @@ namespace FNPlugin {
 
 		[KSPField(isPersistant = true)]
 		public float powerInput;
+		public float maxPowerAvailable = 0;
 
 		[KSPField(isPersistant = false)]
 		public string animName;
@@ -176,19 +177,34 @@ namespace FNPlugin {
 
 			// get number of active receivers
 			activeReceivers = 0;
+			activeThermalReceivers = 0;
 			List<MicrowavePowerReceiver> mprs = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
 			foreach (MicrowavePowerReceiver mpr in mprs) {
 				if (mpr.IsEnabled) {
-					activeReceivers++;
+					if (mpr.isThermalReciever) {
+						activeThermalReceivers++;
+					} else {
+						activeReceivers++;
+					}
 				}
 			}
 
 			// adjust collector area based on active receivers
+			float totalCollectorArea = collectorArea;
+			float totalThermalCollectorArea = collectorArea;
 			if(activeReceivers > 1){
-				collectorArea = 0;
+				totalCollectorArea = 0;
 				foreach (MicrowavePowerReceiver mpr in mprs) {
 					if (mpr.IsEnabled) {
-						collectorArea += mpr.collectorArea;
+						totalCollectorArea += mpr.collectorArea;
+					}
+				}
+			}
+			if(activeThermalReceivers > 1){
+				totalThermalCollectorArea = 0;
+				foreach (MicrowavePowerReceiver mpr in mprs) {
+					if (mpr.IsEnabled) {
+						totalThermalCollectorArea += mpr.collectorArea;
 					}
 				}
 			}
@@ -240,7 +256,11 @@ namespace FNPlugin {
 							float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
 							float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 							float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
-							powerdissip = Math.Max (powerdissip / collectorArea, 1); 
+							if (isThermalReciever) {
+								powerdissip = powerdissip / totalThermalCollectorArea;
+							} else {
+								powerdissip = powerdissip / totalCollectorArea;
+							}
 							if (vgenType != "relay" && inputPowerFixedAlt > 0) {
 								rangelosses += powerdissip;
 								if (!isInlineReciever) {
@@ -305,12 +325,14 @@ namespace FNPlugin {
 					this.rangelosses = rangelosses / activeSats;
 					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
 					powerInput = satInput * efficiency * atmosphericefficiency;
+					maxPowerAvailable = powerInput;
 					connectedsatsf = activeSats;
 					connectedrelaysf = 0;
 				} else if (maxRelaySourcePower > 0) {
 					this.rangelosses = rangelosses;
 					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
 					powerInput = maxRelaySourcePower * efficiency * atmosphericefficiency;
+					maxPowerAvailable = powerInput;
 					connectedsatsf = 0;
 					connectedrelaysf = 1;
 				} else {
@@ -325,20 +347,44 @@ namespace FNPlugin {
 			}
 
 			// equalize powerInput between active receivers
-			if(activeReceivers > 1){
+			if(activeReceivers > 1 || activeThermalReceivers > 1 || (activeReceivers == 1 && activeThermalReceivers == 1)){
 				float totalPower = 0;
+				float totalThermalPower = 0;
 				foreach (MicrowavePowerReceiver mpr in mprs) {
 					if (mpr.IsEnabled) {
 						if (mpr.powerInput > 0){
-							totalPower += mpr.powerInput;
+							if (mpr.isThermalReciever) {
+								totalThermalPower += mpr.powerInput;
+							} else {
+								totalPower += mpr.powerInput;
+							}
 						}
 					}
 				}
+
+				if (totalPower > maxPowerAvailable) {
+					totalPower = maxPowerAvailable;
+				}
+				if (totalThermalPower > maxPowerAvailable) {
+					totalThermalPower = maxPowerAvailable;
+				}
+
 				float equalizedPower = totalPower/activeReceivers;
+				float equalizedThermalPower = totalThermalPower / activeThermalReceivers;
 				foreach (MicrowavePowerReceiver mpr in mprs) {
 					if (mpr.IsEnabled) {
-						mpr.powerInput = equalizedPower;
+						if (mpr.isThermalReciever) {
+							mpr.powerInput = equalizedThermalPower;
+						} else {
+							mpr.powerInput = equalizedPower;
+						}
 					}
+				}
+				print ("Power input: " + powerInput + " EP " + equalizedPower + " TP " + totalPower + " AR " + activeReceivers + " CA " + totalCollectorArea + " TCA " + totalThermalCollectorArea);
+				if (isThermalReciever) {
+					powerInput = equalizedThermalPower;
+				} else {
+					powerInput = equalizedPower;
 				}
 			}
 
