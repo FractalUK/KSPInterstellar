@@ -80,7 +80,7 @@ namespace FNPlugin  {
 				}
 			}
 
-			if (ThermalPower > 1500) { ThermalTemp = 1500; } else { ThermalTemp = ThermalPower; }
+			//if (ThermalPower > 1500) { ThermalTemp = 1500; } else { ThermalTemp = ThermalPower; }
 
 			thermalpower = ThermalPower.ToString () + "MW";
 		}
@@ -114,7 +114,7 @@ namespace FNPlugin  {
 		}
 
 		public float getThermalTemp() {
-			return ThermalTemp;
+			return 1500f;
 		}
 
 		public float getThermalPower() {

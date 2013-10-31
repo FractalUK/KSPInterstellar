@@ -345,7 +345,7 @@ namespace FNPlugin {
 					cur_thermal_power = supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER)/TimeWarp.fixedDeltaTime;
 					ThermalPower = cur_thermal_power * alpha + (1.0f - alpha) * ThermalPower;
 				}
-				if(ThermalPower > 3000) { ThermalTemp = 3000; } else { ThermalTemp = ThermalPower; };
+				//if(ThermalPower > 3000) { ThermalTemp = 3000; } else { ThermalTemp = ThermalPower; };
 				//vessel.FindPartModulesImplementing<FNNozzleController> ().ForEach (fnnc => fnnc.setupPropellants ());
 			}
 
@@ -356,7 +356,7 @@ namespace FNPlugin {
 		}
 
         public float getThermalTemp() {
-            return ThermalTemp;
+            return 3000f;
         }
 
         public float getThermalPower() {
