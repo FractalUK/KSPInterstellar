@@ -17,17 +17,18 @@ namespace FNPlugin {
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled;
 		bool aIsRelay;
-		public float powerInput;
 		private int connectedsatsf = 0;
 		private int connectedrelaysf = 0;
-		private int activeCount = 0;
-		private static int dishcount;
+		private int activeReceivers = 0;
 		private int mycount = -1;
 		private float totefff;
 		private float rangelosses;
 		const float angle = 3.64773814E-10f;
 		const float efficiency = 0.85f;
 		const float alpha = 0.00399201596806387225548902195609f;
+
+		[KSPField(isPersistant = true)]
+		public float powerInput;
 
 		[KSPField(isPersistant = false)]
 		public string animName;
@@ -123,10 +124,6 @@ namespace FNPlugin {
 				anim.Play ();
 			}
 
-			if (mycount == -1) {
-				mycount = dishcount;
-				dishcount++;
-			}
 		}
 
 		public override void OnUpdate() {
@@ -163,7 +160,6 @@ namespace FNPlugin {
 					anim [animName].normalizedTime = 1f;
 					anim.Blend (animName, 2f);
 				}
-
 			}
 		}
 
@@ -172,16 +168,36 @@ namespace FNPlugin {
 			{
 				return;
 			}
+
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT,FNResourceManager.FNRESOURCE_THERMALPOWER};
 			this.resources_to_supply = resources_to_supply;
 
 			base.OnFixedUpdate ();
 
+			// get number of active receivers
+			activeReceivers = 0;
+			List<MicrowavePowerReceiver> mprs = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
+			foreach (MicrowavePowerReceiver mpr in mprs) {
+				if (mpr.IsEnabled) {
+					activeReceivers++;
+				}
+			}
+
+			// adjust collector area based on active receivers
+			if(activeReceivers > 1){
+				collectorArea = 0;
+				foreach (MicrowavePowerReceiver mpr in mprs) {
+					if (mpr.IsEnabled) {
+						collectorArea += mpr.collectorArea;
+					}
+				}
+			}
+
 			ConfigNode config = PluginHelper.getPluginSaveFile();
 			float satInput = 0;
 			float relayInput = 0;
 			int activeSats = 0;
-			float rangelosses = 0;
+			rangelosses = 0;
 			if (config != null && IsEnabled) {
 				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReciever) {
 					IsEnabled = false;
@@ -202,7 +218,7 @@ namespace FNPlugin {
 					} else {
 						aIsRelay = false;
 					}
-				}
+				}				
 
 				//if (activeCount % 100 == 0) {
 				List<Vessel> vessels = FlightGlobals.Vessels;
@@ -306,6 +322,24 @@ namespace FNPlugin {
 				connectedrelaysf = 0;
 				connectedsatsf = 0;
 				powerInput = 0;
+			}
+
+			// equalize powerInput between active receivers
+			if(activeReceivers > 1){
+				float totalPower = 0;
+				foreach (MicrowavePowerReceiver mpr in mprs) {
+					if (mpr.IsEnabled) {
+						if (mpr.powerInput > 0){
+							totalPower += mpr.powerInput;
+						}
+					}
+				}
+				float equalizedPower = totalPower/activeReceivers;
+				foreach (MicrowavePowerReceiver mpr in mprs) {
+					if (mpr.IsEnabled) {
+						mpr.powerInput = equalizedPower;
+					}
+				}
 			}
 
 
