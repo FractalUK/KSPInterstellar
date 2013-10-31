@@ -33,8 +33,8 @@ namespace FNPlugin{
 		public string upgradeTechReq = null;
 
 		//External
-		public bool static_updating = false;
-		public bool static_updating2 = false;
+		public bool static_updating = true;
+		public bool static_updating2 = true;
 
 		//GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -306,7 +306,7 @@ namespace FNPlugin{
 				if (myAttachedReactor.getIsNuclear ()) {
 					maxISP = maxISP*2.0f/3.0f;
 					if (maxISP > 300) {
-						maxISP = maxISP / 3;
+						maxISP = maxISP / 2.5f;
 					}
 				}
 				newISP.Add(0, maxISP*2.0f/3.0f);
@@ -318,6 +318,7 @@ namespace FNPlugin{
 				vCurve.Add (maxISP*g0, 0);
 				myAttachedEngine.useVelocityCurve = true;
 				myAttachedEngine.useEngineResponseTime = true;
+				myAttachedEngine.ignitionThreshold = 0.01f;
 			}
 
 			myAttachedEngine.atmosphereCurve = newISP;
@@ -332,7 +333,7 @@ namespace FNPlugin{
 				double currentintakeatm = getIntakeAvailable (vessel, resourcename);
 				if (getFuelRateThermalJetsForVessel (vessel, resourcename) > 0) {
 					// divide current available intake resource by fuel useage across all engines
-					return (float)Math.Min (currentintakeatm / getFuelRateThermalJetsForVessel (vessel, resourcename)/TimeWarp.fixedDeltaTime, 1.0);
+					return (float)Math.Min (currentintakeatm / getFuelRateThermalJetsForVessel (vessel, resourcename), 1.0);
 				} else {
 					return 1.0f;
 				}
@@ -356,8 +357,6 @@ namespace FNPlugin{
 
 		public override void OnFixedUpdate() {
 			//tell static helper methods we are currently updating things
-			static_updating = true;
-			static_updating2 = true;
 
 			if (myAttachedEngine.isOperational && myAttachedReactor != null) {
 				if (!myAttachedReactor.isActive()) {
@@ -382,25 +381,34 @@ namespace FNPlugin{
 				float atmospheric_limit = getAtmosphericLimit ();
 				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-				float powerRatio = 0.0f;
+				float power_ratio = 0.0f;
 				double engineMaxThrust = 0.01;
 				if (assThermalPower > 0) {
-					powerRatio = (float)(thermal_power_received / assThermalPower);
-					engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / 9.81 * heat_exchanger_thrust_divisor*ispratio/myAttachedEngine.currentThrottle,0.01);
+					power_ratio = (float)(thermal_power_received / assThermalPower);
+					engineMaxThrust = Math.Max(2000.0 * thermal_power_received / maxISP / g0 * heat_exchanger_thrust_divisor*ispratio/myAttachedEngine.currentThrottle,0.01);
 				} 
+				//print ("B: " + engineMaxThrust);
 				// set up TWR limiter if on
-				double thrust_limit = vessel.GetTotalMass () * thrustLimitRatio * 9.81;
+				double thrust_limit = vessel.GetTotalMass () * thrustLimitRatio * g0;
 				double engine_thrust = engineMaxThrust;
 				if (thrustLimitRatio > 0) {
 					engine_thrust = Math.Min (engineMaxThrust, thrust_limit);
 				}
 				// engine thrust fixed
+				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
+				//print (myAttachedEngine.currentThrottle);
 				myAttachedEngine.maxThrust = (float)engine_thrust;
 				// control fx groups
 				foreach (FXGroup fx_group in part.fxGroups) {
 					fx_group.Power = powerRatio;
 				} 
 				// amount of fuel being used at max throttle with no atmospheric limits
+				if (atmospheric_limit > 0) {
+					fuel_flow_rate = engineMaxThrust / g0 / currentIsp / atmospheric_limit / 0.005*TimeWarp.fixedDeltaTime; // fuel flow rate at max throttle
+				} else {
+					fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime;
+				}
+				//print (fuel_flow_rate);
 				fuel_flow_rate = engineMaxThrust / g0 / currentIsp/myAttachedEngine.currentThrottle/atmospheric_limit/0.005; // fuel flow rate at max throttle
 
 				if (thrustLimitRatio > 0 && getAtmosphericLimit () == 1) {
@@ -417,6 +425,9 @@ namespace FNPlugin{
 					ScreenMessages.PostScreenMessage ("Engine Shutdown: No thermal power source attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 				}
 			}
+
+			static_updating = true;
+			static_updating2 = true;
 		}
 
 		public override string GetInfo() {
@@ -481,16 +492,38 @@ namespace FNPlugin{
 			}
 
 			if (intake_amounts.ContainsKey (resourcename)) {
-				return intake_amounts [resourcename]*0.97;
+				//double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.1*getEnginesRunningOfTypeForVessel(vess,resourcename), 0);
+				double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.01, 0);
+				return intake_to_return;
 			}
 
 			return 0.1;
 		}
 
 		// enumeration of the fuel useage rates of all jets on a vessel
+		public static int getEnginesRunningOfTypeForVessel (Vessel vess, string resourcename) {
+			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
+			int engines = 0;
+			foreach (FNNozzleController nozzle in nozzles) {
+				ConfigNode[] prop_node = nozzle.getPropellants ();
+				if (prop_node != null) {
+					ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
+					if (prop_node [nozzle.fuel_mode] != null) {
+						if (assprops [0].GetValue ("name").Equals (resourcename)) {
+							if (nozzle.getNozzleFlowRate () > 0) {
+								engines++;
+							}
+						}
+					}
+				}
+			}
+			return engines;
+		}
+
+		// enumeration of the fuel useage rates of all jets on a vessel
 		public static double getFuelRateThermalJetsForVessel (Vessel vess, string resourcename) {
 			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
-
+			int engines = 0;
 			bool updating = true;
 			foreach (FNNozzleController nozzle in nozzles) {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
@@ -501,7 +534,9 @@ namespace FNPlugin{
 							if (!nozzle.static_updating2) {
 								updating = false;
 							}
-
+							if (nozzle.getNozzleFlowRate () > 0) {
+								engines++;
+							}
 						}
 					}
 				}
@@ -526,6 +561,7 @@ namespace FNPlugin{
 				} else {
 					fuel_flow_amounts.Add (resourcename, enum_rate);
 				}
+				//print (enum_rate);
 			}
 
 			if (fuel_flow_amounts.ContainsKey (resourcename)) {
