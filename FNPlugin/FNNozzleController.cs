@@ -408,8 +408,6 @@ namespace FNPlugin{
 				} else {
 					fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime;
 				}
-				//print (fuel_flow_rate);
-				fuel_flow_rate = engineMaxThrust / g0 / currentIsp/myAttachedEngine.currentThrottle/atmospheric_limit/0.005; // fuel flow rate at max throttle
 
 				if (thrustLimitRatio > 0 && getAtmosphericLimit () == 1) {
 					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
