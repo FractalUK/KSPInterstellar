@@ -324,12 +324,12 @@ namespace FNPlugin {
 
 				if (animateTemp > tTime) {
 					tTime += 0.01f;
-					animT [animTName].speed = 1f;
+					animT [animTName].speed = 0.01f;
 					animT [animTName].normalizedTime = tTime;
 					animT.Blend (animTName, 2f);
 				} else {
 					tTime -= 0.01f;
-					animT [animTName].speed = -1f;
+					animT [animTName].speed = -0.01f;
 					animT [animTName].normalizedTime = tTime;
 					animT.Blend (animTName, 2f);
 				}
