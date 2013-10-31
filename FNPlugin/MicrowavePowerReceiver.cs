@@ -257,9 +257,9 @@ namespace FNPlugin {
 							float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 							float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
 							if (isThermalReciever) {
-								powerdissip = powerdissip / totalThermalCollectorArea;
+								powerdissip = Math.Max (powerdissip / totalThermalCollectorArea, 1);
 							} else {
-								powerdissip = powerdissip / totalCollectorArea;
+								powerdissip = Math.Max (powerdissip / totalCollectorArea, 1);
 							}
 							if (vgenType != "relay" && inputPowerFixedAlt > 0) {
 								rangelosses += powerdissip;
