@@ -27,7 +27,7 @@ namespace FNPlugin {
 		private float rangelosses;
 		const float angle = 3.64773814E-10f;
 		const float efficiency = 0.85f;
-		const float alpha = 0.01980198019801980198019801980198f;
+		const float alpha = 0.00399201596806387225548902195609f;
 
 		[KSPField(isPersistant = false)]
 		public string animName;
@@ -337,7 +337,7 @@ namespace FNPlugin {
 				ThermalPower = powerInputMegajoules;
 				float cur_thermal_power;
 				if (ThermalPower - 1 > 0) {
-					cur_thermal_power = supplyFNResource (powerInputMegajoules -1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER)/TimeWarp.fixedDeltaTime;
+					cur_thermal_power = supplyFNResource ((powerInputMegajoules-1) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER)/TimeWarp.fixedDeltaTime;
 					ThermalPower = cur_thermal_power * alpha + (1.0f - alpha) * ThermalPower;
 					//supplyFNResource (ThermalPower - 1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 					supplyFNResource (1 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES); //revise this later to only supply megajoules as needed
