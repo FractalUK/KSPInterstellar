@@ -29,6 +29,7 @@ namespace FNPlugin {
 
 		[KSPField(isPersistant = true)]
 		public float powerInput;
+		[KSPField(isPersistant = true)]
 		public float maxPowerAvailable = 0;
 
 		[KSPField(isPersistant = false)]
@@ -325,14 +326,18 @@ namespace FNPlugin {
 					this.rangelosses = rangelosses / activeSats;
 					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
 					powerInput = satInput * efficiency * atmosphericefficiency;
-					maxPowerAvailable = powerInput;
+					if (powerInput > 0) {
+						maxPowerAvailable = powerInput;
+					}
 					connectedsatsf = activeSats;
 					connectedrelaysf = 0;
 				} else if (maxRelaySourcePower > 0) {
 					this.rangelosses = rangelosses;
 					totefff = efficiency * atmosphericefficiency * 100 / rangelosses;
 					powerInput = maxRelaySourcePower * efficiency * atmosphericefficiency;
-					maxPowerAvailable = powerInput;
+					if (powerInput > 0) {
+						maxPowerAvailable = powerInput;
+					}
 					connectedsatsf = 0;
 					connectedrelaysf = 1;
 				} else {
