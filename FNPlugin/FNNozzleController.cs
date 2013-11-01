@@ -63,7 +63,10 @@ namespace FNPlugin{
 		protected bool currentpropellant_is_jet = false;
 		protected double fuel_flow_rate = 0;
 		protected int thrustLimitRatio = 0;
-
+		protected double old_thermal_power = 0;
+		protected double old_isp = 0;
+		protected double current_isp = 0;
+		protected double old_intake = 0;
 
 		//Constants
 		protected const float g0 = 9.81f;
@@ -71,6 +74,7 @@ namespace FNPlugin{
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
 		static Dictionary<string, double> fuel_flow_amounts = new Dictionary<string, double>();
+
 
 		[KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
 		public void TogglePropellant() {
@@ -332,19 +336,17 @@ namespace FNPlugin{
 		}
 
 		public float getAtmosphericLimit() {
+			float atmospheric_limit = 1.0f;
 			if (currentpropellant_is_jet) {
 				string resourcename = myAttachedEngine.propellants [0].name;
 				double currentintakeatm = getIntakeAvailable (vessel, resourcename);
 				if (getFuelRateThermalJetsForVessel (vessel, resourcename) > 0) {
 					// divide current available intake resource by fuel useage across all engines
-					return (float)Math.Min (currentintakeatm / getFuelRateThermalJetsForVessel (vessel, resourcename), 1.0);
-				} else {
-					return 1.0f;
-				}
-
-			} else {
-				return 1.0f;
-			}
+					atmospheric_limit = (float)Math.Min (currentintakeatm / (getFuelRateThermalJetsForVessel (vessel, resourcename)+currentintakeatm), 1.0);
+				} 
+				old_intake = currentintakeatm;
+			} 
+			return atmospheric_limit;
 		}
 
 		public double getNozzleFlowRate() {
@@ -371,6 +373,7 @@ namespace FNPlugin{
 				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position), 1.0);
 				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
 				double ispratio = currentIsp / maxISP;
+				this.current_isp = currentIsp;
 				// scale down thrust if it's attached to the wrong sized reactor
 				float heat_exchanger_thrust_divisor = 1;
 				if (radius > myAttachedReactor.getRadius ()) {
@@ -401,18 +404,19 @@ namespace FNPlugin{
 				}
 				// engine thrust fixed
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
-				//print (myAttachedEngine.currentThrottle);
 				myAttachedEngine.maxThrust = (float)engine_thrust;
 				// control fx groups
 				foreach (FXGroup fx_group in part.fxGroups) {
 					fx_group.Power = powerRatio;
 				} 
 				// amount of fuel being used at max throttle with no atmospheric limits
-				if (atmospheric_limit > 0) {
-					fuel_flow_rate = engineMaxThrust / g0 / currentIsp / atmospheric_limit / 0.005*TimeWarp.fixedDeltaTime; // fuel flow rate at max throttle
-				} else {
-					fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime;
-				}
+				//if (atmospheric_limit > 0) {
+					//fuel_flow_rate = engineMaxThrust / g0 / currentIsp / atmospheric_limit / 0.005*TimeWarp.fixedDeltaTime; // fuel flow rate at max throttle
+				//} else {
+					fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0/g0/currentIsp*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime/0.005;
+				//}
+				old_thermal_power = assThermalPower;
+				old_isp = this.current_isp;
 				//print (fuel_flow_rate);
 			} else {
 				fuel_flow_rate = 0;
@@ -489,7 +493,7 @@ namespace FNPlugin{
 
 			if (intake_amounts.ContainsKey (resourcename)) {
 				//double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.1*getEnginesRunningOfTypeForVessel(vess,resourcename), 0);
-				double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.01, 0);
+				double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.025, 0);
 				return intake_to_return;
 			}
 
