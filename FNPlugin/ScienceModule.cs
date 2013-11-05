@@ -305,16 +305,15 @@ namespace FNPlugin {
             float global_rate_multipliers = 1;
             crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
             global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
-
-
+            
 			if (ResearchAndDevelopment.Instance != null) {
-				if(!double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition)) {
+                if (!double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition) && science_awaiting_addition > 0) {
 					ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
+                    ScreenMessages.PostScreenMessage(science_awaiting_addition.ToString("0") + " science has been added to the R&D centre.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
+                    science_awaiting_addition = 0;
 				}
-				science_awaiting_addition = 0;
 			}
             
-
 			if (IsEnabled) {
 				//float electrical_power_provided = part.RequestResource("Megajoules", basePowerConsumption * TimeWarp.fixedDeltaTime);
 				//mega_manager.powerDraw(this, basePowerConsumption);

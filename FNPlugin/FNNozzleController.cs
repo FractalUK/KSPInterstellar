@@ -493,7 +493,7 @@ namespace FNPlugin{
 
 			if (intake_amounts.ContainsKey (resourcename)) {
 				//double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.1*getEnginesRunningOfTypeForVessel(vess,resourcename), 0);
-				double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.025, 0);
+				double intake_to_return = Math.Max (intake_amounts [resourcename], 0);
 				return intake_to_return;
 			}
 

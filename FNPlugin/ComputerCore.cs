@@ -40,6 +40,7 @@ namespace FNPlugin {
 
 		protected float science_rate_f;
 		protected bool hasrequiredupgrade = false;
+        protected double science_awaiting_addition = 0;
 
 
 		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
@@ -106,10 +107,8 @@ namespace FNPlugin {
 				altitude_multiplier = Math.Max (altitude_multiplier, 1);
 
 				double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / ((float)Math.Sqrt (altitude_multiplier));
-				if (ResearchAndDevelopment.Instance != null) {
-					ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_to_add;
-				}
-
+                science_awaiting_addition = science_to_add;
+                
 				var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
 				curReaction.PitchTorque = 5;
 				curReaction.RollTorque = 5;
@@ -152,6 +151,14 @@ namespace FNPlugin {
 			if (!isupgraded) {
 				float power_returned = consumeFNResource (megajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 			} else {
+                if (ResearchAndDevelopment.Instance != null) {
+                    if (!double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition) && science_awaiting_addition > 0) {
+                        ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
+                        ScreenMessages.PostScreenMessage(science_awaiting_addition.ToString("0") + " science has been added to the R&D centre.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
+                        science_awaiting_addition = 0;
+                    }
+                }
+
 				float power_returned = consumeFNResource (upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime ;
 				electrical_power_ratio = power_returned / upgradedMegajouleRate;
 				float altitude_multiplier = (float) (vessel.altitude / (vessel.mainBody.Radius));

@@ -27,7 +27,7 @@ namespace FNPlugin {
 		private float rangelosses;
 		const float angle = 3.64773814E-10f;
 		const float efficiency = 0.85f;
-		const float alpha = 0.01980198019801980198019801980198f;
+		const float alpha = 0.00399201596806387225548902195609f;
 
 		[KSPField(isPersistant = false)]
 		public string animName;
