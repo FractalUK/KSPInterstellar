@@ -9,6 +9,8 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Level")]
 		public string radiationLevel = ":";
 
+		public double rad_hardness = 1;
+
 		protected double radiation_level = 0;
 
 		public override void OnStart(PartModule.StartState state) {
@@ -28,6 +30,43 @@ namespace FNPlugin {
 					} else {
 						radiationLevel = (radiation_level * 1000000.0).ToString ("0.00") + " nSv/hour";
 					}
+				}
+			}
+		}
+
+		public override void OnLoad(ConfigNode node) {
+			foreach (ProtoCrewMember crewmember in part.protoModuleCrew) {
+				int kerbal_num = HighLogic.CurrentGame.CrewRoster.IndexOf (crewmember);
+				print ("Loading Kerbal: " + kerbal_num);
+				if (VanAllen.crew_rad_exposure.ContainsKey (crewmember)) {
+					VanAllen.crew_rad_exposure [crewmember] = PluginHelper.getKerbalRadiationDose (kerbal_num);
+				} else {
+					VanAllen.crew_rad_exposure.Add (crewmember, PluginHelper.getKerbalRadiationDose (kerbal_num));
+				}
+			}
+		}
+
+		public override void OnSave(ConfigNode node) {
+			foreach (ProtoCrewMember crewmember in part.protoModuleCrew) {
+				int kerbal_num = HighLogic.CurrentGame.CrewRoster.IndexOf (crewmember);
+				//HighLogic.CurrentGame.CrewRoster[1].KerbalRef.
+				ConfigNode kerbal_node = PluginHelper.getKerbal (kerbal_num);
+				if (kerbal_node != null) {
+					if (kerbal_node.HasValue ("totalDose")) {
+						if (VanAllen.crew_rad_exposure.ContainsKey (crewmember)) {
+							//kerbal_node.SetValue ("totalValue", VanAllen.crew_rad_exposure [crewmember].ToString("E"));
+							print ("Saving for Kerbal " + kerbal_num + " radiation: " + VanAllen.crew_rad_exposure [crewmember]);
+							PluginHelper.saveKerbalRadiationdose (kerbal_num, (float)VanAllen.crew_rad_exposure [crewmember]);
+                            
+						} 
+					} else {
+						if (VanAllen.crew_rad_exposure.ContainsKey (crewmember)) {
+							//kerbal_node.AddValue("totalValue", VanAllen.crew_rad_exposure [crewmember].ToString("E"));
+							print ("Saving for Kerbal " + kerbal_num + " radiation: " + VanAllen.crew_rad_exposure [crewmember]);
+							PluginHelper.saveKerbalRadiationdose (kerbal_num, (float)VanAllen.crew_rad_exposure [crewmember]);
+						}
+					}
+					crewmember.Save (kerbal_node);
 				}
 			}
 		}
@@ -54,8 +93,17 @@ namespace FNPlugin {
 				}
 				rad_level += rad/divisor;
 			}
-			radiation_level = Math.Pow(rad_level / 2e-5,4.0)*13;
+			radiation_level = Math.Pow(rad_level / 2e-5,4.0)*130/rad_hardness;
 
+			foreach (ProtoCrewMember crewmember in part.protoModuleCrew) {
+				if (VanAllen.crew_rad_exposure.ContainsKey (crewmember)) {
+					double current_rad = VanAllen.crew_rad_exposure [crewmember];
+					VanAllen.crew_rad_exposure [crewmember] = current_rad + radiation_level * TimeWarp.fixedDeltaTime;
+				} else {
+					int kerbal_num = HighLogic.CurrentGame.CrewRoster.IndexOf (crewmember);
+					VanAllen.crew_rad_exposure.Add (crewmember, PluginHelper.getKerbalRadiationDose (kerbal_num)+radiation_level * TimeWarp.fixedDeltaTime);
+				}
+			}
 		}
 
 	}

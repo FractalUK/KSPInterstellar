@@ -153,6 +153,8 @@ namespace FNPlugin {
 			high_priority_resource_demand = 0;
 			charge_resource_demand = 0;
 
+			//Debug.Log ("Early:" + powersupply);
+
             //stored power
             List<PartResource> partresources = new List<PartResource>();
             my_part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resource_name).id, partresources);
@@ -169,6 +171,7 @@ namespace FNPlugin {
 			}
 			double missingmegajoules = maxmegajoules - currentmegajoules;
             powersupply += currentmegajoules;
+			//Debug.Log ("Current:" + currentmegajoules);
 
 			double demand_supply_ratio = 0;
 			double high_priority_demand_supply_ratio = 0;
@@ -184,6 +187,8 @@ namespace FNPlugin {
 			} else {
 				demand_supply_ratio = 1.0;
 			}
+
+			//Debug.Log ("Late:" + powersupply);
 
 			//Prioritise supplying stock ElectricCharge resource
 			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
@@ -222,9 +227,9 @@ namespace FNPlugin {
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
 						power = power * high_priority_demand_supply_ratio;
 					}
-                    double power_supplied = Math.Min(powersupply, power);
+                    double power_supplied = Math.Max(Math.Min(powersupply, power),0.0);
+					//Debug.Log (power + ", " + powersupply + "::: " + power_supplied);
                     powersupply -= power_supplied;
-
 					//notify of supply
 					ms.receiveFNResource((float)(power_supplied * TimeWarp.fixedDeltaTime),this.resource_name);
                 }
@@ -239,7 +244,7 @@ namespace FNPlugin {
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
 						power = power * demand_supply_ratio;
 					}
-                    double power_supplied = Math.Min(powersupply, power);
+					double power_supplied = Math.Max(Math.Min(powersupply, power),0.0);
                     powersupply -= power_supplied;
 
 					//notify of supply
@@ -256,7 +261,7 @@ namespace FNPlugin {
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
 						power = power * demand_supply_ratio;
 					}
-					double power_supplied = Math.Min(powersupply, power);
+					double power_supplied = Math.Max(Math.Min(powersupply, power),0.0);
 					powersupply -= power_supplied;
 
 					//notify of supply
@@ -266,7 +271,7 @@ namespace FNPlugin {
 			}
 
 
-            powersupply -= currentmegajoules;
+            powersupply -= Math.Max(currentmegajoules,0.0);
 
 			double power_extract = -powersupply * TimeWarp.fixedDeltaTime;
 

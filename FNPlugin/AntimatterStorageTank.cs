@@ -105,20 +105,20 @@ namespace FNPlugin {
 			}
 			current_antimatter = antimatter_current_amount;
 			explosion_size = Mathf.Sqrt (antimatter_current_amount)*5.0f;
-			if (chargestatus > 0 && (should_charge || (current_antimatter > 0.1))) {
+			if (chargestatus > 0 && current_antimatter > 0.1) {
 				chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
 			}
-			if (chargestatus < MAX_STORED_CHARGE) {
+			if (chargestatus < MAX_STORED_CHARGE && (should_charge || (current_antimatter > 0.1))) {
 				float charge_to_add = consumeFNResource (0.2f * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_MEGAJOULES)*10.0f;
 				chargestatus += Mathf.Max (charge_to_add, 0);
 
-				if (charge_to_add < 0.2f * TimeWarp.fixedDeltaTime) {
+				if (charge_to_add < 2f * TimeWarp.fixedDeltaTime) {
 					float more_charge_to_add = part.RequestResource ("ElectricCharge", 200f * TimeWarp.fixedDeltaTime)/100f;
 					charge_to_add += more_charge_to_add;
 					chargestatus += more_charge_to_add;
 				}
 
-				if (charge_to_add >= 0.1f * TimeWarp.fixedDeltaTime) {
+				if (charge_to_add >= 1f * TimeWarp.fixedDeltaTime) {
 					charging = true;
 				} else {
 					charging = false;
@@ -127,7 +127,7 @@ namespace FNPlugin {
 						ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1.0f, ScreenMessageStyle.UPPER_CENTER);
 					}
 				}
-
+				//print (chargestatus);
 				if (chargestatus <= 0) {
 					chargestatus = 0;
 					if (antimatter_current_amount > 0.1) {

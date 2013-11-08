@@ -74,6 +74,59 @@ namespace FNPlugin {
 			}
 		}
 
+		public static float getKerbalRadiationDose(int kerbalidx) {
+			try{
+				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+				ConfigNode config = ConfigNode.Load (persistentfile);
+				ConfigNode gameconf = config.GetNode ("GAME");
+				ConfigNode crew_roster = gameconf.GetNode("ROSTER");
+				ConfigNode[] crew = crew_roster.GetNodes("CREW");
+				ConfigNode sought_kerbal = crew[kerbalidx];
+				if(sought_kerbal.HasValue("totalDose")) {
+					float dose = float.Parse(sought_kerbal.GetValue("totalDose"));
+					return dose;
+				}
+				return 0.0f;
+			}catch (Exception ex) {
+				print (ex);
+				return 0.0f;
+			}
+		}
+
+		public static ConfigNode getKerbal(int kerbalidx) {
+			try{
+				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+				ConfigNode config = ConfigNode.Load (persistentfile);
+				ConfigNode gameconf = config.GetNode ("GAME");
+				ConfigNode crew_roster = gameconf.GetNode("ROSTER");
+				ConfigNode[] crew = crew_roster.GetNodes("CREW");
+				ConfigNode sought_kerbal = crew[kerbalidx];
+				return sought_kerbal;
+			}catch (Exception ex) {
+				print (ex);
+				return null;
+			}
+		}
+
+		public static void saveKerbalRadiationdose(int kerbalidx, float rad) {
+			try{
+				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+				ConfigNode config = ConfigNode.Load (persistentfile);
+				ConfigNode gameconf = config.GetNode ("GAME");
+				ConfigNode crew_roster = gameconf.GetNode("ROSTER");
+				ConfigNode[] crew = crew_roster.GetNodes("CREW");
+				ConfigNode sought_kerbal = crew[kerbalidx];
+				if(sought_kerbal.HasValue("totalDose")) {
+					sought_kerbal.SetValue("totalDose",rad.ToString("E"));
+				}else{
+					sought_kerbal.AddValue("totalDose",rad.ToString("E"));
+				}
+				config.Save(persistentfile);
+			}catch (Exception ex) {
+				print (ex);
+			}
+		}
+
 		public static ConfigNode getPluginSaveFile() {
 			ConfigNode config = ConfigNode.Load (PluginHelper.getPluginSaveFilePath ());
 			if (config == null) {
@@ -227,22 +280,24 @@ namespace FNPlugin {
 														
 							if(prefab_available_part.FindModulesImplementing<ModuleResourceIntake>().Count > 0) {
 								ModuleResourceIntake intake = prefab_available_part.Modules["ModuleResourceIntake"] as ModuleResourceIntake;
-								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "AtmosphericIntake");
-								AtmosphericIntake pm = null;
-								if(type != null) {
-									pm = prefab_available_part.gameObject.AddComponent(type) as AtmosphericIntake;
-									prefab_available_part.Modules.Add(pm);
-									pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
-								}
+								if(intake.resourceName == "IntakeAir") {
+									Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "AtmosphericIntake");
+									AtmosphericIntake pm = null;
+									if(type != null) {
+										pm = prefab_available_part.gameObject.AddComponent(type) as AtmosphericIntake;
+										prefab_available_part.Modules.Add(pm);
+										pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
+									}
 
-								PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
+									PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
-								if(intake_air_resource != null) {
-									ConfigNode node = new ConfigNode("RESOURCE");
-									node.AddValue("name", "IntakeAtm");
-									node.AddValue("maxAmount", intake_air_resource.maxAmount);
-									node.AddValue("amount", intake_air_resource.amount);
-									prefab_available_part.AddResource(node);
+									if(intake_air_resource != null) {
+										ConfigNode node = new ConfigNode("RESOURCE");
+										node.AddValue("name", "IntakeAtm");
+										node.AddValue("maxAmount", intake_air_resource.maxAmount);
+										node.AddValue("amount", intake_air_resource.amount);
+										prefab_available_part.AddResource(node);
+									}
 								}
 
 							}
@@ -254,8 +309,19 @@ namespace FNPlugin {
 							if(prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0) {
 								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
 							}
-							/*
+                            /*
 							if(prefab_available_part.CrewCapacity > 0) {
+								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
+								FNModuleRadiation pm = null;
+								if(type != null) {
+									pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
+									prefab_available_part.Modules.Add(pm);
+									double rad_hardness = prefab_available_part.mass /((double)prefab_available_part.CrewCapacity)*7.5;
+									pm.rad_hardness = rad_hardness;
+								}
+							}
+
+							if(prefab_available_part.FindModulesImplementing<KerbalEVA>().Count() > 0) {
 								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
 								FNModuleRadiation pm = null;
 								if(type != null) {
@@ -263,6 +329,7 @@ namespace FNPlugin {
 									prefab_available_part.Modules.Add(pm);
 								}
 							}*/
+
 						}
 						//String path11 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Additions/" + available_part.name + ".cfg";
 						//String path21 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Replacements/" + available_part.name + ".cfg";

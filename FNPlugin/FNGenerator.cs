@@ -248,7 +248,7 @@ namespace FNPlugin {
 
 				double waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
 				double thermal_power_currently_needed = waste_heat_produced / totalEff;
-				double thermaldt = Math.Min (maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime;
+				double thermaldt = Math.Max(Math.Min (maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime,0.0);
 				double inputThermalPower = consumeFNResource (thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				double wastedt = inputThermalPower * totalEff;
 				consumeFNResource (wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);

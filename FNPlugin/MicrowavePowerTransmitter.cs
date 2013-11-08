@@ -115,15 +115,11 @@ namespace FNPlugin {
 						var curMwRec = pml.GetModule (j) as MicrowavePowerReceiver;
 						var curSolarPan = pml.GetModule (j) as ModuleDeployableSolarPanel;
 						if (curFNGen != null) {
-							electrical_current_available = curFNGen.getMaxPowerOutput() * 1000;
 							List<PartResource> partresources = new List<PartResource> ();
 							part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Megajoules").id, partresources);
 							float consumeMJ = curFNGen.getMaxPowerOutput () * TimeWarp.fixedDeltaTime;
 							float cvalue = consumeFNResource(consumeMJ,FNResourceManager.FNRESOURCE_MEGAJOULES);
-							//this will smoothly reduce transmitter power down to 0 if we are running out of megajoules (To give priority to other components onboard that are drawing power)
-							if (cvalue < consumeMJ) {
-								electrical_current_available = (curFNGen.getMaxPowerOutput () / consumeMJ) * cvalue;
-							}
+							electrical_current_available = cvalue*1000/TimeWarp.fixedDeltaTime;
 							nuclear = true;
 						} 
 						else if (curMwRec != null && nuclear == false) {
