@@ -45,6 +45,8 @@ namespace FNPlugin {
         public float resourceRate;
         [KSPField(isPersistant = false)]
         public float upgradedResourceRate;
+        [KSPField(isPersistant = false)]
+        public float minimumThrottle = 0;
         
         // GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -70,6 +72,7 @@ namespace FNPlugin {
 		protected float tritium_produced_f = 0;
 		protected bool hasrequiredupgrade = false;
 		protected int deactivate_timer = 0;
+        protected bool decay_products_ongoing = false;
 
 
         //protected bool responsible_for_thermalmanager = false;
@@ -81,12 +84,6 @@ namespace FNPlugin {
             if (getIsNuclear()) { return; }
             IsEnabled = true;
         }
-
-		[KSPEvent(guiName = "Repair Reactor", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
-		public void MaintainReactor() {
-            if (!getIsNuclear()) { return; }
-			IsEnabled = true;
-		}
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Reactor", active = true)]
         public void DeactivateReactor() {
@@ -151,6 +148,7 @@ namespace FNPlugin {
 			ThermalPower = upgradedThermalPower;
 			ReactorTemp = upgradedReactorTemp;
 			reactorType = upgradedName;
+            resourceRate = upgradedResourceRate;
 		}
 		     
 		public override void OnStart(PartModule.StartState state) {
@@ -246,8 +244,7 @@ namespace FNPlugin {
 			}
             Events["BreedTritium"].active = !breedtritium && getIsNuclear();
             Events["StopBreedTritium"].active = breedtritium && getIsNuclear();
-            Events["MaintainReactor"].guiActiveUnfocused = !IsEnabled && getIsNuclear();
-			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
+            Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
             Fields["tritiumBreedRate"].guiActive = breedtritium && getIsNuclear();
             coretempStr = ReactorTemp.ToString("0") + "K";
 			if (IsEnabled) {
@@ -282,11 +279,21 @@ namespace FNPlugin {
 				}
 			} else {
                 if (getIsNuclear()) {
-                    statusStr = "EVA Maintenance Required.";
+                    if (decay_products_ongoing) {
+                        statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
+                    } else {
+                        statusStr = "EVA Maintenance Needed";
+                    }
                 }else {
                     statusStr = "Reactor Offline.";
                 }
 			}
+
+            if (isupgraded) {
+                reactorType = getThermalPowerFormatString() + " " + upgradedName;
+            } else {
+                reactorType = getThermalPowerFormatString() + " " + originalName;
+            }
         }
 
         public float getCoreTemp() {
@@ -318,35 +325,57 @@ namespace FNPlugin {
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
             if (IsEnabled && ThermalPower > 0) {
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
-					deactivate_timer++;
-					if (deactivate_timer > 3) {
-						IsEnabled = false;
-						if (FlightGlobals.ActiveVessel == vessel) {
-							ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-						}
-					}
-					return;
-				}
-				deactivate_timer = 0;
+                if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
+                    deactivate_timer++;
+                    if (deactivate_timer > 3) {
+                        IsEnabled = false;
+                        if (FlightGlobals.ActiveVessel == vessel) {
+                            ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        }
+                    }
+                    return;
+                }
+                deactivate_timer = 0;
                 double resource_provided = consumeReactorResource(resourceRate * TimeWarp.fixedDeltaTime);
                 resource_ratio = resource_provided / resourceRate / TimeWarp.fixedDeltaTime;
-                double power_to_supply = Math.Max(ThermalPower*TimeWarp.fixedDeltaTime*resource_ratio, 0);
-                double thermal_power_received = supplyManagedFNResource(power_to_supply, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * resource_ratio, 0);
+                double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply,minimumThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) < 0.95) {
                     supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 }
                 double thermal_power_ratio = thermal_power_received / ThermalPower / TimeWarp.fixedDeltaTime;
                 ongoing_consumption_rate = (float)thermal_power_ratio;
                 double return_ratio = 1 - thermal_power_ratio;
-                returnReactorResource(resource_provided*return_ratio);
-                powerPcnt = (float)(resource_ratio*100.0*thermal_power_ratio);
+                returnReactorResource(resource_provided * return_ratio);
+                powerPcnt = (float)(resource_ratio * 100.0 * thermal_power_ratio);
                 if (getIsNuclear() && breedtritium) {
                     float lith_used = part.RequestResource("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
                     tritium_produced_f = -part.RequestResource("Tritium", -lith_used) / TimeWarp.fixedDeltaTime;
+                    if (tritium_produced_f <= 0) {
+                        breedtritium = false;
+                    }
                 }
                 if (Planetarium.GetUniversalTime() != 0) {
-                    last_active_time = (float) Planetarium.GetUniversalTime();
+                    last_active_time = (float)Planetarium.GetUniversalTime();
+                }
+                if (resource_ratio < minimumThrottle*0.99 && getIsNuclear()) {
+                    IsEnabled = false;
+                }
+                decay_products_ongoing = false;
+            } else {
+                if (ThermalPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * 86400 && getIsNuclear()) {
+                    double daughter_half_life = 86400.0 / 24.0 * 9.0;
+                    double time_t = Planetarium.GetUniversalTime() - last_active_time;
+                    double power_fraction = 0.1 * Math.Exp(-time_t / daughter_half_life);
+                    double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
+                    double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply,1.0, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    double thermal_power_ratio = thermal_power_received / ThermalPower / TimeWarp.fixedDeltaTime;
+                    powerPcnt = (float)(100.0 * thermal_power_ratio);
+                    ongoing_consumption_rate = (float)thermal_power_ratio;
+                    decay_products_ongoing = true;
+                } else {
+                    decay_products_ongoing = false;
                 }
             }
         }
@@ -361,6 +390,22 @@ namespace FNPlugin {
 
         protected virtual string getResourceDeprivedMessage() {
             return "Resource Deprived";
+        }
+
+        protected string getThermalPowerFormatString() {
+            if (ThermalPower > 1000) {
+                if (ThermalPower > 20000) {
+                    return (ThermalPower / 1000).ToString("0") + "GW";
+                } else {
+                    return (ThermalPower / 1000).ToString("0.0") + "GW";
+                }
+            } else {
+                if (ThermalPower > 20) {
+                    return ThermalPower.ToString("0") + "MW";
+                } else {
+                    return ThermalPower.ToString("0.0") + "MW";
+                }
+            }
         }
 
 		public static double getTemperatureofHottestReactor(Vessel vess) {
