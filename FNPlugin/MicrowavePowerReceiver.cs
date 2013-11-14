@@ -39,9 +39,9 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false)]
 		public float collectorArea = 1;
 		[KSPField(isPersistant = false)]
-		public bool isThermalReciever = false;
+		public bool isThermalReceiver = false;
 		[KSPField(isPersistant = false)]
-		public bool isInlineReciever = false;
+		public bool isInlineReceiver = false;
 
 
 		[KSPField(isPersistant = false)]
@@ -101,7 +101,7 @@ namespace FNPlugin {
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
 
-			if (isThermalReciever) {
+			if (isThermalReceiver) {
 				animT = part.FindModelAnimators (animTName).FirstOrDefault ();
 				if (animT != null) {
 					animT [animTName].layer = 1;
@@ -182,7 +182,7 @@ namespace FNPlugin {
 			List<MicrowavePowerReceiver> mprs = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
 			foreach (MicrowavePowerReceiver mpr in mprs) {
 				if (mpr.IsEnabled) {
-					if (mpr.isThermalReciever) {
+					if (mpr.isThermalReceiver) {
 						activeThermalReceivers++;
 					} else {
 						activeReceivers++;
@@ -216,7 +216,7 @@ namespace FNPlugin {
 			int activeSats = 0;
 			rangelosses = 0;
 			if (config != null && IsEnabled) {
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReciever) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReceiver) {
 					IsEnabled = false;
 					deactivate_timer++;
 					if (deactivate_timer > 2) {
@@ -257,15 +257,15 @@ namespace FNPlugin {
 							float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
 							float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 							float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
-							if (isThermalReciever) {
+							if (isThermalReceiver) {
 								powerdissip = Math.Max (powerdissip / totalThermalCollectorArea, 1);
 							} else {
 								powerdissip = Math.Max (powerdissip / totalCollectorArea, 1);
 							}
 							if (vgenType != "relay" && inputPowerFixedAlt > 0) {
 								rangelosses += powerdissip;
-								if (!isInlineReciever) {
-									//Scale energy reception based on angle of reciever to transmitter
+								if (!isInlineReceiver) {
+									//Scale energy reception based on angle of receiver to transmitter
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
 									facing_factor = Mathf.Max (0, facing_factor);
@@ -288,8 +288,8 @@ namespace FNPlugin {
 							}
 							if (aIsRelay == false && vgenType == "relay" && inputPowerFixedAlt > 0) {
 								rangelosses = powerdissip;
-								if (!isInlineReciever) {
-									//Scale energy reception based on angle of reciever to transmitter
+								if (!isInlineReceiver) {
+									//Scale energy reception based on angle of receiver to transmitter
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factor = Vector3.Dot (part.transform.up, direction_vector);
 									facing_factor = Mathf.Max (0, facing_factor);
@@ -358,7 +358,7 @@ namespace FNPlugin {
 				foreach (MicrowavePowerReceiver mpr in mprs) {
 					if (mpr.IsEnabled) {
 						if (mpr.powerInput > 0){
-							if (mpr.isThermalReciever) {
+							if (mpr.isThermalReceiver) {
 								totalThermalPower += mpr.powerInput;
 							} else {
 								totalPower += mpr.powerInput;
@@ -378,7 +378,7 @@ namespace FNPlugin {
 				float equalizedThermalPower = totalThermalPower / activeThermalReceivers;
 				foreach (MicrowavePowerReceiver mpr in mprs) {
 					if (mpr.IsEnabled) {
-						if (mpr.isThermalReciever) {
+						if (mpr.isThermalReceiver) {
 							mpr.powerInput = equalizedThermalPower;
 						} else {
 							mpr.powerInput = equalizedPower;
@@ -386,7 +386,7 @@ namespace FNPlugin {
 					}
 				}
 				print ("Power input: " + powerInput + " EP " + equalizedPower + " TP " + totalPower + " AR " + activeReceivers + " CA " + totalCollectorArea + " TCA " + totalThermalCollectorArea);
-				if (isThermalReciever) {
+				if (isThermalReceiver) {
 					powerInput = equalizedThermalPower;
 				} else {
 					powerInput = equalizedPower;
@@ -396,7 +396,7 @@ namespace FNPlugin {
 
 			float powerInputMegajoules = powerInput/1000.0f;
 
-			if (!isThermalReciever) {
+			if (!isThermalReceiver) {
 				supplyFNResource (powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 				float waste_head_production = powerInputMegajoules / efficiency * (1.0f - efficiency);
 				supplyFNResource (waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
