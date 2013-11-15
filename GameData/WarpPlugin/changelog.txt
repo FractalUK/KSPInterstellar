@@ -1,3 +1,27 @@
+Version 0.7.4
+-Added option to stop/start charging antimatter tank when it doesn't need the charge
+-Added ZZZ's small radial radiator
+-Fixed generator attachment null reference exception
+-Fixed same possible bug in thermal nozzle (it probably isn't possible here but best to be on the safe side)
+
+Version 0.7.3
+-Improved Engine information reporting in the VAB
+-Engines will power up their reactor if the reactor is shutdown in order to get thrust
+-Fixed resource manager NaN power bug
+-Fixed asymmetric thrust bug
+
+Version 0.7.2
+-TWR limit and intake limit added to thermal nozzle to prevent flameout, including a lot of work from Conti
+-All intakes will now create IntakeAtm as well as IntakeAir, again with a lot of help from Conti
+-New Hexcan textures by bac9
+-Rewrote Thermal Nozzle And Electrical Generator from scratch for better performance + fewer bugs
+-Thermal nozzle will now maintain a constant fuel usage rate - atmosphere affects thrust
+-Antimatter tanks no longer require having antimatter inside to recharge
+-Altered 1.25m Antimatter reactor to bring it more into line with the others, excessive TWR reduced and Isp improved
+-Fixed animation states of science lab/reactor
+-Fixed bug where LiquidFuel could be used as Kethane
+-Made reactors more resilient to autoshutdown - particularly time acceleration waste heat spikes
+
 Version 0.7.1
 -Added new KIWI nuclear reactor model by ZZZ
 -1.25m Plasma Thruster has maximum 25GW power throughput and reduced mass to 1.  2.5m Plasma Thruster has maximum 200GW power throughput, mass remains 6.

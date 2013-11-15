@@ -37,8 +37,6 @@ namespace FNPlugin {
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
-        public float minDUF6;
-        [KSPField(isPersistant = true)]
         public int active_mode = 0;
         [KSPField(isPersistant = true)]
         public float last_active_time;
@@ -87,14 +85,7 @@ namespace FNPlugin {
             if (crew_capacity_ratio == 0) { return; }
             IsEnabled = true;
             active_mode = 1;
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("DUF6").id, partresources);
-            float currentDUF6 = 0;
-            foreach (PartResource partresource in partresources) {
-                currentDUF6 += (float)partresource.amount;
-            }
-            minDUF6 = minDUF6 + currentDUF6 * 0.1f;
-
+            
 			anim [animName1].speed = 1f;
 			anim [animName1].normalizedTime = 0f;
 			anim.Blend (animName1, 2f);
@@ -342,17 +333,36 @@ namespace FNPlugin {
 						}
 					} else if (active_mode == 1) { // Fuel Reprocessing
 						List<PartResource> partresources = new List<PartResource> ();
-						part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("DUF6").id, partresources);
-						double currentDUF6 = 0;
-						foreach (PartResource partresource in partresources) {
-							currentDUF6 += partresource.amount;
+                        double currentActinides = 0;
+                        double depletedfuelsparecapacity = 0;
+                        double uf6sparecapacity = 0;
+                        double thf4sparecapacity = 0;
+                        double uf6tothf4_ratio = 0;
+						part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Actinides").id, partresources);
+                        foreach (PartResource partresource in partresources) {
+							currentActinides += partresource.amount;
 						}
-						if (currentDUF6 > minDUF6) {
-							double amount_to_reprocess = currentDUF6 - minDUF6;
-							double duf6removed = part.RequestResource ("DUF6", baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * global_rate_multipliers);
-							double uf6added = part.RequestResource ("UF6", -duf6removed);
-							double duf6removedperhour = duf6removed / TimeWarp.fixedDeltaTime * 3600.0;
-							reprocessing_rate_f = (float) (amount_to_reprocess / duf6removedperhour);
+                        part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("DepletedFuel").id, partresources);
+                        foreach (PartResource partresource in partresources) {
+                            depletedfuelsparecapacity += partresource.maxAmount - partresource.amount;
+                        }
+                        part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF6").id, partresources);
+                        foreach (PartResource partresource in partresources) {
+                            uf6sparecapacity += partresource.maxAmount - partresource.amount;
+                        }
+                        part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThF4").id, partresources);
+                        foreach (PartResource partresource in partresources) {
+                            thf4sparecapacity += partresource.maxAmount - partresource.amount;
+                        }
+                        uf6tothf4_ratio = uf6sparecapacity / (thf4sparecapacity+uf6sparecapacity);
+                        double amount_to_reprocess = Math.Min(currentActinides,depletedfuelsparecapacity*5.0);
+						if (currentActinides > 0 && !double.IsNaN(uf6tothf4_ratio) && !double.IsInfinity(uf6tothf4_ratio)) {
+                            double actinides_removed = part.RequestResource("Actinides", baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * global_rate_multipliers);
+							double uf6added = part.RequestResource ("UF6", -actinides_removed*0.8*uf6tothf4_ratio);
+                            double th4added = part.RequestResource("ThF4", -actinides_removed*0.8*(1-uf6tothf4_ratio));
+                            double duf6added = part.RequestResource("DepletedFuel", -actinides_removed * 0.2);
+                            double actinidesremovedperhour = actinides_removed / TimeWarp.fixedDeltaTime * 3600.0;
+                            reprocessing_rate_f = (float)(amount_to_reprocess / actinidesremovedperhour);
 						} else { // Finished, hurray!
 							IsEnabled = false;
 						}

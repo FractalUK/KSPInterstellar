@@ -22,8 +22,6 @@ namespace FNPlugin{
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
 		[KSPField(isPersistant = false)]
-		public bool flameFxOn = true;
-		[KSPField(isPersistant = false)]
 		public float upgradeCost;
 		[KSPField(isPersistant = false)]
 		public string originalName;
@@ -69,6 +67,9 @@ namespace FNPlugin{
 		protected double old_isp = 0;
 		protected double current_isp = 0;
 		protected double old_intake = 0;
+        protected bool flameFxOn = true;
+        protected float atmospheric_limit;
+        protected float old_atmospheric_limit;
 
 		//Constants
 		protected const float g0 = 9.81f;
@@ -201,6 +202,12 @@ namespace FNPlugin{
 
 				updatePropellantBar ();
 
+				if (thrustLimitRatio == 0) {
+					thrustLimit = "Prevent Flameout: " + (atmospheric_limit*100.0).ToString("0.0") + "%";
+				} else {
+					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
+				}
+                                
 			}
 		}
 
@@ -334,15 +341,17 @@ namespace FNPlugin{
 
 		public float getAtmosphericLimit() {
 			float atmospheric_limit = 1.0f;
-			if (currentpropellant_is_jet) {
-				string resourcename = myAttachedEngine.propellants [0].name;
-				double currentintakeatm = getIntakeAvailable (vessel, resourcename);
-				if (getFuelRateThermalJetsForVessel (vessel, resourcename) > 0) {
-					// divide current available intake resource by fuel useage across all engines
-					atmospheric_limit = (float)Math.Min (currentintakeatm / (getFuelRateThermalJetsForVessel (vessel, resourcename)+currentintakeatm), 1.0);
-				} 
-				old_intake = currentintakeatm;
-			} 
+            if (currentpropellant_is_jet) {
+                string resourcename = myAttachedEngine.propellants[0].name;
+                double currentintakeatm = getIntakeAvailable(vessel, resourcename);
+                if (getFuelRateThermalJetsForVessel(vessel, resourcename) > 0) {
+                    // divide current available intake resource by fuel useage across all engines
+                    atmospheric_limit = (float)Math.Min(currentintakeatm / (getFuelRateThermalJetsForVessel(vessel, resourcename) + currentintakeatm), 1.0);
+                }
+                old_intake = currentintakeatm;
+            }
+            atmospheric_limit = Mathf.MoveTowards(old_atmospheric_limit, atmospheric_limit, 0.1f);
+            old_atmospheric_limit = atmospheric_limit;
 			return atmospheric_limit;
 		}
 
@@ -381,7 +390,7 @@ namespace FNPlugin{
 					heat_exchanger_thrust_divisor = 1;
 				}
 				// get the flameout safety limit
-				float atmospheric_limit = getAtmosphericLimit ();
+				atmospheric_limit = getAtmosphericLimit ();
 				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				float power_ratio = 0.0f;
@@ -399,52 +408,47 @@ namespace FNPlugin{
 				}
 				// engine thrust fixed
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
-				myAttachedEngine.maxThrust = (float)engine_thrust;
+                if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)) {
+                    if (isLFO) {
+                        myAttachedEngine.maxThrust = (float)(2.0 * engine_thrust);
+                    } else {
+                        myAttachedEngine.maxThrust = (float)engine_thrust;
+                    }
+                } else {
+                    myAttachedEngine.maxThrust = 0.000001f;
+                }
 				// control fx groups
 				foreach (FXGroup fx_group in part.fxGroups) {
 					fx_group.Power = powerRatio;
 				} 
 				// amount of fuel being used at max throttle with no atmospheric limits
-				//if (atmospheric_limit > 0) {
-					//fuel_flow_rate = engineMaxThrust / g0 / currentIsp / atmospheric_limit / 0.005*TimeWarp.fixedDeltaTime; // fuel flow rate at max throttle
-				//} else {
-					fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0/g0/currentIsp*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime/0.005;
-				//}
-				old_thermal_power = assThermalPower;
-				old_isp = this.current_isp;
-				//print (fuel_flow_rate);
+				//fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0/g0/currentIsp*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime/0.005;
+                if (current_isp > 0 && atmospheric_limit > 0) {
+                    fuel_flow_rate = engine_thrust / current_isp / g0 / 0.005 * TimeWarp.fixedDeltaTime/atmospheric_limit;
+                }
 
-				if (thrustLimitRatio > 0 && getAtmosphericLimit () == 1) {
-					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
-				} else if (getAtmosphericLimit () < 1) {
-					thrustLimit = "IntakeAtm " + (getAtmosphericLimit () * 100).ToString ("00.000") + "%";
-				} else {
-					thrustLimit = "Max Power";
-				}
-
-				//Toggle flame animation between jet and fuel propellants
-				if (currentpropellant_is_jet && flameFxOn) {
-					foreach (FXGroup fx_group in myAttachedEngine.part.fxGroups) {
-						foreach(GameObject fx_emitter in fx_group.fxEmitters){
-							if(fx_emitter.name.IndexOf("fx_exhaustFlame_blue") != -1){
-								fx_emitter.SetActive (false);
-								flameFxOn = false;
-							}
-						}
-					}
-				} else if(!currentpropellant_is_jet && !flameFxOn) {
-					foreach (FXGroup fx_group in myAttachedEngine.part.fxGroups) {
-						foreach(GameObject fx_emitter in fx_group.fxEmitters){
-							if(fx_emitter.name.IndexOf("fx_exhaustFlame_blue") != -1){
-								fx_emitter.SetActive (true);
-								flameFxOn = true;
-							}
-						}
-					}
-				}
-
+                foreach (FXGroup fx_group in myAttachedEngine.part.fxGroups) {
+                    foreach (GameObject fx_emitter in fx_group.fxEmitters) {
+                        if (fx_emitter.name.IndexOf("fx_exhaustFlame_blue") != -1) {
+                            if (currentpropellant_is_jet) {
+                                fx_emitter.SetActive(false);
+                            } else {
+                                fx_emitter.SetActive(true);
+                            }
+                        }
+                    }
+                }
 			} else {
-				fuel_flow_rate = 0;
+                if (myAttachedEngine.realIsp > 0) {
+                    atmospheric_limit = getAtmosphericLimit();
+                    fuel_flow_rate = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / g0 / 0.005 * TimeWarp.fixedDeltaTime;
+                    if (atmospheric_limit > 0 && atmospheric_limit <= 1) {
+                        myAttachedEngine.maxThrust = myAttachedEngine.maxThrust * atmospheric_limit;
+                    }
+                }else {
+                    fuel_flow_rate = 0;
+                }
+                
 				if (myAttachedReactor == null && myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0) {
 					myAttachedEngine.Events ["Shutdown"].Invoke ();
 					ScreenMessages.PostScreenMessage ("Engine Shutdown: No thermal power source attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
@@ -517,12 +521,11 @@ namespace FNPlugin{
 			}
 
 			if (intake_amounts.ContainsKey (resourcename)) {
-				//double intake_to_return = Math.Max (intake_amounts [resourcename] - 0.1*getEnginesRunningOfTypeForVessel(vess,resourcename), 0);
 				double intake_to_return = Math.Max (intake_amounts [resourcename], 0);
 				return intake_to_return;
 			}
 
-			return 0.1;
+			return 0.00001;
 		}
 
 		// enumeration of the fuel useage rates of all jets on a vessel

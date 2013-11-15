@@ -54,10 +54,11 @@ namespace FNPlugin {
 		protected bool play_up = true;
 		protected FNThermalSource myAttachedReactor;
 		protected bool hasrequiredupgrade = false;
-		protected int last_draw_update = 0;
+		protected long last_draw_update = 0;
 		protected int shutdown_counter = 0;
 		protected Animation anim;
 		protected bool hasstarted = false;
+        protected long update_count = 0;
 
 		[KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
 		public void ActivateGenerator() {
@@ -196,11 +197,11 @@ namespace FNPlugin {
 					anim.Blend (animName, 2f);
 				}
 			}
-
+            
 			if (IsEnabled) {
 				float percentOutputPower = totalEff * 100.0f;
 				float outputPowerReport = -outputPower;
-				if (Environment.TickCount - last_draw_update > 40) {
+				if (update_count - last_draw_update > 8) {
 					OutputPower = outputPowerReport.ToString ("0.000") + "MW";
 					OverallEfficiency = percentOutputPower.ToString ("0.0") + "%";
 					if (totalEff >= 0) {
@@ -208,11 +209,13 @@ namespace FNPlugin {
 					} else {
 						MaxPowerStr = (0).ToString() + "MW";
 					}
-					last_draw_update = Environment.TickCount;
+                    last_draw_update = update_count;
 				}
 			} else {
 				OutputPower = "Generator Offline";
 			}
+
+            update_count++;
 		}
 
 		public float getMaxPowerOutput() {

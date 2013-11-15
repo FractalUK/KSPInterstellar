@@ -231,7 +231,10 @@ namespace FNPlugin {
 						// if sat is not relay/nuclear check that it has line of site to sun
 						// NOTE: we need to add a check for relay to check lineOfSiteToSource(vess), and if solar a lineOfSiteFromSourceToSun - to check that the source which it is relaying is still attached to it, and if it is a solar source that it is recieving solar energy
 						if ((vgenType == "solar" && PluginHelper.lineOfSightToSun (vess)) || vgenType == "relay" || vgenType == "nuclear") {
-							float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
+                            float inputPowerFixedAlt = float.Parse(powerinputsat);
+                            if (vgenType == "solar") {
+                                inputPowerFixedAlt = inputPowerFixedAlt * PluginHelper.getSatFloatCurve().Evaluate((float)FlightGlobals.Bodies[0].GetAltitude(vess.transform.position));
+                            }
 							float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 							float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
 							powerdissip = Math.Max (powerdissip / collectorArea, 1); 
@@ -246,45 +249,9 @@ namespace FNPlugin {
 								} else {
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
 									float facing_factor = 1.0f - Mathf.Abs(Vector3.Dot (part.transform.up, direction_vector));
-									/*float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
-									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
-									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
-									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
-									facing_factorr = Mathf.Max (0, facing_factorr);
-									facing_factorl = Mathf.Max (0, facing_factorl);
-									facing_factorf = Mathf.Max (0, facing_factorf);
-									facing_factorb = Mathf.Max (0, facing_factorb);
-									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
-									*/
-
 									if (facing_factor > 1) {
 										facing_factor = 1;
 									}
-									/*
-									if (animR != null) {
-										if (inputPowerFixedAlt > maxPowerSourceAmt) {
-											maxPowerSourceAmt = inputPowerFixedAlt;
-											maxPowerSource = vid;
-											if (maxPowerVector > facing_factorl) {
-												animR [animRName].speed = -0.5f;
-											} else {
-												animR [animRName].speed = 0.5f;
-											}
-											maxPowerVector = facing_factorl;
-										} else if (maxPowerSource == vid) {
-											if (maxPowerVector > facing_factorl) {
-												animR [animRName].speed = -0.5f;
-											} else {
-												animR [animRName].speed = 0.5f;
-											}
-											maxPowerSourceAmt = inputPowerFixedAlt;
-											maxPowerVector = facing_factorl;
-										}
-										animR [animRName].normalizedTime = maxPowerVector;
-										animR.Blend (animRName, 2f);
-									}
-									*/
-
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								}
 								activeSatsIncr++;
@@ -302,16 +269,7 @@ namespace FNPlugin {
 									powerInputIncr += inputPowerFixedAlt / powerdissip * facing_factor;
 								} else {
 									Vector3d direction_vector = (vess.transform.position - vessel.transform.position).normalized;
-									//facing_factor = Vector3.Dot (part.transform.up, direction_vector);
-									float facing_factorr = Vector3.Dot (part.transform.right, direction_vector);
-									float facing_factorl = Vector3.Dot (-part.transform.right, direction_vector);
-									float facing_factorf = Vector3.Dot (part.transform.forward, direction_vector);
-									float facing_factorb = Vector3.Dot (-part.transform.forward, direction_vector);
-									facing_factorr = Mathf.Max (0, facing_factorr);
-									facing_factorl = Mathf.Max (0, facing_factorl);
-									facing_factorf = Mathf.Max (0, facing_factorf);
-									facing_factorb = Mathf.Max (0, facing_factorb);
-									float facing_factor = facing_factorr + facing_factorl + facing_factorf + facing_factorb;
+									float facing_factor = 1.0f - Mathf.Abs(Vector3.Dot (part.transform.up, direction_vector));
 									if (facing_factor > 1) {
 										facing_factor = 1;
 									}
