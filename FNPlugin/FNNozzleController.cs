@@ -308,7 +308,7 @@ namespace FNPlugin{
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
-			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getCoreTemp ()) * 17.0 * ispMultiplier);
+			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getThermalTemp ()) * 17.0 * ispMultiplier);
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);
@@ -369,12 +369,10 @@ namespace FNPlugin{
 
 		public override void OnFixedUpdate() {
 			//tell static helper methods we are currently updating things
-
-
+			if (!myAttachedReactor.isActive()) {
+				myAttachedReactor.enableIfPossible();
+			}
 			if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
-				if (!myAttachedReactor.isActive()) {
-					myAttachedReactor.enableIfPossible();
-				}
 				updateIspEngineParams ();
 				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position), 1.0);
 				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
@@ -453,7 +451,7 @@ namespace FNPlugin{
                 
 				if (myAttachedReactor == null && myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0) {
 					myAttachedEngine.Events ["Shutdown"].Invoke ();
-					ScreenMessages.PostScreenMessage ("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+					ScreenMessages.PostScreenMessage ("Engine Shutdown: No thermal power source attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 				}
 			}
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,11 +22,11 @@ namespace FNPlugin {
 
         // Persistent False
         [KSPField(isPersistant = false)]
-        public float ReactorTemp;
+        public float ThermalTemp;
         [KSPField(isPersistant = false)]
         public float ThermalPower;
         [KSPField(isPersistant = false)]
-        public float upgradedReactorTemp;
+        public float upgradedThermalTemp;
         [KSPField(isPersistant = false)]
         public float upgradedThermalPower;
         [KSPField(isPersistant = false)]
@@ -134,7 +134,7 @@ namespace FNPlugin {
 		public override void OnLoad(ConfigNode node) {
             if (isupgraded) {
 				ThermalPower = upgradedThermalPower;
-				ReactorTemp = upgradedReactorTemp;
+				ThermalTemp = upgradedThermalTemp;
 				reactorType = upgradedName;
 				resourceRate = upgradedResourceRate;
 			}else {
@@ -146,7 +146,7 @@ namespace FNPlugin {
 		public void upgradePart() {
 			isupgraded = true;
 			ThermalPower = upgradedThermalPower;
-			ReactorTemp = upgradedReactorTemp;
+			ThermalTemp = upgradedThermalTemp;
 			reactorType = upgradedName;
             resourceRate = upgradedResourceRate;
 		}
@@ -296,8 +296,8 @@ namespace FNPlugin {
             }
         }
 
-        public float getCoreTemp() {
-            return ReactorTemp;
+        public float getThermalTemp() {
+            return ThermalTemp;
         }
 
         public float getThermalPower() {
@@ -425,8 +425,8 @@ namespace FNPlugin {
 			double temp = 0;
 			foreach (FNReactor reactor in reactors) {
 				if (reactor != null) {
-					if (reactor.getCoreTemp () > temp) {
-						temp = reactor.getCoreTemp ();
+					if (reactor.getThermalTemp () > temp) {
+						temp = reactor.getThermalTemp ();
 					}
 				}
 			}

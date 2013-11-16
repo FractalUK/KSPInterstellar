@@ -225,7 +225,7 @@ namespace FNPlugin {
 		}
 
 		public void updateGeneratorPower() {
-			hotBathTemp = myAttachedReactor.getCoreTemp();
+			hotBathTemp = myAttachedReactor.getThermalTemp();
 			maxThermalPower = myAttachedReactor.getThermalPower();
 			coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}

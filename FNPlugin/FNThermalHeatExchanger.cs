@@ -82,8 +82,8 @@ namespace FNPlugin  {
 			setupThermalPower ();
 		}
 
-		public float getCoreTemp() {
-            return 1500;
+		public float getThermalTemp() {
+			return 1500f;
 		}
 
 		public float getThermalPower() {
@@ -102,6 +102,9 @@ namespace FNPlugin  {
             return IsEnabled;
         }
 
+		public bool getIsThermalHeatExchanger() {
+			return true;
+		}
         public void enableIfPossible() {
             IsEnabled = true;
         }
