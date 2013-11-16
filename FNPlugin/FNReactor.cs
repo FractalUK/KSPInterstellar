@@ -134,7 +134,7 @@ namespace FNPlugin {
 		public override void OnLoad(ConfigNode node) {
             if (isupgraded) {
 				ThermalPower = upgradedThermalPower;
-				ReactorTemp = upgradedReactorTemp;
+				ThermalTemp = upgradedThermalTemp;
 				reactorType = upgradedName;
 				resourceRate = upgradedResourceRate;
 			}else {
@@ -146,7 +146,7 @@ namespace FNPlugin {
 		public void upgradePart() {
 			isupgraded = true;
 			ThermalPower = upgradedThermalPower;
-			ReactorTemp = upgradedReactorTemp;
+			ThermalTemp = upgradedThermalTemp;
 			reactorType = upgradedName;
             resourceRate = upgradedResourceRate;
 		}
@@ -246,7 +246,7 @@ namespace FNPlugin {
             Events["StopBreedTritium"].active = breedtritium && getIsNuclear();
             Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
             Fields["tritiumBreedRate"].guiActive = breedtritium && getIsNuclear();
-            coretempStr = ReactorTemp.ToString("0") + "K";
+			coretempStr = ThermalTemp.ToString("0") + "K";
 			if (IsEnabled) {
 				if (play_up && anim != null) {
 					play_down = true;
