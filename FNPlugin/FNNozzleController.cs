@@ -316,7 +316,7 @@ namespace FNPlugin{
 				myAttachedEngine.useVelocityCurve = false;
 				myAttachedEngine.useEngineResponseTime = false;
 			} else {
-				if (myAttachedReactor.getIsNuclear ()) {
+				if (myAttachedReactor.shouldScaleDownJetISP ()) {
 					maxISP = maxISP*2.0f/3.0f;
 					if (maxISP > 300) {
 						maxISP = maxISP / 2.5f;

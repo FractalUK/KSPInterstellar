@@ -66,8 +66,8 @@ namespace FNPlugin {
             }else {
                 TAb = (thorium_abundance * 1000000.0).ToString("0.0") + "ppm";
             }
-
-            FNPlanetaryResourceMapData.showPlanetaryResourceMapTexture();
+            FNPlanetaryResourceMapData.showPlanetaryResourceMap();
+            //FNPlanetaryResourceMapData.showPlanetaryResourceMapTexture();
         }
 
         public override void OnFixedUpdate() {
@@ -79,7 +79,7 @@ namespace FNPlugin {
             
             //if (!texture_shown) {
             //if (update_count - last_update > 20) {
-                
+            
                 
                 last_update = update_count;
             //}

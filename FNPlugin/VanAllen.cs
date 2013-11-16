@@ -6,7 +6,7 @@ using System.Text;
 namespace FNPlugin {
     class VanAllen {
         const double B0 = 3.12E-5;
-		public static Dictionary<ProtoCrewMember,double> crew_rad_exposure = new Dictionary<ProtoCrewMember, double> ();
+		public static Dictionary<string,double> crew_rad_exposure = new Dictionary<string, double> ();
                 
         public static float getBeltAntiparticles(int refBody, float altitude, float lat) {
             lat = (float) (lat/180*Math.PI);

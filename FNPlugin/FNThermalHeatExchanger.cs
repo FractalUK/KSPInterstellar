@@ -7,17 +7,20 @@ using UnityEngine;
 
 namespace FNPlugin  {
 	class FNThermalHeatExchanger : FNResourceSuppliableModule, FNThermalSource {
+        //Persistent True
+        [KSPField(isPersistant = true)]
+        public bool IsEnabled = true;
+
+        //Persistent False
+        [KSPField(isPersistant = false)]
+        public float radius;
+
+        //GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
 		public string thermalpower;
 
-		[KSPField(isPersistant = true)]
-		public bool IsEnabled = false;
-		[KSPField(isPersistant = false)]
-		public float ThermalPower;
-		[KSPField(isPersistant = false)]
-		public float ThermalTemp;
-		[KSPField(isPersistant = false)]
-		public float radius;
+        // internal
+		protected float ThermalPower;
 
 		[KSPEvent(guiActive = true, guiName = "Activate Heat Exchanger", active = false)]
 		public void ActivateHeatExchanger() {
@@ -44,45 +47,11 @@ namespace FNPlugin  {
 			IsEnabled = !IsEnabled;
 		}
 
-		//int activeExchangers = 0;
-		int activeThermalEngines = 0;
+		int activeExchangers = 0;
 
 		public void setupThermalPower(){
-			if (vessel != FlightGlobals.ActiveVessel)
-			{
-				return;
-			}
-			ThermalPower = 0;
-			//activeExchangers = 0;
-			activeThermalEngines = 0;
-
-			/*List<FNThermalHeatExchanger> thes = vessel.FindPartModulesImplementing<FNThermalHeatExchanger>();
-			foreach (FNThermalHeatExchanger the in thes) {
-				if (the.IsEnabled == true) {
-					activeExchangers++;
-				}
-			}*/
-
-			List<FNNozzleController> fnncs = vessel.FindPartModulesImplementing<FNNozzleController>();
-			foreach (FNNozzleController fnnc in fnncs) {
-				ModuleEngines me = fnnc.part.Modules["ModuleEngines"] as ModuleEngines;
-				if (me != null) {
-					if (me.isOperational == true) {
-						activeThermalEngines++;
-					}
-				}
-			}
-
-			List<FNThermalSource> fntss = vessel.FindPartModulesImplementing<FNThermalSource>();
-			foreach (FNThermalSource fnts in fntss) {
-				if (fnts.getThermalPower() > 0 && activeThermalEngines > 0 && !fnts.getIsThermalHeatExchanger()) {
-					ThermalPower += fnts.getThermalPower() / activeThermalEngines;
-				}
-			}
-
-			//if (ThermalPower > 1500) { ThermalTemp = 1500; } else { ThermalTemp = ThermalPower; }
-
-			thermalpower = ThermalPower.ToString () + "MW";
+			activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
+            ThermalPower = getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
 		}
 
 		public override void OnStart(PartModule.StartState state) {
@@ -104,13 +73,13 @@ namespace FNPlugin  {
 		public override void OnUpdate() {
 			Events["ActivateHeatExchanger"].active = !IsEnabled;
 			Events["DeactivateHeatExchanger"].active = IsEnabled;
+
+            thermalpower = ThermalPower.ToString() + "MW";
 		}
 
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 			setupThermalPower ();
-			//supplyFNResource(ThermalPower * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_THERMALPOWER);
-			//consumeFNResource(ThermalPower * TimeWarp.fixedDeltaTime,FNResourceManager.FNRESOURCE_THERMALPOWER);
 		}
 
 		public float getThermalTemp() {
@@ -129,20 +98,31 @@ namespace FNPlugin  {
 			return radius;
 		}
 
-		public bool isActive() {
-			return IsEnabled;
-		}
+        public bool isActive() {
+            return IsEnabled;
+        }
 
 		public bool getIsThermalHeatExchanger() {
 			return true;
 		}
+        public void enableIfPossible() {
+            IsEnabled = true;
+        }
 
+        public bool shouldScaleDownJetISP() {
+            return false;
+        }
 
-		public void enableIfPossible() {
-			if (!IsEnabled) {
-				IsEnabled = true;
-			}
-		}
+        public static int getActiveExchangersForVessel(Vessel vess) {
+            int activeExchangers = 0;
+            List<FNThermalHeatExchanger> mthes = vess.FindPartModulesImplementing<FNThermalHeatExchanger>();
+            foreach (FNThermalHeatExchanger mthe in mthes) {
+                if (mthe.isActive()) {
+                    activeExchangers++;
+                }
+            }
+            return activeExchangers;
+        }
 
 	}
 }
