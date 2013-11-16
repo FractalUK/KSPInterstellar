@@ -242,10 +242,10 @@ namespace FNPlugin {
 			} else {
 				Events ["RetrofitReactor"].active = false;
 			}
-            Events["BreedTritium"].active = !breedtritium && getIsNuclear();
+            Events["BreedTritium"].active = !breedtritium && isNeutronRich();
             Events["StopBreedTritium"].active = breedtritium && getIsNuclear();
             Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
-            Fields["tritiumBreedRate"].guiActive = breedtritium && getIsNuclear();
+            Fields["tritiumBreedRate"].guiActive = breedtritium && isNeutronRich();
             coretempStr = ReactorTemp.ToString("0") + "K";
 			if (IsEnabled) {
 				if (play_up && anim != null) {
@@ -308,6 +308,10 @@ namespace FNPlugin {
 			return false;
 		}
 
+        public virtual bool isNeutronRich() {
+            return false;
+        }
+
 		public float getRadius() {
 			return radius;
 		}
@@ -315,6 +319,10 @@ namespace FNPlugin {
 		public bool isActive() {
 			return IsEnabled;
 		}
+
+        public virtual bool shouldScaleDownJetISP() {
+            return false;
+        }
 
 		public void enableIfPossible() {
 			if (!getIsNuclear() && !IsEnabled) {
@@ -339,7 +347,11 @@ namespace FNPlugin {
                 double resource_provided = consumeReactorResource(resourceRate * TimeWarp.fixedDeltaTime);
                 resource_ratio = resource_provided / resourceRate / TimeWarp.fixedDeltaTime;
                 double power_to_supply = Math.Max(ThermalPower * TimeWarp.fixedDeltaTime * resource_ratio, 0);
-                double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply,minimumThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                double min_throttle = minimumThrottle;
+                if (resource_ratio > 0) {
+                    min_throttle = min_throttle / resource_ratio;
+                }
+                double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply,min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) < 0.95) {
                     supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 }
@@ -358,7 +370,7 @@ namespace FNPlugin {
                 if (Planetarium.GetUniversalTime() != 0) {
                     last_active_time = (float)Planetarium.GetUniversalTime();
                 }
-                if (resource_ratio < minimumThrottle*0.99 && getIsNuclear()) {
+                if (resource_ratio < minimumThrottle*0.99 && isNeutronRich()) {
                     IsEnabled = false;
                 }
                 decay_products_ongoing = false;
@@ -391,7 +403,7 @@ namespace FNPlugin {
         protected virtual string getResourceDeprivedMessage() {
             return "Resource Deprived";
         }
-
+        
         protected string getThermalPowerFormatString() {
             if (ThermalPower > 1000) {
                 if (ThermalPower > 20000) {

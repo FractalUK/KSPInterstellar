@@ -359,6 +359,10 @@ namespace FNPlugin {
 			return IsEnabled;
 		}
 
+        public bool shouldScaleDownJetISP() {
+            return false;
+        }
+
 		public void enableIfPossible() {
 			if (!IsEnabled) {
 				IsEnabled = true;

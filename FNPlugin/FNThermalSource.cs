@@ -15,6 +15,8 @@ namespace FNPlugin{
 
 		void enableIfPossible();
 
+        bool shouldScaleDownJetISP();
+
 	}
 }
 

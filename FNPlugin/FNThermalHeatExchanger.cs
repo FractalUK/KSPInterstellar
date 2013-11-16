@@ -106,6 +106,10 @@ namespace FNPlugin  {
             IsEnabled = true;
         }
 
+        public bool shouldScaleDownJetISP() {
+            return false;
+        }
+
         public static int getActiveExchangersForVessel(Vessel vess) {
             int activeExchangers = 0;
             List<FNThermalHeatExchanger> mthes = vess.FindPartModulesImplementing<FNThermalHeatExchanger>();

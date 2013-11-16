@@ -271,10 +271,12 @@ namespace FNPlugin {
 			if (!plugin_init) {
 				plugin_init = true;
 
+                AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
+                kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
+
 				List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
 				foreach (AvailablePart available_part in available_parts) {
 					Part prefab_available_part = available_part.partPrefab;
-
 					try {
 						if(prefab_available_part.Modules != null) {
 														
@@ -309,7 +311,7 @@ namespace FNPlugin {
 							if(prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0) {
 								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
 							}
-                            /*
+                            
 							if(prefab_available_part.CrewCapacity > 0) {
 								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
 								FNModuleRadiation pm = null;
@@ -320,17 +322,6 @@ namespace FNPlugin {
 									pm.rad_hardness = rad_hardness;
 								}
 							}
-
-							if(prefab_available_part.FindModulesImplementing<KerbalEVA>().Count() > 0) {
-								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
-								FNModuleRadiation pm = null;
-								if(type != null) {
-									pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
-									prefab_available_part.Modules.Add(pm);
-								}
-							}*/
-                                                        
-
 						}
 						//String path11 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Additions/" + available_part.name + ".cfg";
 						//String path21 = KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/Replacements/" + available_part.name + ".cfg";

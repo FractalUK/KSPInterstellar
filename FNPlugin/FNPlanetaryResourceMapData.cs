@@ -8,15 +8,18 @@ namespace FNPlugin {
     class FNPlanetaryResourceMapData : MonoBehaviour {
         static Dictionary<string, FNPlanetaryResourceInfo> body_resource_maps = new Dictionary<string, FNPlanetaryResourceInfo>();
         static Dictionary<string, Vector2d[]> body_abudnance_angles = new Dictionary<string, Vector2d[]>();
-        static List<GameObject> abundance_spheres = new List<GameObject>();
+        static List<ResourceAbundanceMarker> abundance_markers = new List<ResourceAbundanceMarker>();
         static List<double> surface_height_list = new List<double>();
         static int current_body = -1;
+        static int map_body = -1;
         //static GameObject resource_prim;
         static Material sphere_material = null;
         static protected string displayed_resource = "";
+        static protected string map_resource = "";
         static protected long update_count = 0;
         static GameObject sphere = null;
-        static int sphere_ticker = 0;
+        static Vector3d sphere_scale = new Vector3d(5000, 5000, 5000);
+        static Vector3d sphere_scale_scaled = new Vector3d(2, 2, 2);
         
 
         public static void loadPlanetaryResourceData(int body) {
@@ -129,106 +132,80 @@ namespace FNPlugin {
 
         public static void setDisplayedResource(string displayed_resource) {
             FNPlanetaryResourceMapData.displayed_resource = displayed_resource;
-            foreach (GameObject abundance_sphere in abundance_spheres) {
-                removeAbundanceSphere(abundance_sphere);
+            foreach (ResourceAbundanceMarker abundance_marker in abundance_markers) {
+                removeAbundanceSphere(abundance_marker.getPlanetarySphere());
+                removeAbundanceSphere(abundance_marker.getScaledSphere());
             }
-            abundance_spheres.Clear();
+
+            abundance_markers.Clear();
             surface_height_list.Clear();
-        }
-
-        public static void showPlanetaryResourceMapTexture() {
             
-            if (body_resource_maps.ContainsKey(displayed_resource) && current_body >= 0) {
-                /*
-                if (resource_prim == null) {
-                    FNPlanetaryResourceInfo resource_info = body_resource_maps[displayed_resource];
-                    Texture2D map = resource_info.getResourceMap();
-                    CelestialBody celbody = FlightGlobals.Bodies[current_body];
-                    resource_prim = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    resource_prim.collider.enabled = false;
-                    resource_prim.transform.localScale = new Vector3((float)celbody.Radius * 2.03f, (float)celbody.Radius * 2.03f, (float)celbody.Radius * 2.03f);
-                    resource_prim.transform.position = celbody.transform.position;
-                    resource_prim.transform.rotation = celbody.transform.rotation;
-                    resource_prim.renderer.material.shader = Shader.Find("Unlit/Texture");
-                    resource_prim.renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 1.0f);
-                    resource_prim.renderer.material.mainTexture = map;
-                    resource_prim.renderer.receiveShadows = false;
-                    resource_prim.renderer.material.renderQueue = 1000;
-                    resource_prim.renderer.enabled = true;
-                    
-                }else {
-                    CelestialBody celbody = FlightGlobals.Bodies[current_body];
-                    resource_prim.transform.position = celbody.transform.position;
-                    resource_prim.transform.rotation = celbody.transform.rotation;
-                }
-                 */
-                
-                CelestialBody celbody = FlightGlobals.Bodies[current_body];
-                double theta;
-                double phi;
-                Vector3d up;
-                Vector3d center;
-                GameObject resource_prim;
-                Vector3d translation_vec = new Vector3d(0,0,0);
-                
-                //if (MapView.MapIsEnabled) {
-                    
-                    Vector2d[] abundance_points_list = body_abudnance_angles[displayed_resource];
-                    int hundreds_of_spheres = abundance_points_list.Length / 100;
-                    int i = 0;
-                    double surface_height = 0;
-                    foreach (Vector2d abundance_point in abundance_points_list) {
-                        theta = abundance_point.x;
-                        phi = abundance_point.y;
-                        
-                        if (abundance_spheres.Count <= i) {
-                            up = celbody.GetSurfaceNVector(phi, theta).normalized;
-                            surface_height = celbody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right);
-                            surface_height_list.Add(surface_height);
-                            center = celbody.position + surface_height*up;
-                            resource_prim = createAbundanceSphere();
-                            abundance_spheres.Add(resource_prim);
-                            resource_prim.transform.position = center;
-                            if(lineOfSightToPosition(resource_prim.transform.position,celbody)) {
-                                resource_prim.renderer.enabled = true;
-                            }else{
-                                resource_prim.renderer.enabled = false;
-                            }
-                        } else {
-                            resource_prim = abundance_spheres[i];
-                            up = celbody.GetSurfaceNVector(phi, theta).normalized;
-                            if (surface_height_list.Count <= i) {
-                                surface_height = celbody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right);
-                                surface_height_list.Add(surface_height);
-                            } else {
-                                surface_height = surface_height_list[i];
-                            }
-                            center = celbody.position + surface_height * up;
-                            if (lineOfSightToPosition(center, celbody)) {
-                                resource_prim.transform.position = center;
-                                if (!resource_prim.renderer.enabled) {
-                                    resource_prim.renderer.enabled = true;
-                                }
-                            } else {
-                                if (resource_prim.renderer.enabled) {
-                                    resource_prim.renderer.enabled = false;
-                                }
-                            }
-                        }
-                        i++;
-                    }
-
-                
-                //}
-            }
-            update_count++;
         }
+
+        public static void showPlanetaryResourceMap() {
+            if (body_resource_maps.ContainsKey(displayed_resource) && (FlightGlobals.currentMainBody.flightGlobalsIndex != map_body || displayed_resource != map_resource)) {
+                foreach (ResourceAbundanceMarker abundance_marker in abundance_markers) {
+                    removeAbundanceSphere(abundance_marker.getPlanetarySphere());
+                    removeAbundanceSphere(abundance_marker.getScaledSphere());
+                }
+
+                abundance_markers.Clear();
+                
+                Vector2d[] abundance_points_list = body_abudnance_angles[displayed_resource];
+                foreach (Vector2d abundance_point in abundance_points_list) {
+                    double theta = abundance_point.x;
+                    double phi = abundance_point.y;
+                    CelestialBody celbody = FlightGlobals.currentMainBody;
+                    Vector3d up = celbody.GetSurfaceNVector(phi, theta).normalized;
+                    double surface_height = celbody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right);
+                    GameObject resource_prim = createAbundanceSphere();
+                    GameObject resource_prim_scaled = createAbundanceSphere();
+
+                    Vector3d center = celbody.position + surface_height * up;
+                                        
+                    resource_prim_scaled.transform.position = ScaledSpace.LocalToScaledSpace(center);
+                    resource_prim_scaled.transform.localScale = sphere_scale_scaled;
+                    resource_prim_scaled.transform.localRotation = Quaternion.identity;
+                    resource_prim_scaled.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == celbody.name);
+                    resource_prim_scaled.layer = 10;
+
+                    resource_prim.transform.position = center;
+                    resource_prim.transform.parent = celbody.transform;
+                    resource_prim.transform.localScale = sphere_scale;
+                    resource_prim.transform.localRotation = Quaternion.identity;
+                                        
+                    ResourceAbundanceMarker abundance_marker = new ResourceAbundanceMarker(resource_prim_scaled,resource_prim);
+                    abundance_markers.Add(abundance_marker);
+                    map_body = current_body;
+                    map_resource = displayed_resource;
+                }
+            } else {
+                if (body_resource_maps.ContainsKey(displayed_resource) && FlightGlobals.currentMainBody.flightGlobalsIndex == map_body && displayed_resource == map_resource) {
+                    CelestialBody celbody = FlightGlobals.currentMainBody;
+                    foreach (ResourceAbundanceMarker abundance_marker in abundance_markers) {
+                        if (lineOfSightToPosition(abundance_marker.getPlanetarySphere().transform.position, celbody)) {
+                            if (MapView.MapIsEnabled) {
+                                abundance_marker.getScaledSphere().renderer.enabled = true;
+                                abundance_marker.getPlanetarySphere().renderer.enabled = false;
+                            } else {
+                                abundance_marker.getScaledSphere().renderer.enabled = false;
+                                abundance_marker.getPlanetarySphere().renderer.enabled = true;
+                            }   
+                        }else{
+                            abundance_marker.getScaledSphere().renderer.enabled = false;
+                            abundance_marker.getPlanetarySphere().renderer.enabled = false;
+                        }
+                    }
+                }
+            }
+        }
+                   
 
         protected static GameObject createAbundanceSphere() {
             if (sphere == null) {
                 GameObject resource_prim = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 resource_prim.collider.enabled = false;
-                resource_prim.transform.localScale = new Vector3(5000, 5000, 5000);
+                resource_prim.transform.localScale = sphere_scale;
                 if (sphere_material == null) {
                     resource_prim.renderer.material.shader = Shader.Find("Unlit/Texture");
                     resource_prim.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 1.0f);
@@ -245,25 +222,23 @@ namespace FNPlugin {
             }
             return (GameObject) Instantiate(sphere);
         }
-
+        
         protected static void removeAbundanceSphere(GameObject go) {
             Destroy(go);
         }
 
         protected static bool lineOfSightToPosition(Vector3d a, CelestialBody referenceBody) {
             Vector3d b = FlightGlobals.ActiveVessel.transform.position;
-            //foreach (CelestialBody referenceBody in FlightGlobals.Bodies) {
-                Vector3d refminusa = referenceBody.position - a;
-                Vector3d bminusa = b - a;
-                if (Vector3d.Dot(refminusa, bminusa) > 0) {
-                    if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude) {
-                        Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-                        if (tang.magnitude < referenceBody.Radius) {
-                            return false;
-                        }
+            Vector3d refminusa = referenceBody.position - a;
+            Vector3d bminusa = b - a;
+            if (Vector3d.Dot(refminusa, bminusa) > 0) {
+                if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude) {
+                    Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
+                    if (tang.magnitude < referenceBody.Radius) {
+                        return false;
                     }
                 }
-            //}
+            }
             return true;
         }
             

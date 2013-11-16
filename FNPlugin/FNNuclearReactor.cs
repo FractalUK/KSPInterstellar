@@ -89,10 +89,18 @@ namespace FNPlugin {
             return true;
         }
 
+        public override bool isNeutronRich() {
+            return true;
+        }
+
+        public override bool shouldScaleDownJetISP() {
+            return true;
+        }
+
         public override string GetInfo() {
             float uf6_rate_per_day = resourceRate * 86400;
             float up_uf6_rate_per_day = upgradedResourceRate * 86400;
-            return String.Format("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF6 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF6 Consumption: {5}L/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
+            return String.Format("Core Temperature: {0}K\n Thermal Power: {1}MW\n UF4 Max Consumption Rate: {2}L/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}L/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
         }
 
         public override void OnStart(PartModule.StartState state) {
