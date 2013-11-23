@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-	class MicrowavePowerReceiver2 : FNResourceSuppliableModule, FNThermalSource {
+	class MicrowaveReceiver2 : FNResourceSuppliableModule, FNThermalSource {
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Input Power")]
 		public string beamedpower;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Satellites Connected")]
@@ -31,8 +31,6 @@ namespace FNPlugin {
 
 		[KSPField(isPersistant = false)]
 		public string animName;
-		[KSPField(isPersistant = false)]
-		public string animRName;
 		[KSPField(isPersistant = false)]
 		public string animTName;
 		[KSPField(isPersistant = false)]
@@ -98,18 +96,7 @@ namespace FNPlugin {
 			base.OnStart (state);
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
-
-			if (animRName != null) {
-				animR = part.FindModelAnimators (animRName).FirstOrDefault ();
-				if (animR != null) {
-					animR [animRName].layer = 1;
-					animR [animRName].normalizedTime = 0f;
-					animR [animRName].speed = 0.001f;
-					animR.Play ();
-				}
-			}
-
-			if (animTName != null) {
+            if (animTName != null) {
 				animT = part.FindModelAnimators (animTName).FirstOrDefault ();
 				if (animT != null) {
 					animT [animTName].layer = 1;
@@ -340,7 +327,7 @@ namespace FNPlugin {
 		}
 
 		public float getCoreTemp() {
-			return 2900.0f;
+			return 1500.0f;
 		}
 
 		public float getThermalPower() {

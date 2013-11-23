@@ -16,11 +16,21 @@ namespace FNPlugin {
         protected int scale = 0;
         protected double scale_factor = 1;
         protected double scale_multiplier = 1;
+        protected string displayTexture = "";
+        protected double displayThreshold = 0.001;
         
         public FNPlanetaryResourceInfo(string name, Texture2D map, int body) {
             this.name = name;
             this.map = map;
             this.body = body;
+        }
+
+        public void setDisplayTexture(string texpath) {
+            displayTexture = texpath;
+        }
+
+        public void setDisplayThreshold(double displayThreshold) {
+            this.displayThreshold = displayThreshold;
         }
 
         public void setResourceName(string resourcename) {
@@ -49,6 +59,14 @@ namespace FNPlugin {
 
         public int getBody() {
             return body;
+        }
+
+        public string getDisplayTexturePath() {
+            return displayTexture;
+        }
+
+        public double getDisplayThreshold() {
+            return displayThreshold;
         }
 
         public string getName() {

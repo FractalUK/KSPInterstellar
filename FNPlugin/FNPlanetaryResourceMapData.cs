@@ -20,6 +20,7 @@ namespace FNPlugin {
         static GameObject sphere = null;
         static Vector3d sphere_scale = new Vector3d(5000, 5000, 5000);
         static Vector3d sphere_scale_scaled = new Vector3d(2, 2, 2);
+        static string sphere_texture;
         
 
         public static void loadPlanetaryResourceData(int body) {
@@ -53,12 +54,24 @@ namespace FNPlugin {
                         double scale_mult = double.Parse(scale_multstr);
                         resource_info.setScaleMultiplier(scale_mult);
                     }
+                    if (planetary_resource_config_node.HasValue("displayTexture")) {
+                        string tex_path = planetary_resource_config_node.GetValue("displayTexture");
+                        resource_info.setDisplayTexture(tex_path);
+                    } else {
+                        string tex_path = planetary_resource_config_node.GetValue("WarpPlugin/resource_point");
+                        resource_info.setDisplayTexture(tex_path);
+                    }
+                    if (planetary_resource_config_node.HasValue("displayThreshold")) {
+                        string display_threshold_str = planetary_resource_config_node.GetValue("displayThreshold");
+                        double display_threshold = double.Parse(display_threshold_str);
+                        resource_info.setDisplayThreshold(display_threshold);
+                    }
                     body_resource_maps.Add(resource_gui_name, resource_info);
                     List<Vector2d> abundance_points_list = new List<Vector2d>();
 
                     for (int i = 0; i < map.height; ++i) {
                         for (int j = 0; j < map.width; ++j) {
-                            if (getPixelAbundanceValue(j,i, resource_info) >= 0.001) {
+                            if (getPixelAbundanceValue(j,i, resource_info) >= resource_info.getDisplayThreshold()) {
                                 //high value location, mark it
                                 double theta = (j - map.width / 2)*2.0*180.0/map.width;
                                 double phi = (i - map.height / 2)*2.0*90.0/map.height;
@@ -136,26 +149,38 @@ namespace FNPlugin {
                 removeAbundanceSphere(abundance_marker.getPlanetarySphere());
                 removeAbundanceSphere(abundance_marker.getScaledSphere());
             }
-
+            sphere = null;
+            sphere_texture = null;
             abundance_markers.Clear();
             surface_height_list.Clear();
             
         }
 
-        public static void showPlanetaryResourceMap() {
+        public static bool resourceIsDisplayed(string resource) {
+            if (displayed_resource == resource) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public static void updatePlanetaryResourceMap() {
+            if (FlightGlobals.currentMainBody.flightGlobalsIndex != current_body) {
+                loadPlanetaryResourceData(FlightGlobals.currentMainBody.flightGlobalsIndex);
+            }
+
             if (body_resource_maps.ContainsKey(displayed_resource) && (FlightGlobals.currentMainBody.flightGlobalsIndex != map_body || displayed_resource != map_resource)) {
                 foreach (ResourceAbundanceMarker abundance_marker in abundance_markers) {
                     removeAbundanceSphere(abundance_marker.getPlanetarySphere());
                     removeAbundanceSphere(abundance_marker.getScaledSphere());
                 }
-
                 abundance_markers.Clear();
-                
+                CelestialBody celbody = FlightGlobals.currentMainBody;
+                sphere_texture = body_resource_maps[displayed_resource].getDisplayTexturePath();
                 Vector2d[] abundance_points_list = body_abudnance_angles[displayed_resource];
                 foreach (Vector2d abundance_point in abundance_points_list) {
                     double theta = abundance_point.x;
                     double phi = abundance_point.y;
-                    CelestialBody celbody = FlightGlobals.currentMainBody;
                     Vector3d up = celbody.GetSurfaceNVector(phi, theta).normalized;
                     double surface_height = celbody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right);
                     GameObject resource_prim = createAbundanceSphere();
@@ -205,15 +230,15 @@ namespace FNPlugin {
             if (sphere == null) {
                 GameObject resource_prim = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 resource_prim.collider.enabled = false;
-                resource_prim.transform.localScale = sphere_scale;
-                if (sphere_material == null) {
-                    resource_prim.renderer.material.shader = Shader.Find("Unlit/Texture");
-                    resource_prim.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 1.0f);
+                resource_prim.transform.localScale = sphere_scale*(Math.Pow(FlightGlobals.currentMainBody.Radius,2)/Math.Pow(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].Radius,2));
+                resource_prim.renderer.material.shader = Shader.Find("Unlit/Texture");
+                resource_prim.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 1.0f);
+                if (sphere_texture != null) {
+                    resource_prim.renderer.material.mainTexture = GameDatabase.Instance.GetTexture(sphere_texture,false);
+                } else {
                     resource_prim.renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/resource_point", false);
-                    resource_prim.renderer.material.renderQueue = 1000;
-                }else {
-                    resource_prim.renderer.sharedMaterial = sphere_material;
                 }
+                resource_prim.renderer.material.renderQueue = 1000;
                 resource_prim.renderer.receiveShadows = false;
                 resource_prim.renderer.enabled = false;
                 resource_prim.renderer.castShadows = false;

@@ -59,7 +59,7 @@ namespace FNPlugin {
 				rad_level += rad/divisor;
 			}
             
-			radiation_level = Math.Pow(rad_level / 2e-4,4.0)*130/rad_hardness;
+			radiation_level = Math.Pow(rad_level / 3e-5,3.0)*130/rad_hardness;
             
             List<ProtoCrewMember> crew_members = part.protoModuleCrew;
             if (!vessel.isEVA) {

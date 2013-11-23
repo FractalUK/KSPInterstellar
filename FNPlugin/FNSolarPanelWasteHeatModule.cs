@@ -10,6 +10,8 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Heat Production")]
 		public string heatProductionStr = ":";
 
+        protected ModuleDeployableSolarPanel solarPanel;
+
 		public override void OnStart(PartModule.StartState state) {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
@@ -19,7 +21,7 @@ namespace FNPlugin {
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
 
-			ModuleDeployableSolarPanel solarPanel = (ModuleDeployableSolarPanel)this.part.Modules["ModuleDeployableSolarPanel"];
+			solarPanel = (ModuleDeployableSolarPanel)this.part.Modules["ModuleDeployableSolarPanel"];
 			if (solarPanel != null) {
 				solarPanel.powerCurve = PluginHelper.getSatFloatCurve ();
 			}
@@ -27,6 +29,12 @@ namespace FNPlugin {
 
 		public override void OnUpdate() {
 			heatProductionStr = wasteheat_production_f.ToString ("0.00") + " KW";
+            double inv_square_mult = Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
+            FloatCurve satcurve = new FloatCurve();
+            satcurve.Add(0.0f, (float)inv_square_mult);
+            if (solarPanel != null) {
+                solarPanel.powerCurve = satcurve;
+            }
 		}
 
 		public override void OnFixedUpdate() {

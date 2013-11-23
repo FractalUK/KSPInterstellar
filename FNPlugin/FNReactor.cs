@@ -55,6 +55,8 @@ namespace FNPlugin {
         public string coretempStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
 		public string statusStr;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power")]
+        public string currentPwr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Tritium")]
@@ -73,6 +75,8 @@ namespace FNPlugin {
 		protected bool hasrequiredupgrade = false;
 		protected int deactivate_timer = 0;
         protected bool decay_products_ongoing = false;
+        protected long update_count = 0;
+        protected long last_draw_update = 0;
 
 
         //protected bool responsible_for_thermalmanager = false;
@@ -246,6 +250,7 @@ namespace FNPlugin {
             Events["StopBreedTritium"].active = breedtritium && getIsNuclear();
             Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
             Fields["tritiumBreedRate"].guiActive = breedtritium && isNeutronRich();
+            Fields["currentPwr"].guiActive = IsEnabled;
             coretempStr = ReactorTemp.ToString("0") + "K";
 			if (IsEnabled) {
 				if (play_up && anim != null) {
@@ -270,33 +275,39 @@ namespace FNPlugin {
 			} 
 
 			tritiumBreedRate = (tritium_produced_f * 86400).ToString ("0.00") + " Kg/day";
-            
-			if (IsEnabled) {
-                if (resource_ratio > 0) {
-					statusStr = "Active (" + powerPcnt.ToString ("0.00") + "%)";
-				} else {
-                    statusStr = getResourceDeprivedMessage();
-				}
-			} else {
-                if (getIsNuclear()) {
-                    if (decay_products_ongoing) {
-                        statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
+
+            if (update_count - last_draw_update > 10) {
+                if (IsEnabled) {
+                    currentPwr = getPowerFormatString(ThermalPower * powerPcnt / 100.0) + "_th";
+                    if (resource_ratio > 0) {
+                        statusStr = "Active (" + powerPcnt.ToString("0.000") + "%)";
                     } else {
-                        statusStr = "EVA Maintenance Needed";
+                        statusStr = getResourceDeprivedMessage();
                     }
-                }else {
-                    statusStr = "Reactor Offline.";
+                } else {
+                    if (getIsNuclear()) {
+                        if (decay_products_ongoing) {
+                            statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
+                        } else {
+                            statusStr = "EVA Maintenance Needed";
+                        }
+                    } else {
+                        statusStr = "Reactor Offline.";
+                    }
                 }
-			}
+                last_draw_update = update_count;
+            }
 
             if (isupgraded) {
-                reactorType = getThermalPowerFormatString() + " " + upgradedName;
+                reactorType = getPowerFormatString(ThermalPower) + " " + upgradedName;
             } else {
-                reactorType = getThermalPowerFormatString() + " " + originalName;
+                reactorType = getPowerFormatString(ThermalPower) + " " + originalName;
             }
+
+            update_count++;
         }
 
-        public float getCoreTemp() {
+        public virtual float getCoreTemp() {
             return ReactorTemp;
         }
 
@@ -404,28 +415,32 @@ namespace FNPlugin {
             return "Resource Deprived";
         }
         
-        protected string getThermalPowerFormatString() {
-            if (ThermalPower > 1000) {
-                if (ThermalPower > 20000) {
-                    return (ThermalPower / 1000).ToString("0") + "GW";
+        protected string getPowerFormatString(double power) {
+            if (power > 1000) {
+                if (power > 20000) {
+                    return (power / 1000).ToString("0") + " GW";
                 } else {
-                    return (ThermalPower / 1000).ToString("0.0") + "GW";
+                    return (power / 1000).ToString("0.0") + " GW";
                 }
             } else {
-                if (ThermalPower > 20) {
-                    return ThermalPower.ToString("0") + "MW";
+                if (power > 20) {
+                    return power.ToString("0") + " MW";
                 } else {
-                    return ThermalPower.ToString("0.0") + "MW";
+                    if (power > 1) {
+                        return power.ToString("0.0") + " MW";
+                    } else {
+                        return (power * 1000).ToString("0.0") + " KW";
+                    }
                 }
             }
         }
 
-		public static double getTemperatureofHottestReactor(Vessel vess) {
+		public static double getTemperatureofColdestReactor(Vessel vess) {
 			List<FNReactor> reactors = vess.FindPartModulesImplementing<FNReactor> ();
-			double temp = 0;
+			double temp = double.MaxValue;
 			foreach (FNReactor reactor in reactors) {
 				if (reactor != null) {
-					if (reactor.getCoreTemp () > temp) {
+					if (reactor.getCoreTemp () < temp && reactor.isActive()) {
 						temp = reactor.getCoreTemp ();
 					}
 				}

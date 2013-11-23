@@ -201,11 +201,11 @@ namespace FNPlugin {
 			if (IsEnabled) {
 				float percentOutputPower = totalEff * 100.0f;
 				float outputPowerReport = -outputPower;
-				if (update_count - last_draw_update > 8) {
-					OutputPower = outputPowerReport.ToString ("0.000") + "MW";
+				if (update_count - last_draw_update > 10) {
+                    OutputPower = getPowerFormatString(outputPowerReport) + "_e";
 					OverallEfficiency = percentOutputPower.ToString ("0.0") + "%";
 					if (totalEff >= 0) {
-						MaxPowerStr = (maxThermalPower*totalEff).ToString ("0.000") + "MW";
+                        MaxPowerStr = getPowerFormatString(maxThermalPower * totalEff) + "_e";
 					} else {
 						MaxPowerStr = (0).ToString() + "MW";
 					}
@@ -281,6 +281,26 @@ namespace FNPlugin {
 		public override string GetInfo() {
 			return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff*100, upgradedpCarnotEff*100);
 		}
+
+        protected string getPowerFormatString(double power) {
+            if (power > 1000) {
+                if (power > 20000) {
+                    return (power / 1000).ToString("0.0") + " GW";
+                } else {
+                    return (power / 1000).ToString("0.00") + " GW";
+                }
+            } else {
+                if (power > 20) {
+                    return power.ToString("0.0") + " MW";
+                } else {
+                    if (power > 1) {
+                        return power.ToString("0.00") + " MW";
+                    } else {
+                        return (power * 1000).ToString("0.0") + " KW";
+                    }
+                }
+            }
+        }
 
 	}
 }

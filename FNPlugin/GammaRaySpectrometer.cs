@@ -66,7 +66,7 @@ namespace FNPlugin {
             }else {
                 TAb = (thorium_abundance * 1000000.0).ToString("0.0") + "ppm";
             }
-            FNPlanetaryResourceMapData.showPlanetaryResourceMap();
+            FNPlanetaryResourceMapData.updatePlanetaryResourceMap();
             //FNPlanetaryResourceMapData.showPlanetaryResourceMapTexture();
         }
 

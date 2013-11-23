@@ -96,7 +96,7 @@ namespace FNPlugin {
 				float low_temp = FlightGlobals.getExternalTemperature (vessel.transform.position);
 
 				float delta_temp = Mathf.Max (0, radiatorTemp - low_temp);
-				conv_power_dissip = pressure * delta_temp * radiatorArea * FNRadiator.h / 1e6f * TimeWarp.fixedDeltaTime * 20.0f;
+				conv_power_dissip = pressure * delta_temp * radiatorArea * FNRadiator.rad_const_h / 1e6f * TimeWarp.fixedDeltaTime * 20.0f;
 
 				convectedThermalPower = consumeFNResource (conv_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 			}

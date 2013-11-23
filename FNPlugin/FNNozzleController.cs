@@ -41,7 +41,7 @@ namespace FNPlugin{
 		public string engineType = ":";
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Mode")]
 		public string fuelmode;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Thrust Limiter")]
+		[KSPField(isPersistant = false, guiActive = true, guiName = "TWR Limit")]
 		public string thrustLimit;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
@@ -72,7 +72,8 @@ namespace FNPlugin{
         protected float old_atmospheric_limit;
 
 		//Constants
-		protected const float g0 = 9.81f;
+		protected const double g0 = 9.81f;
+        protected const double isp_temp_rat = 24.4544036;
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -203,9 +204,9 @@ namespace FNPlugin{
 				updatePropellantBar ();
 
 				if (thrustLimitRatio == 0) {
-					thrustLimit = "Prevent Flameout: " + (atmospheric_limit*100.0).ToString("0.0") + "%";
+					thrustLimit = "Atmospheric " + (atmospheric_limit*100.0).ToString("0.0") + "%";
 				} else {
-					thrustLimit = "TWR = " + thrustLimitRatio.ToString ("0"); 
+					thrustLimit = thrustLimitRatio.ToString ("0");
 				}
                                 
 			}
@@ -308,7 +309,7 @@ namespace FNPlugin{
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
-			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getCoreTemp ()) * 17.0 * ispMultiplier);
+			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getCoreTemp ()) * isp_temp_rat * ispMultiplier);
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);
@@ -326,9 +327,9 @@ namespace FNPlugin{
 				newISP.Add(0.3f, maxISP);
 				newISP.Add(1, maxISP/2.0f);
 				vCurve.Add(0, 0.7f);
-				vCurve.Add(maxISP*g0*1.0f/3.0f, 0.8f);
-				vCurve.Add(maxISP*g0*2.0f/3.0f, 0.9f);
-				vCurve.Add (maxISP*g0, 0);
+				vCurve.Add((float)(maxISP*g0*1.0/3.0), 0.8f);
+				vCurve.Add((float)(maxISP*g0*2.0/3.0), 0.9f);
+				vCurve.Add ((float)(maxISP*g0), 0);
 				myAttachedEngine.useVelocityCurve = true;
 				myAttachedEngine.useEngineResponseTime = true;
 				myAttachedEngine.ignitionThreshold = 0.01f;
@@ -368,10 +369,7 @@ namespace FNPlugin{
 		}
 
 		public override void OnFixedUpdate() {
-			//tell static helper methods we are currently updating things
-
-
-			if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
+            if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
 				if (!myAttachedReactor.isActive()) {
 					myAttachedReactor.enableIfPossible();
 				}
@@ -403,6 +401,7 @@ namespace FNPlugin{
 				} 
 				//print ("B: " + engineMaxThrust);
 				// set up TWR limiter if on
+                double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle);
 				double thrust_limit = vessel.GetTotalMass () * thrustLimitRatio * g0;
 				double engine_thrust = engineMaxThrust;
 				if (thrustLimitRatio > 0) {
@@ -427,6 +426,9 @@ namespace FNPlugin{
 				//fuel_flow_rate = 2000.0*assThermalPower/maxISP/g0/g0/currentIsp*heat_exchanger_thrust_divisor*ispratio*TimeWarp.fixedDeltaTime/0.005;
                 if (current_isp > 0 && atmospheric_limit > 0) {
                     fuel_flow_rate = engine_thrust / current_isp / g0 / 0.005 * TimeWarp.fixedDeltaTime/atmospheric_limit;
+                    if (additional_thrust_compensator > 0) {
+                        fuel_flow_rate = fuel_flow_rate / additional_thrust_compensator;
+                    }
                 }
 
                 foreach (FXGroup fx_group in myAttachedEngine.part.fxGroups) {
@@ -456,7 +458,7 @@ namespace FNPlugin{
 					ScreenMessages.PostScreenMessage ("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 				}
 			}
-
+            //tell static helper methods we are currently updating things
 			static_updating = true;
 			static_updating2 = true;
 		}

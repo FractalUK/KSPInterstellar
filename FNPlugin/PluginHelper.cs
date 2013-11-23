@@ -6,7 +6,7 @@ using UnityEngine;
 using System.Reflection;
 
 namespace FNPlugin {
-	[KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
+    [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
 	public class PluginHelper : MonoBehaviour {
         public const double FIXED_SAT_ALTITUDE = 13599840256;
         public const int REF_BODY_KERBOL = 0;
@@ -28,27 +28,28 @@ namespace FNPlugin {
         public const int REF_BODY_EELOO = 16;
         public static string[] atomspheric_resources = {"Oxygen", "Hydrogen","Argon","Deuterium"};
         public static string[] atomspheric_resources_tocollect = { "Oxidizer", "LiquidFuel", "Argon","Deuterium"};
-
+        public static string hydrogen_resource_name = "LiquidFuel";
+        public static string oxygen_resource_name = "Oxidizer";
+        public static string aluminium_resource_name = "Aluminium";
+        public static string methane_resource_name = "LqdMethane";
+        public static string argon_resource_name = "Argon";
+        
 		protected static bool plugin_init = false;
 		protected static bool is_thermal_dissip_disabled_init = false;
 		protected static bool is_thermal_dissip_disabled = false;
-
+        protected static GameDatabase gdb;
+        protected static bool resources_configured = false;
+        protected static FloatCurve satcurve = new FloatCurve();
+        
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
         }
 
-		public static bool isThermalDissipationDisabled() {
-			if (!is_thermal_dissip_disabled_init) {
-				ConfigNode conf = getPluginSaveFile ();
-				if (conf.HasValue ("thermal_off")) {
-					is_thermal_dissip_disabled = bool.Parse(conf.GetValue ("thermal_off"));
-					is_thermal_dissip_disabled_init = true;
-				} else {
-					is_thermal_dissip_disabled_init = true;
-					is_thermal_dissip_disabled = false;
-				}
-			} 
+        public static string getPluginSettingsFilePath() {
+            return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/WarpPluginSettings.cfg";
+        }
 
+		public static bool isThermalDissipationDisabled() {
 			return is_thermal_dissip_disabled;
 		}
 
@@ -137,6 +138,14 @@ namespace FNPlugin {
 			return config;
 		}
 
+        public static ConfigNode getPluginSettingsFile() {
+            ConfigNode config = ConfigNode.Load(PluginHelper.getPluginSettingsFilePath());
+            if (config == null) {
+                config = new ConfigNode();
+            }
+            return config;
+        }
+
         public static bool lineOfSightToSun(Vessel vess) {
             Vector3d a = vess.transform.position;
             Vector3d b = FlightGlobals.Bodies[0].transform.position;
@@ -159,19 +168,6 @@ namespace FNPlugin {
         }
 
         public static FloatCurve getSatFloatCurve() {
-            FloatCurve satcurve = new FloatCurve();
-            //satcurve.Add(206000000000, 0,0,0);
-            //satcurve.Add(68773560320, 0.5f, 0, 0);
-            satcurve.Add(406000000000, 0, 0, 0);
-            satcurve.Add(108798722048, 0.015625f, 0, 0);
-            satcurve.Add(54399361024, 0.0625f, 0, 0);
-            satcurve.Add(27199680512, 0.25f, 0, 0);
-            satcurve.Add(13599840256, 1, 0, 0);
-            satcurve.Add(6799920128, 4, 0, 0);
-            satcurve.Add(3399960064, 16, 0, 0);
-            satcurve.Add(1699980032, 64, 0, 0);
-            satcurve.Add(849990016, 256, 0, 0);
-            satcurve.Add(0, 4000, 0, 0);
             return satcurve;
         }
 
@@ -265,10 +261,60 @@ namespace FNPlugin {
             return multiplier;
         }
 
+        public void loadPluginResourceConfig() {
 
+        }
 
 		public void Update() {
+            this.enabled = true;
+            AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
+            if (intakePart.partPrefab.FindModulesImplementing<AtmosphericIntake>().Count <= 0 && PartLoader.Instance.IsReady()) {
+                plugin_init = false;
+            }
+
+            if (!resources_configured) {
+                resources_configured = true;
+                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("GameData/WarpPlugin/WarpPluginSettings/WARP_PLUGIN_SETTINGS");
+                if(plugin_settings != null) {
+                    if (plugin_settings.HasValue("HydrogenResourceName")) {
+                        PluginHelper.hydrogen_resource_name = plugin_settings.GetValue("HydrogenResourceName");
+                        PluginHelper.atomspheric_resources_tocollect[1] = PluginHelper.hydrogen_resource_name;
+                    }
+                    if (plugin_settings.HasValue("OxygenResourceName")) {
+                        PluginHelper.oxygen_resource_name = plugin_settings.GetValue("OxygenResourceName");
+                        PluginHelper.atomspheric_resources_tocollect[0] = PluginHelper.oxygen_resource_name;
+                    }
+                    if (plugin_settings.HasValue("AluminiumResourceName")) {
+                        PluginHelper.aluminium_resource_name = plugin_settings.GetValue("AluminiumResourceName");
+                    }
+                    if (plugin_settings.HasValue("MethaneResourceName")) {
+                        PluginHelper.methane_resource_name = plugin_settings.GetValue("MethaneResourceName");
+                    }
+                    if (plugin_settings.HasValue("ArgonResourceName")) {
+                        PluginHelper.argon_resource_name = plugin_settings.GetValue("ArgonResourceName");
+                        PluginHelper.atomspheric_resources_tocollect[2] = PluginHelper.argon_resource_name;
+                    }
+                    if (plugin_settings.HasValue("ThermalMechanicsDisabled")) {
+                        PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
+                    }
+                }
+                satcurve = new FloatCurve();
+                satcurve.Add((float)(16.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.00390625f, 0, 0);
+                satcurve.Add((float)(8.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.015625f, 0, 0);
+                satcurve.Add((float)(4.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.0625f, 0, 0);
+                satcurve.Add((float)(2.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.25f, 0, 0);
+                satcurve.Add((float)(1.5 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.4444444f, 0, 0);
+                satcurve.Add((float)(1.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 1.0f, 0, 0);
+                satcurve.Add((float)(0.75 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 1.777778f, 0, 0);
+                satcurve.Add((float)(0.5 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 4, 0, 0);
+                satcurve.Add((float)(0.25 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 16, 0, 0);
+                satcurve.Add((float)(0.125 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 64, 0, 0);
+                satcurve.Add((float)(0.0625 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 256, 0, 0);
+                satcurve.Add((float)(0.03125 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 1024, 0, 0);
+            }
+
 			if (!plugin_init) {
+                gdb = GameDatabase.Instance;
 				plugin_init = true;
 
                 AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
@@ -413,25 +459,9 @@ namespace FNPlugin {
 				}
 			}
 
-			Destroy (this);
+			//Destroy (this);
 		}
-
-		public static bool Awaken(PartModule module)
-		{
-			// thanks to Mu and Kine for help with this bit of Dark Magic. 
-			// KINEMORTOBESTMORTOLOLOLOL
-			if (module == null)
-				return false;
-			object[] paramList = new object[] { };
-			MethodInfo awakeMethod = typeof(PartModule).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
-
-			if (awakeMethod == null)
-				return false;
-
-			awakeMethod.Invoke(module, paramList);
-			return true;
-		}
-
+        		
 		protected static bool warning_displayed = false;
 
 		public static void showInstallationErrorMessage() {

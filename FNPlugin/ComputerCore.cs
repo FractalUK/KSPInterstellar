@@ -173,7 +173,7 @@ namespace FNPlugin {
 		}
 
 		public static string getNameFilePath() {
-			return KSPUtil.ApplicationRootPath + "gamedata/warpplugin/NameList.cfg";
+			return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/NameList.cfg";
 		}
 
 		public static ConfigNode[] getNames() {

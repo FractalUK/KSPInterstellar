@@ -40,12 +40,7 @@ namespace FNPlugin {
             drawCount++;
             float lat = (float) vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
             float flux = VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, (float)vessel.altitude,lat);
-            if (drawCount % 2 == 0) {
-                part.RequestResource("Antimatter", -flux * TimeWarp.fixedDeltaTime*2);
-            }
-
-            //float antimatter_pcnt = antimatter_provided / AntimatterRate / TimeWarp.fixedDeltaTime;
-            //part.RequestResource("ThermalPower", -ThermalPower*TimeWarp.fixedDeltaTime*antimatter_pcnt);
+            part.RequestResource("Antimatter", -flux * TimeWarp.fixedDeltaTime);
             last_active_time = (float)Planetarium.GetUniversalTime();
         }
 
