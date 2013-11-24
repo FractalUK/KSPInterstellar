@@ -223,7 +223,7 @@ namespace FNPlugin {
             Events["BeginResearch"].active = !IsEnabled;
             Events["ReprocessFuel"].active = !IsEnabled;
             Events["ActivateFactory"].active = !IsEnabled;
-            Events["ActivateElectrolysis"].active = !IsEnabled && (vessel.Splashed || vessel.Landed);
+            Events["ActivateElectrolysis"].active = false;
 			Events["ActivateCentrifuge"].active = !IsEnabled && vessel.Splashed;
             Events["StopActivity"].active = IsEnabled;
 

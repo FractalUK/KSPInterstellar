@@ -9,7 +9,6 @@ namespace FNPlugin {
         static Dictionary<string, FNPlanetaryResourceInfo> body_resource_maps = new Dictionary<string, FNPlanetaryResourceInfo>();
         static Dictionary<string, Vector2d[]> body_abudnance_angles = new Dictionary<string, Vector2d[]>();
         static List<ResourceAbundanceMarker> abundance_markers = new List<ResourceAbundanceMarker>();
-        static List<double> surface_height_list = new List<double>();
         static int current_body = -1;
         static int map_body = -1;
         //static GameObject resource_prim;
@@ -21,19 +20,31 @@ namespace FNPlugin {
         static Vector3d sphere_scale = new Vector3d(5000, 5000, 5000);
         static Vector3d sphere_scale_scaled = new Vector3d(2, 2, 2);
         static string sphere_texture;
+        static double stored_scale = -1;
         
 
         public static void loadPlanetaryResourceData(int body) {
             string celestial_body_name = FlightGlobals.Bodies[body].bodyName;
             UrlDir.UrlConfig[] configs = GameDatabase.Instance.GetConfigs("PLANETARY_RESOURCE_DEFINITION");
             Debug.Log("[WarpPlugin] Loading Planetary Resource Data. Length: " + configs.Length);
+            foreach (ResourceAbundanceMarker abundance_marker in abundance_markers) {
+                removeAbundanceSphere(abundance_marker.getPlanetarySphere());
+                removeAbundanceSphere(abundance_marker.getScaledSphere());
+            }
+            sphere = null;
+            sphere_texture = null;
             body_resource_maps.Clear();
             body_abudnance_angles.Clear();
+            map_body = -1;
+            current_body = -1;
             foreach (UrlDir.UrlConfig config in configs) {
                 ConfigNode planetary_resource_config_node = config.config;
-                if (planetary_resource_config_node.GetValue("celestialBodyName") == celestial_body_name) {
+                if (planetary_resource_config_node.GetValue("celestialBodyName") == celestial_body_name && planetary_resource_config_node != null) {
                     Debug.Log("[WarpPlugin] Loading Planetary Resource Data for " + celestial_body_name);
                     Texture2D map = GameDatabase.Instance.GetTexture(planetary_resource_config_node.GetValue("mapUrl"), false);
+                    if (map == null) {
+                        continue;
+                    }
                     string resource_gui_name = planetary_resource_config_node.GetValue("name");
                     FNPlanetaryResourceInfo resource_info = new FNPlanetaryResourceInfo(resource_gui_name, map, body);
                     if (planetary_resource_config_node.HasValue("resourceName")) {
@@ -149,10 +160,10 @@ namespace FNPlugin {
                 removeAbundanceSphere(abundance_marker.getPlanetarySphere());
                 removeAbundanceSphere(abundance_marker.getScaledSphere());
             }
+            map_body = -1;
             sphere = null;
             sphere_texture = null;
             abundance_markers.Clear();
-            surface_height_list.Clear();
             
         }
 
@@ -178,31 +189,36 @@ namespace FNPlugin {
                 CelestialBody celbody = FlightGlobals.currentMainBody;
                 sphere_texture = body_resource_maps[displayed_resource].getDisplayTexturePath();
                 Vector2d[] abundance_points_list = body_abudnance_angles[displayed_resource];
-                foreach (Vector2d abundance_point in abundance_points_list) {
-                    double theta = abundance_point.x;
-                    double phi = abundance_point.y;
-                    Vector3d up = celbody.GetSurfaceNVector(phi, theta).normalized;
-                    double surface_height = celbody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right);
-                    GameObject resource_prim = createAbundanceSphere();
-                    GameObject resource_prim_scaled = createAbundanceSphere();
+                if (abundance_points_list != null && celbody.pqsController != null) {
+                    foreach (Vector2d abundance_point in abundance_points_list) {
+                        double theta = abundance_point.x;
+                        double phi = abundance_point.y;
+                        Vector3d up = celbody.GetSurfaceNVector(phi, theta).normalized;
+                        double surface_height = celbody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right);
+                        GameObject resource_prim = createAbundanceSphere();
+                        GameObject resource_prim_scaled = createAbundanceSphere();
 
-                    Vector3d center = celbody.position + surface_height * up;
-                                        
-                    resource_prim_scaled.transform.position = ScaledSpace.LocalToScaledSpace(center);
-                    resource_prim_scaled.transform.localScale = sphere_scale_scaled;
-                    resource_prim_scaled.transform.localRotation = Quaternion.identity;
-                    resource_prim_scaled.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == celbody.name);
-                    resource_prim_scaled.layer = 10;
+                        Vector3d center = celbody.position + surface_height * up;
+                        Vector3d scaledcenter = ScaledSpace.LocalToScaledSpace(celbody.position) + surface_height * up*ScaledSpace.InverseScaleFactor;
 
-                    resource_prim.transform.position = center;
-                    resource_prim.transform.parent = celbody.transform;
-                    resource_prim.transform.localScale = sphere_scale;
-                    resource_prim.transform.localRotation = Quaternion.identity;
-                                        
-                    ResourceAbundanceMarker abundance_marker = new ResourceAbundanceMarker(resource_prim_scaled,resource_prim);
-                    abundance_markers.Add(abundance_marker);
+                        Transform scaled_trans = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == celbody.name);
+                        resource_prim_scaled.transform.position = scaledcenter;
+                        resource_prim_scaled.transform.localScale = sphere_scale_scaled * (FlightGlobals.currentMainBody.Radius / FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].Radius);
+                        resource_prim_scaled.transform.localRotation = Quaternion.identity;
+                        resource_prim_scaled.transform.parent = scaled_trans;
+                        resource_prim_scaled.layer = 10;
+
+                        resource_prim.transform.position = center;
+                        resource_prim.transform.parent = celbody.transform;
+                        resource_prim.transform.localScale = sphere_scale * (FlightGlobals.currentMainBody.Radius / FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].Radius);
+                        resource_prim.transform.localRotation = Quaternion.identity;
+
+                        ResourceAbundanceMarker abundance_marker = new ResourceAbundanceMarker(resource_prim_scaled, resource_prim);
+                        abundance_markers.Add(abundance_marker);
+                    }
                     map_body = current_body;
                     map_resource = displayed_resource;
+                    stored_scale = ScaledSpace.ScaleFactor;
                 }
             } else {
                 if (body_resource_maps.ContainsKey(displayed_resource) && FlightGlobals.currentMainBody.flightGlobalsIndex == map_body && displayed_resource == map_resource) {
@@ -230,7 +246,7 @@ namespace FNPlugin {
             if (sphere == null) {
                 GameObject resource_prim = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 resource_prim.collider.enabled = false;
-                resource_prim.transform.localScale = sphere_scale*(Math.Pow(FlightGlobals.currentMainBody.Radius,2)/Math.Pow(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].Radius,2));
+                resource_prim.transform.localScale = sphere_scale*(FlightGlobals.currentMainBody.Radius/FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].Radius);
                 resource_prim.renderer.material.shader = Shader.Find("Unlit/Texture");
                 resource_prim.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 1.0f);
                 if (sphere_texture != null) {

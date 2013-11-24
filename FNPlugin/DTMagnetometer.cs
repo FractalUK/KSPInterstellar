@@ -39,6 +39,25 @@ namespace FNPlugin {
 			IsEnabled = false;
 		}
 
+        [KSPAction("Activate Magnetometer")]
+        public void ActivateMagnetometerAction(KSPActionParam param) {
+            ActivateMagnetometer();
+        }
+
+        [KSPAction("Deactivate Magnetometer")]
+        public void DeactivateMagnetometerAction(KSPActionParam param) {
+            DeactivateMagnetometer();
+        }
+
+        [KSPAction("Toggle Magnetometer")]
+        public void ToggleMagnetometerAction(KSPActionParam param) {
+            if (IsEnabled) {
+                DeactivateMagnetometer();
+            } else {
+                ActivateMagnetometer();
+            }
+        }
+
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
