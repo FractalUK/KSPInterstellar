@@ -231,7 +231,7 @@ namespace FNPlugin {
 					//Debug.Log (power + ", " + powersupply + "::: " + power_supplied);
                     powersupply -= power_supplied;
 					//notify of supply
-					ms.receiveFNResource((float)(power_supplied * TimeWarp.fixedDeltaTime),this.resource_name);
+                    ms.receiveFNResource(power_supplied, this.resource_name);
                 }
 
             }
@@ -248,7 +248,7 @@ namespace FNPlugin {
                     powersupply -= power_supplied;
 
 					//notify of supply
-					ms.receiveFNResource((float)(power_supplied * TimeWarp.fixedDeltaTime), this.resource_name);
+					ms.receiveFNResource(power_supplied, this.resource_name);
                 }
 
             }
@@ -265,7 +265,7 @@ namespace FNPlugin {
 					powersupply -= power_supplied;
 
 					//notify of supply
-					ms.receiveFNResource((float)(power_supplied * TimeWarp.fixedDeltaTime), this.resource_name);
+                    ms.receiveFNResource(power_supplied, this.resource_name);
 				}
 
 			}

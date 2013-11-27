@@ -29,7 +29,7 @@ namespace FNPlugin {
 
 		public override void OnUpdate() {
 			heatProductionStr = wasteheat_production_f.ToString ("0.00") + " KW";
-            double inv_square_mult = Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
+            double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
             FloatCurve satcurve = new FloatCurve();
             satcurve.Add(0.0f, (float)inv_square_mult);
             if (solarPanel != null) {

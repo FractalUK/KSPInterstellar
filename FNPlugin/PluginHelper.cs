@@ -339,7 +339,7 @@ namespace FNPlugin {
 
 									PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
-									if(intake_air_resource != null) {
+                                    if (intake_air_resource != null && !prefab_available_part.Resources.Contains("IntakeAtm")) {
 										ConfigNode node = new ConfigNode("RESOURCE");
 										node.AddValue("name", "IntakeAtm");
 										node.AddValue("maxAmount", intake_air_resource.maxAmount);
@@ -349,6 +349,36 @@ namespace FNPlugin {
 								}
 
 							}
+
+                            if (prefab_available_part.FindModulesImplementing<ModuleDeployableSolarPanel>().Count > 0) {
+                                ModuleDeployableSolarPanel panel = prefab_available_part.Modules["ModuleDeployableSolarPanel"] as ModuleDeployableSolarPanel;
+                                if (panel.chargeRate > 0) {
+                                    Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
+                                    FNSolarPanelWasteHeatModule pm = null;
+                                    if (type != null) {
+                                        pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
+                                        prefab_available_part.Modules.Add(pm);
+                                    }
+                                }
+                                
+                                                                
+                                if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0) {
+                                    ConfigNode node = new ConfigNode("RESOURCE");
+                                    node.AddValue("name", "WasteHeat");
+                                    node.AddValue("maxAmount", panel.chargeRate * 100);
+                                    node.AddValue("amount", 0);
+                                    PartResource pr = prefab_available_part.AddResource(node);
+
+                                    if (available_part.resourceInfo != null && pr != null) {
+                                        if (available_part.resourceInfo.Length == 0) {
+                                            available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                                        } else {
+                                            available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                                        }
+                                    }
+                                }
+
+                            }
 
 							if(prefab_available_part.FindModulesImplementing<ElectricEngineController>().Count() > 0) {
 								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineController>().First().GetInfo();

@@ -6,20 +6,6 @@ using UnityEngine;
 
 namespace FNPlugin {
     class ScienceModule : FNResourceSuppliableModule {
-        const float baseScienceRate = 0.1f;
-        const float baseReprocessingRate = 0.4f;
-        const float basePowerConsumption = 5f;
-        const float baseAMFPowerConsumption = 5000f;
-        const float baseELCPowerConsumption = 40f;
-		const float baseCentriPowerConsumption = 43.5f;
-        const float electrolysisEnergyPerTon = 18159f;
-		const float bakingEnergyPerTon = 4920f;
-        const float aluminiumElectrolysisEnergyPerTon = 35485.714f;
-        const float electrolysisMassRatio = 7.936429f;
-        const float aluminiumElectrolysisMassRatio = 1.5f;
-		const float deuterium_abudance = 0.00015625f;
-		const float deuterium_timescale = 0.0016667f;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string statusTitle;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
@@ -194,7 +180,7 @@ namespace FNPlugin {
 						stupidity += proto_crew_member.stupidity;
 					}
 					stupidity = 1.5f - stupidity / 2.0f;
-					double science_to_add = baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex,vessel.LandedOrSplashed) / ((float)Math.Sqrt (altitude_multiplier));
+                    double science_to_add = GameConstants.baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
 					//part.RequestResource ("Science", -science_to_add);
 					science_awaiting_addition = science_to_add;
 
@@ -211,7 +197,7 @@ namespace FNPlugin {
 
 
 
-					float total_electrical_power_provided = electrical_power_ratio * (baseAMFPowerConsumption + basePowerConsumption)*1E6f;
+                    float total_electrical_power_provided = (float) (electrical_power_ratio * (GameConstants.baseAMFPowerConsumption + GameConstants.basePowerConsumption) * 1E6);
 					float antimatter_mass = total_electrical_power_provided/AlcubierreDrive.warpspeed/AlcubierreDrive.warpspeed*1E6f/20000.0f;
 					float antimatter_peristence_to_add = (float) -Math.Min (currentAntimatter_missing, antimatter_mass * time_diff);
 					part.RequestResource("Antimatter", antimatter_peristence_to_add);
@@ -237,8 +223,8 @@ namespace FNPlugin {
 				Fields["centrifugeRate"].guiActive = false;
                 Fields["powerStr"].guiActive = true;
 
-                float currentpowertmp = electrical_power_ratio * basePowerConsumption;
-                powerStr = currentpowertmp.ToString("0.00") + "MW / " + basePowerConsumption.ToString("0.00") + "MW";
+                double currentpowertmp = electrical_power_ratio * GameConstants.basePowerConsumption;
+                powerStr = currentpowertmp.ToString("0.00") + "MW / " + GameConstants.basePowerConsumption.ToString("0.00") + "MW";
 				if (active_mode == 0) { // Research
 					Fields ["scienceRate"].guiActive = true;
 					float scienceratetmp = science_rate_f * 86400;
@@ -248,20 +234,20 @@ namespace FNPlugin {
 					float reprocessratetmp = reprocessing_rate_f;
 					reprocessingRate = reprocessratetmp.ToString ("0.0") + " Hours Remaining";
 				} else if (active_mode == 2) { // Antimatter
-					currentpowertmp = electrical_power_ratio * baseAMFPowerConsumption;
+                    currentpowertmp = electrical_power_ratio * GameConstants.baseAMFPowerConsumption;
 					Fields ["antimatterRate"].guiActive = true;
-					powerStr = currentpowertmp.ToString ("0.00") + "MW / " + baseAMFPowerConsumption.ToString ("0.00") + "MW";
+                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + GameConstants.baseAMFPowerConsumption.ToString("0.00") + "MW";
 					antimatterRate = antimatter_rate_f.ToString ("E") + "mg/sec";
 				} else if (active_mode == 3) { // Electrolysis
-					currentpowertmp = electrical_power_ratio * baseELCPowerConsumption;
+                    currentpowertmp = electrical_power_ratio * GameConstants.baseELCPowerConsumption;
 					Fields ["electrolysisRate"].guiActive = true;
 					float electrolysisratetmp = -electrolysis_rate_f * 86400;
 					electrolysisRate = electrolysisratetmp.ToString ("0.0") + "mT/day";
-					powerStr = currentpowertmp.ToString ("0.00") + "MW / " + baseELCPowerConsumption.ToString ("0.00") + "MW";
+                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + GameConstants.baseELCPowerConsumption.ToString("0.00") + "MW";
 				} else if (active_mode == 4) { // Centrifuge
-					currentpowertmp = electrical_power_ratio * baseCentriPowerConsumption;
+                    currentpowertmp = electrical_power_ratio * GameConstants.baseCentriPowerConsumption;
 					Fields["centrifugeRate"].guiActive = true;
-					powerStr = currentpowertmp.ToString ("0.00") + "MW / " + baseCentriPowerConsumption.ToString ("0.00") + "MW";
+                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + GameConstants.baseCentriPowerConsumption.ToString("0.00") + "MW";
 					float deut_per_hour = deut_rate_f*3600;
 					centrifugeRate = deut_per_hour.ToString ("0.00") + " Kg Deuterium/Hour";
 				}else {
@@ -308,8 +294,8 @@ namespace FNPlugin {
 			if (IsEnabled) {
 				//float electrical_power_provided = part.RequestResource("Megajoules", basePowerConsumption * TimeWarp.fixedDeltaTime);
 				//mega_manager.powerDraw(this, basePowerConsumption);
-				float electrical_power_provided = consumeFNResource (basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-				electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / basePowerConsumption;
+                float electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                electrical_power_ratio = (float) (electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePowerConsumption);
 				global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
 
 				if (electrical_power_ratio > 0) {
@@ -323,7 +309,7 @@ namespace FNPlugin {
 						float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
 						altitude_multiplier = Math.Max (altitude_multiplier, 1);
 
-						science_rate_f = baseScienceRate * PluginHelper.getScienceMultiplier (vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / 86400.0f * global_rate_multipliers * stupidity / (Mathf.Sqrt (altitude_multiplier));
+                        science_rate_f = (float) (GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / 86400.0f * global_rate_multipliers * stupidity / (Mathf.Sqrt(altitude_multiplier)));
 						//part.RequestResource ("Science", -science_rate_f * TimeWarp.fixedDeltaTime);
 						//ScienceSubject subject = new ScienceSubject ();
 						if (ResearchAndDevelopment.Instance != null) {
@@ -357,7 +343,7 @@ namespace FNPlugin {
                         uf6tothf4_ratio = uf6sparecapacity / (thf4sparecapacity+uf6sparecapacity);
                         double amount_to_reprocess = Math.Min(currentActinides,depletedfuelsparecapacity*5.0);
 						if (currentActinides > 0 && !double.IsNaN(uf6tothf4_ratio) && !double.IsInfinity(uf6tothf4_ratio)) {
-                            double actinides_removed = part.RequestResource("Actinides", baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * global_rate_multipliers);
+                            double actinides_removed = part.RequestResource("Actinides", GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * global_rate_multipliers);
 							double uf6added = part.RequestResource ("UF6", -actinides_removed*0.8*uf6tothf4_ratio);
                             double th4added = part.RequestResource("ThF4", -actinides_removed*0.8*(1-uf6tothf4_ratio));
                             double duf6added = part.RequestResource("DepletedFuel", -actinides_removed * 0.2);
@@ -368,63 +354,25 @@ namespace FNPlugin {
 						}
 					} else if (active_mode == 2) { //Antimatter
 						//float more_electrical_power_provided = part.RequestResource("Megajoules", (baseAMFPowerConsumption-basePowerConsumption) * TimeWarp.fixedDeltaTime);
-						float more_electrical_power_provided = consumeFNResource ((baseAMFPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                        float more_electrical_power_provided = consumeFNResource((GameConstants.baseAMFPowerConsumption - GameConstants.basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 						global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
 						float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
-						electrical_power_ratio = total_electrical_power_provided / TimeWarp.fixedDeltaTime / baseAMFPowerConsumption;
+                        electrical_power_ratio = (float) (total_electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseAMFPowerConsumption);
 						global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
 
-						total_electrical_power_provided = global_rate_multipliers * baseAMFPowerConsumption * 1E6f;
+                        total_electrical_power_provided = (float) (global_rate_multipliers * GameConstants.baseAMFPowerConsumption * 1E6f);
 						float antimatter_mass = total_electrical_power_provided / AlcubierreDrive.warpspeed / AlcubierreDrive.warpspeed * 1E6f / 20000.0f;
 						antimatter_rate_f = -part.RequestResource ("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
-					} else if (active_mode == 3) { // Electrolysis
-						if (vessel.Splashed || (vessel.Landed && vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_VALL) || (vessel.Landed && vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_DUNA)) {
-							//float more_electrical_power_provided = part.RequestResource("Megajoules", (baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime);
-							float more_electrical_power_provided = consumeFNResource ((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-							global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
-							float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
-							if (vessel.Landed && vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_DUNA) { // Water on Duna must be baked out of the soil
-								electrolysis_rate_f = total_electrical_power_provided / (electrolysisEnergyPerTon + bakingEnergyPerTon) / TimeWarp.fixedDeltaTime;
-							} else {
-								electrolysis_rate_f = total_electrical_power_provided / electrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
-							}
-							global_rate_multipliers = global_rate_multipliers * electrolysis_rate_f;
-							float hydrogen_rate = electrolysis_rate_f / (1 + electrolysisMassRatio);
-							float oxygen_rate = hydrogen_rate * electrolysisMassRatio;
-							float density = PartResourceLibrary.Instance.GetDefinition ("LiquidFuel").density;
-							electrolysis_rate_f = part.RequestResource ("LiquidFuel", -hydrogen_rate * TimeWarp.fixedDeltaTime / density);
-							electrolysis_rate_f += part.RequestResource ("Oxidizer", -oxygen_rate * TimeWarp.fixedDeltaTime / density);
-							electrolysis_rate_f = electrolysis_rate_f / TimeWarp.fixedDeltaTime * density;
-						} else if (vessel.Landed) {
-							if (vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_MUN || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_IKE || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_TYLO) {
-								//float more_electrical_power_provided = part.RequestResource("Megajoules", (baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime);
-								float more_electrical_power_provided = consumeFNResource ((baseELCPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-								global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
-								float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
-								electrolysis_rate_f = total_electrical_power_provided / aluminiumElectrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
-								global_rate_multipliers = global_rate_multipliers * electrolysis_rate_f;
-								float aluminium_density = PartResourceLibrary.Instance.GetDefinition ("Aluminium").density;
-								float oxygen_density = PartResourceLibrary.Instance.GetDefinition ("Oxidizer").density;
-								float mass_rate = electrolysis_rate_f;
-								electrolysis_rate_f = part.RequestResource ("Aluminium", -mass_rate * TimeWarp.fixedDeltaTime / aluminium_density) * aluminium_density;
-								electrolysis_rate_f += part.RequestResource ("Oxidizer", -aluminiumElectrolysisMassRatio * mass_rate * TimeWarp.fixedDeltaTime / oxygen_density) * oxygen_density;
-								electrolysis_rate_f = electrolysis_rate_f / TimeWarp.fixedDeltaTime;
-							} else {
-								ScreenMessages.PostScreenMessage ("No suitable resources found.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-								IsEnabled = false;
-							}
-						} else {
-							ScreenMessages.PostScreenMessage ("You must be landed or splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-							IsEnabled = false;
-						}
+					} else if (active_mode == 3) {
+						IsEnabled = false;
 					} else if (active_mode == 4) { // Centrifuge
 						if (vessel.Splashed) {
-							float more_electrical_power_provided = consumeFNResource ((baseCentriPowerConsumption - basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                            float more_electrical_power_provided = consumeFNResource((GameConstants.baseCentriPowerConsumption - GameConstants.basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 							global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
 							float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
-							global_rate_multipliers = global_rate_multipliers * total_electrical_power_provided / baseCentriPowerConsumption / TimeWarp.fixedDeltaTime;
-							electrical_power_ratio = total_electrical_power_provided / baseCentriPowerConsumption / TimeWarp.fixedDeltaTime;
-							float deut_produced = global_rate_multipliers * deuterium_timescale * deuterium_abudance * 1000.0f;
+                            global_rate_multipliers = (float) (global_rate_multipliers * total_electrical_power_provided / GameConstants.baseCentriPowerConsumption / TimeWarp.fixedDeltaTime);
+                            electrical_power_ratio = (float) (total_electrical_power_provided / GameConstants.baseCentriPowerConsumption / TimeWarp.fixedDeltaTime);
+                            float deut_produced = (float) (global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
 							deut_rate_f = -part.RequestResource ("Deuterium", -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
 						} else {
 							ScreenMessages.PostScreenMessage ("You must be splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);

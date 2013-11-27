@@ -603,38 +603,31 @@ namespace FNPlugin{
 			return 0.1;
 		}
 
-		public static string getPropellantFilePath(bool isJet) {
-			if (isJet) {
-				return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/IntakeEnginePropellants.cfg";
-			}else {
-				return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/EnginePropellants.cfg";
-			}
-		}
 
-		public static ConfigNode[] getPropellants(bool isJet) {
-			ConfigNode config = ConfigNode.Load(getPropellantFilePath(isJet));
-			ConfigNode[] propellantlist = config.GetNodes("PROPELLANTS");
+        public static ConfigNode[] getPropellants(bool isJet) {
+            ConfigNode[] propellantlist;
+            if (isJet) {
+                propellantlist = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_NTR_PROPELLANT");
+            } else {
+                propellantlist = GameDatabase.Instance.GetConfigNodes("BASIC_NTR_PROPELLANT");
+            }
 
-			if (config == null) {
-				PluginHelper.showInstallationErrorMessage ();
-			}
+            if (propellantlist == null) {
+                PluginHelper.showInstallationErrorMessage();
+            }
 
-			return propellantlist;
-		}
+            return propellantlist;
+        }
 
-		public static ConfigNode[] getPropellantsHybrid() {
-			ConfigNode config = ConfigNode.Load(getPropellantFilePath(true));
-			ConfigNode config2 = ConfigNode.Load(getPropellantFilePath(false));
-			ConfigNode[] propellantlist = config.GetNodes("PROPELLANTS");
-			ConfigNode[] propellantlist2 = config2.GetNodes("PROPELLANTS");
-			propellantlist = propellantlist.Concat(propellantlist2).ToArray();
-
-			if (config == null || config2 == null) {
-				PluginHelper.showInstallationErrorMessage ();
-			}
-
-			return propellantlist;
-		}
+        public static ConfigNode[] getPropellantsHybrid() {
+            ConfigNode[] propellantlist = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_NTR_PROPELLANT");
+            ConfigNode[] propellantlist2 = GameDatabase.Instance.GetConfigNodes("BASIC_NTR_PROPELLANT");
+            propellantlist = propellantlist.Concat(propellantlist2).ToArray();
+            if (propellantlist == null || propellantlist2 == null) {
+                PluginHelper.showInstallationErrorMessage();
+            }
+            return propellantlist;
+        }
 
 
 

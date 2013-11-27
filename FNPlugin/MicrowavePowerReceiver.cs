@@ -85,7 +85,8 @@ namespace FNPlugin {
             Actions["ActivateReceiverAction"].guiName = Events["ActivateReceiver"].guiName = String.Format("Activate Receiver");
             Actions["DisableReceiverAction"].guiName = Events["DisableReceiver"].guiName = String.Format("Disable Receiver");
             Actions["ToggleReceiverAction"].guiName = String.Format("Toggle Receiver");
-
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
+            this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
             if (state == StartState.Editor) { return; }
             
@@ -191,8 +192,7 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
-            this.resources_to_supply = resources_to_supply;
+            
             int activeSatsIncr = 0;
             int activeRelsIncr = 0;
             double total_power = 0;

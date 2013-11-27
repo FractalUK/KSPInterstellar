@@ -172,15 +172,10 @@ namespace FNPlugin {
 			last_active_time = (float)Planetarium.GetUniversalTime ();
 		}
 
-		public static string getNameFilePath() {
-			return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/NameList.cfg";
-		}
-
-		public static ConfigNode[] getNames() {
-			ConfigNode config = ConfigNode.Load(getNameFilePath());
-			ConfigNode[] namelist = config.GetNodes("NAME");
-			return namelist;
-		}
+        public static ConfigNode[] getNames() {
+            ConfigNode[] namelist = GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
+            return namelist;
+        }
 	}
 }
 

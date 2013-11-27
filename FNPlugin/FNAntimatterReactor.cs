@@ -16,18 +16,25 @@ namespace FNPlugin {
         protected override double consumeReactorResource(double resource) {
             List<PartResource> antimatter_resources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Antimatter").id, antimatter_resources);
-            double antimatter_current_amount = 0;
+            double antimatter_provided = 0;
             foreach (PartResource antimatter_resource in antimatter_resources) {
-                antimatter_current_amount += antimatter_resource.amount;
+                double antimatter_consumed_here = Math.Min(antimatter_resource.amount, resource);
+                antimatter_provided += antimatter_consumed_here;
+                antimatter_resource.amount -= antimatter_consumed_here;
             }
-            resource = Math.Min(antimatter_current_amount, resource);
-            double antimatter_provided = part.RequestResource("Antimatter", resource);
             return antimatter_provided;
         }
 
         protected override double returnReactorResource(double resource) {
-            resource = part.RequestResource("Antimatter", -resource);
-            return resource;
+            List<PartResource> antimatter_resources = new List<PartResource>();
+            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Antimatter").id, antimatter_resources);
+            double antimatter_returned = 0;
+            foreach (PartResource antimatter_resource in antimatter_resources) {
+                double antimatter_returned_here = Math.Min(antimatter_resource.maxAmount - antimatter_resource.amount, resource);
+                antimatter_returned += antimatter_returned_here;
+                antimatter_resource.amount += antimatter_returned_here;
+            }
+            return antimatter_returned;
         }
         
         protected override string getResourceDeprivedMessage() {

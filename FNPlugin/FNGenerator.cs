@@ -31,6 +31,8 @@ namespace FNPlugin {
 		public string upgradeTechReq;
 		[KSPField(isPersistant = false)]
 		public float upgradeCost;
+        [KSPField(isPersistant = false)]
+        public float radius; 
 
 		// GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -226,7 +228,16 @@ namespace FNPlugin {
 
 		public void updateGeneratorPower() {
 			hotBathTemp = myAttachedReactor.getCoreTemp();
-			maxThermalPower = myAttachedReactor.getThermalPower();
+            float heat_exchanger_thrust_divisor = 1;
+            if (radius > myAttachedReactor.getRadius()) {
+                heat_exchanger_thrust_divisor = myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius;
+            } else {
+                heat_exchanger_thrust_divisor = radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
+            }
+            if (myAttachedReactor.getRadius() <= 0 || radius <= 0) {
+                heat_exchanger_thrust_divisor = 1;
+            }
+			maxThermalPower = myAttachedReactor.getThermalPower()/heat_exchanger_thrust_divisor;
 			coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 

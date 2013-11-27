@@ -97,13 +97,13 @@ namespace FNPlugin {
 
 		[KSPEvent(guiActive = true, guiName = "Enable Tritium Breeding", active = false)]
 		public void BreedTritium() {
-            if (!getIsNuclear()) { return; }
+            if (!isNeutronRich()) { return; }
 			breedtritium = true;
 		}
 
 		[KSPEvent(guiActive = true, guiName = "Disable Tritium Breeding", active = true)]
 		public void StopBreedTritium() {
-            if (!getIsNuclear()) { return; }
+            if (!isNeutronRich()) { return; }
 			breedtritium = false;
 		}
 
@@ -210,32 +210,32 @@ namespace FNPlugin {
 				anim.Play ();
 			}
             
-            this.part.force_activate();
-            if (IsEnabled && last_active_time != 0) {
+            if (IsEnabled && last_active_time > 0) {
                 double now = Planetarium.GetUniversalTime();
                 double time_diff = now - last_active_time;
                 double resource_to_take = consumeReactorResource(resourceRate*time_diff*ongoing_consumption_rate);
                 if (breedtritium) {
                     List<PartResource> lithium_resources = new List<PartResource>();
                     part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Lithium").id, lithium_resources);
-                    float lithium_current_amount = 0;
+                    double lithium_current_amount = 0;
                     foreach (PartResource lithium_resource in lithium_resources) {
-                        lithium_current_amount += (float)lithium_resource.amount;
+                        lithium_current_amount += lithium_resource.amount;
                     }
 
                     List<PartResource> tritium_resources = new List<PartResource>();
                     part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Tritium").id, tritium_resources);
-                    float tritium_missing_amount = 0;
+                    double tritium_missing_amount = 0;
                     foreach (PartResource tritium_resource in tritium_resources) {
-                        tritium_missing_amount += (float)(tritium_resource.maxAmount - tritium_resource.amount);
+                        tritium_missing_amount += tritium_resource.maxAmount - tritium_resource.amount;
                     }
 
-                    float lithium_to_take = (float)Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, lithium_current_amount);
-                    float tritium_to_add = (float)-Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, tritium_missing_amount);
-                    part.RequestResource("Lithium", lithium_to_take);
-                    part.RequestResource("Tritium", tritium_to_add);
+                    double lithium_to_take = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, lithium_current_amount);
+                    double tritium_to_add = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, tritium_missing_amount);
+                    part.RequestResource("Lithium", Math.Min(tritium_to_add, lithium_to_take));
+                    part.RequestResource("Tritium", -Math.Min(tritium_to_add,lithium_to_take));
                 }
             }
+            this.part.force_activate();
         }
 
         public override void OnUpdate() {
@@ -362,6 +362,9 @@ namespace FNPlugin {
                 if (resource_ratio > 0) {
                     min_throttle = min_throttle / resource_ratio;
                 }
+                if (double.IsNaN(power_to_supply) || double.IsInfinity(power_to_supply)) {
+                    power_to_supply = 0;
+                }
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply,min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) < 0.95) {
                     supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
@@ -369,9 +372,9 @@ namespace FNPlugin {
                 double thermal_power_ratio = thermal_power_received / ThermalPower / TimeWarp.fixedDeltaTime;
                 ongoing_consumption_rate = (float)thermal_power_ratio;
                 double return_ratio = 1 - thermal_power_ratio;
-                returnReactorResource(resource_provided * return_ratio);
+                double resource_returned = returnReactorResource(resource_provided * return_ratio);
                 powerPcnt = (float)(resource_ratio * 100.0 * thermal_power_ratio);
-                if (getIsNuclear() && breedtritium) {
+                if (breedtritium) {
                     float lith_used = part.RequestResource("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
                     tritium_produced_f = -part.RequestResource("Tritium", -lith_used) / TimeWarp.fixedDeltaTime;
                     if (tritium_produced_f <= 0) {

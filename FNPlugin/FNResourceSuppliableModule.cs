@@ -5,12 +5,12 @@ using System.Text;
 
 namespace FNPlugin {
     abstract class FNResourceSuppliableModule :PartModule, FNResourceSuppliable{
-        protected Dictionary<String,float> fnresource_supplied = new Dictionary<String, float>();
+        protected Dictionary<String,double> fnresource_supplied = new Dictionary<String, double>();
 		protected Dictionary<String,FNResourceManager> fnresource_managers = new Dictionary<String,FNResourceManager> ();
 		protected Dictionary<String,bool> fnresource_manager_responsibilities = new Dictionary<String,bool> ();
 		protected String[] resources_to_supply;
 
-        public void receiveFNResource(float power, String resourcename) {
+        public void receiveFNResource(double power, String resourcename) {
             
             //resourcename = resourcename.ToLower();
             if (fnresource_supplied.ContainsKey(resourcename)) {
@@ -20,7 +20,7 @@ namespace FNPlugin {
             }
         }
 
-        public float consumeFNResource(float power, String resourcename) {
+        public float consumeFNResource(double power, String resourcename) {
             //print("preConsuming Resource");
 			power = Math.Max (power, 0);
             if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
@@ -30,16 +30,16 @@ namespace FNPlugin {
                 fnresource_supplied.Add(resourcename, 0);
             }
             //print("Consuming Resource");
-            float power_taken = Math.Min(power, fnresource_supplied[resourcename]);
+            double power_taken = Math.Min(power, fnresource_supplied[resourcename]*TimeWarp.fixedDeltaTime);
             fnresource_supplied[resourcename] -= power_taken;
             FNResourceManager mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
-            mega_manager.powerDraw(this, power);
-            return power_taken;
+            mega_manager.powerDraw(this, (float)power);
+            return (float)power_taken;
         }
 
-        public float consumeFNResource(double power, String resourcename) {
-            return consumeFNResource((float)power, resourcename);
+        public float consumeFNResource(float power, String resourcename) {
+            return (float)consumeFNResource((double)power, resourcename);
         }
 
 		public float supplyFNResource(float supply, String resourcename) {

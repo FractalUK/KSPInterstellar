@@ -167,37 +167,77 @@ namespace FNPlugin {
                 if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID)) {
                     ConfigNode power_node = config.GetNode("VESSEL_MICROWAVE_POWER_" + vesselID);
                     if (power_node.HasValue("nuclear_power")) {
-                        power_node.SetValue("nuclear_power", nuclear_power.ToString("E"));
+                        power_node.SetValue("nuclear_power", MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel).ToString("E"));
                     } else {
-                        power_node.AddValue("nuclear_power", nuclear_power.ToString("E"));
+                        power_node.AddValue("nuclear_power", MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel).ToString("E"));
                     }
                     if (power_node.HasValue("solar_power")) {
-                        power_node.SetValue("solar_power", solar_power.ToString("E"));
+                        power_node.SetValue("solar_power", MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel).ToString("E"));
                     } else {
-                        power_node.AddValue("solar_power", solar_power.ToString("E"));
+                        power_node.AddValue("solar_power", MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel).ToString("E"));
                     }
 
                 } else {
                     ConfigNode power_node = config.AddNode("VESSEL_MICROWAVE_POWER_" + vesselID);
-                    power_node.AddValue("nuclear_power", nuclear_power.ToString("E"));
-                    power_node.AddValue("solar_power", solar_power.ToString("E"));
+                    power_node.AddValue("nuclear_power", MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel).ToString("E"));
+                    power_node.AddValue("solar_power", MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel).ToString("E"));
                 }
 
                 if (config.HasNode("VESSEL_MICROWAVE_RELAY_" + vesselID)) {
                     ConfigNode relay_node = config.GetNode("VESSEL_MICROWAVE_RELAY_" + vesselID);
                     if (relay_node.HasValue("relay")) {
-                        relay_node.SetValue("relay", relay.ToString());
+                        relay_node.SetValue("relay", MicrowavePowerTransmitter.vesselIsRelay(vessel).ToString());
                     } else {
-                        relay_node.AddValue("relay", relay.ToString());
+                        relay_node.AddValue("relay", MicrowavePowerTransmitter.vesselIsRelay(vessel).ToString());
                     }
                 } else {
                     ConfigNode relay_node = config.AddNode("VESSEL_MICROWAVE_RELAY_" + vesselID);
-                    relay_node.AddValue("relay", relay.ToString());
+                    relay_node.AddValue("relay", MicrowavePowerTransmitter.vesselIsRelay(vessel).ToString());
                 }
 
                 config.Save(PluginHelper.getPluginSaveFilePath());
             }
             activeCount++;
+        }
+
+        public double getNuclearPower() {
+            return nuclear_power;
+        }
+
+        public double getSolarPower() {
+            return solar_power;
+        }
+
+        public bool getIsRelay() {
+            return relay;
+        }
+
+        public static double getEnumeratedNuclearPowerForVessel(Vessel vess) {
+            List<MicrowavePowerTransmitter> transmitters = vess.FindPartModulesImplementing<MicrowavePowerTransmitter>();
+            double total_nuclear_power = 0;
+            foreach (MicrowavePowerTransmitter transmitter in transmitters) {
+                total_nuclear_power += transmitter.getNuclearPower();
+            }
+            return total_nuclear_power;
+        }
+
+        public static double getEnumeratedSolarPowerForVessel(Vessel vess) {
+            List<MicrowavePowerTransmitter> transmitters = vess.FindPartModulesImplementing<MicrowavePowerTransmitter>();
+            double total_solar_power = 0;
+            foreach (MicrowavePowerTransmitter transmitter in transmitters) {
+                total_solar_power += transmitter.getSolarPower();
+            }
+            return total_solar_power;
+        }
+
+        public static bool vesselIsRelay(Vessel vess) {
+            List<MicrowavePowerTransmitter> transmitters = vess.FindPartModulesImplementing<MicrowavePowerTransmitter>();
+            foreach (MicrowavePowerTransmitter transmitter in transmitters) {
+                if (transmitter.getIsRelay()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
     }

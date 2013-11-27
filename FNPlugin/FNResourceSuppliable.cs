@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FNPlugin {
     interface FNResourceSuppliable {
-        void receiveFNResource(float power_supplied,String resourcename);
+        void receiveFNResource(double power_supplied,String resourcename);
         float consumeFNResource(double power_to_consume, String resourcename);
         float consumeFNResource(float power_to_consume, String resourcename);
     }

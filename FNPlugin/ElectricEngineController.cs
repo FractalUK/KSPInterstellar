@@ -395,15 +395,7 @@ namespace FNPlugin {
             
         }
 
-        public static string getPropellantFilePath(bool isupgraded) {
-            if (isupgraded) {
-                return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/AdvElectricEnginePropellants.cfg";
-            }else {
-                return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/ElectricEnginePropellants.cfg";
-            }
-        }
-
-		public override string GetInfo() {
+        public override string GetInfo() {
 			bool upgraded = false;
 			if (HighLogic.CurrentGame != null) {
 				if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
@@ -430,16 +422,14 @@ namespace FNPlugin {
 		}
 
         public static ConfigNode[] getPropellants(bool isupgraded) {
-            ConfigNode config = ConfigNode.Load(getPropellantFilePath(false));
-			ConfigNode config2 = ConfigNode.Load(getPropellantFilePath(true));
-            ConfigNode[] propellantlist = config.GetNodes("PROPELLANTS");
-			ConfigNode[] propellantlist2 = config2.GetNodes("PROPELLANTS");
+            ConfigNode[] propellantlist = GameDatabase.Instance.GetConfigNodes("BASIC_ELECTRIC_PROPELLANT");
+            ConfigNode[] propellantlist2 = GameDatabase.Instance.GetConfigNodes("ADVANCED_ELECTRIC_PROPELLANT");
 
-			if (isupgraded) {
+			if (isupgraded && propellantlist2 != null) {
 				propellantlist = propellantlist2.Concat(propellantlist).ToArray();
 			}
 
-			if (config == null || config2 == null) {
+            if (propellantlist == null) {
 				PluginHelper.showInstallationErrorMessage ();
 			}
 

@@ -116,6 +116,15 @@ namespace FNPlugin {
             uf4 = part.Resources["UF4"];
             thf4 = part.Resources["ThF4"];
             actinides = part.Resources["Actinides"];
+            if (double.IsNaN(uf4.amount)) {
+                uf4.amount = 0;
+            }
+            if (double.IsNaN(thf4.amount)) {
+                thf4.amount = 0;
+            }
+            if (double.IsNaN(actinides.amount)) {
+                actinides.amount = actinides.maxAmount;
+            }
             if (!upgradedToV08) {
                 upgradedToV08 = true;
                 actinides.amount = actinides.maxAmount - uf4.amount;
