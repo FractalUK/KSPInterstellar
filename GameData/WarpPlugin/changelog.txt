@@ -1,3 +1,39 @@
+Version 0.8.1
+-Microwave fix for vessels with more than one transmitter
+-Improved resource manager handling of high time acceleration
+-Fixed the solar panel power curves and made the solar panel waste heat module and inverse square law fix apply to all solar panels, rather than just stock ones
+-Fixed Tritium breeding with fusion reactors
+-Rewrote the antimatter reactor consumption code to a custom method, which should prevent the reactor power output from ever unexpectedly dropping down 
+to zero while you still have fuel and need power.
+-Changed Refinery to remove top attach node, this prevents problems with it failing to attach at certain times in the VAB
+-Applied radius fixes to the generator meaning that a generator works best when paired with a reactor of the right size
+-Made propellant definitions for the nuclear and electric engines compatible with ModuleManager
+-Updated RealFuels compatibility file
+-Tweaked fusion resource consumption rates to make them correct
+-Removed all the const definitions from the science lab and refinery and moved them to a seperate class, for some reason KSP sometimes takes offense to these on part loading.
+
+Version 0.8
+-Added resource system for Uranium and Thorium mining
+-Added new nuclear reactor models by Vaporlynx
+-Added nuclear reactor thorium fuel options - as well as EVA shutdown/restart and refuel options
+-Added Gamma ray spectrometer for resource scanning
+-Nuclear reactor temperatures and thermal rocket isp correlation adjusted (doesn't affect engine performance)
+-Existing small nuclear reactor repurposed into a fusion reactor - uses Deuterium and Tritium fuel + requires power to maintain
+-Added Microwave Thermal Rocket - much of the code and the models by Conti
+-Total rewrite of Microwave transmission system, solar and nuclear power can be used together, plus proper relay functionality
+-Added methane oxygen rocket and ISRU sabatier process + methane oxygen fuel tank
+-Added refinery part to handle resource mining, nuclear fuel reprocessing and electrolysis
+-Electrolysis option removed from science labs
+-Computer core fixed for Linux
+-Computer core science persistence fixed
+-Resource manager fixed to avoid free thrust bugs
+-Thrust asymmetry fixed
+-Liquid Fuel + Oxidiser now provides proper thrust
+-Solar Panel inverse square law fixed, works with stock solar system and RSS
+-Added science lab notification of amount of science added
+-Improved Antimatter storage tank code
+-Various GUI fixes
+
 Version 0.7.4
 -Added option to stop/start charging antimatter tank when it doesn't need the charge
 -Added ZZZ's small radial radiator
