@@ -51,7 +51,7 @@ namespace FNPlugin {
 
 		protected int shutdown_counter = 0;
 
-		const float thrust_efficiency = 0.72f;
+		protected float thrust_efficiency = 0.72f;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Mode")]
         public string fuelmode;
@@ -346,6 +346,7 @@ namespace FNPlugin {
             for (int i = 0; i < assprops.Length; ++i) {
                 fuelmode = chosenpropellant.GetValue("guiName");
                 ispMultiplier = float.Parse(chosenpropellant.GetValue("ispMultiplier"));
+                thrust_efficiency = float.Parse(chosenpropellant.GetValue("efficiency"));
                 //propellant_is_upgrade = bool.Parse(chosenpropellant.GetValue("isUpgraded"));
                 
                 ModuleEngines.Propellant curprop = new ModuleEngines.Propellant();

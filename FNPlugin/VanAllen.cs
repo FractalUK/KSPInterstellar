@@ -41,12 +41,13 @@ namespace FNPlugin {
         }
 
         public static double getRadiationLevel(int refBody, double altitude, double lat) {
-            lat = (float)(lat / 180 * Math.PI);
+            lat = lat / 180 * Math.PI;
+            
             CelestialBody crefbody = FlightGlobals.fetch.bodies[refBody];
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
             double atmosphere = FlightGlobals.getStaticPressure(altitude, crefbody);
             double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(crefbody);
-            double atmosphere_scaling = Math.Exp(-atmosphere) * 10;
+            double atmosphere_scaling = Math.Exp(-atmosphere);
             
             double mp = crefbody.Mass;
             double rp = crefbody.Radius;
@@ -57,10 +58,10 @@ namespace FNPlugin {
 
             double peakbelt = 1.5 * crefkerbin.Radius * relrp;
             double peakbelt2 = 6 * crefkerbin.Radius * relrp;
-            double altituded = ((double)altitude);
+            double altituded = altitude;
             double a = peakbelt / Math.Sqrt(2);
             double b = peakbelt2 / Math.Sqrt(2);
-            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(a, 2))) / (Math.Pow(a, 3)) + 0.33*Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
+            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(a, 2))) / (Math.Pow(a, 3)) + 0.8*Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
             beltparticles = beltparticles * relrp / relrt * 50.0;
 
             if (crefbody.flightGlobalsIndex == 0) {
@@ -69,7 +70,7 @@ namespace FNPlugin {
 
             beltparticles = beltparticles * Math.Abs(Math.Cos(lat)) * getSpecialMagneticFieldScaling(refBody)*atmosphere_scaling;
 
-            return 0;
+            return beltparticles;
         }
 
         public static float getBeltMagneticFieldMag(int refBody, float altitude, float lat) {
