@@ -61,7 +61,6 @@ namespace FNPlugin {
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
-
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {
 				anim [animName].layer = 1;

@@ -198,7 +198,7 @@ namespace FNPlugin {
 
 
                     float total_electrical_power_provided = (float) (electrical_power_ratio * (GameConstants.baseAMFPowerConsumption + GameConstants.basePowerConsumption) * 1E6);
-					float antimatter_mass = total_electrical_power_provided/AlcubierreDrive.warpspeed/AlcubierreDrive.warpspeed*1E6f/20000.0f;
+                    double antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6 / 20000.0;
 					float antimatter_peristence_to_add = (float) -Math.Min (currentAntimatter_missing, antimatter_mass * time_diff);
 					part.RequestResource("Antimatter", antimatter_peristence_to_add);
 				}
@@ -361,8 +361,8 @@ namespace FNPlugin {
 						global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
 
                         total_electrical_power_provided = (float) (global_rate_multipliers * GameConstants.baseAMFPowerConsumption * 1E6f);
-						float antimatter_mass = total_electrical_power_provided / AlcubierreDrive.warpspeed / AlcubierreDrive.warpspeed * 1E6f / 20000.0f;
-						antimatter_rate_f = -part.RequestResource ("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                        double antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6f / 20000.0f;
+						antimatter_rate_f = (float) -part.RequestResource ("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
 					} else if (active_mode == 3) {
 						IsEnabled = false;
 					} else if (active_mode == 4) { // Centrifuge

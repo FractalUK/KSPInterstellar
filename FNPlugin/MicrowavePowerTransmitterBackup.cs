@@ -115,8 +115,6 @@ namespace FNPlugin {
 						var curMwRec = pml.GetModule (j) as MicrowavePowerReceiver;
 						var curSolarPan = pml.GetModule (j) as ModuleDeployableSolarPanel;
 						if (curFNGen != null) {
-							List<PartResource> partresources = new List<PartResource> ();
-							part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Megajoules").id, partresources);
 							float consumeMJ = curFNGen.getMaxPowerOutput () * TimeWarp.fixedDeltaTime;
 							float cvalue = consumeFNResource(consumeMJ,FNResourceManager.FNRESOURCE_MEGAJOULES);
 							electrical_current_available = cvalue*1000/TimeWarp.fixedDeltaTime;

@@ -29,7 +29,7 @@ namespace FNPlugin
 		public string upgradeTechReq;
         
         //private float warpspeed = 30000000.0f;
-        public const float warpspeed = 29979245.8f;
+        //public const float warpspeed = 29979245.8f;
         const float initial_megajoules_required = 1000;
         private float Megajoules_required = 1000;
                 
@@ -129,7 +129,7 @@ namespace FNPlugin
             heading.z = temp1;
             
             Vector3d position = vessel.orbit.pos;
-            heading = heading * warpspeed * warp_factors[selected_factor];
+            heading = heading * GameConstants.warpspeed * warp_factors[selected_factor];
             heading_act = heading;
             serialisedwarpvector = ConfigNode.WriteVector(heading);
             

@@ -72,7 +72,7 @@ namespace FNPlugin{
         protected float old_atmospheric_limit;
 
 		//Constants
-		protected const double g0 = 9.81f;
+		protected const double g0 = 9.81;
         protected const double isp_temp_rat = 24.4544036;
 
 		//Static
@@ -328,7 +328,7 @@ namespace FNPlugin{
 				newISP.Add(1, maxISP/2.0f);
 				vCurve.Add(0, 0.7f);
 				vCurve.Add((float)(maxISP*g0*1.0/3.0), 0.8f);
-				vCurve.Add((float)(maxISP*g0*2.0/3.0), 0.9f);
+				vCurve.Add((float)(maxISP*g0*2.0/3.0), 1.0f);
 				vCurve.Add ((float)(maxISP*g0), 0);
 				myAttachedEngine.useVelocityCurve = true;
 				myAttachedEngine.useEngineResponseTime = true;

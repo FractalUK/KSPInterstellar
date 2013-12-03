@@ -47,6 +47,8 @@ namespace FNPlugin {
         public float upgradedResourceRate;
         [KSPField(isPersistant = false)]
         public float minimumThrottle = 0;
+        [KSPField(isPersistant = false)]
+        public bool canShutdown = true;
         
         // GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -149,10 +151,20 @@ namespace FNPlugin {
 
 		public void upgradePart() {
 			isupgraded = true;
-			ThermalPower = upgradedThermalPower;
-			ReactorTemp = upgradedReactorTemp;
-			reactorType = upgradedName;
-            resourceRate = upgradedResourceRate;
+            if (upgradedThermalPower > 0) {
+                ThermalPower = upgradedThermalPower;
+            }
+            if (upgradedReactorTemp > 0) {
+                ReactorTemp = upgradedReactorTemp;
+            }
+            if (upgradedName.Length > 0) {
+                reactorType = upgradedName;
+            } else {
+                reactorType = originalName;
+            }
+            if (upgradedResourceRate > 0) {
+                resourceRate = upgradedResourceRate;
+            }
 		}
 		     
 		public override void OnStart(PartModule.StartState state) {
@@ -344,7 +356,7 @@ namespace FNPlugin {
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
             if (IsEnabled && ThermalPower > 0) {
-                if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95) {
+                if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && canShutdown) {
                     deactivate_timer++;
                     if (deactivate_timer > 3) {
                         IsEnabled = false;
@@ -384,7 +396,7 @@ namespace FNPlugin {
                 if (Planetarium.GetUniversalTime() != 0) {
                     last_active_time = (float)Planetarium.GetUniversalTime();
                 }
-                if (resource_ratio < minimumThrottle*0.99 && isNeutronRich()) {
+                if (resource_ratio < minimumThrottle*0.99 && isNeutronRich() && canShutdown) {
                     IsEnabled = false;
                 }
                 decay_products_ongoing = false;

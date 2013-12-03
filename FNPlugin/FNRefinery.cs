@@ -223,9 +223,9 @@ namespace FNPlugin {
                         double electrical_power_provided = consumeFNResource((GameConstants.baseELCPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                         electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseELCPowerConsumption);
                         if (vessel.Landed && vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_DUNA) { // Water on Duna must be baked out of the soil
-                            electrolysis_rate_d = electrical_power_ratio / (GameConstants.electrolysisEnergyPerTon + GameConstants.bakingEnergyPerTon) / TimeWarp.fixedDeltaTime;
+                            electrolysis_rate_d = electrical_power_provided / (GameConstants.electrolysisEnergyPerTon + GameConstants.bakingEnergyPerTon) / TimeWarp.fixedDeltaTime;
                         } else {
-                            electrolysis_rate_d = electrical_power_ratio / GameConstants.electrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
+                            electrolysis_rate_d = electrical_power_provided / GameConstants.electrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
                         }
                         double hydrogen_rate = electrolysis_rate_d / (1 + GameConstants.electrolysisMassRatio);
                         double oxygen_rate = hydrogen_rate * GameConstants.electrolysisMassRatio;
@@ -257,7 +257,7 @@ namespace FNPlugin {
                     if (vessel.altitude < PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) && (vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_DUNA || vessel.mainBody.flightGlobalsIndex == PluginHelper.REF_BODY_EVE)) {
                         double electrical_power_provided = consumeFNResource((GameConstants.baseELCPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                         electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseELCPowerConsumption);
-                        electrolysis_rate_d = electrical_power_ratio / GameConstants.electrolysisEnergyPerTon / TimeWarp.fixedDeltaTime * vessel.atmDensity;
+                        electrolysis_rate_d = electrical_power_provided / GameConstants.electrolysisEnergyPerTon * vessel.atmDensity / TimeWarp.fixedDeltaTime;
                         double hydrogen_rate = electrolysis_rate_d / (1 + GameConstants.electrolysisMassRatio);
                         double oxygen_rate = hydrogen_rate * GameConstants.electrolysisMassRatio;
                         double density_h = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_resource_name).density;

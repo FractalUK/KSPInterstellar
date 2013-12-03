@@ -22,9 +22,6 @@ namespace FNPlugin {
 			this.part.force_activate();
 
 			solarPanel = (ModuleDeployableSolarPanel)this.part.Modules["ModuleDeployableSolarPanel"];
-			if (solarPanel != null) {
-				solarPanel.powerCurve = PluginHelper.getSatFloatCurve ();
-			}
 		}
 
 		public override void OnUpdate() {
@@ -45,7 +42,7 @@ namespace FNPlugin {
 				float solar_rate = solarPanel.flowRate*TimeWarp.fixedDeltaTime;
 				float heat_rate = solar_rate * 0.5f/1000.0f;
 
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.98 && solarPanel.panelState == ModuleDeployableSolarPanel.panelStates.EXTENDED) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.98 && solarPanel.panelState == ModuleDeployableSolarPanel.panelStates.EXTENDED && solarPanel.sunTracking) {
 					solarPanel.Retract ();
 					if (FlightGlobals.ActiveVessel == vessel) {
 						ScreenMessages.PostScreenMessage ("Warning Dangerous Overheating Detected: Solar Panel retraction occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);

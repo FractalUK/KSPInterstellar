@@ -16,7 +16,7 @@ namespace FNPlugin {
         protected Vessel my_vessel;
         protected Part my_part;
         protected PartModule my_partmodule;
-        protected Dictionary<FNResourceSuppliable, float> power_draws;
+        protected Dictionary<FNResourceSuppliable, double> power_draws;
 		List<PartResource> partresources;
         protected String resource_name;
         //protected Dictionary<MegajouleSuppliable, float> power_returned;
@@ -30,13 +30,11 @@ namespace FNPlugin {
 
 		protected double resource_bar_ratio = 0;
 
-        protected float power_draw;
-
         public FNResourceManager(PartModule pm,String resource_name) {
             my_vessel = pm.vessel;
             my_part = pm.part;
             my_partmodule = pm;
-            power_draws = new Dictionary<FNResourceSuppliable,float>();
+            power_draws = new Dictionary<FNResourceSuppliable,double>();
             this.resource_name = resource_name;
 
 			if (resource_name == FNRESOURCE_WASTEHEAT || resource_name == FNRESOURCE_THERMALPOWER) {
@@ -46,12 +44,11 @@ namespace FNPlugin {
 			}
         }
 
-        public void powerDraw(FNResourceSuppliable pm, float power_draw) {
+        public void powerDraw(FNResourceSuppliable pm, double power_draw) {
             if (power_draws.ContainsKey(pm)) {
                 power_draw = power_draw / TimeWarp.fixedDeltaTime + power_draws[pm];
                 power_draws[pm] = power_draw;
-            }
-            else {
+            }else {
                 power_draws.Add(pm, power_draw / TimeWarp.fixedDeltaTime);
             }
         }
@@ -84,7 +81,7 @@ namespace FNPlugin {
 			return managedPowerSupplyWithMinimum (power, 0);
 		}
 
-		public float getSpareResourceCapacity() {
+		public double getSpareResourceCapacity() {
 			partresources = new List<PartResource>();
 			my_part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resource_name).id, partresources);
 			float spare_capacity = 0;
@@ -95,12 +92,7 @@ namespace FNPlugin {
 		}
 
 		public float managedPowerSupplyWithMinimum(float power, float rat_min) {
-			float power_seconds_units = power / TimeWarp.fixedDeltaTime;
-			float power_min_seconds_units = power_seconds_units * rat_min;
-			float managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(getCurrentUnfilledResourceDemand()+getSpareResourceCapacity()/TimeWarp.fixedDeltaTime,power_min_seconds_units));
-			powersupply += managed_supply_val_add;
-			stable_supply += power_seconds_units;
-			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
+            return (float) managedPowerSupplyWithMinimum((double)power, (double)rat_min);
 		}
 
 		public double managedPowerSupplyWithMinimum(double power, double rat_min) {
@@ -148,7 +140,6 @@ namespace FNPlugin {
 			double stored_current_hp_demand = high_priority_resource_demand;
 			double stored_current_charge_demand = charge_resource_demand;
 
-			//Debug.Log ("D: " + current_resource_demand.ToString("0.000") + " S: " + stable_supply.ToString("0.000"));
 			current_resource_demand = 0;
 			high_priority_resource_demand = 0;
 			charge_resource_demand = 0;
@@ -192,35 +183,33 @@ namespace FNPlugin {
 
 			//Prioritise supplying stock ElectricCharge resource
 			if (String.Equals(this.resource_name,FNResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
-				//current_resource_demand = 1;
 				List<PartResource> partresources2 = new List<PartResource> ();
 				my_part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("ElectricCharge").id, partresources2); 
 				double stock_electric_charge_needed = 0;
 				foreach (PartResource partresource in partresources2) {
 					stock_electric_charge_needed += partresource.maxAmount - partresource.amount;
 				}
-				double power_supplied = Math.Min(powersupply, stock_electric_charge_needed / 1000.0/TimeWarp.fixedDeltaTime);
-				current_resource_demand += stock_electric_charge_needed / 1000.0/TimeWarp.fixedDeltaTime;
-				charge_resource_demand += stock_electric_charge_needed / 1000.0/TimeWarp.fixedDeltaTime;
-				//Debug.Log("Supply: " + powersupply.ToString("0.0") + " Supplied" + power_supplied.ToString("0.0"));
-
-				//powersupply -= power_supplied;
+				double power_supplied = Math.Min(powersupply*1000*TimeWarp.fixedDeltaTime, stock_electric_charge_needed);
+                if (stock_electric_charge_needed > 0) {
+                    current_resource_demand += stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
+                    charge_resource_demand += stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
+                }
 				if (power_supplied > 0) {
-					powersupply += my_part.RequestResource ("ElectricCharge", -power_supplied * 1000.0);
+					powersupply += my_part.RequestResource ("ElectricCharge", -power_supplied);
 				}
 			}
 
 			//sort by power draw
 			//var power_draw_items = from pair in power_draws orderby pair.Value ascending select pair;
-			List<KeyValuePair<FNResourceSuppliable, float>> power_draw_items = power_draws.ToList();
+			List<KeyValuePair<FNResourceSuppliable, double>> power_draw_items = power_draws.ToList();
 
-			power_draw_items.Sort(delegate(KeyValuePair<FNResourceSuppliable, float> firstPair,KeyValuePair<FNResourceSuppliable, float> nextPair) {return firstPair.Value.CompareTo(nextPair.Value);});
+            power_draw_items.Sort(delegate(KeyValuePair<FNResourceSuppliable, double> firstPair, KeyValuePair<FNResourceSuppliable, double> nextPair) { return firstPair.Value.CompareTo(nextPair.Value); });
             
             // check engines
-			foreach (KeyValuePair<FNResourceSuppliable, float> power_kvp in power_draw_items) {
+            foreach (KeyValuePair<FNResourceSuppliable, double> power_kvp in power_draw_items) {
                 FNResourceSuppliable ms = power_kvp.Key;
 
-                if (ms is ElectricEngineController || ms is FNNozzleController) {
+                if (ms is ElectricEngineController || ms is FNNozzleController || ms is AntimatterStorageTank) {
                     double power = power_kvp.Value;
 					current_resource_demand += power;
 					high_priority_resource_demand += power;
@@ -236,9 +225,10 @@ namespace FNPlugin {
 
             }
             // check others
-			foreach (KeyValuePair<FNResourceSuppliable, float> power_kvp in power_draw_items) {
+            foreach (KeyValuePair<FNResourceSuppliable, double> power_kvp in power_draw_items) {
                 FNResourceSuppliable ms = power_kvp.Key;
-                if (!(ms is ElectricEngineController) && !(ms is FNNozzleController) && !(ms is FNRadiator)) {
+                
+                if (!(ms is ElectricEngineController) && !(ms is FNNozzleController) && !(ms is FNRadiator) && !(ms is AntimatterStorageTank)) {
                     double power = power_kvp.Value;
 					current_resource_demand += power;
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
@@ -253,7 +243,7 @@ namespace FNPlugin {
 
             }
 			// check radiators
-			foreach (KeyValuePair<FNResourceSuppliable, float> power_kvp in power_draw_items) {
+            foreach (KeyValuePair<FNResourceSuppliable, double> power_kvp in power_draw_items) {
 				FNResourceSuppliable ms = power_kvp.Key;
 				if (ms is FNRadiator) {
 					double power = power_kvp.Value;
@@ -267,7 +257,6 @@ namespace FNPlugin {
 					//notify of supply
                     ms.receiveFNResource(power_supplied, this.resource_name);
 				}
-
 			}
 
 
@@ -277,7 +266,7 @@ namespace FNPlugin {
 
 			if (String.Equals (this.resource_name, FNResourceManager.FNRESOURCE_WASTEHEAT)) { // passive dissip of waste heat
 				double vessel_mass = my_vessel.GetTotalMass ();
-				double passive_dissip = passive_temp_p4 * FNRadiator.stefan_const * vessel_mass * 2.0;
+                double passive_dissip = passive_temp_p4 * GameConstants.stefan_const * vessel_mass * 2.0;
 				power_extract += passive_dissip*TimeWarp.fixedDeltaTime;
 				if (power_extract < 0 && PluginHelper.isThermalDissipationDisabled ()) {
 					power_extract = 0;

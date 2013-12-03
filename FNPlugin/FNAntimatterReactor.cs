@@ -21,6 +21,7 @@ namespace FNPlugin {
                 double antimatter_consumed_here = Math.Min(antimatter_resource.amount, resource);
                 antimatter_provided += antimatter_consumed_here;
                 antimatter_resource.amount -= antimatter_consumed_here;
+                resource -= antimatter_consumed_here;
             }
             return antimatter_provided;
         }
@@ -33,6 +34,7 @@ namespace FNPlugin {
                 double antimatter_returned_here = Math.Min(antimatter_resource.maxAmount - antimatter_resource.amount, resource);
                 antimatter_returned += antimatter_returned_here;
                 antimatter_resource.amount += antimatter_returned_here;
+                resource -= antimatter_returned_here;
             }
             return antimatter_returned;
         }

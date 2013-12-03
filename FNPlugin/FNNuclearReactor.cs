@@ -11,12 +11,6 @@ namespace FNPlugin {
         [KSPField(isPersistant = true)]
         public bool uranium_fuel = true;
 
-        //const
-        protected const double thorium_power_output_ratio = 1.38;
-        protected const double thorium_resource_burnrate_ratio = 0.45;
-        protected const double thorium_actinides_ratio_factor = 1;
-        protected const double thorium_temperature_ratio_factor = 1.17857;
-
         //Internal
         protected PartResource thf4;
         protected PartResource uf4;
@@ -102,7 +96,7 @@ namespace FNPlugin {
             if (uranium_fuel) {
                 return ReactorTemp;
             } else {
-                return (float) (ReactorTemp * thorium_temperature_ratio_factor);
+                return (float) (ReactorTemp * GameConstants.thorium_temperature_ratio_factor);
             }
         }
 
@@ -161,7 +155,7 @@ namespace FNPlugin {
             double fuel_to_actinides_ratio = fuel_resource.amount / (actinides.amount + fuel_resource.amount) * fuel_resource.amount / (actinides.amount + fuel_resource.amount);
             if (!uranium_fuel) {
                 if (!double.IsInfinity(fuel_to_actinides_ratio) && !double.IsNaN(fuel_to_actinides_ratio)) {
-                    resource = resource * Math.Min(Math.Exp(-thorium_actinides_ratio_factor/fuel_to_actinides_ratio+1), 1);
+                    resource = resource * Math.Min(Math.Exp(-GameConstants.thorium_actinides_ratio_factor / fuel_to_actinides_ratio + 1), 1);
                 }
             }
             double actinides_max_amount = actinides.maxAmount;
@@ -194,8 +188,8 @@ namespace FNPlugin {
 
         protected void setThoriumFuel() {
             fuel_resource = thf4;
-            ThermalPower = (float)(initial_thermal_power * thorium_power_output_ratio);
-            resourceRate = (float)(initial_resource_rate * thorium_resource_burnrate_ratio);
+            ThermalPower = (float)(initial_thermal_power * GameConstants.thorium_power_output_ratio);
+            resourceRate = (float)(initial_resource_rate * GameConstants.thorium_resource_burnrate_ratio);
             uranium_fuel = false;
         }
 

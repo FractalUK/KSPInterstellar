@@ -50,7 +50,7 @@ namespace FNPlugin {
 		protected float coldBathTemp = 500;
 		protected float hotBathTemp = 1;
 		protected float outputPower;
-		protected float totalEff;
+		protected double totalEff;
 		protected float sectracker = 0;
 		protected bool play_down = true;
 		protected bool play_up = true;
@@ -201,7 +201,7 @@ namespace FNPlugin {
 			}
             
 			if (IsEnabled) {
-				float percentOutputPower = totalEff * 100.0f;
+				float percentOutputPower = (float) (totalEff * 100.0);
 				float outputPowerReport = -outputPower;
 				if (update_count - last_draw_update > 10) {
                     OutputPower = getPowerFormatString(outputPowerReport) + "_e";
@@ -226,6 +226,14 @@ namespace FNPlugin {
 			return maxThermalPower * maxTotalEff;
 		}
 
+        public float getCurrentPower() {
+            return outputPower;
+        }
+
+        public bool isActive() {
+            return IsEnabled;
+        }
+
 		public void updateGeneratorPower() {
 			hotBathTemp = myAttachedReactor.getCoreTemp();
             float heat_exchanger_thrust_divisor = 1;
@@ -238,39 +246,28 @@ namespace FNPlugin {
                 heat_exchanger_thrust_divisor = 1;
             }
 			maxThermalPower = myAttachedReactor.getThermalPower()/heat_exchanger_thrust_divisor;
-			coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
+			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 
 		public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 			if (IsEnabled && myAttachedReactor != null && FNRadiator.hasRadiatorsForVessel (vessel)) {
 				updateGeneratorPower ();
-				double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-				totalEff = (float)(carnotEff * pCarnotEff);
-
+				double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
+				totalEff = carnotEff * pCarnotEff;
 				if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) {
 					return;
 				}
-
-				List<PartResource> partresources = new List<PartResource> ();
-				part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("Megajoules").id, partresources);
-				double currentmegajoules = 0;
-				foreach (PartResource partresource in partresources) {
-					currentmegajoules += (partresource.maxAmount - partresource.amount);
-				}
-				currentmegajoules = currentmegajoules / TimeWarp.fixedDeltaTime;
-
+				double currentmegajoules = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 				double waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
 				double thermal_power_currently_needed = waste_heat_produced / totalEff;
 				double thermaldt = Math.Max(Math.Min (maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime,0.0);
 				double inputThermalPower = consumeFNResource (thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
 				double wastedt = inputThermalPower * totalEff;
 				consumeFNResource (wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
-
 				double electricdt = inputThermalPower * totalEff;
 				double electricdtps = Math.Max (electricdt / TimeWarp.fixedDeltaTime, 0.0);
 				double max_electricdtps = maxThermalPower * totalEff;
-
 				outputPower = -(float)supplyFNResourceFixedMax (electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 			} else {
 				if (IsEnabled && !vessel.packed) {

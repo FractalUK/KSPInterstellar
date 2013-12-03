@@ -21,7 +21,6 @@ namespace FNPlugin {
         }
 
         public float consumeFNResource(double power, String resourcename) {
-            //print("preConsuming Resource");
 			power = Math.Max (power, 0);
             if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
                 return 0;
@@ -29,12 +28,11 @@ namespace FNPlugin {
             if (!fnresource_supplied.ContainsKey(resourcename)) {
                 fnresource_supplied.Add(resourcename, 0);
             }
-            //print("Consuming Resource");
-            double power_taken = Math.Min(power, fnresource_supplied[resourcename]*TimeWarp.fixedDeltaTime);
+            double power_taken = Math.Max(Math.Min(power, fnresource_supplied[resourcename]*TimeWarp.fixedDeltaTime),0);
             fnresource_supplied[resourcename] -= power_taken;
             FNResourceManager mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
-            mega_manager.powerDraw(this, (float)power);
+            mega_manager.powerDraw(this, power);
             return (float)power_taken;
         }
 
@@ -136,6 +134,15 @@ namespace FNPlugin {
 			return manager.getResourceBarRatio ();
 		}
 
+        public double getSpareResourceCapacity(String resourcename) {
+            if (!FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+                return 0;
+            }
+
+            FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            return manager.getSpareResourceCapacity();
+        }
+
 		public override void OnStart(PartModule.StartState state) {
 			if (state != StartState.Editor && resources_to_supply != null) { 
 				foreach (String resourcename in resources_to_supply) {
@@ -165,10 +172,7 @@ namespace FNPlugin {
 
 					if (!FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).hasManagerForVessel (vessel)) {
 						manager = FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).createManagerForVessel (this);
-
 						print ("[WarpPlugin] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-
-
 					} else {
 						manager = FNResourceOvermanager.getResourceOvermanagerForResource (resourcename).getManagerForVessel (vessel);
 						if (manager == null) {
@@ -177,7 +181,7 @@ namespace FNPlugin {
 						}
 					}
 
-					if (manager.getPartModule ().vessel != this.vessel) {
+					if (manager.getPartModule ().vessel != this.vessel || manager.getPartModule() == null) {
 						manager.updatePartModule (this);
 					}
 
