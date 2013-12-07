@@ -332,7 +332,7 @@ namespace FNPlugin {
                         foreach (PartResource partresource in partresources) {
                             depletedfuelsparecapacity += partresource.maxAmount - partresource.amount;
                         }
-                        part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF6").id, partresources);
+                        part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF4").id, partresources);
                         foreach (PartResource partresource in partresources) {
                             uf6sparecapacity += partresource.maxAmount - partresource.amount;
                         }
@@ -344,7 +344,7 @@ namespace FNPlugin {
                         double amount_to_reprocess = Math.Min(currentActinides,depletedfuelsparecapacity*5.0);
 						if (currentActinides > 0 && !double.IsNaN(uf6tothf4_ratio) && !double.IsInfinity(uf6tothf4_ratio)) {
                             double actinides_removed = part.RequestResource("Actinides", GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * global_rate_multipliers);
-							double uf6added = part.RequestResource ("UF6", -actinides_removed*0.8*uf6tothf4_ratio);
+							double uf6added = part.RequestResource ("UF4", -actinides_removed*0.8*uf6tothf4_ratio);
                             double th4added = part.RequestResource("ThF4", -actinides_removed*0.8*(1-uf6tothf4_ratio));
                             double duf6added = part.RequestResource("DepletedFuel", -actinides_removed * 0.2);
                             double actinidesremovedperhour = actinides_removed / TimeWarp.fixedDeltaTime * 3600.0;
@@ -355,10 +355,9 @@ namespace FNPlugin {
 					} else if (active_mode == 2) { //Antimatter
 						//float more_electrical_power_provided = part.RequestResource("Megajoules", (baseAMFPowerConsumption-basePowerConsumption) * TimeWarp.fixedDeltaTime);
                         float more_electrical_power_provided = consumeFNResource((GameConstants.baseAMFPowerConsumption - GameConstants.basePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-						global_rate_multipliers = global_rate_multipliers / electrical_power_ratio;
 						float total_electrical_power_provided = more_electrical_power_provided + electrical_power_provided;
                         electrical_power_ratio = (float) (total_electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseAMFPowerConsumption);
-						global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
+						global_rate_multipliers = crew_capacity_ratio * electrical_power_ratio;
 
                         total_electrical_power_provided = (float) (global_rate_multipliers * GameConstants.baseAMFPowerConsumption * 1E6f);
                         double antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6f / 20000.0f;

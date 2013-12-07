@@ -381,6 +381,8 @@ namespace FNPlugin {
                         facing_factor = 1;
                     }
                     available_power = available_power / powerdissip * facing_factor;
+                } else {
+                    available_power = 0;
                 }
             }
             return available_power;
@@ -405,6 +407,8 @@ namespace FNPlugin {
                         facing_factor = 1;
                     }
                     available_power = available_power / powerdissip * facing_factor;
+                } else {
+                    available_power = 0;
                 }
             }
             return available_power;

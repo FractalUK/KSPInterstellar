@@ -115,7 +115,7 @@ namespace FNPlugin {
 			}
             if (chargestatus < GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE && (should_charge || (current_antimatter > 0.1))) {
                 float charge_to_add = consumeFNResource(2.0*chargeNeeded/1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f/chargeNeeded;
-				chargestatus += Mathf.Max (charge_to_add, 0);
+                chargestatus += charge_to_add;
 
 				if (charge_to_add < 2f * TimeWarp.fixedDeltaTime) {
                     float more_charge_to_add = part.RequestResource("ElectricCharge", 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;

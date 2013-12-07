@@ -245,7 +245,7 @@ namespace FNPlugin {
             if (myAttachedReactor.getRadius() <= 0 || radius <= 0) {
                 heat_exchanger_thrust_divisor = 1;
             }
-			maxThermalPower = myAttachedReactor.getThermalPower()/heat_exchanger_thrust_divisor;
+			maxThermalPower = myAttachedReactor.getThermalPower()*heat_exchanger_thrust_divisor;
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 
@@ -258,7 +258,7 @@ namespace FNPlugin {
 				if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) {
 					return;
 				}
-				double currentmegajoules = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+				double currentmegajoules = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime;
 				double waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
 				double thermal_power_currently_needed = waste_heat_produced / totalEff;
 				double thermaldt = Math.Max(Math.Min (maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime,0.0);

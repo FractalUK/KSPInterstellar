@@ -53,6 +53,8 @@ namespace FNPlugin {
         // GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorType;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Mode")]
+        public string fuelmodeStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
         public string coretempStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
@@ -170,42 +172,23 @@ namespace FNPlugin {
 		public override void OnStart(PartModule.StartState state) {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
-
 			base.OnStart(state);
 
             Actions["ActivateReactorAction"].guiName = Events["ActivateReactor"].guiName = String.Format("Activate Reactor");
             Actions["DeactivateReactorAction"].guiName = Events["DeactivateReactor"].guiName = String.Format("Deactivate Reactor");
             Actions["ToggleReactorAction"].guiName = String.Format("Toggle Reactor");
-            
-            if (state == StartState.Editor) { return; }
-
-			bool manual_upgrade = false;
-			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-				if(upgradeTechReq != null) {
-					if(PluginHelper.hasTech(upgradeTechReq)) {
-						hasrequiredupgrade = true;
-					}else if(upgradeTechReq == "none") {
-						manual_upgrade = true;
-					}
-				}else{
-					manual_upgrade = true;
-				}
-			}else{
-				hasrequiredupgrade = true;
-			}
-
-			if (reactorInit == false) {
-				reactorInit = true;
-				if(hasrequiredupgrade) {
-					upgradePart();
-				}
-			}
-
-
-
-			if(manual_upgrade) {
-				hasrequiredupgrade = true;
-			}
+            if (state == StartState.Editor) {
+                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+                    if (upgradeTechReq != null) {
+                        if (PluginHelper.hasTech(upgradeTechReq)) {
+                            isupgraded = true;
+                        }
+                    }
+                } else {
+                    isupgraded = true;
+                }
+                return;
+            }
 
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {

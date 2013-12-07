@@ -214,7 +214,7 @@ namespace FNPlugin {
                         double th4added = part.RequestResource("ThF4", -actinides_removed * 0.8 * (1 - uf6tothf4_ratio));
                         double duf6added = part.RequestResource("DepletedFuel", -actinides_removed * 0.2);
                         double actinidesremovedperhour = actinides_removed / TimeWarp.fixedDeltaTime * 3600.0;
-                        reprocessing_rate_d = (float)(amount_to_reprocess / actinidesremovedperhour);
+                        reprocessing_rate_d = amount_to_reprocess / actinidesremovedperhour;
                     } else { // Finished, hurray!
                         IsEnabled = false;
                     }

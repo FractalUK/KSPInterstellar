@@ -84,9 +84,9 @@ namespace FNPlugin {
 		public double getSpareResourceCapacity() {
 			partresources = new List<PartResource>();
 			my_part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resource_name).id, partresources);
-			float spare_capacity = 0;
+			double spare_capacity = 0;
 			foreach (PartResource partresource in partresources) {
-				spare_capacity += (float)(partresource.maxAmount - partresource.amount);
+				spare_capacity += partresource.maxAmount - partresource.amount;
 			}
 			return spare_capacity;
 		}
@@ -99,8 +99,8 @@ namespace FNPlugin {
 			double power_seconds_units = power / TimeWarp.fixedDeltaTime;
 			double power_min_seconds_units = power_seconds_units * rat_min;
 			double managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(getCurrentUnfilledResourceDemand()+getSpareResourceCapacity()/TimeWarp.fixedDeltaTime,power_min_seconds_units));
-			powersupply += (float) managed_supply_val_add;
-			stable_supply += (float) power_seconds_units;
+			powersupply += managed_supply_val_add;
+			stable_supply += power_seconds_units;
 			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
 		}
 
@@ -191,11 +191,11 @@ namespace FNPlugin {
 				}
 				double power_supplied = Math.Min(powersupply*1000*TimeWarp.fixedDeltaTime, stock_electric_charge_needed);
                 if (stock_electric_charge_needed > 0) {
-                    current_resource_demand += stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
-                    charge_resource_demand += stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
+                    current_resource_demand += stock_electric_charge_needed / 1000.0;
+                    charge_resource_demand += stock_electric_charge_needed / 1000.0;
                 }
 				if (power_supplied > 0) {
-					powersupply += my_part.RequestResource ("ElectricCharge", -power_supplied);
+					powersupply += my_part.RequestResource ("ElectricCharge", -power_supplied)/1000/TimeWarp.fixedDeltaTime;
 				}
 			}
 

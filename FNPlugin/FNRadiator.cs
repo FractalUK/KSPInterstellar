@@ -284,12 +284,12 @@ namespace FNPlugin {
 					explode_counter = 0;
 				}
 
-				double radiator_temperature_temp_val = radiatorTemp;
+                double radiator_temperature_temp_val = radiatorTemp *Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT),0.25);
 				if (FNReactor.hasActiveReactors (vessel)) {
-					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.2, radiator_temperature_temp_val);
+					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
 				}
 
-                float thermal_power_dissip = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
+                double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
                 double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e6 / (GameConstants.stefan_const * radiatorArea), 0.25), radiatorTemp));
                 instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody) + 273.16, 2.7));
@@ -326,14 +326,14 @@ namespace FNPlugin {
 					pivot.transform.localEulerAngles = original_eulers;
 				}
 
-				double radiator_temperature_temp_val = radiatorTemp;
+                double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
 				if (FNReactor.hasActiveReactors (vessel)) {
-					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.2, radiator_temperature_temp_val);
+					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
 				}
 
-                float thermal_power_dissip = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
+                double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
-                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e6 / (GameConstants.stefan_const * radiatorArea), 0.25), radiatorTemp));
+                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e7 / (GameConstants.stefan_const * radiatorArea), 0.25), radiatorTemp));
                 instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody) + 273.16, 2.7));
                 if (current_rad_temp <= 0) {
                     current_rad_temp = instantaneous_rad_temp;

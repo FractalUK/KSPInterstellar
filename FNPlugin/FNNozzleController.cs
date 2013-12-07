@@ -73,7 +73,7 @@ namespace FNPlugin{
 
 		//Constants
 		protected const double g0 = 9.81;
-        protected const double isp_temp_rat = 24.4544036;
+        protected const double isp_temp_rat = 22.371670613;
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -347,7 +347,7 @@ namespace FNPlugin{
                 double currentintakeatm = getIntakeAvailable(vessel, resourcename);
                 if (getFuelRateThermalJetsForVessel(vessel, resourcename) > 0) {
                     // divide current available intake resource by fuel useage across all engines
-                    atmospheric_limit = (float)Math.Min(currentintakeatm / (getFuelRateThermalJetsForVessel(vessel, resourcename) + currentintakeatm), 1.0);
+                    atmospheric_limit = (float)Math.Min(currentintakeatm / (getFuelRateThermalJetsForVessel(vessel, resourcename)), 1.0);
                 }
                 old_intake = currentintakeatm;
             }

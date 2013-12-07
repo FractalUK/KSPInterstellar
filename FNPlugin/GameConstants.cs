@@ -31,5 +31,8 @@ namespace FNPlugin {
         public const double microwave_angle = 3.64773814E-10f;
         public const double microwave_dish_efficiency = 0.85f;
         public const double microwave_alpha = 0.00399201596806387225548902195609f;
+        public const string deuterium_tritium_fuel_mode = "Deuterium/Tritium";
+        public const string deuterium_helium3_fuel_mode = "Deuterium/Helium-3";
+        public const string helium3_fuel_mode = "Helium-3";
     }
 }
