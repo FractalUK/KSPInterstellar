@@ -176,6 +176,10 @@ namespace FNPlugin {
             ConfigNode[] namelist = GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
             return namelist;
         }
+
+        public override string getResourceManagerDisplayName() {
+            return computercoreType;
+        }
 	}
 }
 

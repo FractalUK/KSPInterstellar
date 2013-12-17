@@ -82,7 +82,7 @@ namespace FNPlugin {
                 for (int j = 0; j < pml.Count; ++j) {
                     var curSolarPan = pml.GetModule(j) as ModuleDeployableSolarPanel;
                     if (curSolarPan != null) {
-                        curSolarPan.powerCurve = PluginHelper.getSatFloatCurve();
+                        //curSolarPan.powerCurve = PluginHelper.getSatFloatCurve();
                     }
                 }
             }
@@ -152,7 +152,7 @@ namespace FNPlugin {
 					//print ("warp: relay inputPower " + inputPowerFixedAlt);
 					genType = "relay";
 				} else if (solar == true) {
-					inputPowerFixedAlt = inputPower / PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vessel.transform.position));
+					//inputPowerFixedAlt = inputPower / PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vessel.transform.position));
 					//print ("warp: solar inputPower " + inputPowerFixedAlt);
 					genType = "solar";
 				}

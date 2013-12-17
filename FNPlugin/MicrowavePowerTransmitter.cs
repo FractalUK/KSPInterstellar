@@ -176,9 +176,12 @@ namespace FNPlugin {
             if (IsEnabled && !relay) {
                 foreach (FNGenerator generator in generators) {
                     if (generator.isActive()) {
-                        double output = generator.getMaxPowerOutput();
-                        double gpower = consumeFNResource(output*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                        nuclear_power += gpower * 1000/TimeWarp.fixedDeltaTime;
+                        FNThermalSource thermal_source = generator.getThermalSource();
+                        if (thermal_source != null && !thermal_source.isVolatileSource()) {
+                            double output = generator.getMaxPowerOutput();
+                            double gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                            nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
+                        }
                     }
                 }
 
@@ -187,6 +190,7 @@ namespace FNPlugin {
                     double spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
                     double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
                     displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
+                    //scale solar power to what it would be in Kerbin orbit for file storage
                     solar_power += spower / TimeWarp.fixedDeltaTime/inv_square_mult;
                 }
             }
@@ -252,6 +256,10 @@ namespace FNPlugin {
 
         public bool isActive() {
             return IsEnabled;
+        }
+
+        public override string getResourceManagerDisplayName() {
+            return "Microwave Transmitter";
         }
 
         public static double getEnumeratedNuclearPowerForVessel(Vessel vess) {

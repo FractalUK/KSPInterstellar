@@ -90,6 +90,10 @@ namespace FNPlugin  {
 			return ThermalPower;
 		}
 
+        public float getChargedPower() {
+            return 0;
+        }
+
 		public bool getIsNuclear() {
 			return false;
 		}
@@ -107,6 +111,10 @@ namespace FNPlugin  {
         }
 
         public bool shouldScaleDownJetISP() {
+            return false;
+        }
+
+        public bool isVolatileSource() {
             return false;
         }
 

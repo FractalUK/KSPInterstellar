@@ -26,7 +26,7 @@ namespace FNPlugin {
 
 		// Solar power curve (distance's function).
 		[KSPField]
-		public FloatCurve solarPowerCurve = PluginHelper.getSatFloatCurve();
+		public FloatCurve solarPowerCurve;// = PluginHelper.getSatFloatCurve();
 
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = false;

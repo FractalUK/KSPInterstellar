@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
-    abstract class FNResourceSuppliableModule :PartModule, FNResourceSuppliable{
+    abstract class FNResourceSuppliableModule :PartModule, FNResourceSuppliable, FNResourceSupplier{
         protected Dictionary<String,double> fnresource_supplied = new Dictionary<String, double>();
 		protected Dictionary<String,FNResourceManager> fnresource_managers = new Dictionary<String,FNResourceManager> ();
 		protected Dictionary<String,bool> fnresource_manager_responsibilities = new Dictionary<String,bool> ();
@@ -51,7 +51,7 @@ namespace FNPlugin {
 			}
 
 			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.powerSupply (supply);
+			return manager.powerSupply (this, supply);
 		}
 
 		public float supplyFNResourceFixedMax(float supply, float maxsupply, String resourcename) {
@@ -66,7 +66,7 @@ namespace FNPlugin {
 			}
 
 			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.powerSupplyFixedMax (supply,maxsupply);
+			return manager.powerSupplyFixedMax (this,supply,maxsupply);
 		}
 
 		public float supplyManagedFNResource(float supply, String resourcename) {
@@ -80,7 +80,7 @@ namespace FNPlugin {
 			}
 
 			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.managedPowerSupply (supply);
+			return manager.managedPowerSupply (this, supply);
 		}
 
 		public float supplyManagedFNResourceWithMinimum(float supply, float rat_min, String resourcename) {
@@ -95,7 +95,7 @@ namespace FNPlugin {
 			}
 
 			FNResourceManager manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-			return manager.managedPowerSupplyWithMinimum (supply,rat_min);
+			return manager.managedPowerSupplyWithMinimum (this, supply,rat_min);
 		}
 
 		public float getCurrentResourceDemand(String resourcename) {
@@ -192,6 +192,10 @@ namespace FNPlugin {
 			}
 
 		}
+
+        public virtual string getResourceManagerDisplayName() {
+            return ClassName;
+        }
 
 
     }

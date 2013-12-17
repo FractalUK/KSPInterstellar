@@ -15,9 +15,9 @@ namespace FNPlugin {
 
 		public override void OnStart(PartModule.StartState state) {
 			if (state == StartState.Editor) { return; }
-            if (!vessel.isEVA) {
-                part.force_activate();
-            }
+            //if (!vessel.isEVA) {
+            //    part.force_activate();
+            //}
 		}
 
         public override void OnUpdate() {

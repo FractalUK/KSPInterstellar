@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-	class FNGenerator : FNResourceSuppliableModule{
+	class FNGenerator : FNResourceSuppliableModule, FNUpgradeableModule{
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = true;
@@ -13,12 +13,16 @@ namespace FNPlugin {
 		public bool generatorInit = false;
 		[KSPField(isPersistant = true)]
 		public bool isupgraded = false;
+        [KSPField(isPersistant = true)]
+        public bool chargedParticleMode = false;
 
 		// Persistent False
 		[KSPField(isPersistant = false)]
 		public float pCarnotEff;
 		[KSPField(isPersistant = false)]
 		public float maxThermalPower;
+        [KSPField(isPersistant = false)]
+        public float maxChargedPower;
 		[KSPField(isPersistant = false)]
 		public string upgradedName;
 		[KSPField(isPersistant = false)]
@@ -32,10 +36,12 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false)]
 		public float upgradeCost;
         [KSPField(isPersistant = false)]
-        public float radius; 
+        public float radius;
+        [KSPField(isPersistant = false)]
+        public string altUpgradedName;
 
 		// GUI
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Type")]
 		public string generatorType;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Current Power")]
 		public string OutputPower;
@@ -80,6 +86,17 @@ namespace FNPlugin {
 			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
 		}
 
+        [KSPEvent(guiName = "Swap Type", guiActiveEditor = false, guiActiveUnfocused = false, guiActive = false)]
+        public void EditorSwapType() {
+            if (!chargedParticleMode) {
+                generatorType = altUpgradedName;
+                chargedParticleMode = true;
+            } else {
+                generatorType = upgradedName;
+                chargedParticleMode = false;
+            }
+        }
+
 		[KSPAction("Activate Generator")]
 		public void ActivateGeneratorAction(KSPActionParam param) {
 			ActivateGenerator();
@@ -98,15 +115,50 @@ namespace FNPlugin {
 		public void upgradePartModule () {
 			isupgraded = true;
 			pCarnotEff = upgradedpCarnotEff;
-			generatorType = upgradedName;
+            if (chargedParticleMode) {
+                generatorType = altUpgradedName;
+            } else {
+                generatorType = upgradedName;
+            }
+            Events["EditorSwapType"].guiActiveEditor = true;
 		}
 
+        public void OnEditorAttach() {
+            foreach (AttachNode attach_node in part.attachNodes) {
+                if (attach_node.attachedPart != null) {
+                    List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource>();
+                    if (sources.Count > 0) {
+                        myAttachedReactor = sources.First();
+                        if (myAttachedReactor != null) {
+                            if (myAttachedReactor is FNFusionReactor && isupgraded) {
+                                // if we're attaching to a fusion reactor, swap over to direct conversion if we can
+                                generatorType = altUpgradedName;
+                                chargedParticleMode = true;
+                            } else { // otherwise use a standard thermal generator
+                                generatorType = upgradedName;
+                                chargedParticleMode = false;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
 		public override void OnStart(PartModule.StartState state) {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES};
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
 
-			if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor) {
+                if (hasTechsRequiredToUpgrade()) {
+                    isupgraded = true;
+                    upgradePartModule();
+                }
+                part.OnEditorAttach += OnEditorAttach;
+                return;
+            }
+
 			this.part.force_activate();
 			generatorType = originalName;
 
@@ -125,29 +177,9 @@ namespace FNPlugin {
 				anim.Play ();
 			}
 
-			bool manual_upgrade = false;
-			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-				if(upgradeTechReq != null) {
-					if(PluginHelper.hasTech(upgradeTechReq)) {
-						hasrequiredupgrade = true;
-					}else if(upgradeTechReq == "none") {
-						manual_upgrade = true;
-						hasrequiredupgrade = true;
-					}
-				}else{
-					manual_upgrade = true;
-					hasrequiredupgrade = true;
-				}
-			}else{
-				hasrequiredupgrade = true;
-			}
-
 			if (generatorInit == false) {
 				generatorInit = true;
 				IsEnabled = true;
-				if(hasrequiredupgrade && !manual_upgrade) {
-					isupgraded = true;
-				}
 			}
 
 			if (isupgraded) {
@@ -207,7 +239,11 @@ namespace FNPlugin {
                     OutputPower = getPowerFormatString(outputPowerReport) + "_e";
 					OverallEfficiency = percentOutputPower.ToString ("0.0") + "%";
 					if (totalEff >= 0) {
-                        MaxPowerStr = getPowerFormatString(maxThermalPower * totalEff) + "_e";
+                        if (!chargedParticleMode) {
+                            MaxPowerStr = getPowerFormatString(maxThermalPower * totalEff) + "_e";
+                        } else {
+                            MaxPowerStr = getPowerFormatString(maxChargedPower * totalEff) + "_e";
+                        }
 					} else {
 						MaxPowerStr = (0).ToString() + "MW";
 					}
@@ -234,6 +270,25 @@ namespace FNPlugin {
             return IsEnabled;
         }
 
+        public FNThermalSource getThermalSource() {
+            return myAttachedReactor;
+        }
+
+        public bool hasTechsRequiredToUpgrade() {
+            if (HighLogic.CurrentGame != null) {
+                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+                    if (upgradeTechReq != null) {
+                        if (PluginHelper.hasTech(upgradeTechReq)) {
+                            return true;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 		public void updateGeneratorPower() {
 			hotBathTemp = myAttachedReactor.getCoreTemp();
             float heat_exchanger_thrust_divisor = 1;
@@ -246,6 +301,7 @@ namespace FNPlugin {
                 heat_exchanger_thrust_divisor = 1;
             }
 			maxThermalPower = myAttachedReactor.getThermalPower()*heat_exchanger_thrust_divisor;
+            maxChargedPower = myAttachedReactor.getChargedPower()*heat_exchanger_thrust_divisor;
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 
@@ -253,21 +309,36 @@ namespace FNPlugin {
 			base.OnFixedUpdate ();
 			if (IsEnabled && myAttachedReactor != null && FNRadiator.hasRadiatorsForVessel (vessel)) {
 				updateGeneratorPower ();
-				double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
-				totalEff = carnotEff * pCarnotEff;
-				if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) {
-					return;
-				}
-				double currentmegajoules = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime;
-				double waste_heat_produced = (getCurrentUnfilledResourceDemand (FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
-				double thermal_power_currently_needed = waste_heat_produced / totalEff;
-				double thermaldt = Math.Max(Math.Min (maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime,0.0);
-				double inputThermalPower = consumeFNResource (thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
-				double wastedt = inputThermalPower * totalEff;
-				consumeFNResource (wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
-				double electricdt = inputThermalPower * totalEff;
-				double electricdtps = Math.Max (electricdt / TimeWarp.fixedDeltaTime, 0.0);
-				double max_electricdtps = maxThermalPower * totalEff;
+                double electricdt = 0;
+                double electricdtps = 0;
+                double max_electricdtps = 0;
+                double input_power = 0;
+                double currentmegajoules = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                double electrical_power_currently_needed = (getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
+                if (!chargedParticleMode) {
+                    double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
+                    totalEff = carnotEff * pCarnotEff;
+                    if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) {
+                        return;
+                    }
+                    double thermal_power_currently_needed = electrical_power_currently_needed / totalEff;
+                    double thermaldt = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
+                    input_power = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    double wastedt = input_power * totalEff;
+                    consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    electricdt = input_power * totalEff;
+                    electricdtps = Math.Max(electricdt / TimeWarp.fixedDeltaTime, 0.0);
+                    max_electricdtps = maxThermalPower * totalEff;
+                } else {
+                    totalEff = 0.85;
+                    double charged_power_currently_needed = electrical_power_currently_needed / totalEff;
+                    input_power = consumeFNResource(Math.Max(charged_power_currently_needed*TimeWarp.fixedDeltaTime,0), FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    electricdt = input_power * totalEff;
+                    electricdtps = Math.Max(electricdt / TimeWarp.fixedDeltaTime, 0.0);
+                    double wastedt = input_power * (1 - totalEff);
+                    max_electricdtps = maxChargedPower * totalEff;
+                    supplyFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                }
 				outputPower = -(float)supplyFNResourceFixedMax (electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 			} else {
 				if (IsEnabled && !vessel.packed) {

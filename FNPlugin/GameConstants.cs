@@ -34,5 +34,14 @@ namespace FNPlugin {
         public const string deuterium_tritium_fuel_mode = "Deuterium/Tritium";
         public const string deuterium_helium3_fuel_mode = "Deuterium/Helium-3";
         public const string helium3_fuel_mode = "Helium-3";
+        public const double rad_const_h = 1000;
+        public const double alpha = 0.001998001998001998001998001998;
+        public const double atmospheric_non_precooled_limit = 740;
+        public const double initial_alcubierre_megajoules_required = 1000;
+        public const double anthraquinoneEnergyPerTon = 1834.321;
+        public const double baseAnthraquiononePowerConsumption = 1;
+        public const double basePechineyUgineKuhlmannPowerConsumption = 5;
+        public const double pechineyUgineKuhlmannMassRatio = 0.4847459883;
+        public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
     }
 }

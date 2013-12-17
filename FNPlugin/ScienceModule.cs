@@ -35,7 +35,7 @@ namespace FNPlugin {
 
         protected float megajoules_supplied = 0;
 
-        protected String[] modes = { "Researching..." ,"Reprocessing...","Producing Antimatter...","Electrolysing...","Centrifuging..."};
+        protected String[] modes = { "Researching" ,"Reprocessing","Producing Antimatter","Electrolysing","Centrifuging"};
         //protected int active_mode = 0;
         protected float science_rate_f;
         protected float reprocessing_rate_f = 0;
@@ -215,7 +215,7 @@ namespace FNPlugin {
 
             if (IsEnabled) {
 				//anim [animName1].normalizedTime = 1f;
-                statusTitle = modes[active_mode];
+                statusTitle = modes[active_mode] + "...";
                 Fields["scienceRate"].guiActive = false;
                 Fields["reprocessingRate"].guiActive = false;
                 Fields["antimatterRate"].guiActive = false;
@@ -391,6 +391,13 @@ namespace FNPlugin {
 			} else {
 
 			}
+        }
+
+        public override string getResourceManagerDisplayName() {
+            if (IsEnabled) {
+                return "Science Lab (" + modes[active_mode] + ")";
+            }
+            return "Science Lab";
         }
 
 

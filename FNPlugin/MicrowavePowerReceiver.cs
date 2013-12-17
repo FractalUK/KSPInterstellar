@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,8 +34,10 @@ namespace FNPlugin {
         public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Satellites Connected")]
         public string connectedsats;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Relay Connected")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Relays Connected")]
         public string connectedrelays;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Network Depth")]
+        public string networkDepthString;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
 
@@ -49,6 +52,7 @@ namespace FNPlugin {
         protected bool play_up = true;
         protected int connectedsatsi = 0;
         protected int connectedrelaysi = 0;
+        protected int networkDepth = 0;
         protected double efficiency_d = 0;
         protected double powerInput = 0;
         protected long deactivate_timer = 0;
@@ -56,6 +60,8 @@ namespace FNPlugin {
         protected List<VesselRelayPersistence> vrps;
         protected MicrowavePowerTransmitter part_transmitter;
         protected bool has_transmitter = false;
+        static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
+        double penaltyFreeDistance = 1;//should be set to proper value by OnStart method
 
         [KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
         public void ActivateReceiver() {
@@ -92,7 +98,7 @@ namespace FNPlugin {
                 part_transmitter = part.FindModulesImplementing<MicrowavePowerTransmitter>().First();
                 has_transmitter = true;
             }
-            
+
             if (animTName != null) {
                 animT = part.FindModelAnimators(animTName).FirstOrDefault();
                 if (animT != null) {
@@ -123,7 +129,7 @@ namespace FNPlugin {
             vrps = new List<VesselRelayPersistence>();
             foreach (Vessel vess in FlightGlobals.Vessels) {
                 String vesselID = vess.id.ToString();
-                
+
                 if (vess.isActiveVessel == false && vess.vesselName.ToLower().IndexOf("debris") == -1) {
                     ConfigNode config = PluginHelper.getPluginSaveFile();
                     if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID)) {
@@ -132,7 +138,7 @@ namespace FNPlugin {
                         double solar_power = 0;
                         if (power_node.HasValue("nuclear_power")) {
                             nuclear_power = double.Parse(power_node.GetValue("nuclear_power"));
-                            
+
                         }
                         if (power_node.HasValue("solar_power")) {
                             solar_power = double.Parse(power_node.GetValue("solar_power"));
@@ -158,8 +164,10 @@ namespace FNPlugin {
                     }
                 }
             }
+            penaltyFreeDistance = Math.Sqrt(1 / ((microwaveAngleTan * microwaveAngleTan) / collectorArea));
 
             this.part.force_activate();
+
         }
 
         public override void OnUpdate() {
@@ -182,9 +190,10 @@ namespace FNPlugin {
             } else {
                 beamedpower = "Offline.";
             }
-            connectedsats = connectedsatsi.ToString();
-            connectedrelays = connectedrelaysi.ToString();
-            toteff = (efficiency_d*100).ToString("0.00") + "%";
+            connectedsats = string.Format("{0}/{1}", connectedsatsi, vmps.Count);
+            connectedrelays = string.Format("{0}/{1}", connectedrelaysi, vrps.Count);
+            networkDepthString = networkDepth.ToString();
+            toteff = (efficiency_d * 100).ToString("0.00") + "%";
 
             if (anim != null) {
                 if (connectedsatsi > 0 || connectedrelaysi > 0) {
@@ -208,13 +217,13 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
-            
             int activeSatsIncr = 0;
-            int activeRelsIncr = 0;
+            //int activeRelsIncr = 0;
             double total_power = 0;
             connectedsatsi = 0;
             connectedrelaysi = 0;
-            
+            networkDepth = 0;
+
             base.OnFixedUpdate();
             if (receiverIsEnabled) {
                 if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReceiver) {
@@ -228,44 +237,39 @@ namespace FNPlugin {
                 double atmosphericefficiency = Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
                 efficiency_d = GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                 deactivate_timer = 0;
-                foreach (VesselMicrowavePersistence vmp in vmps) {
-                    if (vmp.getAvailablePower() > 0) { // if satellite has no power, don't waste your time
-                        if (received_power.ContainsKey(vmp.getVessel())) {
-                            received_power[vmp.getVessel()] = 0;
-                        } else {
-                            received_power.Add(vmp.getVessel(), 0);
-                        }
-                        // calculate maximum power receivable from satellite
-                        double sat_power_cap = vmp.getAvailablePower() * efficiency_d;
-                        double current_power_from_sat = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllVesssels(vmp);
-                        double power_available_from_sat = (sat_power_cap - current_power_from_sat);
-                        // line of sight stuff
-                        if (lineOfSightTo(vmp.getVessel())) { // we can see the satellite
-                            double sat_power = Math.Min(getSatPower(vmp), power_available_from_sat); // get sat power and make sure we conserve enegy
-                            received_power[vmp.getVessel()] = sat_power * atmosphericefficiency;
-                            total_power += sat_power;
-                            activeSatsIncr++;
-                        } else {
-                            if (vmp.getVessel() != vessel) { // don't relay power back to ourself
-                                foreach (VesselRelayPersistence vrp in vrps) {
-                                    if (lineOfSightTo(vrp.getVessel()) && vrp.isActive()) { // we can see relay and the relay is active
-                                        if (vrp.lineOfSightTo(vmp.getVessel())) { // relay can see satellite
-                                            double sat_power = Math.Min(getSatPower(vmp, vrp), power_available_from_sat); // get sat power and make sure we conserve enegy
-                                            received_power[vmp.getVessel()] = sat_power * atmosphericefficiency;
-                                            total_power += sat_power;
-                                            activeRelsIncr++;
-                                            break;
-                                        }
-                                    }
-                                }
+
+
+                HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
+                //Transmitters power calculation
+                foreach (var connectedTransmitterEntry in GetConnectedTransmitters()) {
+                    VesselMicrowavePersistence transmitter = connectedTransmitterEntry.Key;
+                    Vessel transmitterVessel = connectedTransmitterEntry.Key.getVessel();
+                    double routeEfficiency = connectedTransmitterEntry.Value.Key;
+                    IEnumerable<VesselRelayPersistence> relays = connectedTransmitterEntry.Value.Value;
+
+                    received_power[transmitterVessel] = 0;
+
+                    // calculate maximum power receivable from satellite
+                    double satPowerCap = transmitter.getAvailablePower() * efficiency_d;
+                    double currentPowerFromSat = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllVesssels(transmitter);
+                    double powerAvailableFromSat = (satPowerCap - currentPowerFromSat);
+                    double satPower = Math.Min(GetSatPower(transmitter, routeEfficiency), powerAvailableFromSat); // get sat power and make sure we conserve enegy
+                    received_power[transmitterVessel] = satPower * atmosphericefficiency;
+                    total_power += satPower;
+                    if (satPower > 0) {
+                        activeSatsIncr++;
+                        if (relays != null) {
+                            foreach (var relay in relays) {
+                                usedRelays.Add(relay);
                             }
+                            networkDepth = Math.Max(networkDepth, relays.Count());
                         }
                     }
                 }
 
 
                 connectedsatsi = activeSatsIncr;
-                connectedrelaysi = activeRelsIncr;
+                connectedrelaysi = usedRelays.Count;
 
                 double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                 powerInput = powerInputMegajoules * 1000.0f;
@@ -300,7 +304,7 @@ namespace FNPlugin {
         }
 
         public float getMegajoules() {
-            return (float) (powerInput / 1000);
+            return (float)(powerInput / 1000);
         }
 
         public float getCoreTemp() {
@@ -325,6 +329,14 @@ namespace FNPlugin {
 
         public bool shouldScaleDownJetISP() {
             return false;
+        }
+
+        public bool isVolatileSource() {
+            return true;
+        }
+
+        public float getChargedPower() {
+            return 0;
         }
 
         public void enableIfPossible() {
@@ -362,60 +374,8 @@ namespace FNPlugin {
             return true;
         }
 
-        protected double getSatPower(VesselMicrowavePersistence vmp) {
-            double available_power = vmp.getAvailablePower();
-            double distance = Vector3d.Distance(vessel.transform.position, vmp.getVessel().transform.position);
-            double powerdissip = Math.Tan(GameConstants.microwave_angle) * distance * Math.Tan(GameConstants.microwave_angle) * distance;
-            powerdissip = Math.Max(powerdissip / collectorArea, 1);
-            if (!isInlineReceiver) {
-                //Scale energy reception based on angle of reciever to transmitter
-                Vector3d direction_vector = (vmp.getVessel().transform.position - vessel.transform.position).normalized;
-                double facing_factor = Vector3d.Dot(part.transform.up, direction_vector);
-                facing_factor = Math.Max(0, facing_factor);
-                available_power = available_power / powerdissip * facing_factor;
-            } else {
-                if (vmp.getVessel() != vessel) {
-                    Vector3d direction_vector = (vmp.getVessel().transform.position - vessel.transform.position).normalized;
-                    double facing_factor = 1.0 - Math.Abs(Vector3d.Dot(part.transform.up, direction_vector));
-                    if (facing_factor > 1) {
-                        facing_factor = 1;
-                    }
-                    available_power = available_power / powerdissip * facing_factor;
-                } else {
-                    available_power = 0;
-                }
-            }
-            return available_power;
-        }
-
-        protected double getSatPower(VesselMicrowavePersistence vmp, VesselRelayPersistence vrp) {
-            double available_power = vmp.getAvailablePower();
-            double distance = Vector3d.Distance(vessel.transform.position, vmp.getVessel().transform.position) + Vector3d.Distance(vrp.getVessel().transform.position, vmp.getVessel().transform.position);
-            double powerdissip = Math.Tan(GameConstants.microwave_angle) * distance * Math.Tan(GameConstants.microwave_angle) * distance;
-            powerdissip = Math.Max(powerdissip / collectorArea, 1);
-            if (!isInlineReceiver) {
-                //Scale energy reception based on angle of reciever to transmitter
-                Vector3d direction_vector = (vrp.getVessel().transform.position - vessel.transform.position).normalized;
-                double facing_factor = Vector3d.Dot(part.transform.up, direction_vector);
-                facing_factor = Math.Max(0, facing_factor);
-                available_power = available_power / powerdissip * facing_factor;
-            } else {
-                if (vmp.getVessel() != vessel) {
-                    Vector3d direction_vector = (vrp.getVessel().transform.position - vessel.transform.position).normalized;
-                    double facing_factor = 1.0 - Math.Abs(Vector3d.Dot(part.transform.up, direction_vector));
-                    if (facing_factor > 1) {
-                        facing_factor = 1;
-                    }
-                    available_power = available_power / powerdissip * facing_factor;
-                } else {
-                    available_power = 0;
-                }
-            }
-            return available_power;
-        }
-
         public static double getEnumeratedPowerFromSatelliteForAllVesssels(VesselMicrowavePersistence vmp) {
-            
+
             double enumerated_power = 0;
             foreach (Vessel vess in FlightGlobals.Vessels) {
                 List<MicrowavePowerReceiver> receivers = vess.FindPartModulesImplementing<MicrowavePowerReceiver>();
@@ -426,7 +386,222 @@ namespace FNPlugin {
             return enumerated_power;
         }
 
+        protected double GetSatPower(VesselMicrowavePersistence transmitter, double efficiency) {
+            double availablePower = transmitter.getAvailablePower();
+            return availablePower * efficiency;
+        }
 
+
+        #region RelayRouting
+        protected double ComputeVisibilityAndDistance(VesselRelayPersistence r, Vessel v) {
+            return r.lineOfSightTo(v) ? Vector3d.Distance(r.getVessel().transform.position, v.transform.position) : -1;
+        }
+
+        protected double ComputeDistance(Vessel v1, Vessel v2) {
+            return Vector3d.Distance(v1.transform.position, v2.transform.position);
+        }
+
+        protected double ComputeTransmissionEfficiency(double distance, double facingFactor) {
+            double powerdissip = 1;
+
+            if (distance > penaltyFreeDistance)//if distance is <= penaltyFreeDistance then powerdissip will always be 1
+            {
+                powerdissip = (microwaveAngleTan * distance * microwaveAngleTan * distance) / collectorArea;//dissip is always > 1 here
+            }
+            return facingFactor / powerdissip;
+        }
+
+        protected double ComputeFacingFactor(Vessel powerVessel) {
+            double facingFactor = 1;
+
+            Vector3d directionVector = (powerVessel.transform.position - vessel.transform.position).normalized;
+            if (!isInlineReceiver) {
+                //Scale energy reception based on angle of reciever to transmitter
+                facingFactor = Vector3d.Dot(part.transform.up, directionVector);
+                facingFactor = Math.Max(0, facingFactor);
+            } else {
+                facingFactor = 1.0 - Math.Abs(Vector3d.Dot(part.transform.up, directionVector));
+                facingFactor = Math.Min(facingFactor, 1);
+            }
+
+            return facingFactor;
+        }
+
+        /// <summary>
+        /// Returns transmitters which to which this vessel can connect, route efficiency and relays used for each one.
+        /// </summary>
+        /// <param name="maxHops">Maximum number of relays which can be used for connection to transmitter</param>
+        protected IDictionary<VesselMicrowavePersistence, KeyValuePair<double, IEnumerable<VesselRelayPersistence>>> GetConnectedTransmitters(int maxHops = 25) {
+
+            //these two dictionaries store transmitters and relays and best currently known route to them which is replaced if better one is found. 
+
+            var transmitterRouteDictionary = new Dictionary<VesselMicrowavePersistence, MicrowaveRoute>();
+            var relayRouteDictionary = new Dictionary<VesselRelayPersistence, MicrowaveRoute>();
+
+            var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
+
+
+            foreach (VesselMicrowavePersistence transmitter in vmps) { //first check for direct connection from current vessel to transmitters, will always be optimal
+                if (transmitter.getAvailablePower() > 0) { //ignore if no power or transmitter is on the same vessel
+                    if (!isInlineReceiver || transmitter.getVessel() != vessel) {
+                        if (lineOfSightTo(transmitter.getVessel())) {
+                            double distance = ComputeDistance(vessel, transmitter.getVessel());
+                            double facingFactor = ComputeFacingFactor(transmitter.getVessel());
+                            double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
+                            transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiency, distance, facingFactor); //store in dictionary that optimal route to this transmitter is direct connection, can be replaced if better route is found
+                        }
+                        transmittersToCheck.Add(transmitter);
+                    }
+                }
+            }
+
+            //this algorithm processes relays in groups in which elements of the first group must be visible from receiver, 
+            //elements from the second group must be visible by at least one element from previous group and so on...
+
+
+            var relaysToCheck = new List<VesselRelayPersistence>();//relays which we have to check - all active relays will be here
+            var currentRelayGroup = new List<KeyValuePair<VesselRelayPersistence, int>>();//relays which are in line of sight, and we have not yet checked what they can see. Their index in relaysToCheck is also stored
+
+            int relayIndex = 0;
+            foreach (VesselRelayPersistence relay in vrps) {
+                if (relay.isActive()) {
+                    if (lineOfSightTo(relay.getVessel())) {
+                        double distance = ComputeDistance(vessel, relay.getVessel());
+                        double facingFactor = ComputeFacingFactor(relay.getVessel());
+                        double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
+                        relayRouteDictionary[relay] = new MicrowaveRoute(efficiency, distance, facingFactor);//store in dictionary that optimal route to this relay is direct connection, can be replaced if better route is found
+                        currentRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(relay, relayIndex));
+                    }
+                    relaysToCheck.Add(relay);
+                    relayIndex++;
+                }
+            }
+
+
+
+            int hops = 0; //number of hops between relays
+
+
+            //pre-compute distances and visibility thus limiting number of checks to (Nr^2)/2 + NrNt +Nr + Nt
+            if (hops < maxHops && transmittersToCheck.Any()) {
+                double[,] relayToRelayDistances = new double[relaysToCheck.Count, relaysToCheck.Count];
+                double[,] relayToTransmitterDistances = new double[relaysToCheck.Count, transmittersToCheck.Count];
+
+                for (int i = 0; i < relaysToCheck.Count; i++) {
+                    var relay = relaysToCheck[i];
+                    for (int j = i + 1; j < relaysToCheck.Count; j++) {
+                        double visibilityAndDistance = ComputeVisibilityAndDistance(relay, relaysToCheck[j].getVessel());
+                        relayToRelayDistances[i, j] = visibilityAndDistance;
+                        relayToRelayDistances[j, i] = visibilityAndDistance;
+                    }
+                    for (int t = 0; t < transmittersToCheck.Count; t++) {
+                        relayToTransmitterDistances[i, t] = ComputeVisibilityAndDistance(relay,
+                                                                                         transmittersToCheck[t].
+                                                                                             getVessel());
+                    }
+                }
+
+                HashSet<int> coveredRelays = new HashSet<int>();
+
+                //runs as long as there is any relay to which we can connect and maximum number of hops have not been breached
+                while (hops < maxHops && currentRelayGroup.Any()) {
+                    var nextRelayGroup = new List<KeyValuePair<VesselRelayPersistence, int>>();//will put every relay which is in line of sight of any relay from currentRelayGroup here
+                    foreach (var relayEntry in currentRelayGroup) //relays visible from receiver in first iteration, then relays visible from them etc....
+                    {
+                        var relay = relayEntry.Key;
+                        MicrowaveRoute relayRoute = relayRouteDictionary[relay];// current best route for this relay
+                        double relayRouteFacingFactor = relayRoute.FacingFactor;// it's always facing factor from the beggining of the route
+
+                        for (int t = 0; t < transmittersToCheck.Count; t++)//check if this relay can connect to transmitters
+                        {
+                            var transmitter = transmittersToCheck[t];
+                            double transmitterDistance = relayToTransmitterDistances[relayEntry.Value, t];
+                            if (transmitterDistance > 0)//it's >0 if it can see
+                            {
+                                double newDistance = relayRoute.Distance + transmitterDistance;// total distance from receiver by this relay to transmitter
+                                double efficiencyByThisRelay = ComputeTransmissionEfficiency(newDistance, relayRouteFacingFactor);//efficiency
+                                MicrowaveRoute currentOptimalRoute;
+
+                                //this will return true if there is already a route to this transmitter
+                                if (transmitterRouteDictionary.TryGetValue(transmitter, out currentOptimalRoute)) {
+                                    if (currentOptimalRoute.Efficiency < efficiencyByThisRelay)
+                                        //if route using this relay is better then replace the old route
+                                        transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay, newDistance, relayRouteFacingFactor, relay);
+                                } else {
+                                    //there is no other route to this transmitter yet known so algorithm puts this one as optimal
+                                    transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay,
+                                                                                                 newDistance,
+                                                                                                 relayRouteFacingFactor,
+                                                                                                 relay);
+                                }
+                            }
+                        }
+
+                        for (int r = 0; r < relaysToCheck.Count; r++) {
+                            var nextRelay = relaysToCheck[r];
+                            if (nextRelay == relay)
+                                continue;
+
+                            double distanceToNextRelay = relayToRelayDistances[relayEntry.Value, r];
+                            if (distanceToNextRelay > 0) //any relay which is in LOS of this relay
+                            {
+                                double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
+                                double efficiencyByThisRelay =
+                                    ComputeTransmissionEfficiency(relayToNextRelayDistance, relayRouteFacingFactor);
+
+                                MicrowaveRoute currentOptimalPredecessor;
+
+                                if (relayRouteDictionary.TryGetValue(nextRelay, out currentOptimalPredecessor))
+                                //this will return true if there is already a route to next relay
+                                {
+                                    if (currentOptimalPredecessor.Efficiency < efficiencyByThisRelay)
+                                        //if route using this relay is better
+
+                                        relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay,
+                                                                                             relayToNextRelayDistance,
+                                                                                             relayRoute.FacingFactor,
+                                                                                             relay);
+                                    //we put it in dictionary as optimal
+
+                                } else //there is no other route to this relay yet known so we put this one as optimal
+                                {
+                                    relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay,
+                                                                                         relayToNextRelayDistance,
+                                                                                         relayRoute.FacingFactor,
+                                                                                         relay);
+                                }
+
+                                if (!coveredRelays.Contains(r)) {
+                                    nextRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(nextRelay, r));
+                                    //in next iteration we will check what next relay can see
+                                    coveredRelays.Add(r);
+                                }
+                            }
+                        }
+                    }
+                    currentRelayGroup = nextRelayGroup;
+                    //we don't have to check old relays so we just replace whole List
+                    hops++;
+                }
+
+            }
+
+            //building final result
+            var resultDictionary = new Dictionary<VesselMicrowavePersistence, KeyValuePair<double, IEnumerable<VesselRelayPersistence>>>();
+
+            foreach (var transmitterEntry in transmitterRouteDictionary) {
+                Stack<VesselRelayPersistence> relays = new Stack<VesselRelayPersistence>();//Last in, first out so relay visible from receiver will always be first
+                VesselRelayPersistence relay = transmitterEntry.Value.PreviousRelay;
+                while (relay != null) {
+                    relays.Push(relay);
+                    relay = relayRouteDictionary[relay].PreviousRelay;
+                }
+                resultDictionary.Add(transmitterEntry.Key, new KeyValuePair<double, IEnumerable<VesselRelayPersistence>>(transmitterEntry.Value.Efficiency, relays));
+            }
+
+            return resultDictionary; //connectedTransmitters;
+        }
+        #endregion RelayRouting
     }
 
 

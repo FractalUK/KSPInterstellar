@@ -74,7 +74,7 @@ namespace FNPlugin {
         }
 
         public static float getBeltMagneticFieldMag(int refBody, float altitude, float lat) {
-            double mlat = lat / 180 * Math.PI + Math.PI;
+            double mlat = lat / 180 * Math.PI + Math.PI/2;
             CelestialBody crefbody = FlightGlobals.fetch.bodies[refBody];
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
 
@@ -94,7 +94,7 @@ namespace FNPlugin {
         }
 
         public static float getBeltMagneticFieldRadial(int refBody, float altitude, float lat) {
-            double mlat = lat / 180 * Math.PI + Math.PI;
+            double mlat = lat / 180 * Math.PI + Math.PI/2;
             CelestialBody crefbody = FlightGlobals.fetch.bodies[refBody];
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
                         
@@ -112,7 +112,7 @@ namespace FNPlugin {
         }
 
         public static float getBeltMagneticFieldAzimuthal(int refBody, float altitude, float lat) {
-            double mlat = lat / 180 * Math.PI + Math.PI;
+            double mlat = lat / 180 * Math.PI + Math.PI/2;
             CelestialBody crefbody = FlightGlobals.fetch.bodies[refBody];
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
 

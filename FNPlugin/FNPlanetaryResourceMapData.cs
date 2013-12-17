@@ -114,6 +114,19 @@ namespace FNPlugin {
             return resource_val;
         }
 
+        public static FNPlanetaryResourcePixel getResourceAvailabilityByRealResourceName(int body, string resourcename, double lat, double lng) {
+            if (body != current_body) {
+                loadPlanetaryResourceData(body);
+            }
+            try{
+                FNPlanetaryResourceInfo resource_info = body_resource_maps.Where(ri => ri.Value.getResourceName() == resourcename).FirstOrDefault().Value;
+                return getResourceAvailability(body, resource_info.getName(),lat,lng);
+            }catch(Exception ex) {
+                FNPlanetaryResourcePixel resource_pixel = new FNPlanetaryResourcePixel(resourcename, 0, body);
+                return resource_pixel;
+            }
+        }
+
         public static FNPlanetaryResourcePixel getResourceAvailability(int body, string resourcename, double lat, double lng) {
             if (body != current_body) {
                 loadPlanetaryResourceData(body);

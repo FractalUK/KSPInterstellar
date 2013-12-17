@@ -30,8 +30,7 @@ namespace FNPlugin
         
         //private float warpspeed = 30000000.0f;
         //public const float warpspeed = 29979245.8f;
-        const float initial_megajoules_required = 1000;
-        private float Megajoules_required = 1000;
+        protected double megajoules_required = 1000;
                 
         private float[] warp_factors = {0.1f,0.25f,0.5f,0.75f,1.0f,2.0f,3.0f,4.0f,5.0f,7.5f,10.0f,15f,20.0f};
 		[KSPField(isPersistant = true)]
@@ -113,11 +112,11 @@ namespace FNPlugin
             for (int i = 0; i < resources.Count; ++i) {
                 electrical_current_available += (float)resources.ElementAt(i).amount;
             }
-            if (electrical_current_available < Megajoules_required * warp_factors[selected_factor]) {
+            if (electrical_current_available < megajoules_required * warp_factors[selected_factor]) {
                 ScreenMessages.PostScreenMessage("Warp drive charging!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-            part.RequestResource("ExoticMatter", Megajoules_required * warp_factors[selected_factor]);
+            part.RequestResource("ExoticMatter", megajoules_required * warp_factors[selected_factor]);
             warp_sound.Play();
             warp_sound.loop = true;
             
@@ -430,7 +429,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate() {
             //if (!IsEnabled) { return; }
-            Megajoules_required = initial_megajoules_required * vessel.GetTotalMass() / mass_divisor;
+            megajoules_required =  GameConstants.initial_alcubierre_megajoules_required * vessel.GetTotalMass() / mass_divisor;
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
             Vector3 end_beam_pos = ship_pos + part.transform.up * warp_size;
             Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f ;
@@ -476,8 +475,8 @@ namespace FNPlugin
                 for (int i = 0; i < resources.Count; ++i) {
                     electrical_current_available += (float)resources.ElementAt(i).amount;
                 }
-                if (electrical_current_available < Megajoules_required * warp_factors[selected_factor]) {
-                    float electrical_current_pct = 100.0f * electrical_current_available / (Megajoules_required * warp_factors[selected_factor]);
+                if (electrical_current_available < megajoules_required * warp_factors[selected_factor]) {
+                    float electrical_current_pct = (float) (100.0f * electrical_current_available / (megajoules_required * warp_factors[selected_factor]));
                     DriveStatus = String.Format("Charging: ") + electrical_current_pct.ToString("0.00") + String.Format("%");
 
                 }
@@ -496,6 +495,10 @@ namespace FNPlugin
   
             
             
+        }
+
+        public override string getResourceManagerDisplayName() {
+            return "Alcubierre Drive";
         }
 
     }

@@ -105,6 +105,7 @@ namespace FNPlugin {
 			List<PartResource> antimatter_resources = new List<PartResource>();
 			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Antimatter").id, antimatter_resources);
 			float antimatter_current_amount = 0;
+            float mult = 1;
 			foreach (PartResource antimatter_resource in antimatter_resources) {
 				antimatter_current_amount += (float)antimatter_resource.amount;
 			}
@@ -113,12 +114,15 @@ namespace FNPlugin {
 			if (chargestatus > 0 && current_antimatter > 0.1) {
 				chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
 			}
-            if (chargestatus < GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE && (should_charge || (current_antimatter > 0.1))) {
-                float charge_to_add = consumeFNResource(2.0*chargeNeeded/1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f/chargeNeeded;
+            if (chargestatus >= GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
+                mult = 0.5f;
+            }
+            if (should_charge || (current_antimatter > 0.1)) {
+                float charge_to_add = consumeFNResource(mult*2.0*chargeNeeded/1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f/chargeNeeded;
                 chargestatus += charge_to_add;
 
 				if (charge_to_add < 2f * TimeWarp.fixedDeltaTime) {
-                    float more_charge_to_add = part.RequestResource("ElectricCharge", 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
+                    float more_charge_to_add = part.RequestResource("ElectricCharge", mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
 					charge_to_add += more_charge_to_add;
 					chargestatus += more_charge_to_add;
 				}
@@ -144,10 +148,12 @@ namespace FNPlugin {
 				} else {
 					explode_counter = 0;
 				}
-			} else {
+
                 if (chargestatus > GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
                     chargestatus = GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE;
-				}
+                }
+			} else {
+                
 			}
 
 			if (exploding && lightGameObject != null) {
@@ -196,7 +202,9 @@ namespace FNPlugin {
             return "Maximum Power Requirements: " + (chargeNeeded*2).ToString("0") + " KW\nMinimum Power Requirements: " + chargeNeeded.ToString("0") + " KW";
         }
 
-
+        public override string getResourceManagerDisplayName() {
+            return "Antimatter Storage Tank";
+        }
 
 
 	}

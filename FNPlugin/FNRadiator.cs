@@ -284,7 +284,7 @@ namespace FNPlugin {
 					explode_counter = 0;
 				}
 
-                double radiator_temperature_temp_val = radiatorTemp *Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT),0.25);
+                double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
 				if (FNReactor.hasActiveReactors (vessel)) {
 					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
 				}

@@ -26,20 +26,23 @@ namespace FNPlugin {
         public const int REF_BODY_POL = 14;
         public const int REF_BODY_DRES = 15;
         public const int REF_BODY_EELOO = 16;
-        public static string[] atomspheric_resources = {"Oxygen", "Hydrogen","Argon","Deuterium"};
-        public static string[] atomspheric_resources_tocollect = { "Oxidizer", "LiquidFuel", "Argon","Deuterium"};
+
         public static string hydrogen_resource_name = "LiquidFuel";
         public static string oxygen_resource_name = "Oxidizer";
         public static string aluminium_resource_name = "Aluminium";
         public static string methane_resource_name = "LqdMethane";
         public static string argon_resource_name = "Argon";
+        public static string water_resource_name = "LqdWater";
+        public static string hydrogen_peroxide_resource_name = "H2Peroxide";
+        public static string ammonia_resource_name = "Ammonia";
         
 		protected static bool plugin_init = false;
 		protected static bool is_thermal_dissip_disabled_init = false;
 		protected static bool is_thermal_dissip_disabled = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
-        protected static FloatCurve satcurve = new FloatCurve();
+        
+        
         
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
@@ -167,57 +170,6 @@ namespace FNPlugin {
             return true;
         }
 
-        public static FloatCurve getSatFloatCurve() {
-            return satcurve;
-        }
-
-        public static float getAtmosphereResourceContent(int refBody, int resource) {
-            float resourcecontent = 0;
-            if (refBody == REF_BODY_KERBIN) {
-                if (resource == 0) {
-                    resourcecontent = 0.21f;
-                }
-                if (resource == 2) {
-                    resourcecontent = 0.0093f;
-                }
-            }
-
-            if (refBody == REF_BODY_LAYTHE) {
-                if (resource == 0) {
-                    resourcecontent = 0.18f;
-                }
-                if (resource == 2) {
-                    resourcecontent = 0.0105f;
-                }
-            }
-
-            if (refBody == REF_BODY_JOOL) {
-                if (resource == 1) {
-                    resourcecontent = 0.89f;
-                }
-				if (resource == 3) {
-					resourcecontent = 0.00003f;
-				}
-            }
-
-            if (refBody == REF_BODY_DUNA) {
-                if (resource == 0) {
-                    resourcecontent = 0.0013f;
-                }
-                if (resource == 2) {
-                    resourcecontent = 0.0191f;
-                }
-            }
-
-            if (refBody == REF_BODY_EVE) {
-                if (resource == 2) {
-                    resourcecontent = 0.00007f;
-                }
-            }
-
-            return resourcecontent;
-        }
-
 		public static float getMaxAtmosphericAltitude(CelestialBody body) {
 			if (!body.atmosphere) {
 				return 0;
@@ -261,9 +213,7 @@ namespace FNPlugin {
             return multiplier;
         }
 
-        public void loadPluginResourceConfig() {
 
-        }
 
 		public void Update() {
             this.enabled = true;
@@ -278,11 +228,9 @@ namespace FNPlugin {
                 if(plugin_settings != null) {
                     if (plugin_settings.HasValue("HydrogenResourceName")) {
                         PluginHelper.hydrogen_resource_name = plugin_settings.GetValue("HydrogenResourceName");
-                        PluginHelper.atomspheric_resources_tocollect[1] = PluginHelper.hydrogen_resource_name;
                     }
                     if (plugin_settings.HasValue("OxygenResourceName")) {
                         PluginHelper.oxygen_resource_name = plugin_settings.GetValue("OxygenResourceName");
-                        PluginHelper.atomspheric_resources_tocollect[0] = PluginHelper.oxygen_resource_name;
                     }
                     if (plugin_settings.HasValue("AluminiumResourceName")) {
                         PluginHelper.aluminium_resource_name = plugin_settings.GetValue("AluminiumResourceName");
@@ -292,25 +240,21 @@ namespace FNPlugin {
                     }
                     if (plugin_settings.HasValue("ArgonResourceName")) {
                         PluginHelper.argon_resource_name = plugin_settings.GetValue("ArgonResourceName");
-                        PluginHelper.atomspheric_resources_tocollect[2] = PluginHelper.argon_resource_name;
+                    }
+                    if (plugin_settings.HasValue("WaterResourceName")) {
+                        PluginHelper.water_resource_name = plugin_settings.GetValue("WaterResourceName");
+                    }
+                    if (plugin_settings.HasValue("HydrogenPeroxideResourceName")) {
+                        PluginHelper.hydrogen_peroxide_resource_name = plugin_settings.GetValue("HydrogenPeroxideResourceName");
+                    }
+                    if (plugin_settings.HasValue("AmmoniaResourceName")) {
+                        PluginHelper.ammonia_resource_name = plugin_settings.GetValue("AmmoniaResourceName");
                     }
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled")) {
                         PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
                     }
                 }
-                satcurve = new FloatCurve();
-                satcurve.Add((float)(16.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.00390625f, 0, 0);
-                satcurve.Add((float)(8.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.015625f, 0, 0);
-                satcurve.Add((float)(4.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.0625f, 0, 0);
-                satcurve.Add((float)(2.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.25f, 0, 0);
-                satcurve.Add((float)(1.5 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 0.4444444f, 0, 0);
-                satcurve.Add((float)(1.0 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 1.0f, 0, 0);
-                satcurve.Add((float)(0.75 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 1.777778f, 0, 0);
-                satcurve.Add((float)(0.5 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 4, 0, 0);
-                satcurve.Add((float)(0.25 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 16, 0, 0);
-                satcurve.Add((float)(0.125 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 64, 0, 0);
-                satcurve.Add((float)(0.0625 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 256, 0, 0);
-                satcurve.Add((float)(0.03125 * Vector3d.Distance(FlightGlobals.Bodies[REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[REF_BODY_KERBOL].transform.position)), 1024, 0, 0);
+                
             }
 
 			if (!plugin_init) {

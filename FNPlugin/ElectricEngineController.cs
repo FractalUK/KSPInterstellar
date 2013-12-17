@@ -81,7 +81,7 @@ namespace FNPlugin {
             isupgraded = true;
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             if (curEngine != null) {
-                ModuleEngines.Propellant prop = new ModuleEngines.Propellant();
+                Propellant prop = new Propellant();
                 //prop.id = PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").id;
                 //ConfigNode prop_node = new ConfigNode();
                 //PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").Save(prop_node);
@@ -340,7 +340,7 @@ namespace FNPlugin {
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             ConfigNode chosenpropellant = propellants[fuel_mode];
             ConfigNode[] assprops = chosenpropellant.GetNodes("PROPELLANT");
-            List<ModuleEngines.Propellant> list_of_propellants = new List<ModuleEngines.Propellant>();
+            List<Propellant> list_of_propellants = new List<Propellant>();
             //bool propellant_is_upgrade = false;
 
             for (int i = 0; i < assprops.Length; ++i) {
@@ -349,7 +349,7 @@ namespace FNPlugin {
                 thrust_efficiency = float.Parse(chosenpropellant.GetValue("efficiency"));
                 //propellant_is_upgrade = bool.Parse(chosenpropellant.GetValue("isUpgraded"));
                 
-                ModuleEngines.Propellant curprop = new ModuleEngines.Propellant();
+                Propellant curprop = new Propellant();
                 curprop.Load(assprops[i]);
                 if (curprop.drawStackGauge) {
                     curprop.drawStackGauge = false;
@@ -435,6 +435,14 @@ namespace FNPlugin {
 			}
 
             return propellantlist;
+        }
+
+        public override string getResourceManagerDisplayName() {
+            if (isupgraded) {
+                return upgradedName + " Plasma Thruster";
+            } else {
+                return originalName + " Thruster";
+            }
         }
     }
 }

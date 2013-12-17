@@ -185,7 +185,7 @@ namespace FNPlugin {
 							// if sat is not relay/nuclear check that it has line of site to sun
 							// NOTE: we need to add a check for relay to check lineOfSiteToSource(vess), and if solar a lineOfSiteFromSourceToSun - to check that the source which it is relaying is still attached to it, and if it is a solar source that it is recieving solar energy
 							if((vgenType == "solar" && PluginHelper.lineOfSightToSun(vess)) || vgenType == "relay" || vgenType == "nuclear") {
-								float inputPowerFixedAlt = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
+								float inputPowerFixedAlt = 0;// = float.Parse (powerinputsat) * PluginHelper.getSatFloatCurve ().Evaluate ((float)FlightGlobals.Bodies [0].GetAltitude (vess.transform.position));
 								float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
 								float powerdissip = (float)(Math.Tan (angle) * distance * Math.Tan (angle) * distance);
 								powerdissip = Math.Max (powerdissip/collectorArea, 1); 

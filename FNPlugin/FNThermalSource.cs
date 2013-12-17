@@ -7,6 +7,8 @@ namespace FNPlugin{
 
 		float getThermalPower();
 
+        float getChargedPower();
+
 		bool getIsNuclear();
 
 		float getRadius();
@@ -16,6 +18,8 @@ namespace FNPlugin{
 		void enableIfPossible();
 
         bool shouldScaleDownJetISP();
+
+        bool isVolatileSource();
 
 	}
 }
