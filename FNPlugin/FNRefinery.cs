@@ -45,7 +45,7 @@ namespace FNPlugin {
         protected double monoprop_rate_d = 0;
         protected bool play_down = true;
         protected Animation anim;
-        protected String[] modes = { "Reprocessing", "Aluminium Electrolysis","Sabatier ISRU","Water Electrolysis","Anthraquinone Process","Monopropellant Production"};
+        protected String[] modes = { "Nuclear Reprocessing", "Aluminium Electrolysis","Sabatier ISRU","Water Electrolysis","Anthraquinone Process","Monopropellant Production"};
 
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
         public void ReprocessFuel() {
@@ -326,6 +326,14 @@ namespace FNPlugin {
                 return "ISRU Refinery (" + modes[active_mode] + ")";
             }
             return "ISRU Refinery";
+        }
+
+        public override string GetInfo() {
+            string infostr = "ISRU Refinery\nFunctions:\n";
+            foreach (string mode in modes) {
+                infostr += mode + "\n";
+            }
+            return infostr;
         }
 
     }

@@ -218,41 +218,52 @@ namespace FNPlugin {
 		public void Update() {
             this.enabled = true;
             AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
-            if (intakePart.partPrefab.FindModulesImplementing<AtmosphericIntake>().Count <= 0 && PartLoader.Instance.IsReady()) {
-                plugin_init = false;
+            if (intakePart != null) {
+                if (intakePart.partPrefab.FindModulesImplementing<AtmosphericIntake>().Count <= 0 && PartLoader.Instance.IsReady()) {
+                    plugin_init = false;
+                }
             }
 
             if (!resources_configured) {
-                resources_configured = true;
-                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("GameData/WarpPlugin/WarpPluginSettings/WARP_PLUGIN_SETTINGS");
+                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings");
                 if(plugin_settings != null) {
                     if (plugin_settings.HasValue("HydrogenResourceName")) {
                         PluginHelper.hydrogen_resource_name = plugin_settings.GetValue("HydrogenResourceName");
+                        Debug.Log("[KSP Interstellar] Hydrogen resource name set to " + PluginHelper.hydrogen_resource_name);
                     }
                     if (plugin_settings.HasValue("OxygenResourceName")) {
                         PluginHelper.oxygen_resource_name = plugin_settings.GetValue("OxygenResourceName");
+                        Debug.Log("[KSP Interstellar] Oxygen resource name set to " + PluginHelper.oxygen_resource_name);
                     }
                     if (plugin_settings.HasValue("AluminiumResourceName")) {
                         PluginHelper.aluminium_resource_name = plugin_settings.GetValue("AluminiumResourceName");
+                        Debug.Log("[KSP Interstellar] Aluminium resource name set to " + PluginHelper.aluminium_resource_name);
                     }
                     if (plugin_settings.HasValue("MethaneResourceName")) {
                         PluginHelper.methane_resource_name = plugin_settings.GetValue("MethaneResourceName");
+                        Debug.Log("[KSP Interstellar] Methane resource name set to " + PluginHelper.methane_resource_name);
                     }
                     if (plugin_settings.HasValue("ArgonResourceName")) {
                         PluginHelper.argon_resource_name = plugin_settings.GetValue("ArgonResourceName");
+                        Debug.Log("[KSP Interstellar] Argon resource name set to " + PluginHelper.argon_resource_name);
                     }
                     if (plugin_settings.HasValue("WaterResourceName")) {
                         PluginHelper.water_resource_name = plugin_settings.GetValue("WaterResourceName");
+                        Debug.Log("[KSP Interstellar] Water resource name set to " + PluginHelper.water_resource_name);
                     }
                     if (plugin_settings.HasValue("HydrogenPeroxideResourceName")) {
                         PluginHelper.hydrogen_peroxide_resource_name = plugin_settings.GetValue("HydrogenPeroxideResourceName");
+                        Debug.Log("[KSP Interstellar] Hydrogen Peroxide resource name set to " + PluginHelper.hydrogen_peroxide_resource_name);
                     }
                     if (plugin_settings.HasValue("AmmoniaResourceName")) {
                         PluginHelper.ammonia_resource_name = plugin_settings.GetValue("AmmoniaResourceName");
+                        Debug.Log("[KSP Interstellar] Ammonia resource name set to " + PluginHelper.ammonia_resource_name);
                     }
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled")) {
                         PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
+                        Debug.Log("[KSP Interstellar] ThermalMechanics set to enabled: " + !PluginHelper.is_thermal_dissip_disabled);
                     }
+                    resources_configured = true;
                 }
                 
             }
@@ -344,7 +355,7 @@ namespace FNPlugin {
 							}
 						}
 					}catch(Exception ex) {
-						print ("[WarpPlugin] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
+                        print("[KSP Interstellar] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
 					}
 
 

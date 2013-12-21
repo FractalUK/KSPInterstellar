@@ -26,7 +26,7 @@ namespace FNPlugin {
         public static void loadPlanetaryResourceData(int body) {
             string celestial_body_name = FlightGlobals.Bodies[body].bodyName;
             UrlDir.UrlConfig[] configs = GameDatabase.Instance.GetConfigs("PLANETARY_RESOURCE_DEFINITION");
-            Debug.Log("[WarpPlugin] Loading Planetary Resource Data. Length: " + configs.Length);
+            Debug.Log("[KSP Interstellar] Loading Planetary Resource Data. Length: " + configs.Length);
             foreach (ResourceAbundanceMarker abundance_marker in abundance_markers) {
                 removeAbundanceSphere(abundance_marker.getPlanetarySphere());
                 removeAbundanceSphere(abundance_marker.getScaledSphere());
@@ -40,7 +40,7 @@ namespace FNPlugin {
             foreach (UrlDir.UrlConfig config in configs) {
                 ConfigNode planetary_resource_config_node = config.config;
                 if (planetary_resource_config_node.GetValue("celestialBodyName") == celestial_body_name && planetary_resource_config_node != null) {
-                    Debug.Log("[WarpPlugin] Loading Planetary Resource Data for " + celestial_body_name);
+                    Debug.Log("[KSP Interstellar] Loading Planetary Resource Data for " + celestial_body_name);
                     Texture2D map = GameDatabase.Instance.GetTexture(planetary_resource_config_node.GetValue("mapUrl"), false);
                     if (map == null) {
                         continue;
@@ -94,7 +94,7 @@ namespace FNPlugin {
                     }
 
                     body_abudnance_angles.Add(resource_gui_name, abundance_points_list.ToArray());
-                    Debug.Log("[WarpPlugin] " + abundance_points_list.Count + " high value " + resource_gui_name + " locations detected");
+                    Debug.Log("[KSP Interstellar] " + abundance_points_list.Count + " high value " + resource_gui_name + " locations detected");
                 }
             }
             current_body = body;

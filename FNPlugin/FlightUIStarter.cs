@@ -9,6 +9,7 @@ namespace FNPlugin {
     public class FlightUIStarter :  MonoBehaviour{
         protected Rect button_position;
         protected Texture2D guibuttontexture;
+        protected bool hide_button = false;
 
         public void Start() {
             guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/megajoule_click", false);
@@ -16,21 +17,30 @@ namespace FNPlugin {
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
+        public void Update() {
+            if (Input.GetKeyDown(KeyCode.F2)) {
+                hide_button = !hide_button;
+            }
+        }
+
         protected void OnGUI() {
             string resourcename = FNResourceManager.FNRESOURCE_MEGAJOULES;
             Vessel vessel = FlightGlobals.ActiveVessel;
             FNResourceManager mega_manager = null;
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
-                mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-                if (mega_manager.getPartModule() != null) {
-                    mega_manager.OnGUI();
+            if (vessel != null) {
+                if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button) {
+                    mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                    if (mega_manager.getPartModule() != null) {
+                        mega_manager.OnGUI();
+
+                        GUILayout.BeginArea(button_position);
+                        if (GUILayout.Button(guibuttontexture)) {
+                            mega_manager.showWindow();
+                        }
+                        GUILayout.EndArea();
+                    }
                 }
             }
-            GUILayout.BeginArea(button_position);
-            if (GUILayout.Button(guibuttontexture) && mega_manager != null) {
-                mega_manager.showWindow();
-            }
-            GUILayout.EndArea();
         }
     }
 }

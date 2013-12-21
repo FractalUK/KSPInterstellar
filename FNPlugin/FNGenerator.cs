@@ -159,6 +159,10 @@ namespace FNPlugin {
                 return;
             }
 
+            if (hasTechsRequiredToUpgrade()) {
+                hasrequiredupgrade = true;
+            }
+
 			this.part.force_activate();
 			generatorType = originalName;
 

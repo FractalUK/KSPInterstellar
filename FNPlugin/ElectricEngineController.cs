@@ -294,10 +294,12 @@ namespace FNPlugin {
 			float temp_to_part_set = Mathf.Min(curEngine.currentThrottle * part.maxTemp * 0.8f,1);
 
 			//curEngine.maxThrust = Mathf.Max(thrust_to_use*thrust_ratio,0.00001f);
-            if (!float.IsNaN(thrust_to_use) && !float.IsInfinity(thrust_to_use)) {
-                curEngine.maxThrust = Mathf.Max(thrust_to_use, 0.00001f);
-            } else {
-                curEngine.maxThrust = 0.00001f;
+            if (curEngine.currentThrottle > 0) {
+                if (!float.IsNaN(thrust_to_use) && !float.IsInfinity(thrust_to_use)) {
+                    curEngine.maxThrust = Mathf.Max(thrust_to_use, 0.00001f);
+                } else {
+                    curEngine.maxThrust = 0.00001f;
+                }
             }
 
 			if (thrust_to_use * thrust_ratio <= 0.0001f && curEngine.currentThrottle * thrust_per_engine > 0.0001f  && !curEngine.flameout) {

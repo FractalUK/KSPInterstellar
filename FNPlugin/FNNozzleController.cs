@@ -163,6 +163,9 @@ namespace FNPlugin{
 			if (isupgraded && isJet) {
 				upgradePartModule ();
 			} else {
+                if (hasTechsRequiredToUpgrade() && isJet) {
+                    hasrequiredupgrade = true;
+                }
 				// if not, use basic propellants
 				propellants = getPropellants (isJet);
 			}
@@ -315,11 +318,12 @@ namespace FNPlugin{
 						maxISP = maxISP / 2.5f;
 					}
 				}
-				newISP.Add(0, maxISP*4.0f/5.0f);
-				newISP.Add(0.15f, maxISP);
+				newISP.Add(0, maxISP*4.5f/5.0f);
+				newISP.Add(0.10f, maxISP);
+                newISP.Add(0.3f, maxISP * 4.0f / 5.0f);
 				newISP.Add(1, maxISP*2.0f/3.0f);
-				vCurve.Add(0, 0.7f);
-				vCurve.Add((float)(maxISP*g0*1.0/3.0), 0.9f);
+				vCurve.Add(0, 1.0f);
+				vCurve.Add((float)(maxISP*g0*1.0/3.0), 1.0f);
 				vCurve.Add((float)(maxISP*g0), 1.0f);
 				vCurve.Add ((float)(maxISP*g0*4.0/3.0), 0);
 				myAttachedEngine.useVelocityCurve = true;
@@ -431,13 +435,13 @@ namespace FNPlugin{
 				} 
 				//print ("B: " + engineMaxThrust);
 				// set up TWR limiter if on
-                //double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle);
+                double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle)/ispratio;
 				double engine_thrust = engineMaxThrust;
 				// engine thrust fixed
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
                 if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)) {
                     if (isLFO) {
-                        myAttachedEngine.maxThrust = (float)(2.0 * engine_thrust);
+                        myAttachedEngine.maxThrust = (float)(2.2222 * engine_thrust);
                     } else {
                         myAttachedEngine.maxThrust = (float)engine_thrust;
                     }
@@ -448,11 +452,11 @@ namespace FNPlugin{
 				// amount of fuel being used at max throttle with no atmospheric limits
                 if (current_isp > 0) {
                     double vcurve_at_current_velocity = 1;
-                    if (myAttachedEngine.useVelocityCurve) {
-                        vcurve_at_current_velocity = myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+                    if (!double.IsNaN(additional_thrust_compensator) && !double.IsInfinity(additional_thrust_compensator)) {
+                        vcurve_at_current_velocity = additional_thrust_compensator;
                     }
                     fuel_flow_rate = engine_thrust / current_isp / g0 / 0.005 * TimeWarp.fixedDeltaTime;
-                    if (vcurve_at_current_velocity > 0) {
+                    if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity)) {
                         fuel_flow_rate = fuel_flow_rate / vcurve_at_current_velocity;
                     }
                 }

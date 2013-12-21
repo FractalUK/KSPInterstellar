@@ -48,48 +48,51 @@ namespace FNPlugin {
         public void stopResourceExtration() {
             IsEnabled = false;
         }
-                
 
         public override void OnStart(PartModule.StartState state) {
+            
+            if (state == StartState.Editor) { return; }
             Events["startResourceExtraction"].guiName = extractActionName;
             Events["stopResourceExtration"].guiName = stopActionName;
             Fields["statusTitle"].guiName = unitName;
-            if (state == StartState.Editor) { return; }
             part.force_activate();
         }
 
         public override void OnUpdate() {
-            double resource_abundance = 0;
-            bool resource_available = false;
-            if (vessel.Landed) {
-                FNPlanetaryResourcePixel current_resource_abundance_pixel = FNPlanetaryResourceMapData.getResourceAvailabilityByRealResourceName(vessel.mainBody.flightGlobalsIndex, resourceName, vessel.latitude, vessel.longitude);
-                resource_abundance = current_resource_abundance_pixel.getAmount();
-            } else if (vessel.Splashed) {
-                resource_abundance = OceanicResourceHandler.getOceanicResourceContent(vessel.mainBody.flightGlobalsIndex, resourceName);
-            }
-            if (resource_abundance > 0) {
-                resource_available = true;
-            }
-            Events["startResourceExtraction"].active = !IsEnabled && resource_available;
-            Events["stopResourceExtration"].active = IsEnabled;
-            if (IsEnabled) {
-                Fields["powerStr"].guiActive = true;
-                Fields["resourceRate"].guiActive = true;
-                statusTitle = "Active";
-                double power_required = 0;
+            if (HighLogic.LoadedSceneIsFlight) {
+                double resource_abundance = 0;
+                bool resource_available = false;
                 if (vessel.Landed) {
-                    power_required = powerConsumptionLand;
-                }else if(vessel.Splashed) {
-                    power_required = powerConsumptionOcean;
+                    FNPlanetaryResourcePixel current_resource_abundance_pixel = FNPlanetaryResourceMapData.getResourceAvailabilityByRealResourceName(vessel.mainBody.flightGlobalsIndex, resourceName, vessel.latitude, vessel.longitude);
+                    resource_abundance = current_resource_abundance_pixel.getAmount();
+                } else if (vessel.Splashed) {
+                    resource_abundance = OceanicResourceHandler.getOceanicResourceContent(vessel.mainBody.flightGlobalsIndex, resourceName);
                 }
-                powerStr = (power_required*electrical_power_ratio).ToString("0.000") + " MW / " + power_required.ToString("0.000") + " MW";
-                double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
-                double resource_rate_per_hour = extraction_rate_d * resource_density * 3600;
-                resourceRate = formatMassStr(resource_rate_per_hour);
-            } else {
-                Fields["powerStr"].guiActive = false;
-                Fields["resourceRate"].guiActive = false;
-                statusTitle = "Offline";
+                if (resource_abundance > 0) {
+                    resource_available = true;
+                }
+                Events["startResourceExtraction"].active = !IsEnabled && resource_available;
+                Events["stopResourceExtration"].active = IsEnabled;
+                if (IsEnabled) {
+                    Fields["powerStr"].guiActive = true;
+                    Fields["resourceRate"].guiActive = true;
+                    statusTitle = "Active";
+                    double power_required = 0;
+                    if (vessel.Landed) {
+                        power_required = powerConsumptionLand;
+                    } else if (vessel.Splashed) {
+                        power_required = powerConsumptionOcean;
+                    }
+                    powerStr = (power_required * electrical_power_ratio).ToString("0.000") + " MW / " + power_required.ToString("0.000") + " MW";
+                    double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
+                    double resource_rate_per_hour = extraction_rate_d * resource_density * 3600;
+                    resourceRate = formatMassStr(resource_rate_per_hour);
+                } else {
+                    Fields["powerStr"].guiActive = false;
+                    Fields["resourceRate"].guiActive = false;
+                    statusTitle = "Offline";
+                }
+
             }
         }
 
@@ -158,6 +161,17 @@ namespace FNPlugin {
                     }
                 }
             }
+        }
+
+        public override string GetInfo() {
+            string infostr = "-\nResource Produced: " + resourceName + "\n";
+            if (powerConsumptionLand >= 0) {
+                infostr += "Power Consumption (Land): " + powerConsumptionLand + " MW\n";
+            }
+            if (powerConsumptionOcean >= 0) {
+                infostr += "Power Consumption (Ocean): " + powerConsumptionOcean + " MW";
+            }
+            return infostr;
         }
 
     }

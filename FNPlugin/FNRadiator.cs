@@ -356,7 +356,12 @@ namespace FNPlugin {
 		public override string GetInfo() {
             float thermal_power_dissip = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(radiatorTemp, 4) / 1e6);
             float thermal_power_dissip2 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(upgradedRadiatorTemp, 4) / 1e6);
-			return String.Format("Waste Heat Radiated\n Present: {0} MW\n After Upgrade: {1} MW", thermal_power_dissip,thermal_power_dissip2);
+            float thermal_power_dissip3 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(600, 4) / 1e6);
+            float thermal_power_dissip4 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(1200, 4) / 1e6);
+            float thermal_power_dissip5 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(1800, 4) / 1e6);
+            float thermal_power_dissip6 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(2400, 4) / 1e6);
+            float thermal_power_dissip7 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(3000, 4) / 1e6);
+            return String.Format("Maximum Waste Heat Radiated\n Base: {0} MW\n Upgraded: {1} MW\n-----\nRadiator Performance at:\n600K: {2} MW\n1200K: {3} MW\n1800K: {4} MW\n2400K: {5} MW\n3000K: {6} MW\n", thermal_power_dissip, thermal_power_dissip2, thermal_power_dissip3, thermal_power_dissip4, thermal_power_dissip5, thermal_power_dissip6, thermal_power_dissip7);
 		}
 
 	}

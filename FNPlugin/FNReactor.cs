@@ -152,7 +152,7 @@ namespace FNPlugin {
             if (isupgraded) {
                 upgradePartModule();
             }
-            tritium_rate = ThermalPower/1000.0f/28800.0f;
+            //tritium_rate = ThermalPower/1000.0f/28800.0f;
 		}
 
 		public void upgradePartModule() {
@@ -188,6 +188,10 @@ namespace FNPlugin {
                     upgradePartModule();
                 }
                 return;
+            }
+
+            if (hasTechsRequiredToUpgrade()) {
+                hasrequiredupgrade = true;
             }
             
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
@@ -242,7 +246,7 @@ namespace FNPlugin {
 				Events ["RetrofitReactor"].active = false;
 			}
             Events["BreedTritium"].active = !breedtritium && isNeutronRich();
-            Events["StopBreedTritium"].active = breedtritium && getIsNuclear();
+            Events["StopBreedTritium"].active = breedtritium && isNeutronRich();
             Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
             Fields["tritiumBreedRate"].guiActive = breedtritium && isNeutronRich();
             Fields["currentPwr"].guiActive = IsEnabled;
@@ -420,12 +424,14 @@ namespace FNPlugin {
                 double return_ratio = 1 - total_power_ratio;
                 double resource_returned = returnReactorResource(resource_provided * return_ratio);
                 powerPcnt = (float)(resource_ratio * 100.0 * total_power_ratio);
+                tritium_rate = (float) (thermal_power_received/TimeWarp.fixedDeltaTime/1000.0f/28800.0f);
                 if (breedtritium) {
-                    float lith_used = part.RequestResource("Lithium", tritium_rate * TimeWarp.fixedDeltaTime);
-                    tritium_produced_f = -part.RequestResource("Tritium", -lith_used) / TimeWarp.fixedDeltaTime;
-                    if (tritium_produced_f <= 0) {
-                        breedtritium = false;
-                    }
+                    double lith_rate = tritium_rate * TimeWarp.fixedDeltaTime;
+                    double lith_used = part.RequestResource("Lithium", lith_rate);
+                    tritium_produced_f = (float) (-part.RequestResource("Tritium", -lith_used) / TimeWarp.fixedDeltaTime);
+                    //if (tritium_produced_f <= 0) {
+                    //    breedtritium = false;
+                    //}
                 }
                 if (Planetarium.GetUniversalTime() != 0) {
                     last_active_time = (float)Planetarium.GetUniversalTime();

@@ -60,7 +60,7 @@ namespace FNPlugin {
                 if (analysis_count > analysis_length) {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Liquid", bold_label, GUILayout.Width(150));
-                    GUILayout.Label("Abudnance", bold_label, GUILayout.Width(150));
+                    GUILayout.Label("Abundance", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
                     foreach (FNOceanicResource oceanic_resource in OceanicResourceHandler.getOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) {
