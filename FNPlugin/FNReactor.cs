@@ -19,6 +19,8 @@ namespace FNPlugin {
         public float ongoing_consumption_rate;
         [KSPField(isPersistant = true)]
         public bool reactorInit = false;
+        [KSPField(isPersistant = true)]
+        public bool startDisabled = false;
 
         // Persistent False
         [KSPField(isPersistant = false)]
@@ -107,6 +109,21 @@ namespace FNPlugin {
             IsEnabled = false;
         }
 
+        [KSPEvent(guiActive = false, guiName = "Disable Reactor", guiActiveEditor = true)]
+        public void DeactivateReactorVAB() {
+            startDisabled = true;
+            Events["ActivateReactorVAB"].guiActiveEditor = true;
+            Events["DeactivateReactorVAB"].guiActiveEditor = false;
+        }
+
+        [KSPEvent(guiActive = false, guiName = "Enable Reactor", guiActiveEditor = false)]
+        public void ActivateReactorVAB() {
+            startDisabled = false;
+            Events["ActivateReactorVAB"].guiActiveEditor = false;
+            Events["DeactivateReactorVAB"].guiActiveEditor = true;
+        }
+
+
 		[KSPEvent(guiActive = true, guiName = "Enable Tritium Breeding", active = false)]
 		public void BreedTritium() {
             if (!isNeutronRich()) { return; }
@@ -183,6 +200,10 @@ namespace FNPlugin {
             Actions["ToggleReactorAction"].guiName = String.Format("Toggle Reactor");
 
             if (state == StartState.Editor) {
+                if (startDisabled) {
+                    Events["ActivateReactorVAB"].guiActiveEditor = true;
+                    Events["DeactivateReactorVAB"].guiActiveEditor = false;
+                }
                 if (hasTechsRequiredToUpgrade()) {
                     isupgraded = true;
                     upgradePartModule();
@@ -192,6 +213,11 @@ namespace FNPlugin {
 
             if (hasTechsRequiredToUpgrade()) {
                 hasrequiredupgrade = true;
+            }
+
+            if (startDisabled) {
+                IsEnabled = false;
+                startDisabled = false;
             }
             
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();

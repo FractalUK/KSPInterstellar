@@ -70,7 +70,7 @@ namespace FNPlugin{
         protected float old_atmospheric_limit;
 
 		//Constants
-		protected const double g0 = 9.81;
+		protected const double g0 = 9.82;
         protected const double isp_temp_rat = 22.371670613;
 
 		//Static
@@ -425,7 +425,7 @@ namespace FNPlugin{
                 } else {
                     myAttachedEngine.ActivateRunningFX();
                 }
-				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
+				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				float power_ratio = 0.0f;
 				double engineMaxThrust = 0.01;
@@ -452,12 +452,20 @@ namespace FNPlugin{
 				// amount of fuel being used at max throttle with no atmospheric limits
                 if (current_isp > 0) {
                     double vcurve_at_current_velocity = 1;
-                    if (!double.IsNaN(additional_thrust_compensator) && !double.IsInfinity(additional_thrust_compensator)) {
-                        vcurve_at_current_velocity = additional_thrust_compensator;
+                    
+                    if (myAttachedEngine.useVelocityCurve && myAttachedEngine.velocityCurve != null) {
+                        vcurve_at_current_velocity = myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude);
                     }
+                    //if (!double.IsNaN(additional_thrust_compensator) && !double.IsInfinity(additional_thrust_compensator)) {
+                        //vcurve_at_current_velocity = additional_thrust_compensator;
+                    //}
                     fuel_flow_rate = engine_thrust / current_isp / g0 / 0.005 * TimeWarp.fixedDeltaTime;
                     if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity)) {
                         fuel_flow_rate = fuel_flow_rate / vcurve_at_current_velocity;
+                    }
+
+                    if (atmospheric_limit > 0 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit)) {
+                        fuel_flow_rate = fuel_flow_rate / atmospheric_limit;
                     }
                 }
 
@@ -468,7 +476,10 @@ namespace FNPlugin{
                     if (myAttachedEngine.useVelocityCurve) {
                         vcurve_at_current_velocity = myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude);
                     }
-                    fuel_flow_rate = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / g0 / 0.005 * TimeWarp.fixedDeltaTime/vcurve_at_current_velocity;
+                    fuel_flow_rate = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / g0 / 0.005 * TimeWarp.fixedDeltaTime;
+                    if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity)) {
+                        fuel_flow_rate = fuel_flow_rate / vcurve_at_current_velocity;
+                    }
                 }else {
                     fuel_flow_rate = 0;
                 }
