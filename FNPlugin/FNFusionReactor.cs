@@ -68,9 +68,9 @@ namespace FNPlugin {
             float deut_rate_per_day = resourceRate * 86400;
             float up_deut_rate_per_day = upgradedResourceRate * 86400;
             if (!hasTechsRequiredToUpgrade()) {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Laser Power Consumption: {6}MW\n D/T Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, laserPower);
+                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Laser Power Consumption: {6}MW\n D/T Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
             } else {
-                return String.Format(upgradedName + "\nThis part is available automatically upgraded\nCore Temperature: {0}K\n Total Power: {1}MW\n Laser Power Consumption: {3}MW\n D/T Max Consumption Rate: {2}Kg/day\n", upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, laserPower);
+                return String.Format(upgradedName + "\nThis part is available automatically upgraded\nCore Temperature: {0}K\n Total Power: {1}MW\n Laser Power Consumption: {3}MW\n D/T Max Consumption Rate: {2}Kg/day\n", upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
             }
         }
 
