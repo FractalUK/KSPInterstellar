@@ -118,6 +118,10 @@ namespace FNPlugin  {
             return false;
         }
 
+        public float getMinimumThermalPower() {
+            return 0;
+        }
+
         public static int getActiveExchangersForVessel(Vessel vess) {
             int activeExchangers = 0;
             List<FNThermalHeatExchanger> mthes = vess.FindPartModulesImplementing<FNThermalHeatExchanger>();

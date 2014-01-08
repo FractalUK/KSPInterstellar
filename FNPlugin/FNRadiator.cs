@@ -349,6 +349,21 @@ namespace FNPlugin {
 
 		}
 
+        public bool hasTechsRequiredToUpgrade() {
+            if (HighLogic.CurrentGame != null) {
+                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+                    if (upgradeTechReq != null) {
+                        if (PluginHelper.hasTech(upgradeTechReq)) {
+                            return true;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 		public float getRadiatorTemperature() {
 			return (float)current_rad_temp;
 		}
@@ -363,6 +378,10 @@ namespace FNPlugin {
             float thermal_power_dissip7 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(3000, 4) / 1e6);
             return String.Format("Maximum Waste Heat Radiated\n Base: {0} MW\n Upgraded: {1} MW\n-----\nRadiator Performance at:\n600K: {2} MW\n1200K: {3} MW\n1800K: {4} MW\n2400K: {5} MW\n3000K: {6} MW\n", thermal_power_dissip, thermal_power_dissip2, thermal_power_dissip3, thermal_power_dissip4, thermal_power_dissip5, thermal_power_dissip6, thermal_power_dissip7);
 		}
+
+        public override int getPowerPriority() {
+            return 3;
+        }
 
 	}
 }

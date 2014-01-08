@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     class FNLCMassSpectrometer : PartModule {
@@ -63,7 +64,7 @@ namespace FNPlugin {
                     GUILayout.Label("Abundance", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
-                    foreach (FNOceanicResource oceanic_resource in OceanicResourceHandler.getOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) {
+                    foreach (ORSOceanicResource oceanic_resource in ORSOceanicResourceHandler.getOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(oceanic_resource.getDisplayName(), GUILayout.Width(150));
                         string resource_abundance_str;

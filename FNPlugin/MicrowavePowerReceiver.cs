@@ -339,6 +339,10 @@ namespace FNPlugin {
             return 0;
         }
 
+        public float getMinimumThermalPower() {
+            return 0;
+        }
+
         public void enableIfPossible() {
             if (!receiverIsEnabled) {
                 receiverIsEnabled = true;

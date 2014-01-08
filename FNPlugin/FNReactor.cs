@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     class FNReactor : FNResourceSuppliableModule, FNThermalSource, FNUpgradeableModule {
@@ -240,6 +241,7 @@ namespace FNPlugin {
                 double time_diff = now - last_active_time;
                 double resource_to_take = consumeReactorResource(resourceRate*time_diff*ongoing_consumption_rate);
                 if (breedtritium) {
+                    tritium_rate = (float)(ThermalPower / 1000.0f / 28800.0f);
                     List<PartResource> lithium_resources = new List<PartResource>();
                     part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Lithium").id, lithium_resources);
                     double lithium_current_amount = 0;
@@ -256,8 +258,8 @@ namespace FNPlugin {
 
                     double lithium_to_take = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, lithium_current_amount);
                     double tritium_to_add = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, tritium_missing_amount);
-                    part.RequestResource("Lithium", Math.Min(tritium_to_add, lithium_to_take));
-                    part.RequestResource("Tritium", -Math.Min(tritium_to_add,lithium_to_take));
+                    ORSHelper.fixedRequestResource(part, "Lithium", Math.Min(tritium_to_add, lithium_to_take));
+                    ORSHelper.fixedRequestResource(part, "Tritium", -Math.Min(tritium_to_add, lithium_to_take));
                 }
             }
             this.part.force_activate();
@@ -366,6 +368,10 @@ namespace FNPlugin {
             return false;
         }
 
+        public virtual float getMinimumThermalPower() {
+            return 0;
+        }
+
 		public float getRadius() {
 			return radius;
 		}
@@ -453,11 +459,13 @@ namespace FNPlugin {
                 tritium_rate = (float) (thermal_power_received/TimeWarp.fixedDeltaTime/1000.0f/28800.0f);
                 if (breedtritium) {
                     double lith_rate = tritium_rate * TimeWarp.fixedDeltaTime;
-                    double lith_used = part.RequestResource("Lithium", lith_rate);
-                    tritium_produced_f = (float) (-part.RequestResource("Tritium", -lith_used) / TimeWarp.fixedDeltaTime);
-                    //if (tritium_produced_f <= 0) {
-                    //    breedtritium = false;
-                    //}
+                    //double lith_used = part.RequestResource("Lithium", lith_rate);
+                    double lith_used = ORSHelper.fixedRequestResource(part,"Lithium",lith_rate);
+                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, "Tritium", -lith_used)/TimeWarp.fixedDeltaTime);
+                    //tritium_produced_f = (float) (-part.RequestResource("Tritium", -lith_used) / TimeWarp.fixedDeltaTime);
+                    if (tritium_produced_f <= 0) {
+                        breedtritium = false;
+                    }
                 }
                 if (Planetarium.GetUniversalTime() != 0) {
                     last_active_time = (float)Planetarium.GetUniversalTime();

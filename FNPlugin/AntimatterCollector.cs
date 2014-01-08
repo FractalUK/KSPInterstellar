@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     public class AntimatterCollector : PartModule    {
@@ -29,7 +30,8 @@ namespace FNPlugin {
 				float flux = (VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, (float)vessel_avg_alt, (float)vessel_inclination) + VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, (float)vessel_avg_alt, 0.0f))/2.0f;
                 //vessel.orbit.
                 double antimatter_to_add = time_diff*flux;
-                part.RequestResource("Antimatter", -antimatter_to_add);
+                //part.RequestResource("Antimatter", -antimatter_to_add);
+                ORSHelper.fixedRequestResource(part, "Antimatter", -antimatter_to_add);
             }
         }
 
@@ -44,7 +46,8 @@ namespace FNPlugin {
             drawCount++;
             float lat = (float) vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
             float flux = VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, (float)vessel.altitude,lat);
-            part.RequestResource("Antimatter", -flux * TimeWarp.fixedDeltaTime);
+            //part.RequestResource("Antimatter", -flux * TimeWarp.fixedDeltaTime);
+            ORSHelper.fixedRequestResource(part, "Antimatter", -flux * TimeWarp.fixedDeltaTime);
             last_active_time = (float)Planetarium.GetUniversalTime();
             collection_rate_d = flux*86400;
         }

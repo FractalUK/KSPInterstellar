@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     class ISRUScoop : FNResourceSuppliableModule {
@@ -34,11 +35,11 @@ namespace FNPlugin {
         public void ToggleResource() {
             currentresource++;
 
-            if(AtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex,currentresource) == null && AtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex,currentresource) > 0 && currentresource != 0) {
+            if (ORSAtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource) == null && ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource) > 0 && currentresource != 0) {
                 ToggleResource();
             }
 
-            if (currentresource >= AtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Count) {
+            if (currentresource >= ORSAtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Count) {
                 currentresource = 0;
             }
         }
@@ -80,8 +81,8 @@ namespace FNPlugin {
             Events["ToggleResource"].active = scoopIsEnabled;
             Fields["resflow"].guiActive = scoopIsEnabled;
             Fields["currentresourceStr"].guiActive = scoopIsEnabled;
-            double respcent = AtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource)*100;
-            string resname = AtmosphericResourceHandler.getAtmosphericResourceDisplayName(vessel.mainBody.flightGlobalsIndex, currentresource);
+            double respcent = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource)*100;
+            string resname = ORSAtmosphericResourceHandler.getAtmosphericResourceDisplayName(vessel.mainBody.flightGlobalsIndex, currentresource);
             if (resname != null) {
                 currentresourceStr = resname + "(" + respcent + "%)";
             }
@@ -90,10 +91,10 @@ namespace FNPlugin {
 
         public override void OnFixedUpdate() {
             if (scoopIsEnabled) {
-                string atmospheric_resource_name = AtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource);
+                string atmospheric_resource_name = ORSAtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource);
                 if (atmospheric_resource_name != null) {
                     double resourcedensity = PartResourceLibrary.Instance.GetDefinition(atmospheric_resource_name).density;
-                    double respcent = AtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
+                    double respcent = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
                     //double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
                     //double respcent = PluginHelper.getAtmosphereResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
 

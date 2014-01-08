@@ -446,5 +446,9 @@ namespace FNPlugin {
                 return originalName + " Thruster";
             }
         }
+
+        public override int getPowerPriority() {
+            return 1;
+        }
     }
 }

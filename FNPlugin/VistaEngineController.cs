@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-	class VistaEngineController : PartModule {
+	class VistaEngineController : FNResourceSuppliableModule {
 		[KSPField(isPersistant = true)]
 		bool IsEnabled;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
@@ -39,9 +39,8 @@ namespace FNPlugin
 			ModuleEngines curEngineT = (ModuleEngines)this.part.Modules ["ModuleEngines"];
 			minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
-			standard_megajoule_rate = curEngineT.propellants [1].ratio;
-			standard_deut_rate = curEngineT.propellants [2].ratio;
-			standard_lith_rate = curEngineT.propellants [3].ratio;
+			standard_deut_rate = curEngineT.propellants [1].ratio;
+			standard_lith_rate = curEngineT.propellants [2].ratio;
 
 		}
 
@@ -99,7 +98,7 @@ namespace FNPlugin
 			List<Vessel> vessels = FlightGlobals.Vessels;
 			List<Vessel> vessels_to_remove = new List<Vessel> ();
 			List<ProtoCrewMember> crew_to_remove = new List<ProtoCrewMember> ();
-			double death_prob = 1.0 - 1.0 * TimeWarp.fixedDeltaTime;
+			double death_prob = 1.0 * TimeWarp.fixedDeltaTime;
 			if (radhazard && throttle > 0 && !rad_safety_features) {
 				foreach (Vessel vess in vessels) {
 					float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
@@ -108,15 +107,11 @@ namespace FNPlugin
 						float inv_sq_mult = 1.0f / inv_sq_dist / inv_sq_dist;
 						List<ProtoCrewMember> vessel_crew = vess.GetVesselCrew ();
 						foreach (ProtoCrewMember crew_member in vessel_crew) {
-							if (UnityEngine.Random.value >= death_prob*inv_sq_mult) {
+							if (UnityEngine.Random.value >= (1.0 - death_prob*inv_sq_mult)) {
 								if(!vess.isEVA) {
-									//Part part = vess.Parts.Find(p => p.protoModuleCrew.Contains(crew_member));
-									//part.RemoveCrewmember (crew_member);
-									//crew_member.Die ();
 									ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 									crew_to_remove.Add (crew_member);
 								}else{
-									//vess.rootPart.Die();
 									ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 									vessels_to_remove.Add (vess);
 								}
@@ -138,15 +133,29 @@ namespace FNPlugin
 			}
 
 			if (throttle > 0) {
-				curEngineT.propellants [1].ratio = (float) (standard_megajoule_rate / throttle / throttle);
-				curEngineT.propellants [2].ratio = (float) (standard_deut_rate / throttle / throttle);
-				curEngineT.propellants [3].ratio = (float) (standard_lith_rate / throttle / throttle);
-				FloatCurve newISP = new FloatCurve();
-				newISP.Add (0, (float)(minISP / throttle));
-				curEngineT.atmosphereCurve = newISP;
+                double power = consumeFNResource(2500.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                curEngineT.propellants[1].ratio = (float)(standard_deut_rate / throttle / throttle);
+                curEngineT.propellants[2].ratio = (float)(standard_lith_rate / throttle / throttle);
+                FloatCurve newISP = new FloatCurve();
+                newISP.Add(0, (float)(minISP / throttle));
+                curEngineT.atmosphereCurve = newISP;
+                if (power >= 2500 * TimeWarp.fixedDeltaTime) {
+                    curEngineT.maxThrust = 1100;
+                } else {
+                    curEngineT.maxThrust = 0.0001f;
+                }
 			}
 		}
 
+        public override string getResourceManagerDisplayName() {
+            return "DT Vista Engine";
+        }
+
+        public override int getPowerPriority() {
+            return 1;
+        }
+
 	}
+
 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
@@ -26,7 +27,7 @@ namespace FNPlugin {
         protected void OnGUI() {
             string resourcename = FNResourceManager.FNRESOURCE_MEGAJOULES;
             Vessel vessel = FlightGlobals.ActiveVessel;
-            FNResourceManager mega_manager = null;
+            ORSResourceManager mega_manager = null;
             if (vessel != null) {
                 if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button) {
                     mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);

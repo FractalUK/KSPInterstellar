@@ -533,6 +533,9 @@ namespace FNPlugin{
 			return return_str;
 		}
 
+        public override int getPowerPriority() {
+            return 1;
+        }
 
 		// Static Methods
 		// Amount of intake air available to use of a particular resource type

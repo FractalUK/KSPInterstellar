@@ -78,6 +78,14 @@ namespace FNPlugin {
             return reactorType + " Reactor";
         }
 
+        public override float getMinimumThermalPower() {
+            return getThermalPower() * minimumThrottle;
+        }
+
+        public override int getPowerPriority() {
+            return 1;
+        }
+
         protected override double consumeReactorResource(double resource) {
             double min_fuel = 0;
             if (fuel_mode == 0) {

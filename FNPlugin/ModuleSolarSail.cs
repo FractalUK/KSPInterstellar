@@ -12,10 +12,12 @@ namespace FNPlugin {
 		// 1.0 makes it a pure reflecting solar sail.
 		// Otherwise you can use magnetic field to deflect the rest of the particles to gain extra momentum.
 		[KSPField]	
-		public float reflectedPhotonRatio = 0.5f;
+		public float reflectedPhotonRatio = 1f;
 
 		[KSPField(guiActive = true, guiName = "Force")]
-		private string forceAcquired;
+        protected string forceAcquired = "";
+        [KSPField(guiActive = true, guiName = "Acceleration")]
+        protected string solarAcc = "";
 
 		// Surface area of the panel.
 		[KSPField]	
@@ -24,9 +26,7 @@ namespace FNPlugin {
 		[KSPField]	
 		public string animName;
 
-		// Solar power curve (distance's function).
-		[KSPField]
-		public FloatCurve solarPowerCurve;// = PluginHelper.getSatFloatCurve();
+	
 
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = false;
@@ -34,27 +34,33 @@ namespace FNPlugin {
 		//[KSPField]
 		//public string surfaceTransformName;
 
-		private List<bool> isSunLightReached = new List<bool>();
-
 		private Transform surfaceTransform = null;
 		private Animation solarSailAnim = null;
 
 		const double kerbin_distance = 13599840256;
 		const double thrust_coeff = 9.08e-6;
 
+        protected double solar_force_d = 0;
+        protected double solar_acc_d = 0;
+        protected long count = 0;
+
 		[KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
 		public void DeploySail() {
-			solarSailAnim [animName].speed = 1f;
-			solarSailAnim [animName].normalizedTime = 0f;
-			solarSailAnim.Blend (animName, 2f);
+            if (animName != null && solarSailAnim != null) {
+                solarSailAnim[animName].speed = 1f;
+                solarSailAnim[animName].normalizedTime = 0f;
+                solarSailAnim.Blend(animName, 2f);
+            }
 			IsEnabled = true;
 		}
 
 		[KSPEvent(guiActive = true, guiName = "Retract Sail", active = false)]
 		public void RetractSail() {
-			solarSailAnim [animName].speed = -1f;
-			solarSailAnim [animName].normalizedTime = 1f;
-			solarSailAnim.Blend (animName, 2f);
+            if (animName != null && solarSailAnim != null) {
+                solarSailAnim[animName].speed = -1f;
+                solarSailAnim[animName].normalizedTime = 1f;
+                solarSailAnim.Blend(animName, 2f);
+            }
 			IsEnabled = false;
 		}
 
@@ -62,14 +68,26 @@ namespace FNPlugin {
 			if (state != StartState.None && state != StartState.Editor)	{
 				//surfaceTransform = part.FindModelTransform(surfaceTransformName);
 				//solarSailAnim = (ModuleAnimateGeneric)part.Modules["ModuleAnimateGeneric"];
-				solarSailAnim = part.FindModelAnimators (animName).FirstOrDefault ();
+                if (animName != null) {
+                    solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
+                }
 				this.part.force_activate ();
 			}
 		}
 
+        public override void OnUpdate() {
+            Events["DeploySail"].active = !IsEnabled;
+            Events["RetractSail"].active = IsEnabled;
+            Fields["solarAcc"].guiActive = IsEnabled;
+            Fields["forceAcquired"].guiActive = IsEnabled;
+            forceAcquired = solar_force_d.ToString("E") + " N";
+            solarAcc = solar_acc_d.ToString("E") + " m/s";
+        }
+
 		public override void OnFixedUpdate()	{
 			if(FlightGlobals.fetch != null)	{
-				if(!isEnabled) {return;}
+                solar_force_d = 0;
+				if(!IsEnabled) {return;}
 				double sunlightFactor = 1.0;
 				Vector3 sunVector = FlightGlobals.fetch.bodies[0].position - part.orgPos;
 
@@ -77,24 +95,44 @@ namespace FNPlugin {
 					sunlightFactor = 0.0f;
 				}
 
-				Debug.Log("Detecting sunlight: " + sunlightFactor.ToString());
-				Vector3 solarForce = CalculateSolarForce() * sunlightFactor;
+				//Debug.Log("Detecting sunlight: " + sunlightFactor.ToString());
+				Vector3d solarForce = CalculateSolarForce() * sunlightFactor;
+                //print(surfaceArea);
 
-				Vector3d solar_accel = CalculateSolarForce () / vessel.GetTotalMass ()/1000.0;
+                Vector3d solar_accel = solarForce / vessel.GetTotalMass() / 1000.0*TimeWarp.fixedDeltaTime;
 				if (!this.vessel.packed) {
 					vessel.ChangeWorldVelocity (solar_accel);
 				} else {
-					double temp1 = solar_accel.y;
-					solar_accel.y = solar_accel.z;
-					solar_accel.z = temp1;
-					Vector3d position = vessel.orbit.pos + vessel.orbit.vel*TimeWarp.fixedDeltaTime;
-					Vector3d mod_acceleration = solar_accel * TimeWarp.fixedDeltaTime;
-					
-					vessel.orbit.UpdateFromStateVectors(position, vessel.orbit.vel + solar_accel, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
-				}
+                    if (sunlightFactor > 0) {
+                        double temp1 = solar_accel.y;
+                        solar_accel.y = solar_accel.z;
+                        solar_accel.z = temp1;
+                        Vector3d position = vessel.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
+                        Orbit orbit2 = new Orbit(vessel.orbit.inclination, vessel.orbit.eccentricity, vessel.orbit.semiMajorAxis, vessel.orbit.LAN, vessel.orbit.argumentOfPeriapsis, vessel.orbit.meanAnomalyAtEpoch, vessel.orbit.epoch, vessel.orbit.referenceBody);
+                        orbit2.UpdateFromStateVectors(position, vessel.orbit.vel + solar_accel, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+                        //print(orbit2.timeToAp);
+                        if (!double.IsNaN(orbit2.inclination) && !double.IsNaN(orbit2.eccentricity) && !double.IsNaN(orbit2.semiMajorAxis) && orbit2.timeToAp > TimeWarp.fixedDeltaTime) {
+                            vessel.orbit.inclination = orbit2.inclination;
+                            vessel.orbit.eccentricity = orbit2.eccentricity;
+                            vessel.orbit.semiMajorAxis = orbit2.semiMajorAxis;
+                            vessel.orbit.LAN = orbit2.LAN;
+                            vessel.orbit.argumentOfPeriapsis = orbit2.argumentOfPeriapsis;
+                            vessel.orbit.meanAnomalyAtEpoch = orbit2.meanAnomalyAtEpoch;
+                            vessel.orbit.epoch = orbit2.epoch;
+                            vessel.orbit.referenceBody = orbit2.referenceBody;
+                            vessel.orbit.Init();
 
-				forceAcquired = solarForce.magnitude.ToString ("E") + " N";
+                            //vessel.orbit.UpdateFromOrbitAtUT(orbit2, Planetarium.GetUniversalTime(), orbit2.referenceBody);
+                            vessel.orbit.UpdateFromUT(Planetarium.GetUniversalTime());
+                       }
+                       
+                    }
+				}
+                solar_force_d = solarForce.magnitude;
+                solar_acc_d = solar_accel.magnitude / TimeWarp.fixedDeltaTime;
+                //print(solarForce.x.ToString() + ", " + solarForce.y.ToString() + ", " + solarForce.z.ToString());
 			}
+            count++;
 		}
 
 		private Vector3d CalculateSolarForce() {
@@ -105,7 +143,7 @@ namespace FNPlugin {
 				if (surfaceTransform != null) {
 					normal = surfaceTransform.forward;
 				}
-				Vector3d force = normal * Vector3.Dot ((ownPosition - sunPosition).normalized, normal);
+				Vector3d force = normal * Vector3d.Dot ((ownPosition - sunPosition).normalized, normal);
 				return force * surfaceArea * reflectedPhotonRatio * solarForceAtDistance ();
 			} else {
 				return Vector3d.zero;

@@ -115,6 +115,10 @@ namespace FNPlugin {
             }
         }
 
+        public override float getMinimumThermalPower() {
+            return getThermalPower() * minimumThrottle;
+        }
+
         public override string GetInfo() {
             float uf6_rate_per_day = resourceRate * 86400;
             float up_uf6_rate_per_day = upgradedResourceRate * 86400;

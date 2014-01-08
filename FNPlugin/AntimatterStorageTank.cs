@@ -206,6 +206,10 @@ namespace FNPlugin {
             return "Antimatter Storage Tank";
         }
 
+        public override int getPowerPriority() {
+            return 1;
+        }
+
 
 	}
 

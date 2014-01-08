@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     class ScienceModule : FNResourceSuppliableModule {
@@ -361,7 +362,8 @@ namespace FNPlugin {
 
                         total_electrical_power_provided = (float) (global_rate_multipliers * GameConstants.baseAMFPowerConsumption * 1E6f);
                         double antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6f / 20000.0f;
-						antimatter_rate_f = (float) -part.RequestResource ("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+						//antimatter_rate_f = (float) -part.RequestResource ("Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                        antimatter_rate_f = (float)-ORSHelper.fixedRequestResource(part,"Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
 					} else if (active_mode == 3) {
 						IsEnabled = false;
 					} else if (active_mode == 4) { // Centrifuge
@@ -372,7 +374,8 @@ namespace FNPlugin {
                             global_rate_multipliers = (float) (global_rate_multipliers * total_electrical_power_provided / GameConstants.baseCentriPowerConsumption / TimeWarp.fixedDeltaTime);
                             electrical_power_ratio = (float) (total_electrical_power_provided / GameConstants.baseCentriPowerConsumption / TimeWarp.fixedDeltaTime);
                             float deut_produced = (float) (global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
-							deut_rate_f = -part.RequestResource ("Deuterium", -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+							//deut_rate_f = -part.RequestResource ("Deuterium", -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                            deut_rate_f = -ORSHelper.fixedRequestResource(part, "Deuterium", -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
 						} else {
 							ScreenMessages.PostScreenMessage ("You must be splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 							IsEnabled = false;

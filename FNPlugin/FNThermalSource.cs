@@ -21,6 +21,8 @@ namespace FNPlugin{
 
         bool isVolatileSource();
 
+        float getMinimumThermalPower();
+
 	}
 }
 
