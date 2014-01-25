@@ -61,7 +61,7 @@ namespace FNPlugin {
             double altituded = altitude;
             double a = peakbelt / Math.Sqrt(2);
             double b = peakbelt2 / Math.Sqrt(2);
-            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(a, 2))) / (Math.Pow(a, 3)) + 0.8*Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
+            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(a, 2))) / (Math.Pow(a, 3)) + 0.9*Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
             beltparticles = beltparticles * relrp / relrt * 50.0;
 
             if (crefbody.flightGlobalsIndex == 0) {

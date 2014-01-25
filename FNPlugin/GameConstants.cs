@@ -43,5 +43,14 @@ namespace FNPlugin {
         public const double basePechineyUgineKuhlmannPowerConsumption = 5;
         public const double pechineyUgineKuhlmannMassRatio = 0.4847459883;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
+        public const double telescopePerformanceTimescale = 2.1964508725630127431022388314009e-8;
+        public const double telescopeBaseScience = 0.5;
+        public const double telescopeGLensScience = 15;
+        public const float tritiumBreedRate = 537728.1553398f;
+        public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
+        public const double antimatter_initiated_uf4_cons_constant = 1.0 / 45000.0;
+        public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
+        public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
+        public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;
     }
 }

@@ -19,6 +19,8 @@ namespace FNPlugin {
 		public string chargeStatusStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
 		public string statusStr;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Capacity")]
+        public string capacityStr;
 
 		bool charging = false;
 		bool should_charge = true;
@@ -29,7 +31,7 @@ namespace FNPlugin {
 		float current_antimatter = 0;
 		int explode_counter = 0;
 		GameObject lightGameObject;
-
+        protected PartResource antimatter;
 		
 
 		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
@@ -74,6 +76,7 @@ namespace FNPlugin {
 
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
+            antimatter = part.Resources["Antimatter"];
 		}
 
 		public override void OnUpdate() {
@@ -98,63 +101,60 @@ namespace FNPlugin {
 					statusStr = "No Power Required.";
 				}
 			}
+
+            capacityStr = formatAntimatterMassStr(antimatter.amount) + " / " + formatAntimatterMassStr(antimatter.maxAmount);
 		}
 
 		public override void OnFixedUpdate() {
-
-			List<PartResource> antimatter_resources = new List<PartResource>();
-			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Antimatter").id, antimatter_resources);
-			float antimatter_current_amount = 0;
-            float mult = 1;
-			foreach (PartResource antimatter_resource in antimatter_resources) {
-				antimatter_current_amount += (float)antimatter_resource.amount;
-			}
-			current_antimatter = antimatter_current_amount;
-			explosion_size = Mathf.Sqrt (antimatter_current_amount)*5.0f;
-			if (chargestatus > 0 && current_antimatter > 0.1) {
-				chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
-			}
-            if (chargestatus >= GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
-                mult = 0.5f;
-            }
-            if (should_charge || (current_antimatter > 0.1)) {
-                float charge_to_add = consumeFNResource(mult*2.0*chargeNeeded/1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f/chargeNeeded;
-                chargestatus += charge_to_add;
-
-				if (charge_to_add < 2f * TimeWarp.fixedDeltaTime) {
-                    float more_charge_to_add = part.RequestResource("ElectricCharge", mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
-					charge_to_add += more_charge_to_add;
-					chargestatus += more_charge_to_add;
-				}
-
-				if (charge_to_add >= 1f * TimeWarp.fixedDeltaTime) {
-					charging = true;
-				} else {
-					charging = false;
-					if (TimeWarp.CurrentRateIndex > 3  && antimatter_current_amount > 0.1) {
-						TimeWarp.SetRate (3, true);
-						ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1.0f, ScreenMessageStyle.UPPER_CENTER);
-					}
-				}
-				//print (chargestatus);
-				if (chargestatus <= 0) {
-					chargestatus = 0;
-					if (antimatter_current_amount > 0.1) {
-						explode_counter++;
-						if (explode_counter > 5) {
-							doExplode ();
-						}
-					}
-				} else {
-					explode_counter = 0;
-				}
-
-                if (chargestatus > GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
-                    chargestatus = GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE;
+            if (antimatter != null) {
+                float mult = 1;
+                current_antimatter = (float)antimatter.amount;
+                explosion_size = Mathf.Sqrt(current_antimatter) * 5.0f;
+                if (chargestatus > 0 && current_antimatter > 0.1) {
+                    chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
                 }
-			} else {
-                
-			}
+                if (chargestatus >= GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
+                    mult = 0.5f;
+                }
+                if (should_charge || (current_antimatter > 0.1)) {
+                    float charge_to_add = consumeFNResource(mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
+                    chargestatus += charge_to_add;
+
+                    if (charge_to_add < 2f * TimeWarp.fixedDeltaTime) {
+                        float more_charge_to_add = part.RequestResource("ElectricCharge", mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
+                        charge_to_add += more_charge_to_add;
+                        chargestatus += more_charge_to_add;
+                    }
+
+                    if (charge_to_add >= 1f * TimeWarp.fixedDeltaTime) {
+                        charging = true;
+                    } else {
+                        charging = false;
+                        if (TimeWarp.CurrentRateIndex > 3 && current_antimatter > 0.1) {
+                            TimeWarp.SetRate(3, true);
+                            ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1.0f, ScreenMessageStyle.UPPER_CENTER);
+                        }
+                    }
+                    //print (chargestatus);
+                    if (chargestatus <= 0) {
+                        chargestatus = 0;
+                        if (current_antimatter > 0.1) {
+                            explode_counter++;
+                            if (explode_counter > 5) {
+                                doExplode();
+                            }
+                        }
+                    } else {
+                        explode_counter = 0;
+                    }
+
+                    if (chargestatus > GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
+                        chargestatus = GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE;
+                    }
+                } else {
+
+                }
+            }
 
 			if (exploding && lightGameObject != null) {
 				if (Mathf.Sqrt (cur_explosion_size) > explosion_size) {
@@ -208,6 +208,26 @@ namespace FNPlugin {
 
         public override int getPowerPriority() {
             return 1;
+        }
+
+        protected string formatAntimatterMassStr(double amount) {
+            if (amount >= 1000) {
+                return (amount/1000).ToString("0.00") + " g";
+            } else {
+                if (amount >= 1) {
+                    return (amount).ToString("0.00") + " mg";
+                } else {
+                    if (amount >= 1e-3) {
+                        return (amount * 1e3).ToString("0.00") + " ug";
+                    } else {
+                        if (amount > 1e-6) {
+                            return (amount * 1e6).ToString("0.00") + " ng";
+                        } else {
+                            return (amount * 1e9).ToString("0.00") + " pg";
+                        }
+                    }
+                }
+            }
         }
 
 

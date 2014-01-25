@@ -169,7 +169,14 @@ namespace FNPlugin {
 			Actions["RetractRadiatorAction"].guiName = Events["RetractRadiator"].guiName = String.Format("Retract Radiator");
 			Actions["ToggleRadiatorAction"].guiName = String.Format("Toggle Radiator");
 
-			if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor) {
+                if (hasTechsRequiredToUpgrade()) {
+                    isupgraded = true;
+                    hasrequiredupgrade = true;
+                    isupgraded = true;
+                }
+                return;
+            }
 			
 
 			FNRadiator.list_of_radiators.Add (this);
@@ -204,9 +211,6 @@ namespace FNPlugin {
 
 			if (radiatorInit == false) {
 				radiatorInit = true;
-				if(hasrequiredupgrade) {
-					isupgraded = true;
-				}
 			}
 
 			if (!isupgraded) {

@@ -45,27 +45,31 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
-            pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Where(prc => prc.isFunctional()).Count();
-            intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
-            double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open,0.1);
-            if (double.IsNaN(proportion) || double.IsInfinity(proportion)) {
-                proportion = 1;
-            }
-            
-            if (rapier_engine != null) {
-                if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0) {
-                    part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
-                } else {
-                    part.temperature = 1;
+            try {
+                pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Where(prc => prc.isFunctional()).Count();
+                intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
+                double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
+                if (double.IsNaN(proportion) || double.IsInfinity(proportion)) {
+                    proportion = 1;
                 }
-            }
 
-            if (rapier_engine2 != null) {
-                if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0) {
-                    part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
-                } else {
-                    part.temperature = 1;
+                if (rapier_engine != null) {
+                    if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelocityCurve) {
+                        part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                    } else {
+                        part.temperature = 1;
+                    }
                 }
+
+                if (rapier_engine2 != null) {
+                    if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine.useVelocityCurve) {
+                        part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                    } else {
+                        part.temperature = 1;
+                    }
+                }
+            } catch (Exception ex) {
+                Debug.Log("[KSP Interstellar] ModuleSabreHeating threw Exception in OnFixedUpdate(): " + ex);
             }
         }
     }

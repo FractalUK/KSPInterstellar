@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenResourceSystem</RootNamespace>
-    <AssemblyName>OpenResourceSystem_1_0_0</AssemblyName>
+    <AssemblyName>OpenResourceSystem_1_1_0</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

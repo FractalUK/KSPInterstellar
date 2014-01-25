@@ -14,7 +14,7 @@ namespace FNPlugin {
 		[KSPField(isPersistant = true)]
 		public bool isupgraded = false;
         [KSPField(isPersistant = true)]
-        public bool chargedParticleMode = false;
+        public bool chargedParticleMode;
 
 		// Persistent False
 		[KSPField(isPersistant = false)]
@@ -149,10 +149,11 @@ namespace FNPlugin {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
-
+            generatorType = originalName;
             if (state == StartState.Editor) {
                 if (hasTechsRequiredToUpgrade()) {
                     isupgraded = true;
+                    hasrequiredupgrade = true;
                     upgradePartModule();
                 }
                 part.OnEditorAttach += OnEditorAttach;
@@ -164,7 +165,7 @@ namespace FNPlugin {
             }
 
 			this.part.force_activate();
-			generatorType = originalName;
+			
 
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
 			if (anim != null) {
@@ -202,7 +203,7 @@ namespace FNPlugin {
 				}
 			}
 
-			print("[WarpPlugin] Configuring Generator");
+			print("[KSP Interstellar] Configuring Generator");
 		}
 
 		public override void OnUpdate() {

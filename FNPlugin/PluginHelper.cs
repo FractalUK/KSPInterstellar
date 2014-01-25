@@ -273,7 +273,13 @@ namespace FNPlugin {
 				plugin_init = true;
 
                 AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
-                kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
+                if (kerbalRadiationPart.partPrefab.Modules != null) {
+                    if (kerbalRadiationPart.partPrefab.FindModulesImplementing<FNModuleRadiation>().Count == 0) {
+                        kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
+                    }
+                } else {
+                    kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
+                }
 
 				List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
 				foreach (AvailablePart available_part in available_parts) {
@@ -352,10 +358,15 @@ namespace FNPlugin {
 									double rad_hardness = prefab_available_part.mass /((double)prefab_available_part.CrewCapacity)*7.5;
 									pm.rad_hardness = rad_hardness;
 								}
+                                print("Adding ModuleRadiation to " + prefab_available_part.name);
 							}
 						}
 					}catch(Exception ex) {
-                        print("[KSP Interstellar] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
+                        if (prefab_available_part != null) {
+                            print("[KSP Interstellar] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
+                        } else {
+                            print("[KSP Interstellar] Exception caught adding to unknown module");
+                        }
 					}
 
 

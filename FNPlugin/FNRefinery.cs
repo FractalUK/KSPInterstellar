@@ -47,6 +47,7 @@ namespace FNPlugin {
         protected bool play_down = true;
         protected Animation anim;
         protected String[] modes = { "Nuclear Reprocessing", "Aluminium Electrolysis","Sabatier ISRU","Water Electrolysis","Anthraquinone Process","Monopropellant Production"};
+        protected FuelReprocessor reprocessor;
 
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
         public void ReprocessFuel() {
@@ -116,9 +117,12 @@ namespace FNPlugin {
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
             part.force_activate();
+            reprocessor = new FuelReprocessor(part);
 
-            if (part.airlock.transform.gameObject != null) {
-                Destroy(part.airlock.transform.gameObject);
+            if (part.airlock != null && part.airlock.transform != null) {
+                if (part.airlock.transform.gameObject != null) {
+                    Destroy(part.airlock.transform.gameObject);
+                }
             }
 
             anim = part.FindModelAnimators(animName).FirstOrDefault();
@@ -205,41 +209,13 @@ namespace FNPlugin {
                 if (active_mode == 0) { // Fuel Reprocessing
                     double electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePowerConsumption);
-
-                    List<PartResource> partresources = new List<PartResource>();
-                    double currentActinides = 0;
-                    double depletedfuelsparecapacity = 0;
-                    double uf6sparecapacity = 0;
-                    double thf4sparecapacity = 0;
-                    double uf6tothf4_ratio = 0;
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Actinides").id, partresources);
-                    foreach (PartResource partresource in partresources) {
-                        currentActinides += partresource.amount;
-                    }
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("DepletedFuel").id, partresources);
-                    foreach (PartResource partresource in partresources) {
-                        depletedfuelsparecapacity += partresource.maxAmount - partresource.amount;
-                    }
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF4").id, partresources);
-                    foreach (PartResource partresource in partresources) {
-                        uf6sparecapacity += partresource.maxAmount - partresource.amount;
-                    }
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThF4").id, partresources);
-                    foreach (PartResource partresource in partresources) {
-                        thf4sparecapacity += partresource.maxAmount - partresource.amount;
-                    }
-                    uf6tothf4_ratio = uf6sparecapacity / (thf4sparecapacity + uf6sparecapacity);
-                    double amount_to_reprocess = Math.Min(currentActinides, depletedfuelsparecapacity * 5.0);
-                    if (currentActinides > 0 && !double.IsNaN(uf6tothf4_ratio) && !double.IsInfinity(uf6tothf4_ratio)) {
-                        double actinides_removed = part.RequestResource("Actinides", GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * electrical_power_ratio);
-                        double uf6added = part.RequestResource("UF4", -actinides_removed * 0.8 * uf6tothf4_ratio);
-                        double th4added = part.RequestResource("ThF4", -actinides_removed * 0.8 * (1 - uf6tothf4_ratio));
-                        double duf6added = part.RequestResource("DepletedFuel", -actinides_removed * 0.2);
-                        double actinidesremovedperhour = actinides_removed / TimeWarp.fixedDeltaTime * 3600.0;
-                        reprocessing_rate_d = (float)(amount_to_reprocess / actinidesremovedperhour);
-                    } else { // Finished, hurray!
+                    reprocessor.performReprocessingFrame(electrical_power_ratio);
+                    if (reprocessor.getActinidesRemovedPerHour() > 0) {
+                        reprocessing_rate_d = reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour();
+                    } else {
+                        ScreenMessages.PostScreenMessage("Unable to Reprocess Nuclear Fuel", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         IsEnabled = false;
-                    }
+                    }                    
                 } else if (active_mode == 1) { // Aluminium Electrolysis
                     double electrical_power_provided = consumeFNResource((GameConstants.baseELCPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseELCPowerConsumption);
@@ -308,7 +284,7 @@ namespace FNPlugin {
                     if (ammonia_consumption_rate > 0 && h202_consumption_rate > 0) {
                         double mono_prop_produciton_rate = ammonia_consumption_rate + h202_consumption_rate;
                         double density_monoprop = PartResourceLibrary.Instance.GetDefinition("MonoPropellant").density;
-                        monoprop_rate_d = -part.RequestResource("MonoPropellant", -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime / density_monoprop)*density_monoprop/TimeWarp.fixedDeltaTime;
+                        monoprop_rate_d = -ORSHelper.fixedRequestResource(part,"MonoPropellant", -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime / density_monoprop)*density_monoprop/TimeWarp.fixedDeltaTime;
                     } else {
                         if (electrical_power_ratio > 0) {
                             monoprop_rate_d = 0;

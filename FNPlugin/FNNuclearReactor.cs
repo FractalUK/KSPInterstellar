@@ -122,11 +122,7 @@ namespace FNPlugin {
         public override string GetInfo() {
             float uf6_rate_per_day = resourceRate * 86400;
             float up_uf6_rate_per_day = upgradedResourceRate * 86400;
-            if (!hasTechsRequiredToUpgrade()) {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}m³/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}m³/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
-            } else {
-                return String.Format(upgradedName + "\nThis part is available automatically upgraded\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}m³/day\n", ReactorTemp, ThermalPower, uf6_rate_per_day);
-            }
+            return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}m³/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}m³/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
         }
 
         public override void OnStart(PartModule.StartState state) {

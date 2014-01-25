@@ -140,7 +140,8 @@ namespace OpenResourceSystem {
                 double extraction_rate = resource_abundance * extraction_time * electrical_power_ratio;
                 if (resource_abundance > 0) {
                     double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
-                    extraction_rate_d = -part.RequestResource(resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    //extraction_rate_d = -part.RequestResource(resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    extraction_rate_d = -ORSHelper.fixedRequestResource(part,resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 } else {
                     IsEnabled = false;
                 }

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
-	public class FNModuleRadiation : PartModule	{
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Level")]
+	class FNModuleRadiation : PartModule	{
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Rad.")]
 		public string radiationLevel = ":";
 
 		public double rad_hardness = 1;
@@ -18,27 +19,48 @@ namespace FNPlugin {
             //if (!vessel.isEVA) {
             //    part.force_activate();
             //}
+            print("[KSP Interstellar] Radiation Module Loaded.");
+            Fields["radiationLevel"].guiActive = true;
 		}
 
         public override void OnUpdate() {
+            Fields["radiationLevel"].guiActive = true;
+            double rad_level_yr = radiation_level * 24 * 365.25;
             if (radiation_level >= 1000) {
-                radiationLevel = (radiation_level / 1000).ToString("0.00") + " Sv/hour";
+                radiationLevel = (radiation_level / 1000).ToString("0.00") + " Sv/h";
             } else {
                 if (radiation_level >= 1) {
-                    radiationLevel = radiation_level.ToString("0.00") + " mSv/hour";
+                    radiationLevel = radiation_level.ToString("0.00") + " mSv/hr";
                 } else {
                     if (radiation_level >= 0.001) {
-                        radiationLevel = (radiation_level * 1000.0).ToString("0.00") + " uSv/hour";
+                        radiationLevel = (radiation_level * 1000.0).ToString("0.00") + " uSv/h";
                     } else {
-                        radiationLevel = (radiation_level * 1000000.0).ToString("0.00") + " nSv/hour";
+                        radiationLevel = (radiation_level * 1000000.0).ToString("0.00") + " nSv/h";
                     }
                 }
             }
 
+            
+            if (rad_level_yr >= 1e9) {
+                radiationLevel = radiationLevel + " " + (rad_level_yr / 1e9).ToString("0.00") + " MSv/yr";
+            } else {
+                if (rad_level_yr >= 1e6) {
+                    radiationLevel = radiationLevel + " " + (rad_level_yr / 1e6).ToString("0.00") + " KSv/yr";
+                } else {
+                    if (rad_level_yr >= 1e3) {
+                        radiationLevel = radiationLevel + " " + (rad_level_yr / 1e3).ToString("0.00") + " Sv/yr";
+                    } else {
+                        radiationLevel = radiationLevel + " " + (rad_level_yr).ToString("0.00") + " mSv/yr";
+                    }
+                }
+            }
+            
             CelestialBody cur_ref_body = FlightGlobals.ActiveVessel.mainBody;
 			CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
-            
-            double rad = VanAllen.getBeltAntiparticles(cur_ref_body.flightGlobalsIndex, (float)FlightGlobals.ship_altitude, (float)FlightGlobals.ship_latitude);
+
+            ORSPlanetaryResourcePixel res_pixel = ORSPlanetaryResourceMapData.getResourceAvailability(vessel.mainBody.flightGlobalsIndex, "Thorium", cur_ref_body.GetLatitude(vessel.transform.position), cur_ref_body.GetLongitude(vessel.transform.position));
+            double ground_rad = Math.Sqrt(res_pixel.getAmount()*9e6)/24/365.25 / Math.Max(vessel.altitude/870,1);
+            double rad = VanAllen.getRadiationLevel(cur_ref_body.flightGlobalsIndex, (float)FlightGlobals.ship_altitude, (float)FlightGlobals.ship_latitude);
 			double divisor = Math.Pow (cur_ref_body.Radius / crefkerbin.Radius, 2.0);
 			if (cur_ref_body.flightGlobalsIndex == PluginHelper.REF_BODY_KERBOL) {
 				rad = rad * 1e6;
@@ -58,8 +80,9 @@ namespace FNPlugin {
 				}
 				rad_level += rad;
 			}
-            
-			radiation_level = Math.Pow(rad_level / 3e-5,3.0)*130/rad_hardness;
+
+            radiation_level = (Math.Pow(rad_level / 3e-5, 3.0) * 5.2 + ground_rad) / rad_hardness;
+            //print(radiation_level);
             
             List<ProtoCrewMember> crew_members = part.protoModuleCrew;
             if (!vessel.isEVA) {

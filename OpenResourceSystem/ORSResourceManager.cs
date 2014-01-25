@@ -306,7 +306,8 @@ namespace OpenResourceSystem {
                 internl_power_extract = Math.Max(internl_power_extract, -missingmegajoules);
 			}
 
-            my_part.RequestResource(this.resource_name, internl_power_extract);
+            //my_part.RequestResource(this.resource_name, internl_power_extract);
+            ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);
             powersupply = 0;
 			stable_supply = 0;
             power_supplies.Clear();
