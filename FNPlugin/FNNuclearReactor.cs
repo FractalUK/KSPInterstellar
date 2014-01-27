@@ -68,12 +68,12 @@ namespace FNPlugin {
             if (actinides.amount <= 0.0001) {
                 if (uranium_fuel) {
                     defuelUranium();
-                    if (uf4.amount > 0) { return; }
+                    if (uf4.amount > 0.001) { return; }
                     setThoriumFuel();
                     RefuelThorium();
                 } else {
                     defuelThorium();
-                    if (thf4.amount > 0) { return; }
+                    if (thf4.amount > 0.001) { return; }
                     setUraniumFuel();
                     RefuelUranium();
                 }

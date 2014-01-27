@@ -23,16 +23,22 @@ namespace FNPlugin {
                 return;
             }
             decay_resource = part.Resources[resourceName];
-            part.force_activate();   
-        }
-
-        public override void OnFixedUpdate() {
-            double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
-            decay_resource.amount -= decay_amount;
-            if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
-                part.RequestResource(decayProduct, -decay_amount);
+            if (decay_resource!=null)
+            {
+                part.force_activate();   
             }
         }
 
+        public override void OnFixedUpdate() {
+            if (decay_resource != null)
+            {
+                double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
+                decay_resource.amount -= decay_amount;
+                if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct))
+                {
+                    part.RequestResource(decayProduct, -decay_amount);
+                }
+            }
+        }
     }
 }
