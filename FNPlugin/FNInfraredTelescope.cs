@@ -16,13 +16,15 @@ namespace FNPlugin {
         public bool telescopeInit;
         [KSPField(isPersistant = true)]
         public bool dpo;
+        [KSPField(isPersistant = true)]
+        public double helium_depleted_time;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Performance")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Performance")]
         public string performPcnt = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Science")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Science")]
         public string sciencePerDay = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "G-Lens")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "G-Lens")]
         public string gLensStr = "";
 
         //Internal
@@ -30,6 +32,7 @@ namespace FNPlugin {
         protected double perform_exponent = 0;
         protected double science_rate = 0;
         protected double science_awaiting_addition = 0;
+        protected double helium_time_scale = 0;
 
 
         [KSPEvent(guiActive = true, guiName = "Deep Field Survey", active = false)]
@@ -64,13 +67,16 @@ namespace FNPlugin {
 
             if (telescopeIsEnabled && lastActiveTime > 0) {
                 double t0 = lastActiveTime - lastMaintained;
-                double t1 = Planetarium.GetUniversalTime() - lastMaintained;
-                double a = -GameConstants.telescopePerformanceTimescale;
-                double base_science = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
-                double avg_science_rate = base_science / a / a * (Math.Exp(a * t1) * (a * t1 - 1) - Math.Exp(a * t0) * (a * t0 - 1));
-                double time_diff = Planetarium.GetUniversalTime() - lastActiveTime;
-                double science_to_add = avg_science_rate / 86400 * time_diff;
-                lastActiveTime = Planetarium.GetUniversalTime();
+                double t1 = Math.Min(Planetarium.GetUniversalTime(),helium_depleted_time) - lastMaintained;
+                if (t1 > t0) {
+                    double a = -GameConstants.telescopePerformanceTimescale;
+                    double base_science = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
+                    double avg_science_rate = base_science / a / a * (Math.Exp(a * t1) * (a * t1 - 1) - Math.Exp(a * t0) * (a * t0 - 1));
+                    double time_diff = Planetarium.GetUniversalTime() - lastActiveTime;
+                    double science_to_add = avg_science_rate / 86400 * time_diff;
+                    lastActiveTime = Planetarium.GetUniversalTime();
+                    science_awaiting_addition = science_to_add;
+                }
             }
 
             this.part.force_activate();
@@ -89,7 +95,18 @@ namespace FNPlugin {
             sciencePerDay = (science_rate * 86400).ToString("0.00") + " Science/Day";
             double current_au = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position) / Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
             if (vessel.FindPartModulesImplementing<ScienceModule>().Count > 0 || vessel.FindPartModulesImplementing<ComputerCore>().Count > 0) {
-                if (current_au >= 548 && !inAtmos) {
+                List<ComputerCore> cores = vessel.FindPartModulesImplementing<ComputerCore>();
+                List<ScienceModule> science_labs = vessel.FindPartModulesImplementing<ScienceModule>();
+                bool upgraded_core = false;
+                bool crewed_lab = false;
+                foreach (ComputerCore core in cores) {
+                    upgraded_core = upgraded_core ? upgraded_core : core.isupgraded;
+                }
+                foreach (ScienceModule science_lab in science_labs) {
+                    crewed_lab = crewed_lab ? crewed_lab : (science_lab.part.protoModuleCrew.Count > 0);
+                }
+
+                if (current_au >= 548 && !inAtmos && (crewed_lab || upgraded_core)) {
                     if (vessel.orbit.eccentricity < 0.8) {
                         Events["beginOberservations2"].active = true;
                         if (telescopeIsEnabled && dpo) {
@@ -109,6 +126,10 @@ namespace FNPlugin {
                 Events["beginOberservations2"].active = false;
                 gLensStr = "Science Lab/Computer Core required";
             }
+
+            if (helium_time_scale <= 0) {
+                performPcnt = "Helium Coolant Deprived.";
+            }
         }
 
         public override void OnFixedUpdate() {
@@ -118,6 +139,24 @@ namespace FNPlugin {
                     ScreenMessages.PostScreenMessage(science_awaiting_addition.ToString("0") + " science has been added to the R&D centre.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
                     science_awaiting_addition = 0;
                 }
+            }
+
+            List<PartResource> prl = new List<PartResource>();
+            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("LqdHelium").id, prl);
+            double max_helium = 0;
+            double cur_helium = 0;
+            double helium_fraction = 0;
+            foreach (PartResource partresource in prl) {
+                max_helium += partresource.maxAmount;
+                cur_helium += partresource.amount;
+            }
+
+            helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;
+            helium_time_scale = 1.0 / GameConstants.helium_boiloff_fraction * helium_fraction;
+            helium_depleted_time = helium_time_scale + Planetarium.GetUniversalTime();
+
+            if (helium_time_scale <= 0) {
+                telescopeIsEnabled = false;
             }
 
             perform_exponent = -(Planetarium.GetUniversalTime() - lastMaintained) * GameConstants.telescopePerformanceTimescale;

@@ -53,7 +53,9 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public bool canShutdown = true;
         [KSPField(isPersistant = false)]
-        public float chargedParticleRatio = 0; 
+        public float chargedParticleRatio = 0;
+        [KSPField(isPersistant = false)]
+        public float upgradedChargedParticleRatio;
         
         // GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -93,6 +95,7 @@ namespace FNPlugin {
         protected double thermal_power_ratio = 0;
         protected double charged_power_ratio = 0;
         protected bool convert_charged_to_thermal = true;
+        protected string name_to_use;
 
 
         //protected bool responsible_for_thermalmanager = false;
@@ -184,17 +187,23 @@ namespace FNPlugin {
             }
             if (upgradedName.Length > 0) {
                 reactorType = upgradedName;
+                name_to_use = upgradedName;
             } else {
                 reactorType = originalName;
+                name_to_use = originalName;
             }
             if (upgradedResourceRate > 0) {
                 resourceRate = upgradedResourceRate;
+            }
+            if (upgradedChargedParticleRatio > 0) {
+                chargedParticleRatio = upgradedChargedParticleRatio;
             }
 		}
 		     
 		public override void OnStart(PartModule.StartState state) {
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
 			this.resources_to_supply = resources_to_supply;
+            //name_to_use = originalName;
 			base.OnStart(state);
 
             Actions["ActivateReactorAction"].guiName = Events["ActivateReactor"].guiName = String.Format("Activate Reactor");
@@ -340,17 +349,25 @@ namespace FNPlugin {
                 last_draw_update = update_count;
             }
 
-            if (isupgraded) {
-                reactorType = getPowerFormatString(ThermalPower) + " " + upgradedName;
-            } else {
-                reactorType = getPowerFormatString(ThermalPower) + " " + originalName;
-            }
+            //if (isupgraded) {
+            //    reactorType = getPowerFormatString(ThermalPower) + " " + upgradedName;
+            //} else {
+                reactorType = getPowerFormatString(ThermalPower) + " " + name_to_use;
+            //}
 
             update_count++;
         }
 
         public virtual float getCoreTemp() {
             return ReactorTemp;
+        }
+
+        public virtual float getCoreTempAtRadiatorTemp(float rad_temp) {
+            return ReactorTemp;
+        }
+
+        public virtual float getThermalPowerAtTemp(float temp) {
+            return ThermalPower;
         }
 
         public float getThermalPower() {
@@ -541,8 +558,8 @@ namespace FNPlugin {
 			double temp = double.MaxValue;
 			foreach (FNReactor reactor in reactors) {
 				if (reactor != null) {
-					if (reactor.getCoreTemp () < temp && reactor.isActive()) {
-						temp = reactor.getCoreTemp ();
+                    if (reactor.getCoreTemp() < temp && reactor.isActive()) {
+                        temp = reactor.getCoreTemp();
 					}
 				}
 			}

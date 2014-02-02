@@ -109,6 +109,26 @@ namespace FNPlugin {
 			return average_temp;
 		}
 
+        public static double getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) {
+            list_of_radiators.RemoveAll(item => item == null);
+            double average_temp = 0;
+            double n_radiators = 0;
+            foreach (FNRadiator radiator in list_of_radiators) {
+                if (radiator.vessel == vess) {
+                    average_temp += radiator.radiatorTemp;
+                    n_radiators += 1.0f;
+                }
+            }
+
+            if (n_radiators > 0) {
+                average_temp = average_temp / n_radiators;
+            } else {
+                average_temp = 0;
+            }
+
+            return average_temp;
+        }
+
 
 		[KSPEvent(guiActive = true, guiName = "Deploy Radiator", active = true)]
 		public void DeployRadiator() {

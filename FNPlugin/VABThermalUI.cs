@@ -15,7 +15,8 @@ namespace FNPlugin {
         protected GUIStyle orange_label;
         protected bool render_window = true;
         protected double total_source_power = 0;
-        protected double min_source_temp = 0;
+        protected double source_temp_at_100pc = 0;
+        protected double source_temp_at_30pc = 0;
         protected double rad_max_dissip = 0;
         protected double min_source_power = 0;
         protected double resting_radiator_temp_at_100pcnt = 0;
@@ -31,6 +32,9 @@ namespace FNPlugin {
         }
 
         public void Update() {
+            if (Input.GetKeyDown(KeyCode.T)) {
+                render_window = !render_window;
+            }
             // thermal logic
             List<FNThermalSource> thermal_sources = new List<FNThermalSource>();
             List<FNRadiator> radiators = new List<FNRadiator>();
@@ -45,11 +49,15 @@ namespace FNPlugin {
 
             total_source_power = 0;
             min_source_power = 0;
-            min_source_temp = double.MaxValue;
+            source_temp_at_100pc = double.MaxValue;
+            source_temp_at_30pc = double.MaxValue;
             foreach (FNThermalSource tsource in thermal_sources) {
-                total_source_power += tsource.getThermalPower();
-                min_source_temp = Math.Min(tsource.getCoreTemp(), min_source_temp);
-                min_source_power += tsource.getMinimumThermalPower();
+                float r_temp_100 = tsource.getCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_100pcnt);
+                float r_temp_30 = tsource.getCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_30pcnt);
+                total_source_power += tsource.getThermalPowerAtTemp(r_temp_100);
+                source_temp_at_100pc = Math.Min(r_temp_100, source_temp_at_100pc);
+                source_temp_at_30pc = Math.Min(r_temp_30, source_temp_at_30pc);
+                min_source_power += tsource.getThermalPowerAtTemp(r_temp_30)*0.3;
             }
 
             foreach (ModuleDeployableSolarPanel panel in panels) {
@@ -62,7 +70,7 @@ namespace FNPlugin {
             foreach (FNRadiator radiator in radiators) {
                 double area = radiator.radiatorArea;
                 double temp = radiator.isupgraded ? radiator.upgradedRadiatorTemp : radiator.radiatorTemp;
-                temp = Math.Min(temp, min_source_temp);
+                temp = Math.Min(temp, source_temp_at_100pc);
                 n_rads += 1;
                 rad_max_dissip += GameConstants.stefan_const * area * Math.Pow(temp, 4) / 1e6;
                 average_rad_temp += temp;
@@ -70,26 +78,32 @@ namespace FNPlugin {
             average_rad_temp = average_rad_temp / n_rads;
 
             double rad_ratio = total_source_power / rad_max_dissip;
+            double rad_ratio_30pc = min_source_power / rad_max_dissip;
             resting_radiator_temp_at_100pcnt = ((!double.IsInfinity(rad_ratio) && !double.IsNaN(rad_ratio)) ? Math.Pow(rad_ratio,0.25) : 0) * average_rad_temp;
-            resting_radiator_temp_at_30pcnt = ((!double.IsInfinity(rad_ratio) && !double.IsNaN(rad_ratio)) ? Math.Pow(0.3*rad_ratio, 0.25) : 0) * average_rad_temp;
+            resting_radiator_temp_at_30pcnt = ((!double.IsInfinity(rad_ratio) && !double.IsNaN(rad_ratio)) ? Math.Pow(rad_ratio_30pc, 0.25) : 0) * average_rad_temp;
 
             if (generators.Count > 0) {
                 has_generators = true;
-                generator_efficiency_at_100pcnt = (double.MaxValue == min_source_temp || (double.IsInfinity(resting_radiator_temp_at_100pcnt) || double.IsNaN(resting_radiator_temp_at_100pcnt))) ? 0 : 1 - resting_radiator_temp_at_100pcnt / min_source_temp;
+                generator_efficiency_at_100pcnt = (double.MaxValue == source_temp_at_100pc || (double.IsInfinity(resting_radiator_temp_at_100pcnt) || double.IsNaN(resting_radiator_temp_at_100pcnt))) ? 0 : 1 - resting_radiator_temp_at_100pcnt / source_temp_at_100pc;
                 generator_efficiency_at_100pcnt = Math.Max(((generators[0].isupgraded) ? generators[0].upgradedpCarnotEff : generators[0].pCarnotEff)*generator_efficiency_at_100pcnt,0);
-                generator_efficiency_at_30pcnt = (double.MaxValue == min_source_temp || (double.IsInfinity(resting_radiator_temp_at_30pcnt) || double.IsNaN(resting_radiator_temp_at_30pcnt))) ? 0 : 1 - resting_radiator_temp_at_30pcnt / min_source_temp;
+                generator_efficiency_at_30pcnt = (double.MaxValue == source_temp_at_100pc || (double.IsInfinity(resting_radiator_temp_at_30pcnt) || double.IsNaN(resting_radiator_temp_at_30pcnt))) ? 0 : 1 - resting_radiator_temp_at_30pcnt / source_temp_at_100pc;
                 generator_efficiency_at_30pcnt = Math.Max(((generators[0].isupgraded) ? generators[0].upgradedpCarnotEff : generators[0].pCarnotEff) * generator_efficiency_at_30pcnt, 0);
             } else {
                 has_generators = false;
             }
 
-            if (min_source_temp == double.MaxValue) {
-                min_source_temp = -1;
+            if (source_temp_at_100pc == double.MaxValue) {
+                source_temp_at_100pc = -1;
+            }
+            if (source_temp_at_30pc == double.MaxValue) {
+                source_temp_at_30pc = -1;
             }
         }
 
         protected void OnGUI() {
-            windowPosition = GUILayout.Window(windowID, windowPosition, Window, "KSP Interstellar Thermal Mechanics Helper");
+            if (render_window) {
+                windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Interstellar Thermal Mechanics Helper");
+            }
         }
 
         private void Window(int windowID) {
@@ -124,9 +138,14 @@ namespace FNPlugin {
             GUILayout.Label(getPowerFormatString(total_source_power), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Minimum Thermal Source Temperature:", bold_label, GUILayout.ExpandWidth(true));
-            string source_temp_string = (min_source_temp < 0) ? "N/A" : min_source_temp.ToString("0.0") + " K";
+            GUILayout.Label("Thermal Source Temperature at 100%:", bold_label, GUILayout.ExpandWidth(true));
+            string source_temp_string = (source_temp_at_100pc < 0) ? "N/A" : source_temp_at_100pc.ToString("0.0") + " K";
             GUILayout.Label(source_temp_string, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Thermal Source Temperature at 30%:", bold_label, GUILayout.ExpandWidth(true));
+            string source_temp_string2 = (source_temp_at_30pc < 0) ? "N/A" : source_temp_at_30pc.ToString("0.0") + " K";
+            GUILayout.Label(source_temp_string2, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Radiator Maximum Dissipation:", bold_label, GUILayout.ExpandWidth(true));

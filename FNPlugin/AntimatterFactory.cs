@@ -14,6 +14,18 @@ namespace FNPlugin {
         public AntimatterFactory(Part part) {
             this.part = part;
             vessel = part.vessel;
+            if (HighLogic.CurrentGame != null) {
+                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+                    if (PluginHelper.hasTech("interstellarTechAntimatterPower")) {
+                        
+                    } else if (PluginHelper.hasTech("interstellarTechAccelerator")) {
+                        efficiency = efficiency / 100;
+                    } else {
+                        efficiency = efficiency / 10000;
+                    }
+                }
+            }
+
         }
 
         public void produceAntimatterFrame(double rate_multiplier) {

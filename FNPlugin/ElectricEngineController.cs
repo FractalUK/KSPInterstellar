@@ -35,10 +35,13 @@ namespace FNPlugin {
 		public bool engineInit = false;
 		[KSPField(isPersistant = false)]
 		public string upgradeTechReq;
+        [KSPField(isPersistant = false)]
+        public float initialIsp;
+        [KSPField(isPersistant = false)]
+        public bool isThrusterElectrothermal;
         protected float total_power_output = 0;
         protected float reference_power = 8000;
         protected float initial_thrust = 0;
-        protected float initial_isp = 11213.0f;
         protected int eval_counter = 0;
         protected ConfigNode upgrade_resource;
         protected float ispMultiplier = 1;
@@ -130,7 +133,7 @@ namespace FNPlugin {
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             if (curEngine != null) {
                 initial_thrust = curEngine.maxThrust;
-                initial_isp = curEngine.atmosphereCurve.Evaluate(0);
+                initialIsp = curEngine.atmosphereCurve.Evaluate(0);
             }
 
 			bool manual_upgrade = false;
@@ -150,7 +153,7 @@ namespace FNPlugin {
 
 			if (engineInit == false) {
 				engineInit = true;
-				if(hasrequiredupgrade) {
+				if(hasrequiredupgrade && upgradeCost > 0) {
 					isupgraded = true;
 					ConfigNode node = new ConfigNode("RESOURCE");
 					node.AddValue("name", "VacuumPlasma");
@@ -337,6 +340,7 @@ namespace FNPlugin {
         }
 
         public void evaluateMaxThrust() {
+            bool electrothermal_prop = false;
             List<Part> vessel_parts = vessel.parts;
             total_power_output = 0;
             var curEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
@@ -350,7 +354,7 @@ namespace FNPlugin {
                 ispMultiplier = float.Parse(chosenpropellant.GetValue("ispMultiplier"));
                 thrust_efficiency = float.Parse(chosenpropellant.GetValue("efficiency"));
                 //propellant_is_upgrade = bool.Parse(chosenpropellant.GetValue("isUpgraded"));
-                
+                electrothermal_prop = bool.Parse(chosenpropellant.GetValue("electroThermal"));
                 Propellant curprop = new Propellant();
                 curprop.Load(assprops[i]);
                 if (curprop.drawStackGauge) {
@@ -367,13 +371,13 @@ namespace FNPlugin {
 
             total_power_output = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);  
 
-			final_thrust_store = thrust_efficiency*2000.0f*total_power_output / (initial_isp * ispMultiplier * 9.81f);
+			final_thrust_store = thrust_efficiency*2000.0f*total_power_output / (initialIsp * ispMultiplier * 9.81f);
 
 			//float thrust_ratio = total_power_output / reference_power;
 			//final_thrust_store = initial_thrust * thrust_ratio / ispMultiplier;
 
 			FloatCurve newISP = new FloatCurve ();
-			newISP.Add (0, initial_isp * ispMultiplier);
+			newISP.Add (0, initialIsp * ispMultiplier);
 			curEngine.atmosphereCurve = newISP;
             
             if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null) {
@@ -387,7 +391,7 @@ namespace FNPlugin {
             part.GetConnectedResources(curEngine.propellants[0].id, partresources);
 
             //if(!isupgraded) {
-            if (partresources.Count == 0 && fuel_mode != 0) {
+            if (partresources.Count == 0 && fuel_mode != 0 && isThrusterElectrothermal && !electrothermal_prop) {
                 TogglePropellant();
             }
             //}else{
@@ -416,7 +420,7 @@ namespace FNPlugin {
 			float thrust_per_mw = 0.013089f;
 			foreach (ConfigNode propellant_node in prop_nodes) {
 				float ispMultiplier = float.Parse(propellant_node.GetValue("ispMultiplier"));
-				float ispProp = initial_isp * ispMultiplier;
+				float ispProp = initialIsp * ispMultiplier;
 				float thrustProp = thrust_per_mw / ispMultiplier;
 				string guiname = propellant_node.GetValue("guiName");
 				return_str = return_str + "--" + guiname + "--\n" + "Thrust: " + thrustProp.ToString ("0.0000") + " kN per MW\n" + "ISP: " + ispProp.ToString ("0.0") + "s\n";

@@ -421,9 +421,9 @@ namespace FNPlugin{
                         proportion = 1;
                     }
                     part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
-                    myAttachedEngine.DeactivateRunningFX();
+                    //myAttachedEngine.DeactivateRunningFX();
                 } else {
-                    myAttachedEngine.ActivateRunningFX();
+                    //myAttachedEngine.ActivateRunningFX();
                 }
 				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -435,8 +435,8 @@ namespace FNPlugin{
 				} 
 				//print ("B: " + engineMaxThrust);
 				// set up TWR limiter if on
-                double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle)/ispratio;
-				double engine_thrust = engineMaxThrust;
+                //double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle)/ispratio;
+				double engine_thrust = engineMaxThrust/myAttachedEngine.thrustPercentage*100;
 				// engine thrust fixed
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
                 if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)) {

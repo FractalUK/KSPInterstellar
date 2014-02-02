@@ -23,6 +23,10 @@ namespace FNPlugin{
 
         float getMinimumThermalPower();
 
+        float getCoreTempAtRadiatorTemp(float rad_temp);
+
+        float getThermalPowerAtTemp(float temp);
+
 	}
 }
 

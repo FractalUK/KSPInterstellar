@@ -86,6 +86,14 @@ namespace FNPlugin  {
             return 1500;
 		}
 
+        public float getCoreTempAtRadiatorTemp(float rad_temp) {
+            return 1500;
+        }
+
+        public float getThermalPowerAtTemp(float temp) {
+            return ThermalPower;
+        }
+
 		public float getThermalPower() {
 			return ThermalPower;
 		}

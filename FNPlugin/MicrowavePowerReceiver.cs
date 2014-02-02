@@ -311,7 +311,15 @@ namespace FNPlugin {
             return 1500.0f;
         }
 
+        public virtual float getCoreTempAtRadiatorTemp(float rad_temp) {
+            return 1500;
+        }
+
         public float getThermalPower() {
+            return ThermalPower;
+        }
+
+        public float getThermalPowerAtTemp(float temp) {
             return ThermalPower;
         }
 

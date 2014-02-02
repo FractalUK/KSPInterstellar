@@ -245,7 +245,11 @@ namespace FNPlugin {
                     if (antimatter_rate_per_day > 0.1) {
                         antimatterRate = (antimatter_rate_per_day).ToString("0.000") + " mg/day";
                     } else {
-                        antimatterRate = (antimatter_rate_per_day).ToString("0.000") + " ug/day";
+                        if (antimatter_rate_per_day > 0.1e-3) {
+                            antimatterRate = (antimatter_rate_per_day*1e3).ToString("0.000") + " ug/day";
+                        } else {
+                            antimatterRate = (antimatter_rate_per_day*1e6).ToString("0.000") + " ng/day";
+                        }
                     }
                 } else if (active_mode == 3) { // Electrolysis
                     currentpowertmp = electrical_power_ratio * GameConstants.baseELCPowerConsumption;

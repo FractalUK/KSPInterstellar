@@ -10,6 +10,8 @@ namespace FNPlugin {
         public bool upgradedToV08 = false;
         [KSPField(isPersistant = true)]
         public bool uranium_fuel = true;
+        [KSPField(isPersistant = true)]
+        public bool upgradedToV10 = false;
         
         //Internal
         protected PartResource thf4;
@@ -18,20 +20,20 @@ namespace FNPlugin {
         protected PartResource actinides;
         protected double initial_thermal_power = 0;
         protected double initial_resource_rate = 0;
-        
-        [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
+
+        [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void ManualRestart() {
             if (fuel_resource.amount > 0.001) {
                 IsEnabled = true;
             }
         }
 
-        [KSPEvent(guiName = "Manual Shutdown", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
+        [KSPEvent(guiName = "Manual Shutdown", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void ManualShutdown() {
             IsEnabled = false;
         }
 
-        [KSPEvent(guiName = "Refuel UF4", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
+        [KSPEvent(guiName = "Refuel UF4", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void RefuelUranium() {
             List<PartResource> uf6_resources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF4").id, uf6_resources);
@@ -47,7 +49,7 @@ namespace FNPlugin {
             }
         }
 
-        [KSPEvent(guiName = "Refuel ThF4", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
+        [KSPEvent(guiName = "Refuel ThF4", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void RefuelThorium() {
             List<PartResource> th4_resources = new List<PartResource>();
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThF4").id, th4_resources);
@@ -65,7 +67,7 @@ namespace FNPlugin {
 
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.0f)]
         public void SwapFuel() {
-            if (actinides.amount <= 0.0001) {
+            if (actinides.amount <= 0.01) {
                 if (uranium_fuel) {
                     defuelUranium();
                     if (uf4.amount > 0) { return; }
@@ -122,7 +124,7 @@ namespace FNPlugin {
         public override string GetInfo() {
             float uf6_rate_per_day = resourceRate * 86400;
             float up_uf6_rate_per_day = upgradedResourceRate * 86400;
-            return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}m³/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}m³/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
+            return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}l/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}l/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
         }
 
         public override void OnStart(PartModule.StartState state) {
@@ -142,6 +144,17 @@ namespace FNPlugin {
             if (!upgradedToV08) {
                 upgradedToV08 = true;
                 actinides.amount = actinides.maxAmount - uf4.amount;
+            }
+            if (!upgradedToV10 && state != PartModule.StartState.Editor) {
+                upgradedToV10 = true;
+                actinides.amount = actinides.amount * 1000;
+                actinides.maxAmount = actinides.maxAmount * 1000;
+                uf4.amount = uf4.amount * 1000;
+                uf4.maxAmount = uf4.maxAmount * 1000;
+                thf4.amount = thf4.amount * 1000;
+                thf4.maxAmount = thf4.maxAmount * 1000;
+            } else if (!upgradedToV10 && state == PartModule.StartState.Editor) {
+                upgradedToV10 = true;
             }
             if (uranium_fuel) {
                 fuel_resource = uf4;

@@ -11,9 +11,10 @@ namespace FNPlugin {
 
         protected long active_count = 0;
 
-        [KSPEvent(guiActive = true, guiName = "Start Recording Seismic Data", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Record Seismic Data", active = true)]
         public void ActivateProbe() {
             if (vessel.Landed) {
+                PopupDialog.SpawnPopupDialog("Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.Skin);
                 probeIsEnabled = true;
             } else {
                 ScreenMessages.PostScreenMessage("Must be landed to activate seismic probe.", 5f, ScreenMessageStyle.UPPER_CENTER);

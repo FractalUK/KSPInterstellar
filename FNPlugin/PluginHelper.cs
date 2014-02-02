@@ -35,6 +35,8 @@ namespace FNPlugin {
         public static string water_resource_name = "LqdWater";
         public static string hydrogen_peroxide_resource_name = "H2Peroxide";
         public static string ammonia_resource_name = "Ammonia";
+        public const int interstellar_major_version = 10;
+        public const int interstellar_minor_version = 0;
         
 		protected static bool plugin_init = false;
 		protected static bool is_thermal_dissip_disabled_init = false;
@@ -226,7 +228,7 @@ namespace FNPlugin {
 
             if (!resources_configured) {
                 ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings");
-                if(plugin_settings != null) {
+                if (plugin_settings != null) {
                     if (plugin_settings.HasValue("HydrogenResourceName")) {
                         PluginHelper.hydrogen_resource_name = plugin_settings.GetValue("HydrogenResourceName");
                         Debug.Log("[KSP Interstellar] Hydrogen resource name set to " + PluginHelper.hydrogen_resource_name);
@@ -264,6 +266,8 @@ namespace FNPlugin {
                         Debug.Log("[KSP Interstellar] ThermalMechanics set to enabled: " + !PluginHelper.is_thermal_dissip_disabled);
                     }
                     resources_configured = true;
+                } else {
+                    showInstallationErrorMessage();
                 }
                 
             }
@@ -343,10 +347,16 @@ namespace FNPlugin {
 
 							if(prefab_available_part.FindModulesImplementing<ElectricEngineController>().Count() > 0) {
 								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineController>().First().GetInfo();
+                                available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
+                                AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "Electric Engine Controller").First();
+                                mod_info.moduleName = "Electric Engine";
 							}
 
 							if(prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0) {
 								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
+                                available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
+                                AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "FNNozzle Controller").First();
+                                mod_info.moduleName = "Thermal Nozzle";
 							}
                             
 							if(prefab_available_part.CrewCapacity > 0) {
@@ -380,7 +390,7 @@ namespace FNPlugin {
 
 		public static void showInstallationErrorMessage() {
 			if (!warning_displayed) {
-				PopupDialog.SpawnPopupDialog ("KSP Interstellar Installation Error", "KSP Interstellar is unable to detect files required for the functioning of this rocket.  Please make sure that this mod has been installed to [Base KSP directory]/GameData/WarpPlugin.", "OK", false, HighLogic.Skin);
+				PopupDialog.SpawnPopupDialog ("KSP Interstellar Installation Error", "KSP Interstellar is unable to detect files required for proper functioning.  Please make sure that this mod has been installed to [Base KSP directory]/GameData/WarpPlugin.", "OK", false, HighLogic.Skin);
 				warning_displayed = true;
 			}
 		}
