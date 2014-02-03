@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
     class ModuleElementRadioactiveDecay : PartModule {
@@ -30,7 +31,7 @@ namespace FNPlugin {
             double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
             decay_resource.amount -= decay_amount;
             if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
-                part.RequestResource(decayProduct, -decay_amount);
+                ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount);
             }
         }
 

@@ -13,10 +13,10 @@ namespace FNPlugin {
         protected Light light;
         protected PartResource deuterium;
         protected PartResource he3;
-        protected PartResource uf4;
+        protected PartResource un;
 
         protected double antimatter_rate = 0;
-        protected double uf4_rate = 0;
+        protected double un_rate = 0;
         protected double d_he3_rate = 0;
         protected double upgraded_d_he3_rate = 0;
         protected double upgraded_amat_rate = 0;               
@@ -24,7 +24,7 @@ namespace FNPlugin {
         public override void OnStart(PartModule.StartState state) {
             deuterium = part.Resources["Deuterium"];
             he3 = part.Resources["Helium-3"];
-            uf4 = part.Resources["UF4"];
+            un = part.Resources["UraniumNitride"];
             base.OnStart(state);
             /*
             lightGameObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -49,7 +49,7 @@ namespace FNPlugin {
             */
             antimatter_rate = resourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant*86400/1000000;
             d_he3_rate = resourceRate * GameConstants.antimatter_initiated_d_he3_cons_constant*86400;
-            uf4_rate = resourceRate * GameConstants.antimatter_initiated_uf4_cons_constant*86400;
+            un_rate = resourceRate * GameConstants.antimatter_initiated_uf4_cons_constant*86400;
             upgraded_d_he3_rate = upgradedResourceRate * GameConstants.antimatter_initiated_upgraded_uf4_cons_constant;
             upgraded_amat_rate = upgradedResourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 / 1000000;
 
@@ -105,43 +105,43 @@ namespace FNPlugin {
         public override string GetInfo() {
             antimatter_rate = resourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
             d_he3_rate = resourceRate * GameConstants.antimatter_initiated_d_he3_cons_constant * 86400;
-            uf4_rate = resourceRate * GameConstants.antimatter_initiated_uf4_cons_constant * 86400;
+            un_rate = resourceRate * GameConstants.antimatter_initiated_uf4_cons_constant * 86400;
             upgraded_d_he3_rate = upgradedResourceRate * GameConstants.antimatter_initiated_upgraded_d_he3_cons_constant * 86400;
             upgraded_amat_rate = upgradedResourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
 
-            string basic = String.Format(" \n" + originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\n Total Power: " + ThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + uf4_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + antimatter_rate.ToString("0.00") + "ng/day");
-            string upgrade = String.Format("\n -Upgrade Information - \n" + upgradedName + "\nCore Temperature: " + upgradedReactorTemp.ToString("0") + "K\n Total Power: " + upgradedThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + upgraded_d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + uf4_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + upgraded_amat_rate.ToString("0.00") + "ng/day");
+            string basic = String.Format(" \n" + originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\n Total Power: " + ThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + antimatter_rate.ToString("0.00") + "ng/day");
+            string upgrade = String.Format("\n -Upgrade Information - \n" + upgradedName + "\nCore Temperature: " + upgradedReactorTemp.ToString("0") + "K\n Total Power: " + upgradedThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + upgraded_d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + upgraded_amat_rate.ToString("0.00") + "ng/day");
             return basic + upgrade;
             //return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Tokomak Power Consumption: {6}MW\n D/He-3 Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
         }
 
         protected override double consumeReactorResource(double resource) {
             double deuterium_he3_consumption = isupgraded ? resource * GameConstants.antimatter_initiated_upgraded_d_he3_cons_constant : resource * GameConstants.antimatter_initiated_d_he3_cons_constant;
-            double uf4_consumption = isupgraded ? resource * GameConstants.antimatter_initiated_upgraded_uf4_cons_constant : resource * GameConstants.antimatter_initiated_uf4_cons_constant;
+            double un_consumption = isupgraded ? resource * GameConstants.antimatter_initiated_upgraded_uf4_cons_constant : resource * GameConstants.antimatter_initiated_uf4_cons_constant;
             double antimatter_consumption = GameConstants.antimatter_initiated_antimatter_cons_constant * resource;
 
             double delta_deut = deuterium.amount - Math.Max(0, deuterium.amount - deuterium_he3_consumption);
             double delta_he3 = he3.amount - Math.Max(0, he3.amount - deuterium_he3_consumption);
-            double delta_uf4 = uf4.amount - Math.Max(0, uf4.amount - uf4_consumption);
+            double delta_un = un.amount - Math.Max(0, un.amount - un_consumption);
             double delta_amat = ORSHelper.fixedRequestResource(part, "Antimatter", antimatter_consumption);
             deuterium.amount = Math.Max(0, deuterium.amount - deuterium_he3_consumption);
             he3.amount = Math.Max(0, he3.amount - deuterium_he3_consumption);
-            uf4.amount = Math.Max(0, uf4.amount - uf4_consumption);
-            return resource * Math.Min(delta_deut / deuterium_he3_consumption, Math.Min(delta_he3 / deuterium_he3_consumption, Math.Min(delta_uf4 / uf4_consumption,delta_amat / antimatter_consumption)));
+            un.amount = Math.Max(0, un.amount - un_consumption);
+            return resource * Math.Min(delta_deut / deuterium_he3_consumption, Math.Min(delta_he3 / deuterium_he3_consumption, Math.Min(delta_un / un_consumption,delta_amat / antimatter_consumption)));
         }
 
         protected override double returnReactorResource(double resource) {
             double deuterium_he3_consumption = isupgraded ? resource * GameConstants.antimatter_initiated_upgraded_d_he3_cons_constant : resource * GameConstants.antimatter_initiated_d_he3_cons_constant;
-            double uf4_consumption = isupgraded ? resource * GameConstants.antimatter_initiated_upgraded_uf4_cons_constant : resource * GameConstants.antimatter_initiated_uf4_cons_constant;
+            double un_consumption = isupgraded ? resource * GameConstants.antimatter_initiated_upgraded_uf4_cons_constant : resource * GameConstants.antimatter_initiated_uf4_cons_constant;
             double antimatter_consumption = GameConstants.antimatter_initiated_antimatter_cons_constant * resource;
 
             double delta_deut = Math.Min(deuterium.maxAmount, deuterium.amount + deuterium_he3_consumption) - deuterium.amount;
             double delta_he3 = Math.Min(he3.maxAmount, he3.amount + deuterium_he3_consumption) - he3.amount;
-            double delta_uf4 = Math.Min(uf4.maxAmount, uf4.amount + uf4_consumption) - uf4.amount;
+            double delta_un = Math.Min(un.maxAmount, un.amount + un_consumption) - un.amount;
             double delta_amat = -ORSHelper.fixedRequestResource(part, "Antimatter", -antimatter_consumption);
             deuterium.amount = Math.Min(deuterium.maxAmount, deuterium.amount + deuterium_he3_consumption);
             he3.amount = Math.Min(he3.maxAmount, he3.amount + deuterium_he3_consumption);
-            uf4.amount = Math.Min(uf4.maxAmount, uf4.amount + uf4_consumption);
+            un.amount = Math.Min(un.maxAmount, un.amount + un_consumption);
 
             return resource;
         }

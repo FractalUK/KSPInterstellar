@@ -61,6 +61,12 @@ namespace FNPlugin {
                 if (animName != null) {
                     solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
                 }
+                if (IsEnabled) {
+                    solarSailAnim[animName].speed = 1f;
+                    solarSailAnim[animName].normalizedTime = 0f;
+                    solarSailAnim.Blend(animName, 0.1f);
+                }
+
                 this.part.force_activate();
             }
         }

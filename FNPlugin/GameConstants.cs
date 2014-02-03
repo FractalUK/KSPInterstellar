@@ -50,7 +50,7 @@ namespace FNPlugin {
         public const double telescopeGLensScience = 15;
         public const float tritiumBreedRate = 537728.1553398f;
         public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
-        public const double antimatter_initiated_uf4_cons_constant = 1.0 / 45000.0;
+        public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
         public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
         public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
         public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;

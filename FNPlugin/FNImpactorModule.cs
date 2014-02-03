@@ -42,16 +42,16 @@ namespace FNPlugin {
                     }
 
                     // record science if we have crashed into the surface at velocity > 100m/s
-                    if (is_active && planet == body && vessel.heightFromSurface <= 0 && vessel.srf_velocity.magnitude > 100) {
+                    if (is_active && planet == body && vessel.heightFromSurface <= 0 && vessel.srf_velocity.magnitude > 40) {
                         // do sciency stuff
                         Vector3d surface_vector = (vessel.transform.position - FlightGlobals.Bodies[body].transform.position);
                         surface_vector = surface_vector.normalized;
                         if (first) {
                             first = false;
                             net_vector = surface_vector;
-                            net_science = 50 * PluginHelper.getScienceMultiplier(body, false);
+                            net_science = 50 * PluginHelper.getImpactorScienceMultiplier(body);
                         } else {
-                            net_science += (1.0 - Vector3d.Dot(surface_vector, net_vector)) * 50 * PluginHelper.getScienceMultiplier(body, false);
+                            net_science += (1.0 - Vector3d.Dot(surface_vector, net_vector)) * 50 * PluginHelper.getImpactorScienceMultiplier(body);
                             net_vector = net_vector + surface_vector;
                         }
                     }

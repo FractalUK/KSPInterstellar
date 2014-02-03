@@ -32,7 +32,7 @@ namespace FNPlugin {
         }
 
         public void Update() {
-            if (Input.GetKeyDown(KeyCode.T)) {
+            if (Input.GetKeyDown(KeyCode.I)) {
                 render_window = !render_window;
             }
             // thermal logic

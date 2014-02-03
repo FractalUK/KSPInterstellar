@@ -391,8 +391,12 @@ namespace FNPlugin {
             part.GetConnectedResources(curEngine.propellants[0].id, partresources);
 
             //if(!isupgraded) {
-            if (partresources.Count == 0 && fuel_mode != 0 && isThrusterElectrothermal && !electrothermal_prop) {
-                TogglePropellant();
+            if (partresources.Count == 0 && fuel_mode != 0) {
+                if (isThrusterElectrothermal && !electrothermal_prop) {
+                    TogglePropellant();
+                } else if (!isThrusterElectrothermal) {
+                    TogglePropellant();
+                }
             }
             //}else{
             //    if(!propellant_is_upgrade) {
