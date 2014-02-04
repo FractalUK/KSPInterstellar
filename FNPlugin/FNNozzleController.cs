@@ -334,6 +334,9 @@ namespace FNPlugin{
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
 			assThermalPower = myAttachedReactor.getThermalPower();
+            if (myAttachedReactor is FNFusionReactor) {
+                assThermalPower = assThermalPower * 0.95f;
+            }
 		}
 
 		public float getAtmosphericLimit() {
@@ -425,7 +428,11 @@ namespace FNPlugin{
                 } else {
                     //myAttachedEngine.ActivateRunningFX();
                 }
-				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle*atmospheric_limit, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
+                double thermal_consume_total = assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * atmospheric_limit;
+                double thermal_power_received = consumeFNResource(thermal_consume_total, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
+                if (thermal_power_received * TimeWarp.fixedDeltaTime < thermal_consume_total) {
+                    thermal_power_received += consumeFNResource(thermal_consume_total-thermal_power_received*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
+                }
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				float power_ratio = 0.0f;
 				double engineMaxThrust = 0.01;

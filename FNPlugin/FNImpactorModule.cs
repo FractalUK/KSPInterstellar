@@ -42,7 +42,7 @@ namespace FNPlugin {
                     }
 
                     // record science if we have crashed into the surface at velocity > 100m/s
-                    if (is_active && planet == body && vessel.heightFromSurface <= 0 && vessel.srf_velocity.magnitude > 40) {
+                    if (is_active && planet == body && vessel.heightFromSurface <= 0.75 && vessel.srf_velocity.magnitude > 40) {
                         // do sciency stuff
                         Vector3d surface_vector = (vessel.transform.position - FlightGlobals.Bodies[body].transform.position);
                         surface_vector = surface_vector.normalized;
@@ -51,13 +51,20 @@ namespace FNPlugin {
                             net_vector = surface_vector;
                             net_science = 50 * PluginHelper.getImpactorScienceMultiplier(body);
                         } else {
-                            net_science += (1.0 - Vector3d.Dot(surface_vector, net_vector)) * 50 * PluginHelper.getImpactorScienceMultiplier(body);
+                            net_science += (1.0 - Vector3d.Dot(surface_vector, net_vector.normalized)) * 50 * PluginHelper.getImpactorScienceMultiplier(body);
                             net_vector = net_vector + surface_vector;
+                        }
+                    } else {
+                        if (vessel.heightFromSurface > 0.5) {
+                            print("[KSP Interstellar] Impactor: Ignored due to vessel being destroyed at too high altitude.");
+                        }
+                        if (vessel.srf_velocity.magnitude <= 40) {
+                            print("[KSP Interstellar] Impactor: Ignored due to vessel being at too low velocity.");
                         }
                     }
                 }
             }
-            if (net_science > 0 && !double.IsInfinity(net_science)) {
+            if (net_science > 0 && !double.IsInfinity(net_science)  && !double.IsNaN(net_science)) {
                 
                 ConfigNode science_node;
                 int science_experiment_number = 0;

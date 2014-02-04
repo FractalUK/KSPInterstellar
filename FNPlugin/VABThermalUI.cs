@@ -57,7 +57,7 @@ namespace FNPlugin {
                 total_source_power += tsource.getThermalPowerAtTemp(r_temp_100);
                 source_temp_at_100pc = Math.Min(r_temp_100, source_temp_at_100pc);
                 source_temp_at_30pc = Math.Min(r_temp_30, source_temp_at_30pc);
-                min_source_power += tsource.getThermalPowerAtTemp(r_temp_30)*0.3;
+                min_source_power += tsource.getThermalPowerAtTemp(r_temp_30) * 0.3 ;
             }
 
             foreach (ModuleDeployableSolarPanel panel in panels) {

@@ -451,25 +451,28 @@ namespace FNPlugin {
                 if (double.IsNaN(power_to_supply) || double.IsInfinity(power_to_supply)) {
                     power_to_supply = 0;
                 }
-                double thermal_power_to_supply = power_to_supply * (1.0 - chargedParticleRatio);
+                
 
                 // charged power
                 double charged_particles_to_supply = power_to_supply * chargedParticleRatio;
-                double min_charged = convert_charged_to_thermal ? 0 : minimumThrottle;
+                //double min_charged = convert_charged_to_thermal ? 0 : minimumThrottle;
+                double min_charged = minimumThrottle;
                 double charged_power_received = supplyManagedFNResourceWithMinimum(charged_particles_to_supply, min_charged, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 if (chargedParticleRatio > 0) {
                     charged_power_ratio = charged_power_received / ThermalPower / chargedParticleRatio / TimeWarp.fixedDeltaTime;
                 } else {
                     charged_power_ratio = 0;
                 }
-                double converted_thermal_power = convert_charged_to_thermal ? (charged_particles_to_supply - charged_power_received) : 0;
+                //double converted_thermal_power = convert_charged_to_thermal ? (charged_particles_to_supply - charged_power_received) : 0;
+                double converted_thermal_power = 0;
                 
                 // thermal power
-                min_throttle = Math.Max(min_throttle, charged_power_ratio);
+                //min_throttle = Math.Max(min_throttle, charged_power_ratio);
+                double thermal_power_to_supply = power_to_supply * (1.0 - chargedParticleRatio);
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(thermal_power_to_supply + converted_thermal_power, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 total_power = (thermal_power_received + charged_power_received);
                 if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) < 0.95) {
-                    supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    supplyFNResource(total_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 }
                 if ((1 - chargedParticleRatio) > 0) {
                     thermal_power_ratio = thermal_power_received / ThermalPower / (1 - chargedParticleRatio) / TimeWarp.fixedDeltaTime;

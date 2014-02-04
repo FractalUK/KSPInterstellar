@@ -312,7 +312,11 @@ namespace FNPlugin {
         }
 
         public virtual float getCoreTempAtRadiatorTemp(float rad_temp) {
-            return 1500;
+            if (isThermalReceiver) {
+                return 1500;
+            } else {
+                return float.MaxValue;
+            }
         }
 
         public float getThermalPower() {

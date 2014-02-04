@@ -134,6 +134,10 @@ namespace FNPlugin {
                                 // if we're attaching to a fusion reactor, swap over to direct conversion if we can
                                 generatorType = altUpgradedName;
                                 chargedParticleMode = true;
+                            } else if (myAttachedReactor is FNAmatCatFissionFusionReactor && isupgraded) {
+                                // if we're attaching to a antimatter initiated reactor, swap over to direct conversion if we can
+                                generatorType = altUpgradedName;
+                                chargedParticleMode = true;
                             } else { // otherwise use a standard thermal generator
                                 generatorType = upgradedName;
                                 chargedParticleMode = false;
@@ -329,6 +333,9 @@ namespace FNPlugin {
                     double thermal_power_currently_needed = electrical_power_currently_needed / totalEff;
                     double thermaldt = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
                     input_power = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    if (input_power < thermaldt) {
+                        input_power += consumeFNResource(thermaldt-input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    }
                     double wastedt = input_power * totalEff;
                     consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
                     electricdt = input_power * totalEff;
@@ -340,9 +347,10 @@ namespace FNPlugin {
                     input_power = consumeFNResource(Math.Max(charged_power_currently_needed*TimeWarp.fixedDeltaTime,0), FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                     electricdt = input_power * totalEff;
                     electricdtps = Math.Max(electricdt / TimeWarp.fixedDeltaTime, 0.0);
-                    double wastedt = input_power * (1 - totalEff);
+                    double wastedt = input_power * totalEff;
                     max_electricdtps = maxChargedPower * totalEff;
-                    supplyFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    //supplyFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 				outputPower = -(float)supplyFNResourceFixedMax (electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 			} else {
@@ -365,7 +373,7 @@ namespace FNPlugin {
 		public override string GetInfo() {
 			return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff*100, upgradedpCarnotEff*100);
 		}
-
+                
         protected string getPowerFormatString(double power) {
             if (power > 1000) {
                 if (power > 20000) {

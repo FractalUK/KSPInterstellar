@@ -24,6 +24,7 @@ namespace FNPlugin {
         protected float initial_resource_rate;
         protected float initial_thermal_power;
         protected bool power_deprived = false;
+        protected bool fusion_alert = false;
 
         [KSPEvent(guiActive = true, guiName = "Swap Fuel Mode", active = false)]
         public void SwapFuelMode() {
@@ -71,6 +72,12 @@ namespace FNPlugin {
             laserPower = power_consumed.ToString("0.0") + "MW";
             if (isTokomak) {
                 Fields["laserPower"].guiName = "Plasma Heating";
+            }
+            if (getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert) {
+                ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
+                fusion_alert = true;
+            } else {
+                fusion_alert = false;
             }
             base.OnUpdate();
         }
