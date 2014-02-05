@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin {
 	class AntimatterStorageTank : FNResourceSuppliableModule	{
@@ -110,18 +111,18 @@ namespace FNPlugin {
                 float mult = 1;
                 current_antimatter = (float)antimatter.amount;
                 explosion_size = Mathf.Sqrt(current_antimatter) * 5.0f;
-                if (chargestatus > 0 && current_antimatter > 0.1) {
+                if (chargestatus > 0 && (current_antimatter > 0.00001 * antimatter.maxAmount)) {
                     chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
                 }
                 if (chargestatus >= GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE) {
                     mult = 0.5f;
                 }
-                if (should_charge || (current_antimatter > 0.1)) {
+                if (should_charge || (current_antimatter > 0.00001*antimatter.maxAmount)) {
                     float charge_to_add = consumeFNResource(mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
                     chargestatus += charge_to_add;
 
                     if (charge_to_add < 2f * TimeWarp.fixedDeltaTime) {
-                        float more_charge_to_add = part.RequestResource("ElectricCharge", mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
+                        float more_charge_to_add = ORSHelper.fixedRequestResource(part,"ElectricCharge", mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
                         charge_to_add += more_charge_to_add;
                         chargestatus += more_charge_to_add;
                     }
@@ -130,7 +131,7 @@ namespace FNPlugin {
                         charging = true;
                     } else {
                         charging = false;
-                        if (TimeWarp.CurrentRateIndex > 3 && current_antimatter > 0.1) {
+                        if (TimeWarp.CurrentRateIndex > 3 && (current_antimatter > 0.00001 * antimatter.maxAmount)) {
                             TimeWarp.SetRate(3, true);
                             ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1.0f, ScreenMessageStyle.UPPER_CENTER);
                         }
@@ -138,7 +139,7 @@ namespace FNPlugin {
                     //print (chargestatus);
                     if (chargestatus <= 0) {
                         chargestatus = 0;
-                        if (current_antimatter > 0.1) {
+                        if (current_antimatter > 0.00001*antimatter.maxAmount) {
                             explode_counter++;
                             if (explode_counter > 5) {
                                 doExplode();

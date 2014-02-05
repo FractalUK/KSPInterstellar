@@ -219,19 +219,19 @@ namespace FNPlugin {
             float multiplier = 1;
 
             if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY) {
-                multiplier = 15f;
+                multiplier = 7.5f;
             } else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS) {
-                multiplier = 10f;
+                multiplier = 5f;
             } else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP) {
-                multiplier = 25f;
+                multiplier = 12.5f;
             } else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL) {
-                multiplier = 30f;
+                multiplier = 15f;
             } else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO) {
-                multiplier = 50f;
+                multiplier = 25f;
             } else if (refbody == REF_BODY_DRES) {
-                multiplier = 17.5f;
+                multiplier = 9.25f;
             } else if (refbody == REF_BODY_KERBIN) {
-                multiplier = 1f;
+                multiplier = 0.5f;
             } else {
                 multiplier = 0f;
             }

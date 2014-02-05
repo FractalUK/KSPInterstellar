@@ -286,8 +286,8 @@ namespace FNPlugin {
                     double electrical_power_provided = consumeFNResource((GameConstants.basePechineyUgineKuhlmannPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePechineyUgineKuhlmannPowerConsumption);
                     monoprop_rate_d = electrical_power_provided / GameConstants.pechineyUgineKuhlmannEnergyPerTon / TimeWarp.fixedDeltaTime;
-                    double ammonia_consumption_rate = part.RequestResource(PluginHelper.ammonia_resource_name, 0.5 * monoprop_rate_d * (1 - GameConstants.pechineyUgineKuhlmannMassRatio) * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia * TimeWarp.fixedDeltaTime;
-                    double h202_consumption_rate = part.RequestResource(PluginHelper.hydrogen_peroxide_resource_name, 0.5 * monoprop_rate_d * GameConstants.pechineyUgineKuhlmannMassRatio * TimeWarp.fixedDeltaTime / density_h2o2) * density_h2o2 * TimeWarp.fixedDeltaTime;
+                    double ammonia_consumption_rate = part.RequestResource(PluginHelper.ammonia_resource_name, 0.5 * monoprop_rate_d * (1 - GameConstants.pechineyUgineKuhlmannMassRatio) * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia / TimeWarp.fixedDeltaTime;
+                    double h202_consumption_rate = part.RequestResource(PluginHelper.hydrogen_peroxide_resource_name, 0.5 * monoprop_rate_d * GameConstants.pechineyUgineKuhlmannMassRatio * TimeWarp.fixedDeltaTime / density_h2o2) * density_h2o2 / TimeWarp.fixedDeltaTime;
                     if (ammonia_consumption_rate > 0 && h202_consumption_rate > 0) {
                         double mono_prop_produciton_rate = ammonia_consumption_rate + h202_consumption_rate;
                         double density_monoprop = PartResourceLibrary.Instance.GetDefinition("MonoPropellant").density;
