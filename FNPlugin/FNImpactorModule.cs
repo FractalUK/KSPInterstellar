@@ -29,6 +29,7 @@ namespace FNPlugin {
             Vector3d net_vector = Vector3d.zero;
             bool first = true;
             double net_science = 0;
+            double initial_science = 0;
             foreach (Vessel conf_vess in FlightGlobals.Vessels) {
                 String conf_vess_ID = conf_vess.id.ToString();
                 if (config.HasNode("VESSEL_SEISMIC_PROBE_" + conf_vess_ID)) {
@@ -46,7 +47,7 @@ namespace FNPlugin {
                     Vector3d up = vessel.mainBody.GetSurfaceNVector(phi, theta).normalized;
                     double surface_height = vessel.mainBody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(theta, Vector3d.down) * QuaternionD.AngleAxis(phi, Vector3d.forward) * Vector3d.right)-vessel.mainBody.Radius;
                     double height_diff = vessel.pqsAltitude - surface_height;
-                    // record science if we have crashed into the surface at velocity > 100m/s
+                    // record science if we have crashed into the surface at velocity > 40m/s
                     if (is_active && planet == body && vessel.heightFromSurface <= 0.75 && vessel.srf_velocity.magnitude > 40 && height_diff <= 1) {
                         // do sciency stuff
                         Vector3d surface_vector = (conf_vess.transform.position - FlightGlobals.Bodies[body].transform.position);
@@ -55,6 +56,7 @@ namespace FNPlugin {
                             first = false;
                             net_vector = surface_vector;
                             net_science = 50 * PluginHelper.getImpactorScienceMultiplier(body);
+                            initial_science = net_science;
                         } else {
                             net_science += (1.0 - Vector3d.Dot(surface_vector, net_vector.normalized)) * 50 * PluginHelper.getImpactorScienceMultiplier(body);
                             net_vector = net_vector + surface_vector;
@@ -69,6 +71,7 @@ namespace FNPlugin {
                     }
                 }
             }
+            net_science = Math.Min(net_science, initial_science * 3.5); // no more than 3.5x boost to science by using multiple detectors
             if (net_science > 0 && !double.IsInfinity(net_science) && !double.IsNaN(net_science)) {
 
                 ConfigNode science_node;

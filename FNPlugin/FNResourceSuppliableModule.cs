@@ -1,8 +1,10 @@
-﻿using System;
+﻿extern alias ORSv1_1;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenResourceSystem;
+using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
     abstract class FNResourceSuppliableModule : ORSResourceSuppliableModule{

@@ -1,8 +1,10 @@
-﻿using System;
+﻿extern alias ORSv1_1;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenResourceSystem;
+using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
     class ISRUScoop : FNResourceSuppliableModule {
@@ -110,7 +112,8 @@ namespace FNPlugin {
                         float powerreceived = Math.Max(consumeFNResource(powerrequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
                         float powerpcnt = (float)(powerreceived / powerrequirements / TimeWarp.fixedDeltaTime);
 
-                        resflowf = (float)part.RequestResource(atmospheric_resource_name, -scoopedAtm * powerpcnt * TimeWarp.fixedDeltaTime);
+                        //resflowf = (float)part.RequestResource(atmospheric_resource_name, -scoopedAtm * powerpcnt * TimeWarp.fixedDeltaTime);
+                        resflowf = (float)ORSHelper.fixedRequestResource(part,atmospheric_resource_name, -scoopedAtm * powerpcnt * TimeWarp.fixedDeltaTime);
                         resflowf = -resflowf / TimeWarp.fixedDeltaTime;
                     }
                 } else {

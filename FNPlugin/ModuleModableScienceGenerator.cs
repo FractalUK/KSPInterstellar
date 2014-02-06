@@ -7,6 +7,22 @@ namespace FNPlugin {
     class ModuleModableScienceGenerator : PartModule, IScienceDataContainer {
         [KSPField(isPersistant = true)]
         public bool Deployed;
+        [KSPField(isPersistant = true)]
+        public string result_string;
+        [KSPField(isPersistant = true)]
+        public  string result_title;
+        [KSPField(isPersistant = true)]
+        public float transmit_value;
+        [KSPField(isPersistant = true)]
+        public float recovery_value;
+        [KSPField(isPersistant = true)]
+        public float data_size;
+        [KSPField(isPersistant = true)]
+        public float xmit_scalar;
+        [KSPField(isPersistant = true)]
+        public float ref_value;
+        [KSPField(isPersistant = true)]
+        public bool data_gend = false;
 
         [KSPField(isPersistant = false)]
         public bool rerunnable;
@@ -18,21 +34,16 @@ namespace FNPlugin {
         public string resetEventName;
 
         protected ScienceData science_data;
-        protected string result_string;
-        protected string result_title;
-        protected float transmit_value;
-        protected float recovery_value;
-        protected float data_size;
-        protected float xmit_scalar;
-        protected float ref_value;
+
         protected ModableExperimentResultDialogPage merdp;
-        protected bool data_gend = false;
+        
 
         [KSPEvent(guiName = "Deploy", active = true, guiActive = true)]
 	    public void DeployExperiment() {
             data_gend = generateScienceData();
             ReviewData();
             Deployed = true;
+            cleanUpScienceData();
 	    }
 
         [KSPAction("Deploy")]
@@ -69,6 +80,20 @@ namespace FNPlugin {
 
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
+        }
+
+        public override void OnSave(ConfigNode node) {
+            if (science_data != null) {
+                ConfigNode science_node = node.AddNode("ScienceData");
+                science_data.Save(science_node);
+            }
+        }
+
+        public override void OnLoad(ConfigNode node) {
+            if (node.HasNode("ScienceData")) {
+                ConfigNode science_node = node.GetNode("ScienceData");
+                science_data = new ScienceData(science_node);
+            }
         }
 
         public override void OnUpdate() {
@@ -138,7 +163,7 @@ namespace FNPlugin {
                 list2.Add(science_data);
                 list.OrderBy(new Func<IScienceDataTransmitter, float>(ScienceUtil.GetTransmitterScore)).First<IScienceDataTransmitter>().TransmitData(list2);
                 endExperiment(science_data);
-                cleanUpScienceData();
+                
             }
         }
 
