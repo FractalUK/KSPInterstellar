@@ -400,7 +400,7 @@ namespace FNPlugin {
             float thermal_power_dissip5 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(1800, 4) / 1e6);
             float thermal_power_dissip6 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(2400, 4) / 1e6);
             float thermal_power_dissip7 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(3000, 4) / 1e6);
-            return String.Format("Maximum Waste Heat Radiated\n Base: {0} MW\n Upgraded: {1} MW\n-----\nRadiator Performance at:\n600K: {2} MW\n1200K: {3} MW\n1800K: {4} MW\n2400K: {5} MW\n3000K: {6} MW\n", thermal_power_dissip, thermal_power_dissip2, thermal_power_dissip3, thermal_power_dissip4, thermal_power_dissip5, thermal_power_dissip6, thermal_power_dissip7);
+            return String.Format("Mo Li Heat Pipe\nHeat Radiated (Max): {0:n0} MW\n\n -[Upgrade Information]-\n\nScience Tech Required:\nExperimental Electronics\n\nGraphene Radiator\nHeat Radiated (Max): {1:n0} MW\n\nRadiator Performance at:\n600K: {2:n0} MW\n1,200K: {3:n0} MW\n1,800K: {4:n0} MW\n2,400K: {5:n0} MW\n3,000K: {6:n0} MW\n", thermal_power_dissip, thermal_power_dissip2, thermal_power_dissip3, thermal_power_dissip4, thermal_power_dissip5, thermal_power_dissip6, thermal_power_dissip7);
 		}
 
         public override int getPowerPriority() {
