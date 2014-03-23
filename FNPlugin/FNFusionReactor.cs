@@ -86,9 +86,9 @@ namespace FNPlugin {
             float deut_rate_per_day = resourceRate * 86400;
             float up_deut_rate_per_day = upgradedResourceRate * 86400;
             if (isTokomak) {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Tokomak Power Consumption: {6}MW\n D/T Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
+                return String.Format(originalName + "\nCore Temperature: {0:n0}K\nPower: {1:n0}MW\nPower Requirement: {6}MW\nD/T Consumption Rate (Max):\n{2}Kg/day\n\n -[Upgrade Information]-\n\nScience Tech Required:\nAntimatter Power\n\nHigh-Q Tokomax\nCore Temperate: {3:n0}K\nPower: {4:n0}MW\nPower Requirement: {6}MW\nD/T Consumption (Max):\n{5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
             } else {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Laser Power Consumption: {6}MW\n D/T Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
+                return String.Format(originalName + "\nCore Temperature: {0:n0}K\nPower: {1:n0}MW\nPower Requirement: {6}MW\nD/T Consumption Rate (Max):\n{2}Kg/day\n\n -[Upgrade Information]-\n\nScience Tech Required:\nAntimatter Power\n\nHigh-Q Tokomax\nCore Temperate: {3:n0}K\nPower: {4:n0}MW\nPower Requirement: {6}MW\nD/T Consumption (Max):\n{5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
             }
         }
 
