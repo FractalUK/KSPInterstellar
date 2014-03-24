@@ -62,6 +62,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ORSResourceAbundanceMarker.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="OpenResourceSystem\License.txt" />
+    <Content Include="OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0.dll" />
+    <Content Include="OpenResourceSystem\resource_point.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="OpenResourceSystem\PlanetResourceData\atmosphericresourcedefinitions.cfg" />
+    <None Include="OpenResourceSystem\PlanetResourceData\oceanicresourcedefinitions.cfg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
