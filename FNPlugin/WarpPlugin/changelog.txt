@@ -21,7 +21,8 @@ Version 0.10.4_experimental
 - Remove old hex can part files that were causing loading errors.
 - Removed old methane tank part file that was causing loading errors.
 - The large xenon tank now actually contains xenon.
-- The UN tank now uses the correct model.
+- The UN tank now uses the correct model
+- Antimaters containers now have charging disabled by default.
 
 
 Version 0.10.3

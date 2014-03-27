@@ -27,7 +27,7 @@ namespace FNPlugin {
         public string capacityStr;
 
 		bool charging = false;
-		bool should_charge = true;
+		bool should_charge = false;
 		float explosion_time = 0.35f;
 		bool exploding = false;
 		float explosion_size = 5000;
