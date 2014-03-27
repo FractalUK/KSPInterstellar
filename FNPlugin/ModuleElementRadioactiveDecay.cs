@@ -25,16 +25,18 @@ namespace FNPlugin {
             if (state == StartState.Editor) {
                 return;
             }
-            decay_resource = part.Resources[resourceName];
-            part.force_activate();   
+            decay_resource = part.Resources[resourceName]; // is being set to tritium
+            part.force_activate();
         }
 
         public override void OnFixedUpdate() {
             double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
             decay_resource.amount -= decay_amount;
-            if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
+            if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) { //does not work out of range of vessel
+                print(decayProduct);
                 ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount);
             }
+
         }
 
     }

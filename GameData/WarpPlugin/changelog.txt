@@ -1,3 +1,27 @@
+Version 0.10.4_experimental
+- Fixed data collection on magnetometer
+- Replaced non-functional model for .625m arcjet thruster to rescaled 1.25m model
+- Improved reactor, radiator, and generator tooltips
+- Added water and lithium resource maps to kerbin
+- Added (currently unused) water and lithium resource assets
+- Added atmospheric intake functionality to atmospheric scoops
+- Added full initial electric charge to generators to aid in fusion reactor activation
+- Disabled the inital automaticly enabled charging of the alcubierre drive for new vessels
+- Added electric charge to computer core, and increased torque to 5/5/5
+- Added a more detailed tooltip description of the computer core
+- Added tooltip details about power transmission to array and reciever descriptions
+- Added tooltip details about generator attachment and modes
+- Added note to GC/MS tooltip to indicate that it is also a science experiment.
+- Added note that GRS is useful for detecting concentrations of uranium and thorium.
+- Added a detailed description of the science labs capabilities
+- Added a clarification of the crygenic helium tank, and its use with the IR telescope
+- Added note that the magnetometer is also a science experiment
+- Added note to clarify that the he-3 does not store helium, and is used as a reator fuel.
+- Added tooltip to antimatter containers to indicate maximum capacity.
+- Remove old hex can part files that were causing loading errors.
+- Removed old methane tank part file that was causing loading errors.
+
+
 Version 0.10.3
 -Integrated Impactor experiment into the stock science system
 -Fixed zero resource extraction rate at low timewarp

@@ -1,0 +1,17 @@
+﻿done - The computer core needs more info, I would add in info that it is for the advanced IR telescopes and that you can use it to research like with the science lab
+
+done - The Helium Cryostat should specifically say that it is NOT for fusion
+
+done - The IR telescope should mention that it needs Helium Cryostat, and I would like to know how much cryostat it will use.
+
+done - The Science Lab could mention that it is used for anti-matter and dueterium production, research, and nuclear fuel reprocessing
+
+done - The microwave beamed power receiver should replace the word "Solar" with "Thermal" it its description
+
+done - The atmospheric scoops could use more info on what resource they actually collect
+
+done - only the small anti-matter bottle says how much antimatter it holds, while the other antimatter in line containers do not.
+
+done - All the electric generators have the same stats, I don't know what the difference is between them besides their size and weight, but if there is, a tool tip would help.
+
+done - Finally, do electric generators need to be connected directly to a reactor? Any part which is required to be connected to another part in order for them to work together should have a tool tip saying as much.

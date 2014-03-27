@@ -16,6 +16,8 @@ namespace FNPlugin {
         //Persistent False
         [KSPField(isPersistant = false)]
         public float chargeNeeded = 100f;
+        [KSPField(isPersistant = false)]
+        public float maxAmmount;
 
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
 		public string chargeStatusStr;
@@ -201,7 +203,8 @@ namespace FNPlugin {
 		}
 
         public override string GetInfo() {
-            return "Maximum Power Requirements: " + (chargeNeeded*2).ToString("0") + " KW\nMinimum Power Requirements: " + chargeNeeded.ToString("0") + " KW";
+            float max_chargeNeeded = chargeNeeded * 2f;
+            return String.Format("Minimum Power Requirements: {0} KW\n\nMaximum Power Requirements: {1}KW", chargeNeeded, max_chargeNeeded);
         }
 
         public override string getResourceManagerDisplayName() {

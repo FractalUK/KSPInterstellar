@@ -60,7 +60,7 @@
     <Compile Include="ElectricalRCSSystem.cs" />
     <Compile Include="ElectricEngineController.cs" />
     <Compile Include="FlightUIStarter.cs" />
-    <Compile Include="FNAmatCatFissionFusionReactor.cs" />
+    <Compile Include="FNAIMReactor.cs" />
     <Compile Include="FNAntimatterReactor.cs" />
     <Compile Include="FNFusionReactor.cs" />
     <Compile Include="FNGenerator.cs" />
@@ -216,7 +216,6 @@
     <None Include="WarpPlugin\Parts\Engines\MPD\glow.tga" />
     <None Include="WarpPlugin\Parts\Engines\MPD\model.mu" />
     <None Include="WarpPlugin\Parts\Engines\MPD\n_normals copy_NRM.tga" />
-    <None Include="WarpPlugin\Parts\Engines\MPD\part.cfg" />
     <None Include="WarpPlugin\Parts\Engines\MPD\part0.cfg" />
     <None Include="WarpPlugin\Parts\Engines\MPD\part1.cfg" />
     <None Include="WarpPlugin\Parts\Engines\MPD\part2.cfg" />
@@ -233,7 +232,6 @@
     <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\glow.tga" />
     <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\model.mu" />
     <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\n_1_NRM.tga" />
-    <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\part.cfg" />
     <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\part0.cfg" />
     <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\part1.cfg" />
     <None Include="WarpPlugin\Parts\Engines\ThermalRocketNozzle\part2.cfg" />
@@ -242,7 +240,6 @@
     <None Include="WarpPlugin\Parts\Engines\ThermalTurbojet\jet.mu" />
     <None Include="WarpPlugin\Parts\Engines\ThermalTurbojet\light.tga" />
     <None Include="WarpPlugin\Parts\Engines\ThermalTurbojet\n_normals_NRM.tga" />
-    <None Include="WarpPlugin\Parts\Engines\ThermalTurbojet\part.cfg" />
     <None Include="WarpPlugin\Parts\Engines\ThermalTurbojet\part1.cfg" />
     <None Include="WarpPlugin\Parts\Engines\ThermalTurbojet\part2.cfg" />
     <None Include="WarpPlugin\Parts\Engines\vista\diff.tga" />
@@ -260,7 +257,6 @@
     <None Include="WarpPlugin\Parts\FuelTank\DeuteriumCryostat\deuteriumtank.tga" />
     <None Include="WarpPlugin\Parts\FuelTank\DeuteriumCryostat\model.mu" />
     <None Include="WarpPlugin\Parts\FuelTank\DeuteriumCryostat\part.cfg" />
-    <None Include="WarpPlugin\Parts\FuelTank\fnmethaneTank3-2\part.cfg" />
     <None Include="WarpPlugin\Parts\FuelTank\fnmethaneTank\model.mu" />
     <None Include="WarpPlugin\Parts\FuelTank\fnmethaneTank\model2.mu" />
     <None Include="WarpPlugin\Parts\FuelTank\fnmethaneTank\part.cfg" />
@@ -269,10 +265,6 @@
     <None Include="WarpPlugin\Parts\FuelTank\HeliumCryostat\heliumtank.tga" />
     <None Include="WarpPlugin\Parts\FuelTank\HeliumCryostat\model.mu" />
     <None Include="WarpPlugin\Parts\FuelTank\HeliumCryostat\part.cfg" />
-    <None Include="WarpPlugin\Parts\FuelTank\HexCanDeutTrit\Part.cfg" />
-    <None Include="WarpPlugin\Parts\FuelTank\HexCanLithium\Part.cfg" />
-    <None Include="WarpPlugin\Parts\FuelTank\HexCanThorium\Part.cfg" />
-    <None Include="WarpPlugin\Parts\FuelTank\HexCanUranium\Part.cfg" />
     <None Include="WarpPlugin\Parts\FuelTank\LiquidOnlyFuelTanks\25PureLiquidTank.cfg" />
     <None Include="WarpPlugin\Parts\FuelTank\LiquidOnlyFuelTanks\375PureLiquidTank.cfg" />
     <None Include="WarpPlugin\Parts\FuelTank\LiquidOnlyFuelTanks\model.mu" />
@@ -381,6 +373,7 @@
     <None Include="WarpPlugin\WarpPluginSettings.cfg" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AFeedbackIssues.txt" />
     <Content Include="WarpPlugin\alumina_resource_point.png" />
     <Content Include="WarpPlugin\changelog.txt" />
     <Content Include="WarpPlugin\copyright notice.txt" />
@@ -494,7 +487,7 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>xcopy /y /s $(ProjectDir)\WarpPlugin $(ProjectDir)$(OutDir)..\</PreBuildEvent>
+    <PreBuildEvent>xcopy /y /s /d /v $(ProjectDir)\WarpPlugin $(ProjectDir)$(OutDir)..\</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
