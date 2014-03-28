@@ -114,7 +114,6 @@
     <Compile Include="VistaEngineController.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="AFeedbackIssues.txt" />
     <Content Include="..\GameData\WarpPlugin\**\*.*">
       <Link>\WarpPlugin\%(RecursiveDir)%(FileName)</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>

@@ -1,7 +1,10 @@
+*.userprefs
 FNPlugin/bin
-WarpPlugin.userprefs
 FNPlugin/obj
+FNPlugin/WarpPlugin
 OpenResourceSystem/bin
 OpenResourceSystem/obj
+OpenResourceSystem/OpenResourceSystem
 *.user
 *.suo
+*db
