@@ -20,6 +20,8 @@ Version 0.10.4_experimental
 - Added tooltip to antimatter containers to indicate maximum capacity.
 - Remove old hex can part files that were causing loading errors.
 - Removed old methane tank part file that was causing loading errors.
+- The large xenon tank now actually contains xenon.
+- The UN tank now uses the correct model.
 
 
 Version 0.10.3
