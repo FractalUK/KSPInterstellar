@@ -35,12 +35,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -66,13 +66,10 @@
     <Compile Include="ORSResourceAbundanceMarker.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="OpenResourceSystem\License.txt" />
-    <Content Include="OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0.dll" />
-    <Content Include="OpenResourceSystem\resource_point.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="OpenResourceSystem\PlanetResourceData\atmosphericresourcedefinitions.cfg" />
-    <None Include="OpenResourceSystem\PlanetResourceData\oceanicresourcedefinitions.cfg" />
+    <Content Include="..\GameData\OpenResourceSystem\**\*.*">
+      <Link>\OpenResourceSystem\%(RecursiveDir)%(FileName)</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -80,7 +77,8 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>xcopy /y /s /d /v $(ProjectDir)\OpenResourceSystem $(ProjectDir)$(OutDir)..\</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
