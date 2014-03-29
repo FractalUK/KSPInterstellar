@@ -180,6 +180,12 @@ namespace FNPlugin {
         public override string getResourceManagerDisplayName() {
             return computercoreType;
         }
+
+        public override string GetInfo() {
+            string desc = "Power Requirements: " + megajouleRate.ToString("0.0") + " MW\n";
+            desc = desc + "Upgraded Power Requirements: " + upgradedMegajouleRate.ToString("0.0") + " MW\n";
+            return desc;
+        }
 	}
 }
 

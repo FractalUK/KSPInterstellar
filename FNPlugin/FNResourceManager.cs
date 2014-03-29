@@ -8,7 +8,7 @@ using UnityEngine;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
-    class FNResourceManager : ORSResourceManager {
+    public class FNResourceManager : ORSResourceManager {
         
 
         public FNResourceManager(PartModule pm, String resource_name) : base(pm, resource_name) {

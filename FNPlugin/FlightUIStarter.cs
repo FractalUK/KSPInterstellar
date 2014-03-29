@@ -13,10 +13,13 @@ namespace FNPlugin {
         protected Rect button_position;
         protected Texture2D guibuttontexture;
         protected bool hide_button = false;
+        public static bool show_window = false;
 
         public void Start() {
             guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/megajoule_click", false);
-            button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
+            if (!PluginHelper.using_toolbar) {
+                button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
+            }
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
@@ -36,11 +39,18 @@ namespace FNPlugin {
                     if (mega_manager.getPartModule() != null) {
                         mega_manager.OnGUI();
 
-                        GUILayout.BeginArea(button_position);
-                        if (GUILayout.Button(guibuttontexture)) {
-                            mega_manager.showWindow();
+                        if (!PluginHelper.using_toolbar) {
+                            GUILayout.BeginArea(button_position);
+                            if (GUILayout.Button(guibuttontexture)) {
+                                mega_manager.showWindow();
+                            }
+                            GUILayout.EndArea();
+                        } else {
+                            if (show_window) {
+                                mega_manager.showWindow();
+                                show_window = false;
+                            }
                         }
-                        GUILayout.EndArea();
                     }
                 }
             }

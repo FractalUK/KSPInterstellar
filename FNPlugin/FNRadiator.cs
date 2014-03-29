@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
+    [KSPModule("Radiator")]
 	class FNRadiator : FNResourceSuppliableModule	{
 		[KSPField(isPersistant = true)]
 		public bool radiatorIsEnabled;

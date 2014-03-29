@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
+    [KSPModule("Electrical Generator")]
 	class FNGenerator : FNResourceSuppliableModule, FNUpgradeableModule{
 		// Persistent True
 		[KSPField(isPersistant = true)]
@@ -266,9 +267,15 @@ namespace FNPlugin {
 		}
 
 		public float getMaxPowerOutput() {
-			double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-			float maxTotalEff = (float)carnotEff * pCarnotEff;
-			return maxThermalPower * maxTotalEff;
+            float maxTotalEff = 0;
+            if (!chargedParticleMode) {
+                double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
+                maxTotalEff = (float)carnotEff * pCarnotEff;
+                return maxThermalPower * maxTotalEff;
+            } else {
+                maxTotalEff = 0.85f;
+                return maxChargedPower * maxTotalEff;
+            }
 		}
 
         public float getCurrentPower() {

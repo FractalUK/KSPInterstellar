@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
+    [KSPModule("Infrared Telescope")]
     class FNInfraredTelescope : PartModule{
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool telescopeIsEnabled;
         [KSPField(isPersistant = true)]
-        public double lastActiveTime;
+        public float lastActiveTime;
         [KSPField(isPersistant = true)]
-        public double lastMaintained;
+        public float lastMaintained;
         [KSPField(isPersistant = true)]
         public bool telescopeInit;
         [KSPField(isPersistant = true)]
@@ -54,15 +55,15 @@ namespace FNPlugin {
 
         [KSPEvent(guiName = "Perform Maintenance", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
         public void maintainTelescope() {
-            lastMaintained = Planetarium.GetUniversalTime();
+            lastMaintained = (float) Planetarium.GetUniversalTime();
         }
 
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
 
-            if (telescopeInit == false) {
+            if (telescopeInit == false || lastMaintained == 0) {
                 telescopeInit = true;
-                lastMaintained = Planetarium.GetUniversalTime();
+                lastMaintained = (float) Planetarium.GetUniversalTime();
             }
 
             if (telescopeIsEnabled && lastActiveTime > 0) {
@@ -74,7 +75,7 @@ namespace FNPlugin {
                     double avg_science_rate = base_science / a / a * (Math.Exp(a * t1) * (a * t1 - 1) - Math.Exp(a * t0) * (a * t0 - 1));
                     double time_diff = Planetarium.GetUniversalTime() - lastActiveTime;
                     double science_to_add = avg_science_rate / 86400 * time_diff;
-                    lastActiveTime = Planetarium.GetUniversalTime();
+                    lastActiveTime = (float) Planetarium.GetUniversalTime();
                     science_awaiting_addition = science_to_add;
                 }
             }
@@ -169,8 +170,16 @@ namespace FNPlugin {
                         ResearchAndDevelopment.Instance.Science = (float) (ResearchAndDevelopment.Instance.Science + science_rate * TimeWarp.fixedDeltaTime);
                     }
                 }
-                lastActiveTime = Planetarium.GetUniversalTime();
+                lastActiveTime = (float) Planetarium.GetUniversalTime();
             }
+        }
+
+        public override string GetInfo() {
+            string desc = "Requires Helium coolant.\n";
+            desc = desc + "Science Rate: " + GameConstants.telescopeBaseScience.ToString("0.0") + " /day\n";
+            desc = desc + "Gravitional Lens\n Required Altitude: 548AU\n";
+            desc = desc + "G-Lens Science Rate:" + GameConstants.telescopeGLensScience.ToString("0.0") + " /day\n";
+            return desc;
         }
     }
 }

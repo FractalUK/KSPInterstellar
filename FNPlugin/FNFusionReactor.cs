@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
+    [KSPModule("Fusion Reactor")]
     class FNFusionReactor : FNReactor {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;

@@ -93,7 +93,7 @@ namespace FNPlugin {
                             subject.scientificValue = 1;
                             subject.scienceCap = 50 * PluginHelper.getImpactorScienceMultiplier(vessel.mainBody.flightGlobalsIndex)*10;
                             //subject.science = 0;
-                            data_size = science_amount * 10;
+                            data_size = science_amount * 2.5f;
                             science_data = new ScienceData(science_amount, 1, 0, subject.id, "Impactor Data");
                             ref_value = 50*PluginHelper.getImpactorScienceMultiplier(vessel.mainBody.flightGlobalsIndex);
                             return true;

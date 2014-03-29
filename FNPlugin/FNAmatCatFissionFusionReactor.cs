@@ -8,6 +8,7 @@ using UnityEngine;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
+    [KSPModule("Antimatter Initiated Reactor")]
     class FNAmatCatFissionFusionReactor : FNReactor {
         protected double ticker = 0;
         protected double stored_tick = 0;
@@ -111,7 +112,7 @@ namespace FNPlugin {
             upgraded_d_he3_rate = upgradedResourceRate * GameConstants.antimatter_initiated_upgraded_d_he3_cons_constant * 86400;
             upgraded_amat_rate = upgradedResourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
 
-            string basic = String.Format(" \n" + originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\n Total Power: " + ThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + antimatter_rate.ToString("0.00") + "ng/day");
+            string basic = String.Format(" \n" + originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\n Total Power: " + ThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + d_he3_rate.ToString("0.00") + "Kg/day\n UN Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + antimatter_rate.ToString("0.00") + "ng/day");
             string upgrade = String.Format("\n -Upgrade Information - \n" + upgradedName + "\nCore Temperature: " + upgradedReactorTemp.ToString("0") + "K\n Total Power: " + upgradedThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + upgraded_d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + upgraded_amat_rate.ToString("0.00") + "ng/day");
             return basic + upgrade;
             //return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Tokomak Power Consumption: {6}MW\n D/He-3 Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);

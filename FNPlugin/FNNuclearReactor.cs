@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
+    [KSPModule("Fission Reactor")]
     class FNNuclearReactor : FNReactor {
         //Persistent True
         [KSPField(isPersistant = true)]
@@ -124,7 +125,10 @@ namespace FNPlugin {
         public override string GetInfo() {
             float uf6_rate_per_day = resourceRate * 86400;
             float up_uf6_rate_per_day = upgradedResourceRate * 86400;
-            return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}l/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}l/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
+            string info_str = originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\nTotal Power: " + ThermalPower.ToString("0") + "MW\nUF4 Max Consumption Rate: " + uf6_rate_per_day.ToString("0.00000") + " l/day\n[Upgrade Information]\nUpgraded Core Temperature:" + upgradedReactorTemp.ToString("0") + "K\nUpgraded Power: " + upgradedThermalPower.ToString("0") + "MW\nUpgraded UF4 Consumption: " + up_uf6_rate_per_day.ToString("0.00000") + "l/day";
+            //return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}l/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}l/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
+            return info_str;
+            
         }
 
         public override void OnStart(PartModule.StartState state) {
