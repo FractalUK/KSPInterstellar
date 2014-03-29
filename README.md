@@ -7,7 +7,7 @@ This version of interstellar is modified and published by me, wavefunctionp. It 
 
 Instructions:
 
-For players: Download the zip and copy the contents of the GameData folder to your KSP GamaData folder. The rest of the folders are for development and are not needed to play the mod.
+For players: Download the compiled addon here: https://www.dropbox.com/sh/3im5o8t4ahxnyx7/oO9MQ45um7/KSPInterstellar
 
 For developers:
 
