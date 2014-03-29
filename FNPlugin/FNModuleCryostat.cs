@@ -7,6 +7,7 @@ using System.Text;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
+    [KSPModule("Cyrostat Tank")]
     class FNModuleCryostat : FNResourceSuppliableModule {
         [KSPField(isPersistant = false)]
         public string resourceName;

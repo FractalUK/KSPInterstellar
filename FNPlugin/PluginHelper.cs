@@ -35,6 +35,8 @@ namespace FNPlugin {
         public static string water_resource_name = "LqdWater";
         public static string hydrogen_peroxide_resource_name = "H2Peroxide";
         public static string ammonia_resource_name = "Ammonia";
+        public static bool using_toolbar = false;
+
         public const int interstellar_major_version = 10;
         public const int interstellar_minor_version = 0;
         
@@ -219,17 +221,17 @@ namespace FNPlugin {
             float multiplier = 1;
 
             if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY) {
-                multiplier = 7.5f;
+                multiplier = 7f;
             } else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS) {
                 multiplier = 5f;
             } else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP) {
-                multiplier = 12.5f;
+                multiplier = 9f;
             } else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL) {
-                multiplier = 15f;
+                multiplier = 11f;
             } else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO) {
-                multiplier = 25f;
+                multiplier = 14f;
             } else if (refbody == REF_BODY_DRES) {
-                multiplier = 9.25f;
+                multiplier = 8f;
             } else if (refbody == REF_BODY_KERBIN) {
                 multiplier = 0.5f;
             } else {
@@ -380,14 +382,18 @@ namespace FNPlugin {
                                 mod_info.moduleName = "Thermal Nozzle";
 							}
                             
-							if(prefab_available_part.CrewCapacity > 0) {
+							if(prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0) {
 								Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
 								FNModuleRadiation pm = null;
 								if(type != null) {
 									pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
 									prefab_available_part.Modules.Add(pm);
-									double rad_hardness = prefab_available_part.mass /((double)prefab_available_part.CrewCapacity)*7.5;
+									double rad_hardness = prefab_available_part.mass /(Math.Max(prefab_available_part.CrewCapacity,0.1))*7.5;
 									pm.rad_hardness = rad_hardness;
+                                    AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
+                                    minfo.moduleName = "Radiation Status";
+                                    minfo.info = pm.GetInfo();
+                                    available_part.moduleInfos.Add(minfo);
 								}
                                 print("Adding ModuleRadiation to " + prefab_available_part.name);
 							}
