@@ -8,7 +8,7 @@ using UnityEngine;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
-    class FNAIMReactor : FNReactor {
+    class FNAmatCatFissionFusionReactor : FNReactor {
         protected double ticker = 0;
         protected double stored_tick = 0;
         protected GameObject lightGameObject;
