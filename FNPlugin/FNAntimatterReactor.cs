@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
+    [KSPModule("Antimatter Reactor")]
     class FNAntimatterReactor : FNReactor {
         public override bool getIsNuclear() {
             return false;

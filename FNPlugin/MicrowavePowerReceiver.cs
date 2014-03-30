@@ -40,6 +40,8 @@ namespace FNPlugin {
         public string networkDepthString;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        public float receiptPower;
 
         //Internal 
 
@@ -66,6 +68,7 @@ namespace FNPlugin {
         [KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
         public void ActivateReceiver() {
             receiverIsEnabled = true;
+            receiptPower = 100;
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Receiver", active = true)]
@@ -272,7 +275,7 @@ namespace FNPlugin {
                 connectedrelaysi = usedRelays.Count;
 
                 double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
-                powerInput = powerInputMegajoules * 1000.0f;
+                powerInput = powerInputMegajoules * 1000.0f * receiptPower/100.0f;
 
 
                 float animateTemp = (float)powerInputMegajoules / 3000;

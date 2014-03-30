@@ -7,6 +7,7 @@ using System.Text;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
+    [KSPModule("Resource Extractor")]
     class FNModuleResourceExtraction : ORSModuleResourceExtraction{
         public override void OnFixedUpdate() {
             base.OnFixedUpdate();

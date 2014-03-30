@@ -8,6 +8,7 @@ using UnityEngine;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
+    [KSPModule("Refinery")]
     class FNRefinery : FNResourceSuppliableModule {
         //Persistent True
         [KSPField(isPersistant = true)]
@@ -243,14 +244,14 @@ namespace FNPlugin {
                         electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseELCPowerConsumption);
                         electrolysis_rate_d = electrical_power_provided / GameConstants.electrolysisEnergyPerTon * vessel.atmDensity / TimeWarp.fixedDeltaTime;
                         double hydrogen_rate = electrolysis_rate_d / (1 + GameConstants.electrolysisMassRatio);
-                        double oxygen_rate = hydrogen_rate * GameConstants.electrolysisMassRatio;
+                        double oxygen_rate = hydrogen_rate * (GameConstants.electrolysisMassRatio-1);
                         double density_h = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_resource_name).density;
                         double density_o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.oxygen_resource_name).density;
                         double density_ch4 = PartResourceLibrary.Instance.GetDefinition(PluginHelper.methane_resource_name).density;
                         double h2_rate = part.RequestResource(PluginHelper.hydrogen_resource_name, hydrogen_rate * TimeWarp.fixedDeltaTime / density_h / 2);
                         if (h2_rate > 0) {
                             double o_rate = part.RequestResource(PluginHelper.oxygen_resource_name, -oxygen_rate * TimeWarp.fixedDeltaTime / density_o);
-                            double methane_rate = electrolysis_rate_d / 4.5;
+                            double methane_rate = oxygen_rate * 2;
                             methane_rate_d = -part.RequestResource(PluginHelper.methane_resource_name, -methane_rate * TimeWarp.fixedDeltaTime / density_ch4) * density_ch4 / TimeWarp.fixedDeltaTime;
                         }
                     } else {
@@ -284,6 +285,7 @@ namespace FNPlugin {
                     }
                 } else if (active_mode == 5) { // Monoprop Production
                     double density_h2o2 = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_peroxide_resource_name).density;
+                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.water_resource_name).density;
                     double density_ammonia = PartResourceLibrary.Instance.GetDefinition(PluginHelper.ammonia_resource_name).density;
                     double electrical_power_provided = consumeFNResource((GameConstants.basePechineyUgineKuhlmannPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePechineyUgineKuhlmannPowerConsumption);
@@ -294,6 +296,7 @@ namespace FNPlugin {
                         double mono_prop_produciton_rate = ammonia_consumption_rate + h202_consumption_rate;
                         double density_monoprop = PartResourceLibrary.Instance.GetDefinition("MonoPropellant").density;
                         monoprop_rate_d = -ORSHelper.fixedRequestResource(part,"MonoPropellant", -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime / density_monoprop)*density_monoprop/TimeWarp.fixedDeltaTime;
+                        ORSHelper.fixedRequestResource(part, PluginHelper.water_resource_name, -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime * 1.12436683185 / density_h2o);
                     } else {
                         if (electrical_power_ratio > 0) {
                             monoprop_rate_d = 0;

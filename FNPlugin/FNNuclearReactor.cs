@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
+    [KSPModule("Fission Reactor")]
     class FNNuclearReactor : FNReactor {
         //Persistent True
         [KSPField(isPersistant = true)]

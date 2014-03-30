@@ -8,7 +8,7 @@ using ORSv1_1::OpenResourceSystem;
 using UnityEngine;
 
 namespace FNPlugin {
-    class FNResourceOvermanager : ORSResourceOvermanager {
+    public class FNResourceOvermanager : ORSResourceOvermanager {
 
         public static new FNResourceOvermanager getResourceOvermanagerForResource(String resource_name) {
             FNResourceOvermanager fnro;

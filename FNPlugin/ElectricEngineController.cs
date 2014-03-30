@@ -421,7 +421,7 @@ namespace FNPlugin {
 			}
 			ConfigNode[] prop_nodes = getPropellants(upgraded);
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
-			float thrust_per_mw = 0.013089f;
+            float thrust_per_mw = isThrusterElectrothermal ? 0.051425f : 0.013089f;
 			foreach (ConfigNode propellant_node in prop_nodes) {
 				float ispMultiplier = float.Parse(propellant_node.GetValue("ispMultiplier"));
 				float ispProp = initialIsp * ispMultiplier;

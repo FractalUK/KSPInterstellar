@@ -6,14 +6,15 @@ using UnityEngine;
 
 namespace FNPlugin {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    class VABThermalUI : MonoBehaviour {
+    public class VABThermalUI : MonoBehaviour {
+        public static bool render_window = true;
+
         protected int windowID = 825462;
         protected Rect windowPosition = new Rect(300, 60, 300, 100);
         protected GUIStyle bold_label;
         protected GUIStyle green_label;
         protected GUIStyle red_label;
         protected GUIStyle orange_label;
-        protected bool render_window = true;
         protected double total_source_power = 0;
         protected double source_temp_at_100pc = 0;
         protected double source_temp_at_30pc = 0;
@@ -29,6 +30,9 @@ namespace FNPlugin {
 
         public void Start() {
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            if (PluginHelper.using_toolbar) {
+                render_window = false;
+            }
         }
 
         public void Update() {

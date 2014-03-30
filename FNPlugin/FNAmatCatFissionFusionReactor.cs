@@ -8,6 +8,7 @@ using UnityEngine;
 using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
+    [KSPModule("Antimatter Initiated Reactor")]
     class FNAmatCatFissionFusionReactor : FNReactor {
         protected double ticker = 0;
         protected double stored_tick = 0;

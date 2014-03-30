@@ -21,6 +21,8 @@ namespace FNPlugin {
         public string statusStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
         public string beamedpower;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        public float transmitPower;
 
         //Internal
         protected Animation anim;
@@ -42,6 +44,7 @@ namespace FNPlugin {
                 anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
+            transmitPower = 100;
             activeCount = 8;
             IsEnabled = true;
         }
@@ -145,6 +148,7 @@ namespace FNPlugin {
             Events["ActivateRelay"].active = !IsEnabled && !relay && !receiver_on;
             Events["DeactivateRelay"].active = IsEnabled && relay;
             Fields["beamedpower"].guiActive = IsEnabled && !relay;
+            Fields["transmitPower"].guiActive = IsEnabled && !relay;
 
             if (IsEnabled) {
                 if (relay) {
@@ -179,6 +183,10 @@ namespace FNPlugin {
                         FNThermalSource thermal_source = generator.getThermalSource();
                         if (thermal_source != null && !thermal_source.isVolatileSource()) {
                             double output = generator.getMaxPowerOutput();
+                            if (thermal_source is FNFusionReactor) {
+                                output = output * 0.95;
+                            }
+                            output = output * transmitPower / 100.0;
                             double gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                             nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
                         }
