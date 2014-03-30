@@ -60,7 +60,7 @@
     <Compile Include="ElectricalRCSSystem.cs" />
     <Compile Include="ElectricEngineController.cs" />
     <Compile Include="FlightUIStarter.cs" />
-    <Compile Include="FNAIMReactor.cs" />
+    <Compile Include="FNAmatCatFissionFusionReactor.cs" />
     <Compile Include="FNAntimatterReactor.cs" />
     <Compile Include="FNFusionReactor.cs" />
     <Compile Include="FNGenerator.cs" />
