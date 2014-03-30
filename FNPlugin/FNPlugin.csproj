@@ -1382,10 +1382,6 @@
       <Link>\WarpPlugin\PlanetResourceData\vall_water</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\GameData\WarpPlugin\Plugins\WarpPlugin.dll">
-      <Link>\WarpPlugin\Plugins\WarpPlugin</Link>
-      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\GameData\WarpPlugin\rapier.cfg">
       <Link>\WarpPlugin\rapier</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
