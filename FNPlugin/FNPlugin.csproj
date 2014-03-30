@@ -60,7 +60,7 @@
     <Compile Include="ElectricalRCSSystem.cs" />
     <Compile Include="ElectricEngineController.cs" />
     <Compile Include="FlightUIStarter.cs" />
-    <Compile Include="FNAIMReactor.cs" />
+    <Compile Include="FNAmatCatFissionFusionReactor.cs" />
     <Compile Include="FNAntimatterReactor.cs" />
     <Compile Include="FNFusionReactor.cs" />
     <Compile Include="FNGenerator.cs" />
@@ -1380,6 +1380,10 @@
     </Content>
     <Content Include="..\GameData\WarpPlugin\PlanetResourceData\vall_water.png">
       <Link>\WarpPlugin\PlanetResourceData\vall_water</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\GameData\WarpPlugin\Plugins\WarpPlugin.dll">
+      <Link>\WarpPlugin\Plugins\WarpPlugin</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
     </Content>
     <Content Include="..\GameData\WarpPlugin\rapier.cfg">

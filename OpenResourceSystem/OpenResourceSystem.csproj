@@ -78,6 +78,10 @@
       <Link>\OpenResourceSystem\PlanetResourceData\oceanicresourcedefinitions</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0.dll">
+      <Link>\OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\GameData\OpenResourceSystem\resource_point.png">
       <Link>\OpenResourceSystem\resource_point</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>

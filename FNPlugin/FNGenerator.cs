@@ -134,7 +134,7 @@ namespace FNPlugin {
                                 // if we're attaching to a fusion reactor, swap over to direct conversion if we can
                                 generatorType = altUpgradedName;
                                 chargedParticleMode = true;
-                            } else if (myAttachedReactor is FNAIMReactor && isupgraded) {
+                            } else if (myAttachedReactor is FNAmatCatFissionFusionReactor && isupgraded) {
                                 // if we're attaching to a antimatter initiated reactor, swap over to direct conversion if we can
                                 generatorType = altUpgradedName;
                                 chargedParticleMode = true;
