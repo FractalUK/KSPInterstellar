@@ -66,10 +66,33 @@
     <Compile Include="ORSResourceAbundanceMarker.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\GameData\OpenResourceSystem\**\*.*">
-      <Link>\OpenResourceSystem\%(RecursiveDir)%(FileName)</Link>
+    <Content Include="..\GameData\OpenResourceSystem\License.txt">
+      <Link>\OpenResourceSystem\License</Link>
       <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\GameData\OpenResourceSystem\PlanetResourceData\atmosphericresourcedefinitions.cfg">
+      <Link>\OpenResourceSystem\PlanetResourceData\atmosphericresourcedefinitions</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\GameData\OpenResourceSystem\PlanetResourceData\oceanicresourcedefinitions.cfg">
+      <Link>\OpenResourceSystem\PlanetResourceData\oceanicresourcedefinitions</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0.dll">
+      <Link>\OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\GameData\OpenResourceSystem\resource_point.png">
+      <Link>\OpenResourceSystem\resource_point</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\GameData\OpenResourceSystem\Thumbs.db">
+      <Link>\OpenResourceSystem\Thumbs</Link>
+      <CopyToOutputDirectory>DoNotCopy</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="OpenResourceSystem\Plugins\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
