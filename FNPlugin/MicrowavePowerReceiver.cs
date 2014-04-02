@@ -1,9 +1,12 @@
-﻿using System;
+﻿extern alias ORSv1_1;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
     class MicrowavePowerReceiver : FNResourceSuppliableModule, FNThermalSource {
@@ -48,6 +51,7 @@ namespace FNPlugin {
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
 
         //
+        protected double maxDemand = 1000;
         protected Animation anim;
         protected Animation animT;
         protected bool play_down = true;
@@ -273,8 +277,23 @@ namespace FNPlugin {
 
                 connectedsatsi = activeSatsIncr;
                 connectedrelaysi = usedRelays.Count;
+                //double maxdemand = getCurrentResourceDemand("Megajoules");
+                //if (maxdemand <= getCurrentResourceDemand("Megajoules")) maxdemand = getCurrentResourceDemand("Megajoules") + 1000;
+                //else maxdemand = getCurrentResourceDemand("Megajoules") - 1;
+                
+                // optimize power reception cap
+                if (maxDemand <= getCurrentResourceDemand("Megajoules")) // 10x multiplier to maintain responsiveness 
+                {
+                    maxDemand *= 10.0;
+                }
+                else if (maxDemand > (1.25 * getCurrentResourceDemand("Megajoules"))) // -1% cap decay to within 10% above optimal
+                {
+                    maxDemand *= .99;
+                }
+                else maxDemand *= 1.01; // +1% variance to keep the cap from getting stuck.
 
-                double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
+                double powerInputMegajoules = Math.Min((maxDemand + getSpareResourceCapacity("Megajoules")), total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency);
+                //double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                 powerInput = powerInputMegajoules * 1000.0f * receiptPower/100.0f;
 
 
