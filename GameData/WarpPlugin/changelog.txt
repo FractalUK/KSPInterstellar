@@ -1,20 +1,20 @@
-Version 0.10.x
-- Fixed data collection on magnetometer
-- Replaced non-functional model for .625m arcjet thruster to rescaled 1.25m model (temp fix, fractaluk has a fixed version for the next big update)
-- Improved reactor, radiator, and generator tooltips
-- Added water and lithium resource maps to kerbin
-- Added (currently unused) water and lithium resource assets
-- Added atmospheric intake functionality to atmospheric scoops
-- Added full initial electric charge to generators to aid in fusion reactor activation
-- Charging is now disabled by default on the alcubierre drives
-- Added electric charge to computer core, and increased torque to 5/5/5
-- Added a more detailed tooltip description for the computer core
-- Added details about power transmission to array and reciever to tooltip descriptions
-- Added details about generator attachment and modes to tooltip descriptions
-- Added detail to the GC/MS tooltip to indicate that it is also a science experiment
-- Added details to the GRS description to indicate that it is useful for detecting concentrations of uranium and thorium
-- Added a more detailed description of the science labs capabilities
-- Added a clarification of the crygenic helium tank, and its use with the IR telescope
+Version 0.23.5.0.10.exp040214
+- Fixed data collection on magnetometer.
+- Replaced non-functional model for .625m arcjet thruster to rescaled 1.25m model. (temp bug fix)
+- Added more details to generator, reactor and radiator modules.
+- Added water and lithium resource maps to kerbin. (current values have not been balanced)
+- Added (currently unused) water and lithium resource point assets
+- Added atmospheric intake functionality to atmospheric scoops.
+- Added Generators will now initialize with full EC.
+- Charging is now disabled by default on the alcubierre drives.
+- Added 1000 EC to computer core, and increased torque to 5/5/5.
+- Added a more detailed tooltip description for the computer core.
+- Added details about power transmission to array and reciever to tooltip descriptions.
+- Added details about generator attachment and modes to tooltip descriptions.
+- Added detail to the GC/MS tooltip to indicate that it is also a science experiment.
+- Added details to the GRS description to indicate that it is useful for detecting concentrations of uranium and thorium.
+- Added a more detailed description of the science labs capabilities.
+- Added a clarification of the crygenic helium tank, and its use with the IR telescope.
 - Added details about the magnetometer is also a science experiment	to the tooltip desciption.
 - Added details to the helium-3 container to clarify that it does not store helium, and is used as a reator fuel.
 - Added tooltip to antimatter containers to indicate maximum capacity.
@@ -23,11 +23,13 @@ Version 0.10.x
 - The large xenon tank now actually contains xenon.
 - The UN tank now uses the correct model.
 - Charging is now disabled by default for antimatter containers.
-- Renamed aim reactor module to resolve a display issue caused by the previously very long class name.
-- Corrected the names of the AIM reactors in the config.
-- Support for Toolbar
-- Support for persisting Kerbal total radiation exposure
-- Module UI improvements
+- Support for Toolbar (FractalUK)
+- Support for persisting Kerbal total radiation exposure (FractUK)
+- Module UI improvements (FractalUK)
+- Added radiation hardening to crew modules. (FractalUK)
+- Added percentage sliders for microwave transmission and reception parts. (FractalUK)
+- Microwave recievers will now attempt to throttle reception to equal demand. (experimental)
+- Plasma engines now have the capability to automaticely toggle between quantum vacuum plasma and normal fuel. (experimental)
 
 Version 0.10.3
 -Integrated Impactor experiment into the stock science system
