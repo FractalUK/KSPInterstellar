@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="OpenResourceSystem_1_1_0">
       <HintPath>..\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0.dll</HintPath>
+      <Aliases>global, ORSv1_1</Aliases>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
