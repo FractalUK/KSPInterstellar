@@ -45,11 +45,21 @@ namespace FNPlugin {
 		protected static bool is_thermal_dissip_disabled = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
+        protected static bool tech_checked = false;
+        protected static TechUpdateWindow tech_window = null;
         
         
         
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
+        }
+
+        public static string getTechTreeFilePath() {
+            return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/tree.cfg";
+        }
+
+        public static string getNewTechTreeFilePath() {
+            return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/tree.cfg";
         }
 
         public static string getPluginSettingsFilePath() {
@@ -153,6 +163,16 @@ namespace FNPlugin {
             return config;
         }
 
+        public static ConfigNode getTechTreeFile() {
+            ConfigNode config = ConfigNode.Load(PluginHelper.getTechTreeFilePath());
+            return config;
+        }
+
+        public static ConfigNode getNewTechTreeFile() {
+            ConfigNode config = ConfigNode.Load(PluginHelper.getNewTechTreeFilePath());
+            return config;
+        }
+
         public static bool lineOfSightToSun(Vessel vess) {
             Vector3d a = vess.transform.position;
             Vector3d b = FlightGlobals.Bodies[0].transform.position;
@@ -240,6 +260,8 @@ namespace FNPlugin {
             return multiplier;
         }
 
+        
+
 		public void Update() {
             this.enabled = true;
             AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
@@ -293,6 +315,40 @@ namespace FNPlugin {
                     showInstallationErrorMessage();
                 }
                 
+            }
+
+            if (tech_window == null) {
+                tech_window = new TechUpdateWindow();
+                tech_checked = false;
+
+            }
+
+            if (!tech_checked) {
+                ConfigNode tech_nodes = PluginHelper.getTechTreeFile();
+                ConfigNode new_tech_nodes = PluginHelper.getNewTechTreeFile();
+                int installed_version_id = 0;
+                int new_version_id = 0;
+                if (tech_nodes != null) {
+                    if (tech_nodes.HasNode("VERSION")) {
+                        ConfigNode version_node = tech_nodes.GetNode("VERSION");
+                        if (version_node.HasValue("id")) {
+                            installed_version_id = Convert.ToInt32(version_node.GetValue("id"));
+                        }
+                    }
+                }
+                if (new_tech_nodes != null) {
+                    if (new_tech_nodes.HasNode("VERSION")) {
+                        ConfigNode version_node2 = new_tech_nodes.GetNode("VERSION");
+                        if (version_node2.HasValue("id")) {
+                            new_version_id = Convert.ToInt32(version_node2.GetValue("id"));
+                        }
+                    }
+                }
+                if (new_version_id > installed_version_id) {
+                    tech_window.Show();
+                }
+
+                tech_checked = true;
             }
 
 			if (!plugin_init) {
