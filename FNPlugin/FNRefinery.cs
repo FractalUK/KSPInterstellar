@@ -41,6 +41,8 @@ namespace FNPlugin {
         public string monopropellantRate;
         [KSPField(isPersistant = false, guiActive = true, guiName = "U")]
         public string uraniumNitrideRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "H")]
+        public string ammoniaRate;
 
         //Internal
         protected double electrolysis_rate_d = 0;
@@ -50,9 +52,10 @@ namespace FNPlugin {
         protected double anthra_rate_d = 0;
         protected double monoprop_rate_d = 0;
         protected double uranium_nitride_rate_d = 0;
+        protected double ammonia_rate_d = 0;
         protected bool play_down = true;
         protected Animation anim;
-        protected String[] modes = { "Nuclear Reprocessing", "Aluminium Electrolysis","Sabatier ISRU","Water Electrolysis","Anthraquinone Process","Monopropellant Production","UF4 Ammonolysis"};
+        protected String[] modes = { "Nuclear Reprocessing", "Aluminium Electrolysis","Sabatier ISRU","Water Electrolysis","Anthraquinone Process","Monopropellant Production","UF4 Ammonolysis","Haber Process"};
         protected FuelReprocessor reprocessor;
 
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
@@ -111,6 +114,14 @@ namespace FNPlugin {
             activateAnimation();
         }
 
+        [KSPEvent(guiActive = true, guiName = "Haber Process", active = true)]
+        public void HaberProcess() {
+            IsEnabled = true;
+            play_down = true;
+            active_mode = 7;
+            activateAnimation();
+        }
+
         [KSPEvent(guiActive = true, guiName = "Stop Current Activity", active = false)]
         public void StopActivity() {
             IsEnabled = false;
@@ -149,6 +160,7 @@ namespace FNPlugin {
             Events["AnthraquinoneProcess"].active = !IsEnabled;
             Events["ProduceMonoprop"].active = !IsEnabled;
             Events["UraniumAmmonolysis"].active = !IsEnabled;
+            Events["HaberProcess"].active = !IsEnabled;
             Events["StopActivity"].active = IsEnabled;
             Fields["reprocessingRate"].guiActive = false;
             Fields["electrolysisRate"].guiActive = false;
@@ -156,6 +168,7 @@ namespace FNPlugin {
             Fields["anthraquinoneRate"].guiActive = false;
             Fields["monopropellantRate"].guiActive = false;
             Fields["uraniumNitrideRate"].guiActive = false;
+            Fields["ammoniaRate"].guiActive = false;
             Fields["powerStr"].guiActive = false;
 
             if (IsEnabled) {
@@ -202,6 +215,12 @@ namespace FNPlugin {
                     double uraniumnitrideratetmp = uranium_nitride_rate_d * 3600;
                     uraniumNitrideRate = uraniumnitrideratetmp.ToString("0.0") + " mT/hour";
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + GameConstants.baseUraniumAmmonolysisConsumption.ToString("0.00") + "MW";
+                } else if (active_mode == 7) { // Haber Process
+                    Fields["ammoniaRate"].guiActive = true;
+                    double currentpowertmp = electrical_power_ratio * GameConstants.baseHaberProcessPowerConsumption;
+                    double ammoniaratetmp = ammonia_rate_d * 3600;
+                    ammoniaRate = ammoniaratetmp.ToString("0.00") + " mT/hour";
+                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + GameConstants.baseHaberProcessPowerConsumption.ToString("0.00") + "MW";
                 }
             } else {
                 if (play_down && anim != null) {
@@ -325,7 +344,28 @@ namespace FNPlugin {
                             IsEnabled = false;
                         }
                     }
-                    
+
+                } else if (active_mode == 7) {
+                    if (FlightGlobals.getStaticPressure(vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.1) {
+                        double density_ammonia = PartResourceLibrary.Instance.GetDefinition(PluginHelper.ammonia_resource_name).density;
+                        double density_h = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_resource_name).density;
+                        double electrical_power_provided = consumeFNResource((GameConstants.baseHaberProcessPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                        electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseHaberProcessPowerConsumption);
+                        double hydrogen_rate_t = electrical_power_provided / GameConstants.baseHaberProcessEnergyPerTon * GameConstants.ammoniaHydrogenFractionByMass/TimeWarp.fixedDeltaTime;
+                        double ammonia_rate_to_add_t = ORSHelper.fixedRequestResource(part, PluginHelper.hydrogen_resource_name, hydrogen_rate_t * TimeWarp.fixedDeltaTime / density_h) * density_h / GameConstants.ammoniaHydrogenFractionByMass/TimeWarp.fixedDeltaTime;
+                        if (ammonia_rate_to_add_t > 0) {
+                            ammonia_rate_d = -ORSHelper.fixedRequestResource(part, PluginHelper.ammonia_resource_name, -ammonia_rate_to_add_t * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia/TimeWarp.fixedDeltaTime;
+                        } else {
+                            if (electrical_power_ratio > 0) {
+                                ScreenMessages.PostScreenMessage("Hydrogen is required to perform the Haber Process.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                                IsEnabled = false;
+                            }
+                        }
+                    } else {
+                        ScreenMessages.PostScreenMessage("Ambient Nitrogen Insufficient.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        IsEnabled = false;
+                    }
+
                 }
             } else {
                 

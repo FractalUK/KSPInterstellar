@@ -139,9 +139,9 @@ namespace FNPlugin {
                     radiationStatus = "Elevated.";
                 } else if (rad_level_yr <= 2000) {
                     radiationStatus = "High.";
-                } else if (radiation_level > 100) {
+                } else if (radiation_level <= 100) {
                     radiationStatus = "Dangerous.";
-                } else if (radiation_level > 1000) {
+                } else {
                     radiationStatus = "Deadly.";
                 }
             }

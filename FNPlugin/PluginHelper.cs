@@ -47,6 +47,8 @@ namespace FNPlugin {
         protected static bool resources_configured = false;
         protected static bool tech_checked = false;
         protected static TechUpdateWindow tech_window = null;
+        protected static int installed_tech_tree_version_id = 0;
+        protected static int new_tech_tree_version_id = 0;
         
         
         
@@ -260,7 +262,37 @@ namespace FNPlugin {
             return multiplier;
         }
 
-        
+        public void Start() {
+            tech_window = new TechUpdateWindow();
+            tech_checked = false;
+
+            if (!tech_checked) {
+                ConfigNode tech_nodes = PluginHelper.getTechTreeFile();
+                ConfigNode new_tech_nodes = PluginHelper.getNewTechTreeFile();
+
+                if (tech_nodes != null) {
+                    if (tech_nodes.HasNode("VERSION")) {
+                        ConfigNode version_node = tech_nodes.GetNode("VERSION");
+                        if (version_node.HasValue("id")) {
+                            installed_tech_tree_version_id = Convert.ToInt32(version_node.GetValue("id"));
+                        }
+                    }
+                }
+                if (new_tech_nodes != null) {
+                    if (new_tech_nodes.HasNode("VERSION")) {
+                        ConfigNode version_node2 = new_tech_nodes.GetNode("VERSION");
+                        if (version_node2.HasValue("id")) {
+                            new_tech_tree_version_id = Convert.ToInt32(version_node2.GetValue("id"));
+                        }
+                    }
+                }
+                if (new_tech_tree_version_id > installed_tech_tree_version_id) {
+                    tech_window.Show();
+                }
+
+                tech_checked = true;
+            }
+        }
 
 		public void Update() {
             this.enabled = true;
@@ -317,39 +349,7 @@ namespace FNPlugin {
                 
             }
 
-            if (tech_window == null) {
-                tech_window = new TechUpdateWindow();
-                tech_checked = false;
-
-            }
-
-            if (!tech_checked) {
-                ConfigNode tech_nodes = PluginHelper.getTechTreeFile();
-                ConfigNode new_tech_nodes = PluginHelper.getNewTechTreeFile();
-                int installed_version_id = 0;
-                int new_version_id = 0;
-                if (tech_nodes != null) {
-                    if (tech_nodes.HasNode("VERSION")) {
-                        ConfigNode version_node = tech_nodes.GetNode("VERSION");
-                        if (version_node.HasValue("id")) {
-                            installed_version_id = Convert.ToInt32(version_node.GetValue("id"));
-                        }
-                    }
-                }
-                if (new_tech_nodes != null) {
-                    if (new_tech_nodes.HasNode("VERSION")) {
-                        ConfigNode version_node2 = new_tech_nodes.GetNode("VERSION");
-                        if (version_node2.HasValue("id")) {
-                            new_version_id = Convert.ToInt32(version_node2.GetValue("id"));
-                        }
-                    }
-                }
-                if (new_version_id > installed_version_id) {
-                    tech_window.Show();
-                }
-
-                tech_checked = true;
-            }
+            
 
 			if (!plugin_init) {
                 gdb = GameDatabase.Instance;
