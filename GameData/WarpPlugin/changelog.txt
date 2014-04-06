@@ -1,35 +1,14 @@
-Version 0.23.5.0.10.exp040214
-- Fixed data collection on magnetometer.
-- Replaced non-functional model for .625m arcjet thruster to rescaled 1.25m model. (temp bug fix)
-- Added more details to generator, reactor and radiator modules.
-- Added water and lithium resource maps to kerbin. (current values have not been balanced)
-- Added (currently unused) water and lithium resource point assets
-- Added atmospheric intake functionality to atmospheric scoops.
-- Added Generators will now initialize with full EC.
-- Charging is now disabled by default on the alcubierre drives.
-- Added 1000 EC to computer core, and increased torque to 5/5/5.
-- Added a more detailed tooltip description for the computer core.
-- Added details about power transmission to array and reciever to tooltip descriptions.
-- Added details about generator attachment and modes to tooltip descriptions.
-- Added detail to the GC/MS tooltip to indicate that it is also a science experiment.
-- Added details to the GRS description to indicate that it is useful for detecting concentrations of uranium and thorium.
-- Added a more detailed description of the science labs capabilities.
-- Added a clarification of the crygenic helium tank, and its use with the IR telescope.
-- Added details about the magnetometer is also a science experiment	to the tooltip desciption.
-- Added details to the helium-3 container to clarify that it does not store helium, and is used as a reator fuel.
-- Added tooltip to antimatter containers to indicate maximum capacity.
-- Remove old hex can part files that were causing loading errors.
-- Removed old methane tank part file that was causing loading errors.
-- The large xenon tank now actually contains xenon.
-- The UN tank now uses the correct model.
-- Charging is now disabled by default for antimatter containers.
-- Support for Toolbar (FractalUK)
-- Support for persisting Kerbal total radiation exposure (FractUK)
-- Module UI improvements (FractalUK)
-- Added radiation hardening to crew modules. (FractalUK)
-- Added percentage sliders for microwave transmission and reception parts. (FractalUK)
-- Microwave recievers will now attempt to throttle reception to equal demand. (experimental)
-- Plasma engines now have the capability to automaticely toggle between quantum vacuum plasma and normal fuel. (experimental)
+Version 0.11.0
+-Toolbar Integration
+-Updated tech tree with additional fusion power node
+-New Computer Core Model (by AArtisan)
+-New 0.625 Pebble bed/dusty plasma reactor (model by AArisan)
+-New Large 3.75m Refinery which does processing and resource extraction (model by Aartisan)
+-Added Haber process (to produce ammonia) to Refinery
+-Improved impactor mechanics
+-Direct conversion max power fixed, fixes problems generally experienced with fusion and microwave transmitters
+-Fixed thrust transform with small arcjet engine
+-Default generator Electric Charge set to 1000
 
 Version 0.10.3
 -Integrated Impactor experiment into the stock science system

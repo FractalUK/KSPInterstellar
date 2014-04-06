@@ -91,7 +91,6 @@
     <Compile Include="FNUpgradeableModule.cs" />
     <Compile Include="FuelReprocessor.cs" />
     <Compile Include="GameConstants.cs" />
-    <Compile Include="ImpactorScienceAddition.cs" />
     <Compile Include="ISRUScoop.cs" />
     <Compile Include="MicrowavePowerReceiver.cs" />
     <Compile Include="MicrowavePowerReceiverBackup.cs" />
