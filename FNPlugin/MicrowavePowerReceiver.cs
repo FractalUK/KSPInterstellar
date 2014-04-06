@@ -31,6 +31,10 @@ namespace FNPlugin {
         public float ThermalPower;
         [KSPField(isPersistant = false)]
         public float radius;
+        double powerInputMegajoules = 0;
+        double maxDemand = 0;
+        double minDemand = 0;
+        double curDemand = 0;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Input Power")]
@@ -51,7 +55,6 @@ namespace FNPlugin {
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
 
         //
-        protected double maxDemand = 1000;
         protected Animation anim;
         protected Animation animT;
         protected bool play_down = true;
@@ -277,23 +280,15 @@ namespace FNPlugin {
 
                 connectedsatsi = activeSatsIncr;
                 connectedrelaysi = usedRelays.Count;
-                //double maxdemand = getCurrentResourceDemand("Megajoules");
-                //if (maxdemand <= getCurrentResourceDemand("Megajoules")) maxdemand = getCurrentResourceDemand("Megajoules") + 1000;
-                //else maxdemand = getCurrentResourceDemand("Megajoules") - 1;
                 
-                // optimize power reception cap
-                if (maxDemand <= getCurrentResourceDemand("Megajoules")) // 10x multiplier to maintain responsiveness 
-                {
-                    maxDemand *= 10.0;
-                }
-                else if (maxDemand > (1.25 * getCurrentResourceDemand("Megajoules"))) // -1% cap decay to within 10% above optimal
-                {
-                    maxDemand *= .99;
-                }
-                else maxDemand *= 1.01; // +1% variance to keep the cap from getting stuck.
+                // dynamicly configured power reception
+                curDemand = getCurrentResourceDemand("Megajoules") + getCurrentResourceDemand("ElectricCharge"); // find the current demand 
+                maxDemand = Math.Max(curDemand, maxDemand); // save the maximum demand
+                
+                //if throttled up, use maximum demand up to the maximum available power, else only recieve the minimum demand
+                if (FlightInputHandler.state.mainThrottle != 0f) powerInputMegajoules = Math.Min(maxDemand, total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency);
+                else powerInputMegajoules = Math.Min(curDemand, total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency);
 
-                double powerInputMegajoules = Math.Min((maxDemand + getSpareResourceCapacity("Megajoules")), total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency);
-                //double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                 powerInput = powerInputMegajoules * 1000.0f * receiptPower/100.0f;
 
 
