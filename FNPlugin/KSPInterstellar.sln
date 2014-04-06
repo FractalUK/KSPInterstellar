@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenResourceSystem", "..\OpenResourceSystem\OpenResourceSystem.csproj", "{BCA16E74-23E5-4327-9D24-B908A8CE3836}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FNPlugin", "FNPlugin.csproj", "{43C45CF7-BB70-4A85-98FC-57D36EA674B2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836} = {BCA16E74-23E5-4327-9D24-B908A8CE3836}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterstellarToolbar", "..\InterstellarToolbar\InterstellarToolbar.csproj", "{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43C45CF7-BB70-4A85-98FC-57D36EA674B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43C45CF7-BB70-4A85-98FC-57D36EA674B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43C45CF7-BB70-4A85-98FC-57D36EA674B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43C45CF7-BB70-4A85-98FC-57D36EA674B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = WarpPlugin.csproj
+	EndGlobalSection
+EndGlobal

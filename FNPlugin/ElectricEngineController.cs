@@ -51,6 +51,8 @@ namespace FNPlugin {
 		protected float heat_production_f = 0;
 		protected float electrical_consumption_f = 0;
 		protected bool hasrequiredupgrade = false;
+        protected bool autoVacuum = true;
+        protected int previousfuelmode = 0;
 
 		protected int shutdown_counter = 0;
 
@@ -62,6 +64,7 @@ namespace FNPlugin {
         [KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
         public void TogglePropellant() {
 
+            autoVacuum = false;
             fuel_mode++;
             if (fuel_mode >= propellants.Length) {
                 fuel_mode = 0;
@@ -76,7 +79,21 @@ namespace FNPlugin {
 		public void TogglePropellantAction(KSPActionParam param) {
 			TogglePropellant();
 		}
-        
+
+        [KSPEvent(guiActive = true, guiName = "Enable Auto QVP Mode", active = false)]
+        public void enableQVPMode() {
+
+            autoVacuum = true;
+
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Disable Auto QVP Mode", active = true)]
+        public void disableQVPMode() {
+
+            autoVacuum = false;
+
+        }
+
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitEngine() {
 			if (ResearchAndDevelopment.Instance == null) { return;} 
@@ -182,6 +199,11 @@ namespace FNPlugin {
         }
 
         public override void OnUpdate() {
+
+            Events["disableQVPMode"].active = autoVacuum; //toggle the gui button for auto mode
+            Events["enableQVPMode"].active = !autoVacuum;
+
+            
             if (ResearchAndDevelopment.Instance != null) {
 				Events ["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 			} else {
@@ -235,7 +257,22 @@ namespace FNPlugin {
         public override void OnFixedUpdate() {
 			base.OnFixedUpdate ();
 
-			List<Part> vessel_parts = vessel.parts;
+            if (autoVacuum) // checking to see if set to automode
+            {
+                if (vessel.altitude > PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) && isupgraded)
+                {
+                    previousfuelmode = fuel_mode; // save the previous fuelmode for reentry into an atmosphere
+                    fuel_mode = 0; // set to vacuum plasma
+                }
+                else if (isupgraded)
+                {
+                    if (previousfuelmode == 0) fuel_mode = 1; // since alt is false, set the fuel mode to a normal fuel, if vacuum mode was the previous mode
+                    else fuel_mode = previousfuelmode; // set to previous fuel mode if it wasn't vacuum plasma
+                }
+                else fuel_mode = 0; // exception to handle the change in index for unupgraded engines
+            }
+
+            List<Part> vessel_parts = vessel.parts;
 			int engines = 0;
 			foreach (Part vessel_part in vessel_parts) {
 				foreach (PartModule vessel_part_module in vessel_part.Modules) {

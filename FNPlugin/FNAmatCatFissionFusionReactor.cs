@@ -106,16 +106,13 @@ namespace FNPlugin {
         }
 
         public override string GetInfo() {
-            antimatter_rate = resourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
-            d_he3_rate = resourceRate * GameConstants.antimatter_initiated_d_he3_cons_constant * 86400;
-            un_rate = resourceRate * GameConstants.antimatter_initiated_uf4_cons_constant * 86400;
-            upgraded_d_he3_rate = upgradedResourceRate * GameConstants.antimatter_initiated_upgraded_d_he3_cons_constant * 86400;
-            upgraded_amat_rate = upgradedResourceRate * GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
+            float antimatter_rate = resourceRate * (float)GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
+            float d_he3_rate = resourceRate * (float)GameConstants.antimatter_initiated_d_he3_cons_constant * 86400;
+            float un_rate = resourceRate * (float)GameConstants.antimatter_initiated_uf4_cons_constant * 86400;
+            float upgraded_d_he3_rate = upgradedResourceRate * (float)GameConstants.antimatter_initiated_upgraded_d_he3_cons_constant * 86400;
+            float upgraded_amat_rate = upgradedResourceRate * (float)GameConstants.antimatter_initiated_antimatter_cons_constant * 86400 * 1000000;
 
-            string basic = String.Format(" \n" + originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\n Total Power: " + ThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + d_he3_rate.ToString("0.00") + "Kg/day\n UN Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + antimatter_rate.ToString("0.00") + "ng/day");
-            string upgrade = String.Format("\n -Upgrade Information - \n" + upgradedName + "\nCore Temperature: " + upgradedReactorTemp.ToString("0") + "K\n Total Power: " + upgradedThermalPower.ToString("0") + "MW\n D/He-3 Max Consumption Rate: " + upgraded_d_he3_rate.ToString("0.00") + "Kg/day\n UF4 Max Consumption Rate: " + un_rate.ToString("0.00000000") + "m^3 /day\n Antimatter Max Consumption Rate:" + upgraded_amat_rate.ToString("0.00") + "ng/day");
-            return basic + upgrade;
-            //return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Tokomak Power Consumption: {6}MW\n D/He-3 Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
+            return String.Format("[Base Part Information]\nPart Name: {0}\nCore Temperature: {1:n0}K\nTotal Power Output: {2:n0}MW\nD/He-3 Consumption Rate (Max): {3}Kg/day\nUN Consumption Rate (Max): {4}m^3 /day\nAntimatter Consumption Rate (Max): {5}ng/day\n\n[Upgrade Information]\nScience Tech Required:\n- Antimatter Power\nPartName: {6}\nCore Temperature: {7:n0}K\nTotal Power Output: {8:n0}MW\nD/He-3 Consumption Rate (Max): {9}Kg/day\nUNConsumption Rate (Max): {10}m^3 /day\nAntimatter Consumption Rate (Max): {11}ng/day", originalName, ReactorTemp, ThermalPower, d_he3_rate, un_rate, antimatter_rate, upgradedName, upgradedReactorTemp, upgradedThermalPower, upgraded_d_he3_rate, un_rate, upgraded_amat_rate);
         }
 
         protected override double consumeReactorResource(double resource) {

@@ -125,10 +125,14 @@ namespace FNPlugin {
         public override string GetInfo() {
             float uf6_rate_per_day = resourceRate * 86400;
             float up_uf6_rate_per_day = upgradedResourceRate * 86400;
-            string info_str = originalName + "\nCore Temperature: " + ReactorTemp.ToString("0") + "K\nTotal Power: " + ThermalPower.ToString("0") + "MW\nUF4 Max Consumption Rate: " + uf6_rate_per_day.ToString("0.00000") + " l/day\n[Upgrade Information]\nUpgraded Core Temperature:" + upgradedReactorTemp.ToString("0") + "K\nUpgraded Power: " + upgradedThermalPower.ToString("0") + "MW\nUpgraded UF4 Consumption: " + up_uf6_rate_per_day.ToString("0.00000") + "l/day";
-            //return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n UF4 Max Consumption Rate: {2}l/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded UF4 Consumption: {5}l/day", ReactorTemp, ThermalPower, uf6_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day);
-            return info_str;
-            
+            float thf4_ReactorTemp = ReactorTemp * 1.17857f;
+            float thf4_ThermalPower = ThermalPower * 1.38f;
+            float thf4_rate_per_day = resourceRate * 86400 * .45f;
+            float up_thf4_ReactorTemp = upgradedReactorTemp * 1.17857f;
+            float up_thf4_ThermalPower = upgradedThermalPower * 1.38f;
+            float up_thf4_rate_per_day = upgradedResourceRate * 86400 * .45f;
+
+            return String.Format("[Base Part Information]\nPart Name: {0}\n\n[UF4 Fuel Mode]\n- Core Temperature: {1:n0}K\n- Total Power Output: {2:n0}MW\n- Consumption Rate (Max):\n- {3}L/day\n\n[ThF4 Fuel Mode]\n- Core Temperature: {4:n0}K\n- Total Power Output: {5:n0}MW\n- Consumption Rate (Max):\n- {6}L/day\n\n[Upgrade Information]\nScience Tech Required:\n- Fusion Power\nPart Name: {7}\n\n[UF4 Fuel Mode]\n- Core Temperature: {8:n0}K\n- Total Power Output: {9:n0}MW\n- Consumption Rate (Max):\n- {10}L/day\n\n[ThF4 Fuel Mode]\n- Core Temperature: {11:n0}K\n- Total Power Output: {12:n0}MW\n- Consumption Rate (Max):\n- {13}L/day", originalName, ReactorTemp, ThermalPower, uf6_rate_per_day, thf4_ReactorTemp, thf4_ThermalPower, thf4_rate_per_day, upgradedName, upgradedReactorTemp, upgradedThermalPower, up_uf6_rate_per_day, up_thf4_ReactorTemp, up_thf4_ThermalPower, up_thf4_rate_per_day);
         }
 
         public override void OnStart(PartModule.StartState state) {

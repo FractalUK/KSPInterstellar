@@ -12,7 +12,7 @@ namespace FNPlugin {
 
         public override string GetInfo() {
             if (!hasTechsRequiredToUpgrade()) {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n -Upgrade Information-\n Upgraded Core Temperature: {3}K\n Upgraded Power: {4}MW\n Upgraded Antimatter Consumption: {5}mg/sec", ReactorTemp, ThermalPower, resourceRate, upgradedReactorTemp, upgradedThermalPower, upgradedResourceRate);
+                return String.Format("[Base Part Information]\nPart Name: {0}\nCore Temperature: {1:n0}K\nTotal Power Output: {2:n0}MW\nAntimatter Consumption Rate (Max):\n{3}mg/sec\n\n[Upgrade Information]\nScience Tech Required:\n- {4}\nPart Name: {5}\nCore Temperature: {6:n0}K\nTotal Power Output: {7:n0}MW\nAntimatter Consumption (Max):\n{8}mg/sec", originalName, ReactorTemp, ThermalPower, resourceRate, upgradeTechReq, upgradedName, upgradedReactorTemp, upgradedThermalPower, upgradedResourceRate);
             } else {
                 return String.Format(upgradedName + "\nThis part is available automatically upgraded\nCore Temperature: {0}K\n Thermal Power: {1}MW\n Antimatter Max Consumption Rate: {2}mg/sec\n", upgradedReactorTemp, upgradedThermalPower, upgradedResourceRate);
             }

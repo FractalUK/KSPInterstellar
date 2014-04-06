@@ -89,7 +89,7 @@ namespace FNPlugin {
         public override string GetInfo() {
             float un_rate_per_day = resourceRate * 86400;
             float up_un_rate_per_day = upgradedResourceRate * 86400;
-            return String.Format(originalName + "\nOptimal Temperature: {0}K\n Max Power: {1}MW\n UraniumNitride Max Consumption Rate: {2} l/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Max Power: {4}MW\n Upgraded UraniumNitride Consumption: {5} l/day", ReactorTemp, ThermalPower, un_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_un_rate_per_day);
+            return String.Format("[Base Part Information]\nPart Name: {0}\nCore Temperature: {1:n0}K\nTotal Power Output: {2:n0}MW\nUranium Nitride Consumption Rate (Max):{3}L/day\n\n[Upgrade Information]\nScience Tech Required:\n- Fusion Power\nPart Name: {4}\nCore Temperature: {5:n0}K\nTotal Power Output: {6:n0}MW\nUranium Nitride Consumption Rate (Max):{7}L/day", originalName, ReactorTemp, ThermalPower, un_rate_per_day, upgradedName, upgradedReactorTemp, upgradedThermalPower, up_un_rate_per_day);
         }
 
         public override void OnFixedUpdate() {

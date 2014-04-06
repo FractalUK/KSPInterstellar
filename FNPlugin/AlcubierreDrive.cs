@@ -10,7 +10,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
 		[KSPField(isPersistant = true)]
-		public bool IsCharging = true;
+		public bool IsCharging = false;
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]

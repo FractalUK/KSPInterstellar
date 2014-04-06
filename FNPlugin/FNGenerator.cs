@@ -378,7 +378,7 @@ namespace FNPlugin {
 		}
 
 		public override string GetInfo() {
-			return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff*100, upgradedpCarnotEff*100);
+            return String.Format("[Base Part Information]\nPart Name: {0}\nCarnot Efficiency: {1}%\n\n[Upgraded Information]\nScience Tech Required:\n- {2}\n\n[{3} Mode]\n- Carnot Efficiency: {4}%\n\n[{5} Mode]\n- Carnot Efficiency: {6}%", originalName, pCarnotEff * 100, upgradeTechReq, upgradedName, upgradedpCarnotEff * 100, altUpgradedName, 85);
 		}
                 
         protected string getPowerFormatString(double power) {

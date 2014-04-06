@@ -86,11 +86,9 @@ namespace FNPlugin {
         public override string GetInfo() {
             float deut_rate_per_day = resourceRate * 86400;
             float up_deut_rate_per_day = upgradedResourceRate * 86400;
-            if (isTokomak) {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Tokomak Power Consumption: {6}MW\n D/T Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
-            } else {
-                return String.Format(originalName + "\nCore Temperature: {0}K\n Total Power: {1}MW\n Laser Power Consumption: {6}MW\n D/T Max Consumption Rate: {2}Kg/day\n -Upgrade Information-\n Upgraded Core Temperate: {3}K\n Upgraded Power: {4}MW\n Upgraded D/T Consumption: {5}Kg/day", ReactorTemp, ThermalPower, deut_rate_per_day, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements);
-            }
+            float up_deut_he3_rate_per_day = upgradedResourceRate * 86400 / 13.25f;
+            float up_he3_rate_per_day = upgradedResourceRate * 86400 / 17;
+            return String.Format("[Base Part Information]\nPart Name: {0}\nCore Temperature: {1:n0}K\nTotal Power Output: {2:n0}MW\nPower Requirement: {8}MW\n\n[Deuterium/Tritium Fuel Mode]\nConsumption Rate (Max):\n- {3}Kg/day\nPower Output Ratio:\n- Thermal Power Output: 80%\n- Charged Particles: 20%\n\n[Upgraded Information]\nScience Tech Required:\n- Antimatter Power\nPart Name: {4}\nCore Temperature: {5:n0}K\nTotal Power Output: {6:n0}MW\nPower Requirement: {8}MW\n\n[Deuterium/Tritium Fuel Mode]\nConsumption Rate (Max):\n- {7}Kg/day\nPower Output Ratio:\n- Thermal Power Output: 80%\n- Charged Particles: 20%\n\n[Deuterium/He-3 Fuel Mode]\nConsumption Rate (Max):\n- {9}Kg/day\nPower Output Ratio:\n- Thermal Power Output: 21%\n- Charged Particles: 79%\n\n[He-3 Fuel Mode]\nConsumption Rate (Max):\n- {10}Kg/day\nPower Output Ratio:\n- Charged Particles: 100%", originalName, ReactorTemp, ThermalPower, deut_rate_per_day, upgradedName, upgradedReactorTemp, upgradedThermalPower, up_deut_rate_per_day, powerRequirements, up_deut_he3_rate_per_day, up_he3_rate_per_day);
         }
 
         public override string getResourceManagerDisplayName() {

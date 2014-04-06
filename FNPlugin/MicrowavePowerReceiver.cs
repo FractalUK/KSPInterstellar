@@ -1,9 +1,12 @@
-﻿using System;
+﻿extern alias ORSv1_1;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using ORSv1_1::OpenResourceSystem;
 
 namespace FNPlugin {
     class MicrowavePowerReceiver : FNResourceSuppliableModule, FNThermalSource {
@@ -28,6 +31,10 @@ namespace FNPlugin {
         public float ThermalPower;
         [KSPField(isPersistant = false)]
         public float radius;
+        double powerInputMegajoules = 0;
+        double maxDemand = 0;
+        double minDemand = 0;
+        double curDemand = 0;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Input Power")]
@@ -273,8 +280,15 @@ namespace FNPlugin {
 
                 connectedsatsi = activeSatsIncr;
                 connectedrelaysi = usedRelays.Count;
+                
+                // dynamicly configured power reception
+                curDemand = getCurrentResourceDemand("Megajoules") + getCurrentResourceDemand("ElectricCharge"); // find the current demand 
+                maxDemand = Math.Max(curDemand, maxDemand); // save the maximum demand
+                
+                //if throttled up, use maximum demand up to the maximum available power, else only recieve the minimum demand
+                if (FlightInputHandler.state.mainThrottle != 0f) powerInputMegajoules = Math.Min(maxDemand, total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency);
+                else powerInputMegajoules = Math.Min(curDemand, total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency);
 
-                double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                 powerInput = powerInputMegajoules * 1000.0f * receiptPower/100.0f;
 
 
