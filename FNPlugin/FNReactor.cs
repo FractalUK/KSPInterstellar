@@ -229,6 +229,7 @@ namespace FNPlugin {
             }
 
             if (startDisabled) {
+                last_active_time = (float) (Planetarium.GetUniversalTime() - 4.0 * 86400.0);
                 IsEnabled = false;
                 startDisabled = false;
             }
