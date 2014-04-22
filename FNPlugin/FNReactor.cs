@@ -486,9 +486,13 @@ namespace FNPlugin {
                 // total power
                 total_power_ratio = total_power / ThermalPower / TimeWarp.fixedDeltaTime;
                 ongoing_consumption_rate = (float)total_power_ratio;
-                double return_ratio = 1 - total_power_ratio;
+                double used_power_ratio = 0;
+                if (power_to_supply > 0) {
+                    used_power_ratio = total_power / power_to_supply;
+                }
+                double return_ratio = 1 - used_power_ratio;
                 double resource_returned = returnReactorResource(resource_provided * return_ratio);
-                powerPcnt = (float)(resource_ratio * 100.0 * total_power_ratio);
+                powerPcnt = (float)(100.0 * total_power_ratio);
                 tritium_rate = (float)(thermal_power_received / TimeWarp.fixedDeltaTime / 1000.0f / GameConstants.tritiumBreedRate)*(1-chargedParticleRatio);
                 if (breedtritium) {
                     double lith_rate = tritium_rate * TimeWarp.fixedDeltaTime;
