@@ -1,14 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarpPlugin", "FNPlugin\WarpPlugin.csproj", "{AD686AF3-DDDC-4991-909F-EAD9C16C469B}"
-EndProject
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D6D5782-3585-4E07-A0C6-6E9915C9E30F}"
 	ProjectSection(SolutionItems) = preProject
 		License.md = License.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterstellarToolbar", "InterstellarToolbar\InterstellarToolbar.csproj", "{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FNPlugin", "FNPlugin\FNPlugin.csproj", "{DA39B46B-6655-437D-8526-9BD9C59D8457}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,14 +16,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA39B46B-6655-437D-8526-9BD9C59D8457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA39B46B-6655-437D-8526-9BD9C59D8457}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA39B46B-6655-437D-8526-9BD9C59D8457}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA39B46B-6655-437D-8526-9BD9C59D8457}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
