@@ -19,7 +19,10 @@ namespace FNPlugin {
 			base.OnStart (state);
 
 			if (state == StartState.Editor) { return; }
-			this.part.force_activate();
+			
+            if (!this.part.Modules.Contains("ModuleDecouple"))
+                this.part.force_activate();
+
             isEnabled = true;
 			solarPanel = (ModuleDeployableSolarPanel)this.part.Modules["ModuleDeployableSolarPanel"];
 		}
