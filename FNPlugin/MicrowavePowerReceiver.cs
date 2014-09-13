@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-    class MicrowavePowerReceiver : FNResourceSuppliableModule, FNThermalSource {
+    class MicrowavePowerReceiver : FNResourceSuppliableModule, IThermalSource {
         //Persistent True
         [KSPField(isPersistant = true)]
         public bool receiverIsEnabled;

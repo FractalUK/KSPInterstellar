@@ -94,6 +94,21 @@ namespace FNPlugin {
 			}
 		}
 
+        public static bool upgradeAvailable(string techid) {
+            if (HighLogic.CurrentGame != null) {
+                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
+                    if (techid != null) {
+                        if (PluginHelper.hasTech(techid)) {
+                            return true;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 		public static float getKerbalRadiationDose(int kerbalidx) {
 			try{
 				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
@@ -260,6 +275,26 @@ namespace FNPlugin {
                 multiplier = 0f;
             }
             return multiplier;
+        }
+
+        public static string getFormattedPowerString(double power) {
+            if (power > 1000) {
+                if (power > 20000) {
+                    return (power / 1000).ToString("0") + " GW";
+                } else {
+                    return (power / 1000).ToString("0.0") + " GW";
+                }
+            } else {
+                if (power > 20) {
+                    return power.ToString("0") + " MW";
+                } else {
+                    if (power > 1) {
+                        return power.ToString("0.0") + " MW";
+                    } else {
+                        return (power * 1000).ToString("0.0") + " KW";
+                    }
+                }
+            }
         }
 
         public void Start() {

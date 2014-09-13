@@ -180,7 +180,7 @@ namespace FNPlugin {
             if (IsEnabled && !relay) {
                 foreach (FNGenerator generator in generators) {
                     if (generator.isActive()) {
-                        FNThermalSource thermal_source = generator.getThermalSource();
+                        IThermalSource thermal_source = generator.getThermalSource();
                         if (thermal_source != null && !thermal_source.isVolatileSource()) {
                             double output = generator.getMaxPowerOutput();
                             if (thermal_source is FNFusionReactor) {

@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_1;
+﻿extern alias ORSv1_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_1::OpenResourceSystem;
+using ORSv1_2::OpenResourceSystem;
 
 namespace FNPlugin {
     class ScienceModule : FNResourceSuppliableModule {
@@ -191,10 +191,9 @@ namespace FNPlugin {
                     double now = Planetarium.GetUniversalTime();
                     double time_diff = now - last_active_time;
 
-                    List<PartResource> partresources = new List<PartResource>();
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Antimatter").id, partresources);
+                    List<PartResource> antimatter_resources = part.GetConnectedResources("Antimatter").ToList();
                     float currentAntimatter_missing = 0;
-                    foreach (PartResource partresource in partresources) {
+                    foreach (PartResource partresource in antimatter_resources) {
                         currentAntimatter_missing += (float)(partresource.maxAmount - partresource.amount);
                     }
 

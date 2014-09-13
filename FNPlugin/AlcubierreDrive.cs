@@ -1,4 +1,7 @@
-﻿using System;
+﻿extern alias ORSv1_2;
+using ORSv1_2::OpenResourceSystem;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -105,9 +108,8 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("Cannot activate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-            
-            var resources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ExoticMatter").id, resources);
+
+            List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
             float electrical_current_available = 0;
             for (int i = 0; i < resources.Count; ++i) {
                 electrical_current_available += (float)resources.ElementAt(i).amount;
@@ -452,8 +454,7 @@ namespace FNPlugin
 
 			float currentExoticMatter = 0;
 			float maxExoticMatter = 0;
-			List<PartResource> partresources = new List<PartResource>();
-			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ExoticMatter").id, partresources);
+            List<PartResource> partresources = part.GetConnectedResources("ExoticMatter").ToList();
 			foreach (PartResource partresource in partresources) {
 				currentExoticMatter += (float)partresource.amount;
 				maxExoticMatter += (float)partresource.maxAmount;
@@ -469,8 +470,7 @@ namespace FNPlugin
 
             if (!IsEnabled) {
                 //ChargeStatus = "";
-                var resources = new List<PartResource>();
-                part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ExoticMatter").id, resources);
+                List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
                 float electrical_current_available = 0;
                 for (int i = 0; i < resources.Count; ++i) {
                     electrical_current_available += (float)resources.ElementAt(i).amount;

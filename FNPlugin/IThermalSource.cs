@@ -1,7 +1,7 @@
 using System;
 
 namespace FNPlugin{
-	public interface FNThermalSource{
+	public interface IThermalSource{
 
 		float getCoreTemp();
 

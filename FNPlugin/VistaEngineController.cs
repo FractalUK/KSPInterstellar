@@ -39,8 +39,10 @@ namespace FNPlugin
 			ModuleEngines curEngineT = (ModuleEngines)this.part.Modules ["ModuleEngines"];
 			minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
-			standard_deut_rate = curEngineT.propellants [1].ratio;
-			standard_lith_rate = curEngineT.propellants [2].ratio;
+            standard_deut_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "DEUTERIUM").ratio;
+            standard_lith_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "TRITIUM").ratio;
+			//standard_deut_rate = curEngineT.propellants [1].ratio;
+			//standard_lith_rate = curEngineT.propellants [2].ratio;
 
 		}
 
@@ -134,8 +136,10 @@ namespace FNPlugin
 
 			if (throttle > 0) {
                 double power = consumeFNResource(2500.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                curEngineT.propellants[1].ratio = (float)(standard_deut_rate / throttle / throttle);
-                curEngineT.propellants[2].ratio = (float)(standard_lith_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "DEUTERIUM").ratio = (float)(standard_deut_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "TRITIUM").ratio = (float)(standard_lith_rate / throttle / throttle);
+                //curEngineT.propellants[1].ratio = (float)(standard_deut_rate / throttle / throttle);
+                //curEngineT.propellants[2].ratio = (float)(standard_lith_rate / throttle / throttle);
                 FloatCurve newISP = new FloatCurve();
                 newISP.Add(0, (float)(minISP / throttle));
                 curEngineT.atmosphereCurve = newISP;

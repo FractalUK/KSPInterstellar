@@ -1,3 +1,6 @@
+extern alias ORSv1_2;
+using ORSv1_2::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +14,13 @@ namespace FNPlugin {
 		public string heatProductionStr = ":";
 
         protected ModuleDeployableSolarPanel solarPanel;
+        private bool active = false;
 
 		public override void OnStart(PartModule.StartState state) {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT};
+			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_MEGAJOULES};
 			this.resources_to_supply = resources_to_supply;
-
 			base.OnStart (state);
-
 			if (state == StartState.Editor) { return; }
-			this.part.force_activate();
-            isEnabled = true;
 			solarPanel = (ModuleDeployableSolarPanel)this.part.Modules["ModuleDeployableSolarPanel"];
 		}
 
@@ -28,8 +28,16 @@ namespace FNPlugin {
 			heatProductionStr = wasteheat_production_f.ToString ("0.00") + " KW";
 		}
 
-		public override void OnFixedUpdate() {
-			base.OnFixedUpdate ();
+        public override void OnFixedUpdate() {
+            active = true;
+            base.OnFixedUpdate();
+        }
+
+		public void FixedUpdate() {
+            if (!active) {
+                base.OnFixedUpdate();
+            }
+
 			if (solarPanel != null) {
 				float solar_rate = solarPanel.flowRate*TimeWarp.fixedDeltaTime;
 				float heat_rate = solar_rate * 0.5f/1000.0f;
@@ -47,10 +55,13 @@ namespace FNPlugin {
 					return;
 				}
 
+                List<PartResource> prl = part.GetConnectedResources("ElectricCharge").ToList();
+                double current_charge = prl.Sum(pr => pr.amount);
+                double max_charge = prl.Sum(pr => pr.maxAmount);
+
+                supplyFNResourceFixedMax(current_charge >= max_charge ? solar_rate / 1000.0f : 0, solar_rate / 1000.0f, FNResourceManager.FNRESOURCE_MEGAJOULES);
 				wasteheat_production_f = supplyFNResource(heat_rate,FNResourceManager.FNRESOURCE_WASTEHEAT)/TimeWarp.fixedDeltaTime*1000.0f;
 			}
-
-
 		}
 	}
 }

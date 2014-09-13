@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_1;
+﻿extern alias ORSv1_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_1::OpenResourceSystem;
+using ORSv1_2::OpenResourceSystem;
 
 namespace FNPlugin {
     class ModuleElementRadioactiveDecay : PartModule {
@@ -31,7 +31,6 @@ namespace FNPlugin {
                 return;
             }
             decay_resource = part.Resources[resourceName];
-            part.force_activate();   
             double time_diff = lastActiveTime - Planetarium.GetUniversalTime();
             if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
                 density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
@@ -46,7 +45,7 @@ namespace FNPlugin {
             }
         }
 
-        public override void OnFixedUpdate() {
+        public void FixedUpdate() {
             double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
             decay_resource.amount -= decay_amount;
             if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {

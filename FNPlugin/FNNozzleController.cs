@@ -1,3 +1,6 @@
+extern alias ORSv1_2;
+using ORSv1_2::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +60,7 @@ namespace FNPlugin{
 		protected bool hasrequiredupgrade = false;
 		protected bool hasstarted = false;
 		protected ModuleEngines myAttachedEngine;
-		protected FNThermalSource myAttachedReactor;
+		protected IThermalSource myAttachedReactor;
 		protected bool currentpropellant_is_jet = false;
 		protected double fuel_flow_rate = 0;
 		protected int thrustLimitRatio = 0;
@@ -114,7 +117,7 @@ namespace FNPlugin{
         public void OnEditorAttach() {
             foreach (AttachNode attach_node in part.attachNodes) {
                 if (attach_node.attachedPart != null) {
-                    List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource>();
+                    List<IThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<IThermalSource>();
                     if (sources.Count > 0) {
                         myAttachedReactor = sources.First();
                         if (myAttachedReactor != null) {
@@ -132,7 +135,7 @@ namespace FNPlugin{
             // find attached thermal source
             foreach (AttachNode attach_node in part.attachNodes) {
                 if (attach_node.attachedPart != null) {
-                    List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource>();
+                    List<IThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<IThermalSource>();
                     if (sources.Count > 0) {
                         myAttachedReactor = sources.First();
                         if (myAttachedReactor != null) {
@@ -201,9 +204,8 @@ namespace FNPlugin{
 			float currentpropellant = 0;
 			float maxpropellant = 0;
 
-			List<PartResource> partresources = new List<PartResource>();
-			part.GetConnectedResources(myAttachedEngine.propellants[0].id, partresources);
-
+            List<PartResource> partresources = part.GetConnectedResources(myAttachedEngine.propellants.FirstOrDefault().name).ToList();
+			
 			foreach (PartResource partresource in partresources) {
 				currentpropellant += (float) partresource.amount;
 				maxpropellant += (float)partresource.maxAmount;
@@ -279,8 +281,7 @@ namespace FNPlugin{
                 List<Propellant> curEngine_propellants_list = new List<Propellant>();
                 curEngine_propellants_list = myAttachedEngine.propellants;
                 foreach (Propellant curEngine_propellant in curEngine_propellants_list) {
-                    List<PartResource> partresources = new List<PartResource>();
-                    part.GetConnectedResources(curEngine_propellant.id, partresources);
+                    List<PartResource> partresources = part.GetConnectedResources(curEngine_propellant.name).ToList();
 
                     if (partresources.Count == 0 || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name)) {
                         next_propellant = true;
@@ -561,8 +562,7 @@ namespace FNPlugin{
 					nozzle.static_updating = false;
 				}
 
-				List<PartResource> partresources = new List<PartResource> ();
-				vess.rootPart.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition (resourcename).id, partresources);
+				List<PartResource> partresources = vess.rootPart.GetConnectedResources (resourcename).ToList();
 				double currentintakeatm = 0;
 				foreach (PartResource partresource in partresources) {
 					currentintakeatm += partresource.amount;

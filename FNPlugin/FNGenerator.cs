@@ -61,7 +61,7 @@ namespace FNPlugin {
 		protected float sectracker = 0;
 		protected bool play_down = true;
 		protected bool play_up = true;
-		protected FNThermalSource myAttachedReactor;
+		protected IThermalSource myAttachedReactor;
 		protected bool hasrequiredupgrade = false;
 		protected long last_draw_update = 0;
 		protected int shutdown_counter = 0;
@@ -127,7 +127,7 @@ namespace FNPlugin {
         public void OnEditorAttach() {
             foreach (AttachNode attach_node in part.attachNodes) {
                 if (attach_node.attachedPart != null) {
-                    List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource>();
+                    List<IThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<IThermalSource>();
                     if (sources.Count > 0) {
                         myAttachedReactor = sources.First();
                         if (myAttachedReactor != null) {
@@ -198,7 +198,7 @@ namespace FNPlugin {
 
 			foreach (AttachNode attach_node in part.attachNodes) {
 				if(attach_node.attachedPart != null) {
-					List<FNThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<FNThermalSource> ();
+					List<IThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<IThermalSource> ();
 					if (sources.Count > 0) {
 						myAttachedReactor = sources.First ();
 						if (myAttachedReactor != null) {
@@ -286,7 +286,7 @@ namespace FNPlugin {
             return IsEnabled;
         }
 
-        public FNThermalSource getThermalSource() {
+        public IThermalSource getThermalSource() {
             return myAttachedReactor;
         }
 

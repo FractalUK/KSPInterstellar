@@ -106,8 +106,7 @@ namespace OpenResourceSystem {
 		}
 
 		public double getSpareResourceCapacity() {
-			partresources = new List<PartResource>();
-			my_part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resource_name).id, partresources);
+			partresources = my_part.GetConnectedResources(resource_name).ToList();
 			double spare_capacity = 0;
 			foreach (PartResource partresource in partresources) {
 				spare_capacity += partresource.maxAmount - partresource.amount;
@@ -179,8 +178,7 @@ namespace OpenResourceSystem {
 			//Debug.Log ("Early:" + powersupply);
 
             //stored power
-            List<PartResource> partresources = new List<PartResource>();
-            my_part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resource_name).id, partresources);
+            List<PartResource> partresources = my_part.GetConnectedResources(resource_name).ToList();
             double currentmegajoules = 0;
 			double maxmegajoules = 0;
             foreach (PartResource partresource in partresources) {
@@ -211,14 +209,12 @@ namespace OpenResourceSystem {
 				demand_supply_ratio = 1.0;
 			}
 
-			//Debug.Log ("Late:" + powersupply);
 
 			//Prioritise supplying stock ElectricCharge resource
 			if (String.Equals(this.resource_name,ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
-				List<PartResource> partresources2 = new List<PartResource> ();
-				my_part.GetConnectedResources (PartResourceLibrary.Instance.GetDefinition ("ElectricCharge").id, partresources2); 
+				List<PartResource> electric_charge_resources = my_part.GetConnectedResources ("ElectricCharge").ToList(); 
 				double stock_electric_charge_needed = 0;
-				foreach (PartResource partresource in partresources2) {
+				foreach (PartResource partresource in electric_charge_resources) {
 					stock_electric_charge_needed += partresource.maxAmount - partresource.amount;
 				}
 				double power_supplied = Math.Min(powersupply*1000*TimeWarp.fixedDeltaTime, stock_electric_charge_needed);

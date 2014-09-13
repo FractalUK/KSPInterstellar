@@ -1,4 +1,7 @@
-﻿using System;
+﻿extern alias ORSv1_2;
+using ORSv1_2::OpenResourceSystem;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -205,8 +208,7 @@ namespace FNPlugin {
             float currentpropellant = 0;
             float maxpropellant = 0;
 
-			List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(curEngineT.propellants[0].id, partresources);
+			List<PartResource> partresources = part.GetConnectedResources(curEngineT.propellants.FirstOrDefault().name).ToList();
 
             foreach (PartResource partresource in partresources) {
                 currentpropellant += (float)partresource.amount;
@@ -323,8 +325,7 @@ namespace FNPlugin {
             if (isupgraded) {
 				float vacuum_plasma_needed = 0;
 				float vacuum_plasma_current = 0;
-				List<PartResource> vacuum_resources = new List<PartResource>();
-				part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("VacuumPlasma").id, vacuum_resources);
+				List<PartResource> vacuum_resources = part.GetConnectedResources("VacuumPlasma").ToList();
 
 				foreach (PartResource partresource in vacuum_resources) {
 					vacuum_plasma_needed += (float)(partresource.maxAmount-partresource.amount);
@@ -368,7 +369,7 @@ namespace FNPlugin {
                 }
                 list_of_propellants.Add(curprop);
             }
-
+            
             total_power_output = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);  
 
 			final_thrust_store = thrust_efficiency*2000.0f*total_power_output / (initialIsp * ispMultiplier * 9.81f);
@@ -387,10 +388,8 @@ namespace FNPlugin {
                 curEngine.SetupPropellant();
             }
 
-            List<PartResource> partresources = new List<PartResource>();
-            part.GetConnectedResources(curEngine.propellants[0].id, partresources);
+            List<PartResource> partresources = part.GetConnectedResources(curEngine.propellants.FirstOrDefault().name).ToList();
 
-            //if(!isupgraded) {
             if (partresources.Count == 0 && fuel_mode != 0) {
                 if (isThrusterElectrothermal && !electrothermal_prop) {
                     TogglePropellant();
@@ -398,11 +397,6 @@ namespace FNPlugin {
                     TogglePropellant();
                 }
             }
-            //}else{
-            //    if(!propellant_is_upgrade) {
-                    //TogglePropellant();
-           //     }
-            //}
             
         }
 

@@ -1,4 +1,7 @@
-﻿using System;
+﻿extern alias ORSv1_2;
+using ORSv1_2::OpenResourceSystem;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -142,8 +145,7 @@ namespace FNPlugin {
                 }
             }
 
-            List<PartResource> prl = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("LqdHelium").id, prl);
+            List<PartResource> prl = part.GetConnectedResources("LqdHelium").ToList();
             double max_helium = 0;
             double cur_helium = 0;
             double helium_fraction = 0;

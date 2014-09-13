@@ -1,4 +1,7 @@
-﻿using System;
+﻿extern alias ORSv1_2;
+using ORSv1_2::OpenResourceSystem;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,7 +40,7 @@ namespace FNPlugin {
         [KSPEvent(guiName = "Refuel UF4", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void RefuelUranium() {
             List<PartResource> uf6_resources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF4").id, uf6_resources);
+            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF4").id, PartResourceLibrary.Instance.GetDefinition("UF4").resourceFlowMode, uf6_resources);
             double spare_capacity_for_uf6 = uf4.maxAmount - actinides.amount;
             foreach (PartResource uf6_resource in uf6_resources) {
                 if (uf6_resource.part.FindModulesImplementing<FNNuclearReactor>().Count == 0) {
@@ -53,7 +56,7 @@ namespace FNPlugin {
         [KSPEvent(guiName = "Refuel ThF4", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void RefuelThorium() {
             List<PartResource> th4_resources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThF4").id, th4_resources);
+            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThF4").id, PartResourceLibrary.Instance.GetDefinition("ThF4").resourceFlowMode, th4_resources);
             double spare_capacity_for_thf4 = thf4.maxAmount - actinides.amount;
             foreach (PartResource thf4_resource in th4_resources) {
                 if (thf4_resource.part.FindModulesImplementing<FNNuclearReactor>().Count == 0) {
@@ -189,30 +192,36 @@ namespace FNPlugin {
         }
 
         protected override double consumeReactorResource(double resource) {
-            double fuel_to_actinides_ratio = fuel_resource.amount / (actinides.amount + fuel_resource.amount) * fuel_resource.amount / (actinides.amount + fuel_resource.amount);
-            if (!uranium_fuel) {
-                if (!double.IsInfinity(fuel_to_actinides_ratio) && !double.IsNaN(fuel_to_actinides_ratio)) {
-                    resource = resource * Math.Min(Math.Exp(-GameConstants.thorium_actinides_ratio_factor / fuel_to_actinides_ratio + 1), 1);
+            if (!double.IsInfinity(resource) && !double.IsInfinity(resource)) {
+                double fuel_to_actinides_ratio = fuel_resource.amount / (actinides.amount + fuel_resource.amount) * fuel_resource.amount / (actinides.amount + fuel_resource.amount);
+                if (!uranium_fuel) {
+                    if (!double.IsInfinity(fuel_to_actinides_ratio) && !double.IsNaN(fuel_to_actinides_ratio)) {
+                        resource = resource * Math.Min(Math.Exp(-GameConstants.thorium_actinides_ratio_factor / fuel_to_actinides_ratio + 1), 1);
+                    }
                 }
+                double actinides_max_amount = actinides.maxAmount;
+                resource = Math.Min(fuel_resource.amount, resource);
+                fuel_resource.amount -= resource;
+                actinides.amount += resource;
+                if (actinides.amount > actinides_max_amount) {
+                    actinides.amount = actinides_max_amount;
+                }
+                return resource;
             }
-            double actinides_max_amount = actinides.maxAmount;
-            resource = Math.Min(fuel_resource.amount, resource);
-            fuel_resource.amount -= resource;
-            actinides.amount += resource;
-            if (actinides.amount > actinides_max_amount) {
-                actinides.amount = actinides_max_amount;
-            }
-            return resource;
+            return 0;
         }
 
         protected override double returnReactorResource(double resource) {
-            fuel_resource.amount += resource;
-            double actinides_current_amount = actinides.amount;
-            if (fuel_resource.amount > fuel_resource.maxAmount) {
-                fuel_resource.amount = fuel_resource.maxAmount;
+            if (!double.IsInfinity(resource) && !double.IsInfinity(resource)) {
+                fuel_resource.amount += resource;
+                double actinides_current_amount = actinides.amount;
+                if (fuel_resource.amount > fuel_resource.maxAmount) {
+                    fuel_resource.amount = fuel_resource.maxAmount;
+                }
+                actinides.amount -= Math.Min(resource, actinides_current_amount);
+                return resource;
             }
-            actinides.amount -= Math.Min(resource, actinides_current_amount);
-            return resource;
+            return 0;
         }
         
         protected override string getResourceDeprivedMessage() {
@@ -240,8 +249,7 @@ namespace FNPlugin {
         }
 
         protected void defuelThorium() {
-            List<PartResource> swap_resource_list = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("ThF4").id, swap_resource_list);
+            List<PartResource> swap_resource_list = part.GetConnectedResources("ThF4").ToList();
             foreach (PartResource thf4_resource in swap_resource_list) {
                 if (thf4_resource.part.FindModulesImplementing<FNNuclearReactor>().Count == 0) {
                     double spare_capacity_for_thf4 = thf4_resource.maxAmount - thf4_resource.amount;
@@ -253,8 +261,7 @@ namespace FNPlugin {
         }
 
         protected void defuelUranium() {
-            List<PartResource> swap_resource_list = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("UF4").id, swap_resource_list);
+            List<PartResource> swap_resource_list = part.GetConnectedResources("UF4").ToList();
             foreach (PartResource uf6_resource in swap_resource_list) {
                 if (uf6_resource.part.FindModulesImplementing<FNNuclearReactor>().Count == 0) {
                     double spare_capacity_for_uf6 = uf6_resource.maxAmount - uf6_resource.amount;

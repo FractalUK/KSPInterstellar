@@ -1,14 +1,14 @@
-﻿extern alias ORSv1_1;
+﻿extern alias ORSv1_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_1::OpenResourceSystem;
+using ORSv1_2::OpenResourceSystem;
 
 namespace FNPlugin {
-    class FNReactor : FNResourceSuppliableModule, FNThermalSource, FNUpgradeableModule {
+    class FNReactor : FNResourceSuppliableModule, IThermalSource, FNUpgradeableModule {
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
@@ -255,15 +255,13 @@ namespace FNPlugin {
                 double resource_to_take = consumeReactorResource(resourceRate*time_diff*ongoing_consumption_rate);
                 if (breedtritium) {
                     tritium_rate = (float)(ThermalPower / 1000.0f / GameConstants.tritiumBreedRate);
-                    List<PartResource> lithium_resources = new List<PartResource>();
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Lithium").id, lithium_resources);
+                    List<PartResource> lithium_resources = part.GetConnectedResources("Lithium").ToList();
                     double lithium_current_amount = 0;
                     foreach (PartResource lithium_resource in lithium_resources) {
                         lithium_current_amount += lithium_resource.amount;
                     }
 
-                    List<PartResource> tritium_resources = new List<PartResource>();
-                    part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Tritium").id, tritium_resources);
+                    List<PartResource> tritium_resources = part.GetConnectedResources("Tritium").ToList();
                     double tritium_missing_amount = 0;
                     foreach (PartResource tritium_resource in tritium_resources) {
                         tritium_missing_amount += tritium_resource.maxAmount - tritium_resource.amount;
@@ -486,9 +484,9 @@ namespace FNPlugin {
                 // total power
                 total_power_ratio = total_power / ThermalPower / TimeWarp.fixedDeltaTime;
                 ongoing_consumption_rate = (float)total_power_ratio;
-                double return_ratio = 1 - total_power_ratio;
+                double return_ratio = power_to_supply > 0 ? 1 - total_power/power_to_supply : 0;
                 double resource_returned = returnReactorResource(resource_provided * return_ratio);
-                powerPcnt = (float)(resource_ratio * 100.0 * total_power_ratio);
+                powerPcnt = (float)(100.0 * total_power_ratio);
                 tritium_rate = (float)(thermal_power_received / TimeWarp.fixedDeltaTime / 1000.0f / GameConstants.tritiumBreedRate)*(1-chargedParticleRatio);
                 if (breedtritium) {
                     double lith_rate = tritium_rate * TimeWarp.fixedDeltaTime;

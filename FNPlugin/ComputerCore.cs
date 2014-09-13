@@ -131,13 +131,6 @@ namespace FNPlugin {
 			Fields["nameStr"].guiActive = isupgraded;
 			Fields["scienceRate"].guiActive = isupgraded;
 
-			List<PartResource> partresources = new List<PartResource>();
-			part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition("Science").id, partresources);
-			float currentscience = 0;
-			foreach (PartResource partresource in partresources) {
-				currentscience += (float)partresource.amount;
-			}
-
 			float scienceratetmp = science_rate_f * 86400 ;
 			scienceRate = scienceratetmp.ToString("0.000") + "/Day";
 

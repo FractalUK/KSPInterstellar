@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin  {
-	class FNThermalHeatExchanger : FNResourceSuppliableModule, FNThermalSource {
+	class FNThermalHeatExchanger : FNResourceSuppliableModule, IThermalSource {
         //Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
