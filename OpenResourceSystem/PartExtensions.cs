@@ -17,5 +17,9 @@ namespace OpenResourceSystem {
             return GetConnectedResources(part, definition);
         }
 
+        public static double ImprovedRequestResource(this Part part, String resourcename, double resource_amount) {
+            return ORSHelper.fixedRequestResource(part, resourcename, resource_amount);
+        }
+
     }
 }
