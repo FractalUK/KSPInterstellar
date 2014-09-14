@@ -20,7 +20,23 @@ namespace FNPlugin  {
 		public string thermalpower;
 
         // internal
-		protected float ThermalPower;
+		protected float _thermalpower;
+
+        //properties
+
+        public float CoreTemperature { get { return 1500; } }
+
+        public float MaximumThermalPower { get { return _thermalpower; } }
+
+        public float MinimumThermalPower { get { return 0; } }
+
+        public float ChargedPower { get { return 0; } }
+
+        public bool IsVolatileSource { get { return false; } }
+
+        public bool IsActive { get { return IsEnabled; } }
+
+        public bool IsNuclear { get { return false; } }
 
 		[KSPEvent(guiActive = true, guiName = "Activate Heat Exchanger", active = false)]
 		public void ActivateHeatExchanger() {
@@ -51,7 +67,7 @@ namespace FNPlugin  {
 
 		public void setupThermalPower(){
 			activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
-            ThermalPower = getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
+            _thermalpower = getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
 		}
 
 		public override void OnStart(PartModule.StartState state) {
@@ -74,7 +90,7 @@ namespace FNPlugin  {
 			Events["ActivateHeatExchanger"].active = !IsEnabled;
 			Events["DeactivateHeatExchanger"].active = IsEnabled;
 
-            thermalpower = ThermalPower.ToString() + "MW";
+            thermalpower = _thermalpower.ToString() + "MW";
 		}
 
 		public override void OnFixedUpdate() {
@@ -86,16 +102,16 @@ namespace FNPlugin  {
             return 1500;
 		}
 
-        public float getCoreTempAtRadiatorTemp(float rad_temp) {
+        public float GetCoreTempAtRadiatorTemp(float rad_temp) {
             return 1500;
         }
 
-        public float getThermalPowerAtTemp(float temp) {
-            return ThermalPower;
+        public float GetThermalPowerAtTemp(float temp) {
+            return _thermalpower;
         }
 
 		public float getThermalPower() {
-			return ThermalPower;
+			return _thermalpower;
 		}
 
         public float getChargedPower() {

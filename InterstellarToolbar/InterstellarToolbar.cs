@@ -1,4 +1,4 @@
-﻿extern alias ORSv1_2;
+﻿extern alias ORSv1_3;
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Text;
 using Toolbar;
 using UnityEngine;
 using FNPlugin;
-using ORSv1_2::OpenResourceSystem;
+using ORSv1_3::OpenResourceSystem;
 
 namespace InterstellarToolbar {
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]

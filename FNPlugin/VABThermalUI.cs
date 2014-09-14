@@ -56,12 +56,12 @@ namespace FNPlugin {
             source_temp_at_100pc = double.MaxValue;
             source_temp_at_30pc = double.MaxValue;
             foreach (IThermalSource tsource in thermal_sources) {
-                float r_temp_100 = tsource.getCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_100pcnt);
-                float r_temp_30 = tsource.getCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_30pcnt);
-                total_source_power += tsource.getThermalPowerAtTemp(r_temp_100);
+                float r_temp_100 = tsource.GetCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_100pcnt);
+                float r_temp_30 = tsource.GetCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_30pcnt);
+                total_source_power += tsource.GetThermalPowerAtTemp(r_temp_100);
                 source_temp_at_100pc = Math.Min(r_temp_100, source_temp_at_100pc);
                 source_temp_at_30pc = Math.Min(r_temp_30, source_temp_at_30pc);
-                min_source_power += tsource.getThermalPowerAtTemp(r_temp_30) * 0.3 ;
+                min_source_power += tsource.GetThermalPowerAtTemp(r_temp_30) * 0.3 ;
             }
 
             foreach (ModuleDeployableSolarPanel panel in panels) {

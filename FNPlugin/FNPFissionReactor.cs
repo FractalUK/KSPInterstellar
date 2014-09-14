@@ -48,7 +48,7 @@ namespace FNPlugin {
             return getThermalPower() * minimumThrottle;
         }
 
-        public override float getCoreTempAtRadiatorTemp(float rad_temp) {
+        public override float GetCoreTempAtRadiatorTemp(float rad_temp) {
             float pfr_temp = 0;
             if (!isupgraded) {
                 if (!double.IsNaN(rad_temp) && !double.IsInfinity(rad_temp)) {
@@ -62,7 +62,7 @@ namespace FNPlugin {
             return pfr_temp;
         }
 
-        public override float getThermalPowerAtTemp(float temp) {
+        public override float GetThermalPowerAtTemp(float temp) {
             float rel_temp_diff = 0;
             if (temp > optimalPebbleTemp && temp < tempZeroPower && !isupgraded) {
                 rel_temp_diff = (float)Math.Pow((tempZeroPower - temp) / (tempZeroPower - optimalPebbleTemp), 0.81);

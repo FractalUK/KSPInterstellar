@@ -1,5 +1,5 @@
-extern alias ORSv1_2;
-using ORSv1_2::OpenResourceSystem;
+extern alias ORSv1_3;
+using ORSv1_3::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -305,7 +305,7 @@ namespace FNPlugin{
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
-			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.getCoreTemp ()) * isp_temp_rat * ispMultiplier);
+			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispMultiplier);
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);
@@ -334,7 +334,7 @@ namespace FNPlugin{
 
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
-			assThermalPower = myAttachedReactor.getThermalPower();
+			assThermalPower = myAttachedReactor.MaximumThermalPower;
             if (myAttachedReactor is FNFusionReactor) {
                 assThermalPower = assThermalPower * 0.95f;
             }
@@ -379,11 +379,11 @@ namespace FNPlugin{
                         attached_reactor_upgraded = true;
                     }
                 }
-                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.getCoreTemp()) * isp_temp_rat * ispMultiplier);
+                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispMultiplier);
                 minISP = maxISP * 0.4f;
                 atmospherecurve.Add(0, maxISP, 0, 0);
                 atmospherecurve.Add(1, minISP, 0, 0);
-                thrust = (float)(2 * myAttachedReactor.getThermalPower() * 1000 / g0 / maxISP);
+                thrust = (float)(2 * myAttachedReactor.MaximumThermalPower * 1000 / g0 / maxISP);
                 myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             } else {
@@ -395,7 +395,7 @@ namespace FNPlugin{
 
 		public override void OnFixedUpdate() {
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null) {
-				if (!myAttachedReactor.isActive()) {
+				if (!myAttachedReactor.IsActive) {
 					myAttachedReactor.enableIfPossible();
 				}
 				updateIspEngineParams ();

@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-    [KSPModule("Fusion Reactor")]
+    [KSPModule("IC Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarReactor {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
@@ -17,15 +17,20 @@ namespace FNPlugin {
         public string laserPower;
 
         protected double power_consumed;
-        protected float initial_laser_consumption;
-        protected float initial_resource_rate;
-        protected float initial_thermal_power;
         protected bool power_deprived = false;
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
         protected float plasma_ratio = 1.0f;
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
+
+        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+
+        public override float MaximumThermalPower { get { return base.MaximumThermalPower * Mathf.Pow(plasma_ratio, 4.0f); } }
+
+        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
+
+        public float LaserPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }
 
         [KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
         public void SwapFuelMode() {
@@ -36,13 +41,6 @@ namespace FNPlugin {
             current_fuel_mode = fuel_modes[fuel_mode];
         }
         
-        public override bool isNeutronRich() {
-            if (fuel_mode == 2) {
-                return false;
-            }
-            return true;
-        }
-
         public override bool shouldScaleDownJetISP() {
             return true;
         }
@@ -62,23 +60,15 @@ namespace FNPlugin {
         public override void OnFixedUpdate() {
             base.OnFixedUpdate();
             if (IsEnabled) {
-                power_consumed = consumeFNResource(powerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                if (power_consumed < powerRequirements) power_consumed += part.RequestResource("ElectricCharge", (powerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
-                plasma_ratio = (float)(power_consumed / powerRequirements);
+                power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                if (power_consumed < LaserPowerRequirements) power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
+                plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
                 //plasma_ratio = 1.0f;
             }
         }
 
-        public override float getThermalPower() {
-            return base.getThermalPower()*Mathf.Pow(plasma_ratio,4.0f);
-        }
-
         public override string getResourceManagerDisplayName() {
             return TypeName;
-        }
-
-        public override float getMinimumThermalPower() {
-            return getThermalPower() * minimumThrottle;
         }
 
         public override int getPowerPriority() {

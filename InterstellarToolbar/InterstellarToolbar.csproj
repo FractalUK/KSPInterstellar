@@ -35,9 +35,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Games\Kerbal Space Program 0.23\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="OpenResourceSystem_1_1_0">
-      <HintPath>C:\Games\Kerbal Space Program 0.23\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_1_0.dll</HintPath>
-      <Aliases>ORSv1_1</Aliases>
+    <Reference Include="Interstellar">
+      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\WarpPlugin\Plugins\Interstellar.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenResourceSystem_1_3_0">
+      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_3_0.dll</HintPath>
+      <Aliases>ORSv1_3</Aliases>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -52,9 +55,6 @@
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Games\Kerbal Space Program 0.23\KSP_Data\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="WarpPlugin">
-      <HintPath>C:\Games\Kerbal Space Program 0.23\GameData\WarpPlugin\Plugins\WarpPlugin.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

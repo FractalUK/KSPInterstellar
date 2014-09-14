@@ -181,7 +181,7 @@ namespace FNPlugin {
                 foreach (FNGenerator generator in generators) {
                     if (generator.isActive()) {
                         IThermalSource thermal_source = generator.getThermalSource();
-                        if (thermal_source != null && !thermal_source.isVolatileSource()) {
+                        if (thermal_source != null && !thermal_source.IsVolatileSource) {
                             double output = generator.getMaxPowerOutput();
                             if (thermal_source is FNFusionReactor) {
                                 output = output * 0.95;

@@ -306,7 +306,7 @@ namespace FNPlugin {
         }
 
 		public void updateGeneratorPower() {
-			hotBathTemp = myAttachedReactor.getCoreTemp();
+			hotBathTemp = myAttachedReactor.CoreTemperature;
             float heat_exchanger_thrust_divisor = 1;
             if (radius > myAttachedReactor.getRadius()) {
                 heat_exchanger_thrust_divisor = myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius;
@@ -316,8 +316,8 @@ namespace FNPlugin {
             if (myAttachedReactor.getRadius() <= 0 || radius <= 0) {
                 heat_exchanger_thrust_divisor = 1;
             }
-			maxThermalPower = myAttachedReactor.getThermalPower()*heat_exchanger_thrust_divisor;
-            maxChargedPower = myAttachedReactor.getChargedPower()*heat_exchanger_thrust_divisor;
+			maxThermalPower = myAttachedReactor.MaximumThermalPower*heat_exchanger_thrust_divisor;
+            maxChargedPower = myAttachedReactor.MaximumThermalPower*heat_exchanger_thrust_divisor;
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 

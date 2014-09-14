@@ -1,14 +1,14 @@
-﻿extern alias ORSv1_2;
+﻿extern alias ORSv1_3;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_2::OpenResourceSystem;
+using ORSv1_3::OpenResourceSystem;
 
 namespace FNPlugin {
-    class FNReactor : FNResourceSuppliableModule, IThermalSource, FNUpgradeableModule {
+    class FNReactor : FNResourceSuppliableModule, FNUpgradeableModule {
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
@@ -363,11 +363,11 @@ namespace FNPlugin {
             return ReactorTemp;
         }
 
-        public virtual float getCoreTempAtRadiatorTemp(float rad_temp) {
+        public virtual float GetCoreTempAtRadiatorTemp(float rad_temp) {
             return ReactorTemp;
         }
 
-        public virtual float getThermalPowerAtTemp(float temp) {
+        public virtual float GetThermalPowerAtTemp(float temp) {
             return ThermalPower;
         }
 

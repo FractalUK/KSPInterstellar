@@ -3,29 +3,29 @@ using System;
 namespace FNPlugin{
 	public interface IThermalSource{
 
-		float getCoreTemp();
+        float CoreTemperature { get; }
 
-		float getThermalPower();
+        float MaximumThermalPower { get; }
 
-        float getChargedPower();
+        float MinimumThermalPower { get; }
 
-		bool getIsNuclear();
+        float ChargedPower { get; }
+
+        bool IsNuclear { get; }
+
+        bool IsActive { get; }
+
+        bool IsVolatileSource { get; }
 
 		float getRadius();
-
-		bool isActive();
 
 		void enableIfPossible();
 
         bool shouldScaleDownJetISP();
 
-        bool isVolatileSource();
+        float GetCoreTempAtRadiatorTemp(float rad_temp);
 
-        float getMinimumThermalPower();
-
-        float getCoreTempAtRadiatorTemp(float rad_temp);
-
-        float getThermalPowerAtTemp(float temp);
+        float GetThermalPowerAtTemp(float temp);
 
 	}
 }
