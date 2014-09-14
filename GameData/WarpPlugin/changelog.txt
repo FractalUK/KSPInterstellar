@@ -1,3 +1,121 @@
+Version 0.11.0
+-Toolbar Integration
+-Updated tech tree with additional fusion power node
+-New Computer Core Model (by AArtisan)
+-New 0.625 Pebble bed/dusty plasma reactor (model by AArisan)
+-New Large 3.75m Refinery which does processing and resource extraction (model by Aartisan)
+-Added Haber process (to produce ammonia) to Refinery
+-Improved impactor mechanics
+-Direct conversion max power fixed, fixes problems generally experienced with fusion and microwave transmitters
+-Fixed thrust transform with small arcjet engine
+-Default generator Electric Charge set to 1000
+
+Version 0.10.3
+-Integrated Impactor experiment into the stock science system
+-Fixed zero resource extraction rate at low timewarp
+-Fixed refinery monopropellant conversion rate
+-Fixed overheating with atmospheric engines
+-Fixed Tritium breeding rate
+
+Version 0.10.2
+-Fixed thrust asymmetry issue with fusion and direct conversion generators
+-Impactor detection improvements
+-Improvement of Thermal UI handling of microwave receivers
+-Fixed Antimatter Initated Reactor cfg
+-Lithium comes with Lithium tank by default
+-Minor Antimatter tank ElectricCharge handling improvements
+
+Version 0.10.1
+-Fixed Plasma thruster loading bug
+-Switched Antimatter Initiated Reactor to UraniumNitride fuel (instead of UF4).
+-Fixed Antimatter Initated Reactor Resource amounts
+-New planet science curve from impactor experiment (more science everywhere except Kerbin)
+-Fixed some typos and included some missing part descriptions
+-Thermal helper toggle key changed to "I"
+-Fixed Gamma Ray Spectrometer orientation and attachment
+-Fixed Radial Tank attachment
+-Tritium radioactive decay added to reactors
+
+Version 0.10
+-Added Thermal Mechanics Helper (toggle with 'T' key in VAB)
+-Added Large Fusion Reactors (by AArtisan)
+-Added Antimatter Initiated Fission/Fusion reactor (by AArtisan)
+-Added Solar Sail (by SasquatchM)
+-Added extra fission reactors - particle bed/dusty plasma (by AArtisan)
+-Added augmented arcjet electrical thruster (by AArtisan)
+-Added IR telescope (with Kerbol gravitational lens experiment capability)
+-Added inline refinery
+-Added refinery option to produce Uranium Nitride fuel
+-Integration with ORS (fixes resource generation/consumption bugs since 0.23)
+-Changed accelerometer to new impactor experiment (smash things into planets in the name of science!)
+-Changed antimatter factory rates based on tech level, added low tech antimatter bottle to store tiny quantities of antimatter for new reactor
+-Hexcans replaced by unique radial tank (by Vaporlynx)
+-Fixed second Van Allen belt for radiation detection purposes and added surface radiation levels
+-Misc bug fixes
+
+Version 0.9.2
+-Added 62.5cm thermal rocket and plasma thruster.
+-Added 2.5m thermal turbojet.
+-Reverted to 0.9 atmospheric code and fixed application, engine atmospheric performance should now be optimal
+-Added tweakable option for reactors to start disabled in the VAB
+-Unupgraded generator efficiency raised to a theoretical maximum of 31%
+
+Version 0.9.1
+-Methane tank replaced and new smaller tank more suitable for landers
+-Fixed Reactor and Generator Upgrades
+-Fixed loading of warp plugin settings
+-MJ treatment of plasma engines improved
+-Megajoule display now responds to F2 and is hidden for vessels with no appropriate power supply
+-Improvements to atmospheric engine code
+-Tritium breeding option can now be selected - due to stock problem this will only function while ship is unfocused or at moderate time acceleration
+-Expanding refinery in VAB workaround
+-More info on radiators
+-Atmospheric intake removed from VAB
+-DT magnetometer rerunnable
+
+Version 0.9
+-New Megajoule power supply/consumption display!
+-Massively expanded resource system including atmopsheric and oceanic resources definitions - aluminium and water mining integrated into existing planetary resource system
+-New resource scanning and science parts - Gas chromatograph and Liquid chromatograph mass spectrometers for analysing atmosheric and oceanic composition
+-New resources: Alumina (Aluminium Oxide), LqdWater, H2Peroxide and Ammonia
+-ISRU production of Monopropellant now possible
+-Lithium and Uranium extraction from seawater now possible (very slowly)
+-New Duna water resource map - means lots more water at the poles
+-New tweakable generator mode - Direct Conversion Electric Generator, which works with ChargedPower from fusion reactors
+-Fusion reactor tweakable fuel modes - Deuterium/Helium-3 and Helium-3
+-Fission reactor Uranium/Thorium modes tweakable in VAB
+-Thermal rocket propellants tweakable in the VAB - TWR, delta-v and Isp calculations now compatible with MechJeb
+-New precooler module, replaces the stock radial engine body (which doesn't do anything) - atmospheric engines overheat at very high velocities unless precoolers are directly attached to intakes
+-Atmospheric performance of engines vastly improved
+-Thermal Mechanics improvements - radiators will find a thermodynamic equilibrium, generator efficiencies increased to compensate
+-Myrten's microwave routing algorithm added
+-Refinery totally redone
+-New generic resource extraction module for easy modding!
+-Refinery functional attachment nodes reversed
+-Thermal rocket can use LqdWater or Ammonia as propellant
+-B9 cargo bays act as radiators
+-Antimatter Tank power supply improvements
+-Supply of stock electric charge from megajoule resource managed finally fixed
+-Reactor temperatures fixed
+-Thermal jet 0 thrust after re-entry problem fixed
+-Antimatter collector GUI improvements
+-Fixed magnetic field data
+
+Version 0.8.2
+-Different plasma engine propellants have different efficiencies, added monopropellant (hydrazine) as a fuel option
+-antimatter tanks charge use variable based on size 
+-Jool 0 temperature radiator bug fixed
+-extensive microwave fixes - conservation of energy now respected
+-antimatter consumption with multiple tanks fixed
+-generator improvements, use better resource manager API
+-radiation improvements + second van allen belt
+-reactor supports unupgradeable types
+-electrolysis rate fix
+-resource manager electricity consumption fix
+-resource manager negative consumption bug prevented
+-various conversions to double precision to improve accuracy
+-removed more constants from part modules
+
 Version 0.8.1
 -Microwave fix for vessels with more than one transmitter
 -Improved resource manager handling of high time acceleration
