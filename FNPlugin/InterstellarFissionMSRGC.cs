@@ -14,6 +14,8 @@ namespace FNPlugin {
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
+        public override bool IsNuclear { get { return true; } }
+
         public override float MaximumThermalPower
         {
             get
@@ -32,6 +34,23 @@ namespace FNPlugin {
 
         public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
 
+        public override float CoreTemperature
+        {
+            get
+            {
+                double temp_scale;
+                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                {
+                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+                } else
+                {
+                    temp_scale = base.CoreTemperature/2.0;
+                }
+                double temp_diff = (base.CoreTemperature - temp_scale)*Math.Sqrt(powerPcnt/100.0);
+                return (float) (temp_scale + temp_diff);
+            }
+        }
+
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]
         public void SwapFuelMode()
         {
@@ -46,6 +65,16 @@ namespace FNPlugin {
                     Refuel();
                 }
             }
+        }
+
+        [KSPEvent(guiName = "Swap Fuel", guiActiveEditor = true, guiActiveUnfocused = false, guiActive = false)]
+        public void EditorSwapFuel()
+        {
+            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) part.Resources[fuel.FuelName].amount = 0;
+            fuel_mode++;
+            if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+            current_fuel_mode = fuel_modes[fuel_mode];
+            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) part.Resources[fuel.FuelName].amount = part.Resources[fuel.FuelName].maxAmount;
         }
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
@@ -125,6 +154,11 @@ namespace FNPlugin {
             {
                 return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
             }
+        }
+
+        protected override void setDefaultFuelMode()
+        {
+            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
 
         private void defuelCurrentFuel()

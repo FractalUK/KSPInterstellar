@@ -23,6 +23,8 @@ namespace FNPlugin
 
         public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
 
+        public override bool IsNuclear { get { return true; } }
+
         public override float CoreTemperature
         {
             get
@@ -79,5 +81,7 @@ namespace FNPlugin
                 return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
             }
         }
+
+
     }
 }

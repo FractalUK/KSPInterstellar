@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace FNPlugin {
     [KSPModule("Tokamak Reactor")]
-    class InterstellarTokamakFusionReator : InterstellarReactor {
+    class InterstellarTokamakFusionReator : InterstellarFusionReactor
+    {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
 
@@ -69,6 +70,11 @@ namespace FNPlugin {
 
         public override int getPowerPriority() {
             return 1;
+        }
+
+        protected override void setDefaultFuelMode()
+        {
+            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
 
     }

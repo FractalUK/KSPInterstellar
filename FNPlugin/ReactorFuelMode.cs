@@ -12,6 +12,7 @@ namespace FNPlugin {
         protected bool _aneutronic;
         protected double _normreactionrate;
         protected double _normpowerrequirements;
+        protected double _charged_power_ratio;
 
         public ReactorFuelMode(ConfigNode node) {
             _reactor_type = Convert.ToInt32(node.GetValue("ReactorType"));
@@ -19,6 +20,7 @@ namespace FNPlugin {
             _aneutronic = Boolean.Parse(node.GetValue("Aneutronic"));
             _normreactionrate = Double.Parse(node.GetValue("NormalisedReactionRate"));
             _normpowerrequirements = Double.Parse(node.GetValue("NormalisedPowerConsumption"));
+            _charged_power_ratio = Double.Parse(node.GetValue("ChargedParticleRatio"));
             ConfigNode[] fuel_nodes = node.GetNodes("FUEL");
             _fuels = fuel_nodes.Select(nd => new ReactorFuel(nd)).ToList();
         }
@@ -30,6 +32,8 @@ namespace FNPlugin {
         public IList<ReactorFuel> ReactorFuels { get { return _fuels; } }
 
         public bool Aneutronic { get { return _aneutronic; } }
+
+        public double ChargedPowerRatio { get { return _charged_power_ratio; } }
 
         public double NormalisedReactionRate { get { return _normreactionrate; } }
 

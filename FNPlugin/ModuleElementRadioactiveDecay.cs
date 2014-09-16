@@ -8,6 +8,7 @@ using UnityEngine;
 using ORSv1_3::OpenResourceSystem;
 
 namespace FNPlugin {
+    [KSPModule("Radioactive Decay")]
     class ModuleElementRadioactiveDecay : PartModule {
         // Persistent False
         [KSPField(isPersistant = false)]
@@ -46,13 +47,22 @@ namespace FNPlugin {
         }
 
         public void FixedUpdate() {
-            double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
-            decay_resource.amount -= decay_amount;
-            if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
-                ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount*density_rat);
-            }
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
+                decay_resource.amount -= decay_amount;
+                if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct))
+                {
+                    ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount * density_rat);
+                }
 
-            lastActiveTime = (float) Planetarium.GetUniversalTime();
+                lastActiveTime = (float)Planetarium.GetUniversalTime();
+            }
+        }
+
+        public override string GetInfo()
+        {
+            return "Radioactive Decay";
         }
 
     }

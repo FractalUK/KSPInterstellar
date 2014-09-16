@@ -131,7 +131,7 @@ namespace FNPlugin {
                     if (sources.Count > 0) {
                         myAttachedReactor = sources.First();
                         if (myAttachedReactor != null) {
-                            if (myAttachedReactor is FNFusionReactor && isupgraded) {
+                            if (myAttachedReactor is InterstellarFusionReactor && isupgraded) {
                                 // if we're attaching to a fusion reactor, swap over to direct conversion if we can
                                 generatorType = altUpgradedName;
                                 chargedParticleMode = true;

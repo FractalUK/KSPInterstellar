@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace FNPlugin {
     [KSPModule("IC Fusion Reactor")]
-    class InterstellarInertialConfinementReactor : InterstellarReactor {
+    class InterstellarInertialConfinementReactor : InterstellarFusionReactor
+    {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
 
@@ -17,10 +18,8 @@ namespace FNPlugin {
         public string laserPower;
 
         protected double power_consumed;
-        protected bool power_deprived = false;
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
-        protected float plasma_ratio = 1.0f;
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
@@ -57,11 +56,15 @@ namespace FNPlugin {
 
         public override void OnFixedUpdate() {
             base.OnFixedUpdate();
-            if (IsEnabled) {
+            if (IsEnabled)
+            {
                 power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                 if (power_consumed < LaserPowerRequirements) power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
-                plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
-                //plasma_ratio = 1.0f;
+                if (power_consumed < LaserPowerRequirements) shutdown_c++;
+                if (shutdown_c > 3) IsEnabled = false;
+            } else
+            {
+                shutdown_c = 0;
             }
         }
 
@@ -71,6 +74,11 @@ namespace FNPlugin {
 
         public override int getPowerPriority() {
             return 1;
+        }
+
+        protected override void setDefaultFuelMode()
+        {
+            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
 
     }

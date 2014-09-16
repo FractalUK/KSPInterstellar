@@ -178,47 +178,58 @@ namespace FNPlugin {
             updatePropellantBar();
         }
 
-        public void FixedUpdate() {
-            ElectricEngineControllerFX.getAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName,0)); // set all FX to zero
+        public void FixedUpdate() 
+        {
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                ElectricEngineControllerFX.getAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0)); // set all FX to zero
 
-            if (current_propellant != null && attachedEngine != null) {
-                updateISP();
-                List<ElectricEngineControllerFX> electric_engine_list = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>();
-                int engine_count = electric_engine_list.Count;
-                double total_max_thrust = evaluateMaxThrust();
-                double thrust_per_engine = total_max_thrust / (double)engine_count;
-                double power_per_engine = Math.Min(0.5 * attachedEngine.currentThrottle * thrust_per_engine * current_propellant.IspMultiplier * baseISP / 1000.0 * 9.81, maxPower * current_propellant.Efficiency);
-                double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                double heat_to_produce = power_received * (1.0 - current_propellant.Efficiency);
-                double heat_production = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
-                // update GUI Values
-                electrical_consumption_f = (float)power_received;
-                heat_production_f = (float)heat_production;
-                // thrust values
-                double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
-                double actual_max_thrust = current_propellant.Efficiency * 2000.0f * power_received / (current_propellant.IspMultiplier * baseISP * 9.81f * attachedEngine.currentThrottle);
+                if (current_propellant != null && attachedEngine != null)
+                {
+                    updateISP();
+                    List<ElectricEngineControllerFX> electric_engine_list = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>();
+                    int engine_count = electric_engine_list.Count;
+                    double total_max_thrust = evaluateMaxThrust();
+                    double thrust_per_engine = total_max_thrust / (double)engine_count;
+                    double power_per_engine = Math.Min(0.5 * attachedEngine.currentThrottle * thrust_per_engine * current_propellant.IspMultiplier * baseISP / 1000.0 * 9.81, maxPower * current_propellant.Efficiency);
+                    double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                    double heat_to_produce = power_received * (1.0 - current_propellant.Efficiency);
+                    double heat_production = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                    // update GUI Values
+                    electrical_consumption_f = (float)power_received;
+                    heat_production_f = (float)heat_production;
+                    // thrust values
+                    double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
+                    double actual_max_thrust = current_propellant.Efficiency * 2000.0f * power_received / (current_propellant.IspMultiplier * baseISP * 9.81f * attachedEngine.currentThrottle);
 
-                if (attachedEngine.currentThrottle > 0) {
-                    if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust)) {
-                        attachedEngine.maxThrust = Mathf.Max((float)actual_max_thrust, 0.00001f);
-                    } else {
-                        attachedEngine.maxThrust = 0.00001f;
+                    if (attachedEngine.currentThrottle > 0)
+                    {
+                        if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust))
+                        {
+                            attachedEngine.maxThrust = Mathf.Max((float)actual_max_thrust, 0.00001f);
+                        } else
+                        {
+                            attachedEngine.maxThrust = 0.00001f;
+                        }
+                        float fx_ratio = Mathf.Min(electrical_consumption_f / maxPower, attachedEngine.finalThrust / attachedEngine.maxThrust);
+                        part.Effect(current_propellant.ParticleFXName, fx_ratio);
                     }
-                    float fx_ratio = Mathf.Min(electrical_consumption_f / maxPower,attachedEngine.finalThrust/attachedEngine.maxThrust);
-                    part.Effect(current_propellant.ParticleFXName, fx_ratio);
-                } 
 
-                if (isupgraded) {
-                    List<PartResource> vacuum_resources = part.GetConnectedResources("VacuumPlasma").ToList();
-                    double vacuum_plasma_needed = vacuum_resources.Sum(vc => vc.maxAmount - vc.amount);
-                    double vacuum_plasma_current = vacuum_resources.Sum(vc => vc.amount);
-                    if (vessel.altitude < PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) {
-                        part.RequestResource("VacuumPlasma", vacuum_plasma_current);
-                    } else {
-                        part.RequestResource("VacuumPlasma", -vacuum_plasma_needed);
+                    if (isupgraded)
+                    {
+                        List<PartResource> vacuum_resources = part.GetConnectedResources("VacuumPlasma").ToList();
+                        double vacuum_plasma_needed = vacuum_resources.Sum(vc => vc.maxAmount - vc.amount);
+                        double vacuum_plasma_current = vacuum_resources.Sum(vc => vc.amount);
+                        if (vessel.altitude < PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))
+                        {
+                            part.RequestResource("VacuumPlasma", vacuum_plasma_current);
+                        } else
+                        {
+                            part.RequestResource("VacuumPlasma", -vacuum_plasma_needed);
+                        }
                     }
                 }
-            } 
+            }
         }
 
         public void upgradePartModule() {

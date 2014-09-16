@@ -430,19 +430,16 @@ namespace FNPlugin {
                 {
 
                     if (renderer.material.GetTexture("_Emissive") == null)
-                        renderer.material.SetTexture("_Emissive",
-                            GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/circradiatorKT/texture1_e", false));
+                        renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/circradiatorKT/texture1_e", false));
 
                     if (renderer.material.GetTexture("_BumpMap") == null)
-                        renderer.material.SetTexture("_BumpMap",
-                             GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/circradiatorKT/texture1_n", false));
+                        renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/circradiatorKT/texture1_n", false));
 
                 } else if (part.name.StartsWith("RadialRadiator"))
                 {
 
                     if (renderer.material.GetTexture("_Emissive") == null)
-                        renderer.material.SetTexture("_Emissive",
-                           GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/RadialHeatRadiator/d_glow", false));
+                        renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/RadialHeatRadiator/d_glow", false));
 
                     Debug.Log("rd _Emissive: " + renderer.material.GetTexture("_Emissive"));
 
@@ -453,12 +450,10 @@ namespace FNPlugin {
                         renderer.material.shader = Shader.Find(KSPShader);
 
                     if (renderer.material.GetTexture("_Emissive") == null)
-                        renderer.material.SetTexture("_Emissive",
-                            GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/glow", false));
+                        renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/glow", false));
 
                     if (renderer.material.GetTexture("_BumpMap") == null)
-                        renderer.material.SetTexture("_BumpMap",
-                             GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/radtex_n", false));
+                        renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/radtex_n", false));
 
                 } else if (part.name.StartsWith("radiator"))
                 {
