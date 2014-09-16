@@ -99,6 +99,7 @@ namespace FNPlugin {
         protected float ongoing_charged_power_f;
         protected float ongoing_total_power_f;
         protected double total_power_per_frame;
+        protected bool decay_ongoing = false;
 
         protected Rect windowPosition = new Rect(20, 20, 300, 100);
         protected int windowID = 90175467;
@@ -264,6 +265,7 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
+            decay_ongoing = false;
             base.OnFixedUpdate();
             if (IsEnabled && MaximumThermalPower > 0) {
                 if (reactorIsOverheating()) {
@@ -318,17 +320,18 @@ namespace FNPlugin {
                 double total_power_ratio = thermal_power_received / MaximumThermalPower / TimeWarp.fixedDeltaTime;
                 supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 powerPcnt = 100.0 * total_power_ratio;
+                decay_ongoing = true;
             } else {
                 powerPcnt = 0;
             }
         }
 
         public virtual float GetCoreTempAtRadiatorTemp(float rad_temp) {
-            return isupgraded ? upgradedReactorTemp != 0 ? upgradedReactorTemp : ReactorTemp : ReactorTemp;
+            return CoreTemperature;
         }
 
         public virtual float GetThermalPowerAtTemp(float temp) {
-            return isupgraded ? upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput : PowerOutput;
+            return MaximumThermalPower;
         }
                 
 
@@ -427,7 +430,7 @@ namespace FNPlugin {
             return fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & ReactorType) == ReactorType).ToList();
         }
 
-        private double consumeReactorFuel(ReactorFuel fuel, double consume_amount) {
+        protected virtual double consumeReactorFuel(ReactorFuel fuel, double consume_amount) {
             if (!consumeGlobal) {
                 if (part.Resources.Contains(fuel.FuelName)) {
                     double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
@@ -439,7 +442,7 @@ namespace FNPlugin {
             }
         }
 
-        private double getFuelAvailability(ReactorFuel fuel) {
+        protected double getFuelAvailability(ReactorFuel fuel) {
             if (!consumeGlobal) {
                 if (part.Resources.Contains(fuel.FuelName)) return part.Resources[fuel.FuelName].amount * FuelEfficiency;
                 else return 0;

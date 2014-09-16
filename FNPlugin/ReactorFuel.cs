@@ -20,6 +20,8 @@ namespace FNPlugin {
             _density = PartResourceLibrary.Instance.GetDefinition(_fuel_name).density;
         }
 
+        public double Density { get { return _density; } }
+
         public double FuelUsePerMJ { get { return _fuel_usege_per_mw/_density; } }
 
         public string FuelName { get { return _fuel_name; } }

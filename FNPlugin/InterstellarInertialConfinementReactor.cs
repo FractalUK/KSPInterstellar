@@ -26,8 +26,6 @@ namespace FNPlugin {
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
-        public override float MaximumThermalPower { get { return base.MaximumThermalPower * Mathf.Pow(plasma_ratio, 4.0f); } }
-
         public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
 
         public float LaserPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace FNPlugin {
     [KSPModule("Tokamak Reactor")]
@@ -21,6 +22,10 @@ namespace FNPlugin {
         protected float plasma_ratio = 1.0f;
 
         // properties
+
+        public override float MaximumThermalPower { get { return base.MaximumThermalPower * Mathf.Pow(plasma_ratio, 4.0f); } }
+
+        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
