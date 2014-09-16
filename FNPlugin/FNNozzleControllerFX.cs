@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin{
-	class FNNozzleControllerFX : FNResourceSuppliableModule, FNUpgradeableModule{
+	class FNNozzleControllerFX : FNResourceSuppliableModule, IUpgradeableModule{
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled;
@@ -80,6 +80,8 @@ namespace FNPlugin{
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
 		static Dictionary<string, double> fuel_flow_amounts = new Dictionary<string, double>();
 
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
+
 
 		[KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
 		public void TogglePropellant() {
@@ -118,7 +120,8 @@ namespace FNPlugin{
             engineType = originalName;
             // check whether we have the technologies available to be able to perform an upgrade
             if (state == StartState.Editor) {
-                if (hasTechsRequiredToUpgrade()) {
+                if (this.HasTechsRequiredToUpgrade())
+                {
                     isupgraded = true;
                     upgradePartModule();
                 }
@@ -426,24 +429,10 @@ namespace FNPlugin{
 			static_updating2 = true;
 		}
 
-        public bool hasTechsRequiredToUpgrade() {
-            if (HighLogic.CurrentGame != null) {
-                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-                    if (upgradeTechReq != null) {
-                        if (PluginHelper.hasTech(upgradeTechReq)) {
-                            return true;
-                        }
-                    }
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        }
-
 		public override string GetInfo() {
 			bool upgraded = false;
-            if (hasTechsRequiredToUpgrade()) {
+            if (this.HasTechsRequiredToUpgrade())
+            {
                 upgraded = true;
             }
 			ConfigNode[] prop_nodes;

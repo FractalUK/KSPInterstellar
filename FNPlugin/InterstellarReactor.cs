@@ -8,7 +8,7 @@ using UnityEngine;
 using ORSv1_3::OpenResourceSystem;
 
 namespace FNPlugin {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, FNUpgradeableModule {
+    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule {
         public enum ReactorTypes {
             FISSION_MSR = 1,
             FISSION_GFR = 2,
@@ -101,6 +101,8 @@ namespace FNPlugin {
         protected int windowID = 90175467;
         protected bool render_window = false;
         protected GUIStyle bold_label;
+
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         public double FuelEfficiency { get { return isupgraded ? upgradedFuelEfficiency > 0 ? upgradedFuelEfficiency : fuelEfficiency : fuelEfficiency; } }
 
@@ -202,14 +204,14 @@ namespace FNPlugin {
             base.OnStart(state);
 
             if (state == StartState.Editor) {
-                if (hasTechsRequiredToUpgrade()) {
+                if (this.HasTechsRequiredToUpgrade()) {
                     isupgraded = true;
                     upgradePartModule();
                 }
                 return;
             }
 
-            if (hasTechsRequiredToUpgrade()) hasrequiredupgrade = true;
+            if (this.HasTechsRequiredToUpgrade()) hasrequiredupgrade = true;
 
             if (!reactorInit && startDisabled) {
                 last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * 86400.0);
@@ -345,10 +347,6 @@ namespace FNPlugin {
 
         public bool isVolatileSource() {
             return false;
-        }
-
-        public bool hasTechsRequiredToUpgrade() {
-            return PluginHelper.upgradeAvailable(upgradeTechReq);
         }
 
         public void upgradePartModule() {

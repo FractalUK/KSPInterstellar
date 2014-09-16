@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin {
     [KSPModule("Electrical Generator")]
-	class FNGenerator : FNResourceSuppliableModule, FNUpgradeableModule{
+	class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule{
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = true;
@@ -68,6 +68,8 @@ namespace FNPlugin {
 		protected Animation anim;
 		protected bool hasstarted = false;
         protected long update_count = 0;
+
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
 
 		[KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
 		public void ActivateGenerator() {
@@ -156,7 +158,8 @@ namespace FNPlugin {
 			base.OnStart (state);
             generatorType = originalName;
             if (state == StartState.Editor) {
-                if (hasTechsRequiredToUpgrade()) {
+                if (this.HasTechsRequiredToUpgrade())
+                {
                     isupgraded = true;
                     hasrequiredupgrade = true;
                     upgradePartModule();
@@ -165,7 +168,8 @@ namespace FNPlugin {
                 return;
             }
 
-            if (hasTechsRequiredToUpgrade()) {
+            if (this.HasTechsRequiredToUpgrade())
+            {
                 hasrequiredupgrade = true;
             }
 
@@ -289,21 +293,7 @@ namespace FNPlugin {
         public IThermalSource getThermalSource() {
             return myAttachedReactor;
         }
-
-        public bool hasTechsRequiredToUpgrade() {
-            if (HighLogic.CurrentGame != null) {
-                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-                    if (upgradeTechReq != null) {
-                        if (PluginHelper.hasTech(upgradeTechReq)) {
-                            return true;
-                        }
-                    }
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        }
+               
 
 		public void updateGeneratorPower() {
 			hotBathTemp = myAttachedReactor.CoreTemperature;

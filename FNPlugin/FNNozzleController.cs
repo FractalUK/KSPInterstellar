@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin{
-    class FNNozzleController : FNResourceSuppliableModule, FNUpgradeableModule {
+    class FNNozzleController : FNResourceSuppliableModule, IUpgradeableModule {
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled;
@@ -80,6 +80,7 @@ namespace FNPlugin{
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
 		static Dictionary<string, double> fuel_flow_amounts = new Dictionary<string, double>();
 
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
 
 		[KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Toggle Propellant", active = true)]
 		public void TogglePropellant() {
@@ -148,7 +149,8 @@ namespace FNPlugin{
             if (state == StartState.Editor) {
                 part.OnEditorAttach += OnEditorAttach;
                 propellants = getPropellants(isJet);
-                if (hasTechsRequiredToUpgrade() && isJet) {
+                if (this.HasTechsRequiredToUpgrade() && isJet)
+                {
                     isupgraded = true;
                     upgradePartModule();
                 }
@@ -166,7 +168,8 @@ namespace FNPlugin{
 			if (isupgraded && isJet) {
 				upgradePartModule ();
 			} else {
-                if (hasTechsRequiredToUpgrade() && isJet) {
+                if (this.HasTechsRequiredToUpgrade() && isJet)
+                {
                     hasrequiredupgrade = true;
                 }
 				// if not, use basic propellants
@@ -373,9 +376,9 @@ namespace FNPlugin{
             FloatCurve atmospherecurve = new FloatCurve();
             float thrust = 0;
             if (myAttachedReactor != null) {
-                if (myAttachedReactor is FNUpgradeableModule) {
-                    FNUpgradeableModule upmod = (FNUpgradeableModule)myAttachedReactor;
-                    if (upmod.hasTechsRequiredToUpgrade()) {
+                if (myAttachedReactor is IUpgradeableModule) {
+                    IUpgradeableModule upmod = myAttachedReactor as IUpgradeableModule;
+                    if (upmod.HasTechsRequiredToUpgrade()) {
                         attached_reactor_upgraded = true;
                     }
                 }
@@ -506,24 +509,10 @@ namespace FNPlugin{
 			static_updating2 = true;
 		}
 
-        public bool hasTechsRequiredToUpgrade() {
-            if (HighLogic.CurrentGame != null) {
-                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-                    if (upgradeTechReq != null) {
-                        if (PluginHelper.hasTech(upgradeTechReq)) {
-                            return true;
-                        }
-                    }
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        }
-
 		public override string GetInfo() {
 			bool upgraded = false;
-            if (hasTechsRequiredToUpgrade()) {
+            if (this.HasTechsRequiredToUpgrade())
+            {
                 upgraded = true;
             }
 			ConfigNode[] prop_nodes;

@@ -8,7 +8,7 @@ using UnityEngine;
 using ORSv1_3::OpenResourceSystem;
 
 namespace FNPlugin {
-    class ElectricEngineControllerFX : FNResourceSuppliableModule, FNUpgradeableModule {
+    class ElectricEngineControllerFX : FNResourceSuppliableModule, IUpgradeableModule {
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
@@ -49,6 +49,8 @@ namespace FNPlugin {
         public string propNameStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr = "";
+
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         // internal
         protected List<ElectricEnginePropellant> propellants;
@@ -93,13 +95,15 @@ namespace FNPlugin {
             base.OnStart(state);
 
             if (state == StartState.Editor) {
-                if (hasTechsRequiredToUpgrade()) {
+                if (this.HasTechsRequiredToUpgrade())
+                {
                     upgradePartModule();
                 }
                 return;
             }
 
-            if (hasTechsRequiredToUpgrade()) {
+            if (this.HasTechsRequiredToUpgrade())
+            {
                 hasrequiredupgrade = true;
             }
 
@@ -246,10 +250,6 @@ namespace FNPlugin {
                 node.AddValue("amount", 10);
                 part.AddResource(node);
             }
-        }
-
-        public bool hasTechsRequiredToUpgrade() {
-            return PluginHelper.upgradeAvailable(upgradeTechReq);
         }
 
         public override string GetInfo() {

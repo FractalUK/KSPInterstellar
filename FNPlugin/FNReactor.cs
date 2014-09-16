@@ -8,7 +8,7 @@ using UnityEngine;
 using ORSv1_3::OpenResourceSystem;
 
 namespace FNPlugin {
-    class FNReactor : FNResourceSuppliableModule, FNUpgradeableModule {
+    class FNReactor : FNResourceSuppliableModule, IUpgradeableModule {
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
@@ -99,6 +99,7 @@ namespace FNPlugin {
         protected bool convert_charged_to_thermal = true;
         protected string name_to_use;
 
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         //protected bool responsible_for_thermalmanager = false;
         //protected FNResourceManager thermalmanager;
