@@ -268,7 +268,9 @@ namespace FNPlugin {
 
                 last_draw_update = update_count;
             }
-			
+
+            colorHeat();
+
             update_count++;
 		}
 
@@ -406,6 +408,68 @@ namespace FNPlugin {
 
         public override int getPowerPriority() {
             return 3;
+        }
+
+        private void colorHeat()
+        {
+            const String KSPShader = "KSP/Emissive/Bumped Specular";
+            float currentTemperature = getRadiatorTemperature();
+            float maxTemperature = part.maxTemp;
+
+            double temperatureRatio = currentTemperature / maxTemperature;
+            Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, 3)), 0.0f, 0.0f, 1.0f);
+
+            Renderer[] array = part.FindModelComponents<Renderer>();
+            
+            foreach (Renderer renderer in array) 
+            {
+                if (renderer.material.shader.name != KSPShader)
+                    renderer.material.shader = Shader.Find(KSPShader);
+
+                if (part.name.StartsWith("circradiator"))
+                {
+
+                    if (renderer.material.GetTexture("_Emissive") == null)
+                        renderer.material.SetTexture("_Emissive",
+                            GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/circradiatorKT/texture1_e", false));
+
+                    if (renderer.material.GetTexture("_BumpMap") == null)
+                        renderer.material.SetTexture("_BumpMap",
+                             GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/circradiatorKT/texture1_n", false));
+
+                } else if (part.name.StartsWith("RadialRadiator"))
+                {
+
+                    if (renderer.material.GetTexture("_Emissive") == null)
+                        renderer.material.SetTexture("_Emissive",
+                           GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/RadialHeatRadiator/d_glow", false));
+
+                    Debug.Log("rd _Emissive: " + renderer.material.GetTexture("_Emissive"));
+
+                } else if (part.name.StartsWith("LargeFlatRadiator"))
+                {
+
+                    if (renderer.material.shader.name != KSPShader)
+                        renderer.material.shader = Shader.Find(KSPShader);
+
+                    if (renderer.material.GetTexture("_Emissive") == null)
+                        renderer.material.SetTexture("_Emissive",
+                            GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/glow", false));
+
+                    if (renderer.material.GetTexture("_BumpMap") == null)
+                        renderer.material.SetTexture("_BumpMap",
+                             GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/radtex_n", false));
+
+                } else if (part.name.StartsWith("radiator"))
+                {
+                    // radiators have already everything set up
+                } else // uknown raidator
+                {
+                    return;
+                }
+
+                renderer.material.SetColor("_EmissiveColor", emissiveColor);
+            }
         }
 
 	}

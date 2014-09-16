@@ -19,7 +19,25 @@ namespace FNPlugin
         // Properties
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
+        public override float MaximumThermalPower { get { return (float)(base.MaximumThermalPower * Math.Pow((tempZeroPower - CoreTemperature) / (tempZeroPower - optimalPebbleTemp), 0.81)); } }
+
         public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
+
+        public override float CoreTemperature
+        {
+            get
+            {
+                double temp_scale;
+                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                {
+                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+                } else
+                {
+                    temp_scale = optimalPebbleTemp;
+                }
+                return (float)Math.Min(Math.Max(Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25) * temp_scale * 1.5, optimalPebbleTemp), tempZeroPower);
+            }
+        }
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ManualRestart()
@@ -40,23 +58,26 @@ namespace FNPlugin
             base.OnUpdate();
         }
 
-        public override void OnFixedUpdate()
-        {
-            // if reactor is overloaded with actinides, stop functioning
-            if (IsEnabled && part.Resources.Contains("Actinides"))
-            {
-                if (part.Resources["Actinides"].amount >= part.Resources["Actinides"].maxAmount)
-                {
-                    part.Resources["Actinides"].amount = part.Resources["Actinides"].maxAmount;
-                    IsEnabled = false;
-                }
-            }
-            base.OnFixedUpdate();
-        }
-
         public override bool shouldScaleDownJetISP()
         {
             return true;
+        }
+
+        protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
+        {
+            if (!consumeGlobal)
+            {
+                if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains("DepletedFuel"))
+                {
+                    double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
+                    part.Resources[fuel.FuelName].amount -= amount;
+                    part.Resources["DepletedFuel"].amount += amount;
+                    return amount;
+                } else return 0;
+            } else
+            {
+                return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
+            }
         }
     }
 }

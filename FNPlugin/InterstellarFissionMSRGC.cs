@@ -91,6 +91,20 @@ namespace FNPlugin {
             base.OnUpdate();
         }
 
+        public override void OnFixedUpdate()
+        {
+            // if reactor is overloaded with actinides, stop functioning
+            if (IsEnabled && part.Resources.Contains("Actinides"))
+            {
+                if (part.Resources["Actinides"].amount >= part.Resources["Actinides"].maxAmount)
+                {
+                    part.Resources["Actinides"].amount = part.Resources["Actinides"].maxAmount;
+                    IsEnabled = false;
+                }
+            }
+            base.OnFixedUpdate();
+        }
+
         public override bool shouldScaleDownJetISP()
         {
             return true;
