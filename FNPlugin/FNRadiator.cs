@@ -47,6 +47,9 @@ namespace FNPlugin {
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
 		public string upgradeCostStr;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max. Dyn. Press.")]
+        public float maxQ = 150.0f;
+
 		//public static double stefan_const = 5.6704e-8;
         protected static float rad_const_h = 1000;
         protected static double alpha = 0.001998001998001998001998001998;
@@ -280,7 +283,7 @@ namespace FNPlugin {
 			float conv_power_dissip = 0;
 			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) {
 				float pressure = (float) FlightGlobals.getStaticPressure (vessel.transform.position);
-				float dynamic_pressure = (float) (0.5*pressure*1.2041*vessel.srf_velocity.sqrMagnitude/101325.0);
+				float dynamic_pressure = (float) (0.5*pressure*1.2041*vessel.srf_velocity.sqrMagnitude);
 				pressure += dynamic_pressure;
 				float low_temp = FlightGlobals.getExternalTemperature (vessel.transform.position);
 
@@ -291,7 +294,7 @@ namespace FNPlugin {
 				}
 				convectedThermalPower = consumeFNResource (conv_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
-				if (radiatorIsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-3 && isDeployable) {
+				if (radiatorIsEnabled && dynamic_pressure > maxQ && isDeployable) {
 					part.deactivate();
 
 					//part.breakingForce = 1;
