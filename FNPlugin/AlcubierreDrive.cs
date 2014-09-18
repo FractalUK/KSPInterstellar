@@ -110,11 +110,9 @@ namespace FNPlugin
             }
 
             List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
-            float electrical_current_available = 0;
-            for (int i = 0; i < resources.Count; ++i) {
-                electrical_current_available += (float)resources.ElementAt(i).amount;
-            }
-            if (electrical_current_available < megajoules_required * warp_factors[selected_factor]) {
+            float exotic_matter_available = (float) resources.Sum(res => res.amount);
+
+            if (exotic_matter_available < megajoules_required * warp_factors[selected_factor]) {
                 ScreenMessages.PostScreenMessage("Warp drive charging!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
@@ -471,12 +469,10 @@ namespace FNPlugin
             if (!IsEnabled) {
                 //ChargeStatus = "";
                 List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
-                float electrical_current_available = 0;
-                for (int i = 0; i < resources.Count; ++i) {
-                    electrical_current_available += (float)resources.ElementAt(i).amount;
-                }
-                if (electrical_current_available < megajoules_required * warp_factors[selected_factor]) {
-                    float electrical_current_pct = (float) (100.0f * electrical_current_available / (megajoules_required * warp_factors[selected_factor]));
+                float exotic_matter_available = (float) resources.Sum(res => res.amount);
+
+                if (exotic_matter_available < megajoules_required * warp_factors[selected_factor]) {
+                    float electrical_current_pct = (float) (100.0f * exotic_matter_available / (megajoules_required * warp_factors[selected_factor]));
                     DriveStatus = String.Format("Charging: ") + electrical_current_pct.ToString("0.00") + String.Format("%");
 
                 }

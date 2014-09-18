@@ -8,7 +8,7 @@ using UnityEngine;
 using ORSv1_3::OpenResourceSystem;
 
 namespace FNPlugin {
-    class ScienceModule : FNResourceSuppliableModule {
+    class ScienceModule : FNResourceSuppliableModule, ITelescopeController {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string statusTitle;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
@@ -52,6 +52,11 @@ namespace FNPlugin {
         protected Animation anim2;
         protected FuelReprocessor reprocessor;
         protected AntimatterFactory anti_factory;
+
+        public bool CanProvideTelescopeControl
+        {
+            get { return part.protoModuleCrew.Count > 0; }
+        }
 
         [KSPEvent(guiActive = true, guiName = "Begin Research", active = true)]
         public void BeginResearch() {

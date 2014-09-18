@@ -241,7 +241,8 @@ namespace FNPlugin{
 			ConfigNode[] assprops = chosenpropellant.GetNodes("PROPELLANT");
 			List<Propellant> list_of_propellants = new List<Propellant>();
 			// loop though propellants until we get to the selected one, then set it up
-			for (int i = 0; i < assprops.Length; ++i) {
+			foreach(ConfigNode prop_node in assprops) 
+            {
 				fuelmode = chosenpropellant.GetValue("guiName");
 				ispMultiplier = float.Parse(chosenpropellant.GetValue("ispMultiplier"));
 				isLFO = bool.Parse(chosenpropellant.GetValue("isLFO"));
@@ -252,7 +253,7 @@ namespace FNPlugin{
 				//print (currentpropellant_is_jet);
 
 				Propellant curprop = new Propellant();
-				curprop.Load(assprops[i]);
+				curprop.Load(prop_node);
 				if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight) {
 					curprop.drawStackGauge = false;
 					if (currentpropellant_is_jet) {

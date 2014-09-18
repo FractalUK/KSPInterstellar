@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin { 
-	class ComputerCore : FNResourceSuppliableModule {
+	class ComputerCore : FNResourceSuppliableModule, ITelescopeController {
 		const float baseScienceRate = 0.3f;
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = false;
@@ -41,6 +41,12 @@ namespace FNPlugin {
 		protected float science_rate_f;
 		protected bool hasrequiredupgrade = false;
         protected double science_awaiting_addition = 0;
+
+
+        public bool CanProvideTelescopeControl
+        {
+            get { return isupgraded; }
+        }
 
 
 		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
