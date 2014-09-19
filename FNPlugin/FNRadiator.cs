@@ -171,6 +171,17 @@ namespace FNPlugin {
 
 		[KSPAction("Deploy Radiator")]
 		public void DeployRadiatorAction(KSPActionParam param) {
+			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) {
+				float pressure = (float) FlightGlobals.getStaticPressure (vessel.transform.position);
+				float dynamic_pressure = (float) (0.5*pressure*1.2041*vessel.srf_velocity.sqrMagnitude);
+				if (dynamic_pressure >= maxQ) {
+					ScreenMessages.PostScreenMessage(
+							"Radiator deployment aborted: Dynamic pressure exceeds part tolerance.",
+							5.0f,
+							ScreenMessageStyle.UPPER_CENTER);
+					return;
+				}
+			}
 			DeployRadiator();
 		}
 
