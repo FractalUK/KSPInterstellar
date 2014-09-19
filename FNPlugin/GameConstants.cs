@@ -46,8 +46,8 @@ namespace FNPlugin {
         public const double pechineyUgineKuhlmannMassRatio = 0.4847459883;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
         public const double telescopePerformanceTimescale = 2.1964508725630127431022388314009e-8;
-        public const double telescopeBaseScience = 0.5;
-        public const double telescopeGLensScience = 15;
+        public const double telescopeBaseScience = 0.1666667;
+        public const double telescopeGLensScience = 5;
         public const float tritiumBreedRate = 428244.662271f;
         public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
         public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
