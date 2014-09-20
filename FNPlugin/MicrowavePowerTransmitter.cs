@@ -183,7 +183,7 @@ namespace FNPlugin {
                         IThermalSource thermal_source = generator.getThermalSource();
                         if (thermal_source != null && !thermal_source.IsVolatileSource) {
                             double output = generator.getMaxPowerOutput();
-                            if (thermal_source is FNFusionReactor) {
+                            if (thermal_source is InterstellarFusionReactor) {
                                 output = output * 0.95;
                             }
                             output = output * transmitPower / 100.0;

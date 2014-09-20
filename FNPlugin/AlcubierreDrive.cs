@@ -1,5 +1,5 @@
-﻿extern alias ORSv1_3;
-using ORSv1_3::OpenResourceSystem;
+﻿extern alias ORSv1_4_1;
+using ORSv1_4_1::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -356,7 +356,7 @@ namespace FNPlugin
 
             warp_sound = gameObject.AddComponent<AudioSource>();
             warp_sound.clip = GameDatabase.Instance.GetAudioClip("WarpPlugin/Sounds/warp_sound");
-            warp_sound.volume = 1;
+            warp_sound.volume = GameSettings.SHIP_VOLUME;
             warp_sound.panLevel = 0;
             warp_sound.rolloffMode = AudioRolloffMode.Linear;
             warp_sound.Stop();

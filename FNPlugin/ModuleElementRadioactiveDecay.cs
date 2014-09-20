@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_3;
+﻿extern alias ORSv1_4_1;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_1::OpenResourceSystem;
 
 namespace FNPlugin {
     [KSPModule("Radioactive Decay")]

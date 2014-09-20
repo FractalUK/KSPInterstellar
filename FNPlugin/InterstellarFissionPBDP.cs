@@ -1,5 +1,5 @@
-﻿extern alias ORSv1_3;
-using ORSv1_3::OpenResourceSystem;
+﻿extern alias ORSv1_4_1;
+using ORSv1_4_1::OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,6 +77,38 @@ namespace FNPlugin
             {
                 return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
             }
+        }
+
+        public override float GetCoreTempAtRadiatorTemp(float rad_temp)
+        {
+            float pfr_temp = 0;
+            if (!isupgraded)
+            {
+                if (!double.IsNaN(rad_temp) && !double.IsInfinity(rad_temp))
+                {
+                    pfr_temp = (float)Math.Min(Math.Max(rad_temp * 1.5, optimalPebbleTemp), tempZeroPower);
+                } else
+                {
+                    pfr_temp = optimalPebbleTemp;
+                }
+            } else
+            {
+                return ReactorTemp;
+            }
+            return pfr_temp;
+        }
+
+        public override float GetThermalPowerAtTemp(float temp)
+        {
+            float rel_temp_diff = 0;
+            if (temp > optimalPebbleTemp && temp < tempZeroPower && !isupgraded)
+            {
+                rel_temp_diff = (float)Math.Pow((tempZeroPower - temp) / (tempZeroPower - optimalPebbleTemp), 0.81);
+            } else
+            {
+                rel_temp_diff = 1;
+            }
+            return MaximumPower * rel_temp_diff;
         }
 
 

@@ -312,9 +312,7 @@ namespace FNPlugin {
 				}
 
                 double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
-				if (FNReactor.hasActiveReactors (vessel)) {
-					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
-				}
+                if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min(vessel.GetTemperatureofColdestThermalSource() / 1.01, radiator_temperature_temp_val);
 
                 double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
@@ -354,9 +352,7 @@ namespace FNPlugin {
 				}
 
                 double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
-				if (FNReactor.hasActiveReactors (vessel)) {
-					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
-				}
+				if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min (vessel.GetTemperatureofColdestThermalSource()/1.01, radiator_temperature_temp_val);
 
                 double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;

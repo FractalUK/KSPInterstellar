@@ -459,8 +459,8 @@ namespace FNPlugin {
 
                             }
 
-							if(prefab_available_part.FindModulesImplementing<ElectricEngineController>().Count() > 0) {
-								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineController>().First().GetInfo();
+							if(prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0) {
+								available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();
                                 available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
                                 AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "Electric Engine Controller").First();
                                 mod_info.moduleName = "Electric Engine";

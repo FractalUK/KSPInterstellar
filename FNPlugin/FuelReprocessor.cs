@@ -1,10 +1,10 @@
-﻿extern alias ORSv1_3;
+﻿extern alias ORSv1_4_1;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_1::OpenResourceSystem;
 
 namespace FNPlugin {
     class FuelReprocessor {
@@ -19,18 +19,19 @@ namespace FNPlugin {
         }
 
         public void performReprocessingFrame(double rate_multiplier) {
-            List<FNNuclearReactor> nuclear_reactors = vessel.FindPartModulesImplementing<FNNuclearReactor>();
+            List<InterstellarFissionMSRGC> nuclear_reactors = vessel.FindPartModulesImplementing<InterstellarFissionMSRGC>();
             double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * rate_multiplier;
             double enum_actinides_change = 0;
             double amount_to_reprocess = 0;
-            foreach (FNNuclearReactor nuclear_reactor in nuclear_reactors) {
+            foreach (InterstellarFissionMSRGC nuclear_reactor in nuclear_reactors)
+            {
                 // reprocess each one
                 PartResource actinides = nuclear_reactor.part.Resources["Actinides"];
                 if (remaining_capacity_to_reprocess > 0) {
                     double new_actinides_amount = Math.Max(actinides.amount - remaining_capacity_to_reprocess, 0);
                     double actinides_change = actinides.amount - new_actinides_amount;
                     actinides.amount = new_actinides_amount;
-                    if (nuclear_reactor.uranium_fuel) {
+                    if (nuclear_reactor.CurrentFuelMode.ModeGUIName == "Uranium Tetraflouride") {
                         PartResource uf4 = nuclear_reactor.part.Resources["UF4"];
                         double depleted_fuels_change = actinides_change * 0.2;
                         depleted_fuels_change = -ORSHelper.fixedRequestResource(part, "DepletedFuel", -depleted_fuels_change);

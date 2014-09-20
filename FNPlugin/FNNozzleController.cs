@@ -1,5 +1,5 @@
-extern alias ORSv1_3;
-using ORSv1_3::OpenResourceSystem;
+extern alias ORSv1_4_1;
+using ORSv1_4_1::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -339,7 +339,7 @@ namespace FNPlugin{
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
 			assThermalPower = myAttachedReactor.MaximumPower;
-            if (myAttachedReactor is FNFusionReactor) {
+            if (myAttachedReactor is InterstellarFusionReactor) {
                 assThermalPower = assThermalPower * 0.95f;
             }
 		}

@@ -38,9 +38,9 @@
     <Reference Include="Interstellar">
       <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\WarpPlugin\Plugins\Interstellar.dll</HintPath>
     </Reference>
-    <Reference Include="OpenResourceSystem_1_3_0">
-      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_3_0.dll</HintPath>
-      <Aliases>ORSv1_3</Aliases>
+    <Reference Include="OpenResourceSystem_1_4_1">
+      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_4_1.dll</HintPath>
+      <Aliases>ORSv1_4_1</Aliases>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

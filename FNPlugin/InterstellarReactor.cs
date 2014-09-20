@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_3;
+﻿extern alias ORSv1_4_1;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_1::OpenResourceSystem;
 
 namespace FNPlugin {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule {
@@ -103,6 +103,8 @@ namespace FNPlugin {
         protected int windowID = 90175467;
         protected bool render_window = false;
         protected GUIStyle bold_label;
+
+        public ReactorFuelMode CurrentFuelMode { get { return current_fuel_mode; } }
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
