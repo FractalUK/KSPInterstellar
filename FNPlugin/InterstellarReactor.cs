@@ -104,8 +104,6 @@ namespace FNPlugin {
         protected bool render_window = false;
         protected GUIStyle bold_label;
 
-        public ReactorFuelMode CurrentFuelMode { get { return current_fuel_mode; } }
-
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         public double FuelEfficiency { get { return isupgraded ? upgradedFuelEfficiency > 0 ? upgradedFuelEfficiency : fuelEfficiency : fuelEfficiency; } }

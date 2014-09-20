@@ -8,10 +8,11 @@ using System.Text;
 
 namespace FNPlugin {
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionMSRGC : InterstellarReactor {
+    class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
 
+        public double WasteToReprocess { get { return part.Resources.Contains("Actinides") ? part.Resources["Actinides"].amount : 0; }   }
 
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]
         public void SwapFuelMode()
@@ -138,6 +139,33 @@ namespace FNPlugin {
         public override bool shouldScaleDownJetISP()
         {
             return true;
+        }
+
+        public double ReprocessFuel(double rate)
+        {
+            if (part.Resources.Contains("Actinides"))
+            {
+                PartResource actinides = part.Resources["Actinides"];
+                double new_actinides_amount = Math.Max(actinides.amount - rate, 0);
+                double actinides_change = actinides.amount - new_actinides_amount;
+                actinides.amount = new_actinides_amount;
+
+                double depleted_fuels_change = actinides_change * 0.2;
+                depleted_fuels_change = -ORSHelper.fixedRequestResource(part, "DepletedFuel", -depleted_fuels_change);
+
+                double sum_useage_per_mw = current_fuel_mode.ReactorFuels.Sum(fuel => fuel.FuelUsePerMJ);
+
+                foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+                {
+                    PartResource fuel_resource = part.Resources[fuel.FuelName];
+                    double fraction = sum_useage_per_mw > 0.0 ? fuel.FuelUsePerMJ / sum_useage_per_mw : 1;
+                    double new_fuel_amount = Math.Min(fuel_resource.amount + depleted_fuels_change * 4.0*fraction, fuel_resource.maxAmount);
+                    fuel_resource.amount = new_fuel_amount;
+                }
+
+                return actinides_change;
+            }
+            return 0;
         }
 
         protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
