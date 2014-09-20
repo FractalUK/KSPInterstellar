@@ -8,38 +8,13 @@ using System.Text;
 namespace FNPlugin
 {
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionPBDP : InterstellarReactor
+    class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
     {
         // Persistant False
         [KSPField(isPersistant = false)]
         public float optimalPebbleTemp;
         [KSPField(isPersistant = false)]
         public float tempZeroPower;
-
-        // Properties
-        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
-
-        public override float MaximumThermalPower { get { return (float)(base.MaximumThermalPower * Math.Pow((tempZeroPower - CoreTemperature) / (tempZeroPower - optimalPebbleTemp), 0.81)); } }
-
-        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
-
-        public override bool IsNuclear { get { return true; } }
-
-        public override float CoreTemperature
-        {
-            get
-            {
-                double temp_scale;
-                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
-                {
-                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-                } else
-                {
-                    temp_scale = optimalPebbleTemp;
-                }
-                return (float)Math.Min(Math.Max(Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25) * temp_scale * 1.5, optimalPebbleTemp), tempZeroPower);
-            }
-        }
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ManualRestart()
@@ -52,6 +27,28 @@ namespace FNPlugin
         {
             IsEnabled = false;
         }
+
+        // Properties
+        public override bool IsNeutronRich { get { return current_fuel_mode != null ? !current_fuel_mode.Aneutronic : false; } }
+
+        public override float MaximumThermalPower { get { return isupgraded ? base.MaximumThermalPower : (float)(base.MaximumThermalPower * Math.Pow((tempZeroPower - CoreTemperature) / (tempZeroPower - optimalPebbleTemp), 0.81)); } }
+
+        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
+
+        public override bool IsNuclear { get { return true; } }
+
+        public override float CoreTemperature
+        {
+            get
+            {
+                if (HighLogic.LoadedSceneIsFlight && !isupgraded)
+                {
+                    double temp_scale = (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel)) ? FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel) : optimalPebbleTemp;
+                    return (float)Math.Min(Math.Max(Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25) * temp_scale * 1.5, optimalPebbleTemp), tempZeroPower);
+                } return base.CoreTemperature;
+            }
+        }
+      
 
         public override void OnUpdate()
         {

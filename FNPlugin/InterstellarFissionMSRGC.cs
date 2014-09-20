@@ -12,44 +12,6 @@ namespace FNPlugin {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
 
-        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
-
-        public override bool IsNuclear { get { return true; } }
-
-        public override float MaximumThermalPower
-        {
-            get
-            {
-                if (part.Resources["Actinides"] != null)
-                {
-                    double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
-                    double actinide_mass = part.Resources["Actinides"].amount;
-                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
-                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-                    return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
-                }
-                return base.MaximumThermalPower;
-            }
-        }
-
-        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
-
-        public override float CoreTemperature
-        {
-            get
-            {
-                double temp_scale;
-                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
-                {
-                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-                } else
-                {
-                    temp_scale = base.CoreTemperature/2.0;
-                }
-                double temp_diff = (base.CoreTemperature - temp_scale)*Math.Sqrt(powerPcnt/100.0);
-                return (float) (temp_scale + temp_diff);
-            }
-        }
 
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]
         public void SwapFuelMode()
@@ -78,21 +40,21 @@ namespace FNPlugin {
         }
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
-        public void ManualRestart() 
+        public void ManualRestart()
         {
             if (current_fuel_mode.ReactorFuels.All(fuel => getFuelAvailability(fuel) > 0.0001)) IsEnabled = true;
         }
 
         [KSPEvent(guiName = "Manual Shutdown", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
-        public void ManualShutdown() 
+        public void ManualShutdown()
         {
             IsEnabled = false;
         }
 
         [KSPEvent(guiName = "Refuel", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
-        public void Refuel() 
+        public void Refuel()
         {
-            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) 
+            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
                 if (!part.Resources.Contains(fuel.FuelName) || !part.Resources.Contains("Actinides")) return; // avoid exceptions, just in case
                 PartResource fuel_reactor = part.Resources[fuel.FuelName];
@@ -107,6 +69,45 @@ namespace FNPlugin {
                     res.amount -= resource_added;
                     spare_capacity_for_fuel -= resource_added;
                 });
+            }
+        }
+
+        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+
+        public override bool IsNuclear { get { return true; } }
+
+        public override float MaximumThermalPower
+        {
+            get
+            {
+                if (part.Resources["Actinides"] != null)
+                {
+                    double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
+                    double actinide_mass = part.Resources["Actinides"].amount;
+                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
+                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
+                    return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
+                }
+                return base.MaximumThermalPower;
+            }
+        }
+
+        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
+
+        public override float CoreTemperature
+        {
+            get
+            {
+                double temp_scale;
+                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                {
+                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+                } else
+                {
+                    temp_scale = base.CoreTemperature/2.0;
+                }
+                double temp_diff = (base.CoreTemperature - temp_scale)*Math.Sqrt(powerPcnt/100.0);
+                return (float) (temp_scale + temp_diff);
             }
         }
 

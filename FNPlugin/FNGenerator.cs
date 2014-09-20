@@ -127,28 +127,12 @@ namespace FNPlugin {
 		}
 
         public void OnEditorAttach() {
-            foreach (AttachNode attach_node in part.attachNodes) {
-                if (attach_node.attachedPart != null) {
-                    List<IThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<IThermalSource>();
-                    if (sources.Count > 0) {
-                        myAttachedReactor = sources.First();
-                        if (myAttachedReactor != null) {
-                            if (myAttachedReactor is InterstellarFusionReactor && isupgraded) {
-                                // if we're attaching to a fusion reactor, swap over to direct conversion if we can
-                                generatorType = altUpgradedName;
-                                chargedParticleMode = true;
-                            } else if (myAttachedReactor is FNAmatCatFissionFusionReactor && isupgraded) {
-                                // if we're attaching to a antimatter initiated reactor, swap over to direct conversion if we can
-                                generatorType = altUpgradedName;
-                                chargedParticleMode = true;
-                            } else { // otherwise use a standard thermal generator
-                                generatorType = upgradedName;
-                                chargedParticleMode = false;
-                            }
-                            break;
-                        }
-                    }
-                }
+            List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
+            myAttachedReactor = source_list.FirstOrDefault();
+            if (myAttachedReactor != null && myAttachedReactor is IChargedParticleSource && (myAttachedReactor as IChargedParticleSource).ChargedParticleRatio > 0)
+            {
+                generatorType = altUpgradedName;
+                chargedParticleMode = true;
             }
         }
 
@@ -200,18 +184,8 @@ namespace FNPlugin {
 				upgradePartModule ();
 			}
 
-			foreach (AttachNode attach_node in part.attachNodes) {
-				if(attach_node.attachedPart != null) {
-					List<IThermalSource> sources = attach_node.attachedPart.FindModulesImplementing<IThermalSource> ();
-					if (sources.Count > 0) {
-						myAttachedReactor = sources.First ();
-						if (myAttachedReactor != null) {
-							break;
-						}
-					}
-				}
-			}
-
+            List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
+            myAttachedReactor = source_list.FirstOrDefault();
 			print("[KSP Interstellar] Configuring Generator");
 		}
 
@@ -306,8 +280,13 @@ namespace FNPlugin {
             if (myAttachedReactor.getRadius() <= 0 || radius <= 0) {
                 heat_exchanger_thrust_divisor = 1;
             }
-			maxThermalPower = myAttachedReactor.MaximumThermalPower*heat_exchanger_thrust_divisor;
-            maxChargedPower = myAttachedReactor.MaximumThermalPower*heat_exchanger_thrust_divisor;
+			maxThermalPower = myAttachedReactor.MaximumPower*heat_exchanger_thrust_divisor;
+
+            if (myAttachedReactor is IChargedParticleSource) 
+                maxChargedPower = (myAttachedReactor as IChargedParticleSource).MaximumChargedPower * heat_exchanger_thrust_divisor;
+            else 
+                maxChargedPower = 0;
+            
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 

@@ -26,11 +26,11 @@ namespace FNPlugin  {
 
         public float CoreTemperature { get { return 1500; } }
 
+        public float MaximumPower { get { return MaximumThermalPower; } }
+
         public float MaximumThermalPower { get { return _thermalpower; } }
 
-        public float MinimumThermalPower { get { return 0; } }
-
-        public float ChargedPower { get { return 0; } }
+        public float MinimumPower { get { return 0; } }
 
         public bool IsVolatileSource { get { return false; } }
 

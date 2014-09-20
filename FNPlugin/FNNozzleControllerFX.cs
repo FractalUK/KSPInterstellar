@@ -303,7 +303,7 @@ namespace FNPlugin{
 
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
-			assThermalPower = myAttachedReactor.MaximumThermalPower;
+			assThermalPower = myAttachedReactor.MaximumPower;
 		}
 
 		public float getAtmosphericLimit() {

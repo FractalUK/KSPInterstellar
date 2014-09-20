@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin {
     [KSPModule("IC Fusion Reactor")]
-    class InterstellarInertialConfinementReactor : InterstellarFusionReactor
+    class InterstellarInertialConfinementReactor : InterstellarFusionReactor, IChargedParticleSource
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
@@ -25,7 +25,7 @@ namespace FNPlugin {
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
-        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
+        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public float LaserPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }
 

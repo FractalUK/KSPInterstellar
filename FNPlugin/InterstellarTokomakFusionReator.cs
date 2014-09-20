@@ -26,7 +26,7 @@ namespace FNPlugin {
 
         public override float MaximumThermalPower { get { return base.MaximumThermalPower * Mathf.Pow(plasma_ratio, 4.0f); } }
 
-        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
+        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 

@@ -1,23 +1,23 @@
 using System;
 
 namespace FNPlugin{
-	public interface IThermalSource{
+	public interface IThermalSource
+    {
+        float MaximumPower { get; }
 
-        float CoreTemperature { get; }
+        float MinimumPower { get; }
 
         float MaximumThermalPower { get; }
 
-        float MinimumThermalPower { get; }
-
-        float ChargedPower { get; }
-
-        bool IsNuclear { get; }
+        float CoreTemperature { get; }
 
         bool IsActive { get; }
 
         bool IsVolatileSource { get; }
 
-		float getRadius();
+        float getRadius();
+
+        bool IsNuclear { get; }
 
 		void enableIfPossible();
 

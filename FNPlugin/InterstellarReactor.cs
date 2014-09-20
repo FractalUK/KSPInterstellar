@@ -81,6 +81,8 @@ namespace FNPlugin {
         public string currentTPwr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charged Power")]
         public string currentCPwr = "";
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
+        public string fuelModeStr = "";
 
         protected bool hasrequiredupgrade = false;
         protected double tritium_rate;
@@ -123,9 +125,9 @@ namespace FNPlugin {
             } 
         }
 
-        public virtual float MinimumThermalPower { get { return 0; } }
+        public virtual float MinimumPower { get { return 0; } }
 
-        public virtual float ChargedPower { get { return isupgraded ? upgradedPowerOutput != 0 ? upgradedPowerOutput * ChargedParticleRatio : PowerOutput * ChargedParticleRatio : PowerOutput * ChargedParticleRatio; } }
+        public virtual float MaximumChargedPower { get { return isupgraded ? upgradedPowerOutput != 0 ? upgradedPowerOutput * ChargedParticleRatio : PowerOutput * ChargedParticleRatio : PowerOutput * ChargedParticleRatio; } }
 
         public virtual bool IsNuclear { get { return false; } }
 
@@ -136,6 +138,8 @@ namespace FNPlugin {
         public virtual bool IsNeutronRich { get { return false; } }
 
         public bool IsUpgradeable { get {return upgradedName != ""; } }
+
+        public virtual float MaximumPower { get { return MaximumThermalPower + MaximumChargedPower; } }
 
         [KSPEvent(guiActive = true, guiName = "Activate Reactor", active = false)]
         public void ActivateReactor() {
@@ -243,6 +247,7 @@ namespace FNPlugin {
             //Update Fields
             Fields["currentTPwr"].guiActive = IsEnabled && (ongoing_thermal_power_f > 0);
             Fields["currentCPwr"].guiActive = IsEnabled && (ongoing_charged_power_f > 0);
+            fuelModeStr = current_fuel_mode != null ? current_fuel_mode.ModeGUIName : "";
             //
             reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
             coretempStr = CoreTemperature.ToString("0") + " K";
@@ -265,31 +270,31 @@ namespace FNPlugin {
         public override void OnFixedUpdate() {
             decay_ongoing = false;
             base.OnFixedUpdate();
-            if (IsEnabled && MaximumThermalPower > 0) {
+            if (IsEnabled && MaximumPower > 0) {
                 if (reactorIsOverheating()) {
                     if(FlightGlobals.ActiveVessel == vessel) ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     IsEnabled = false;
                     return;
                 }
                 // Max Power
-                double max_power_to_supply = Math.Max(MaximumThermalPower * TimeWarp.fixedDeltaTime, 0);
+                double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
                 double fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => getFuelAvailability(fuel) / fuel.GetFuelUseForPower(FuelEfficiency,max_power_to_supply)), 1.0);
                 double min_throttle = fuel_ratio > 0 ? minimumThrottle / fuel_ratio : 1;
                 max_power_to_supply = max_power_to_supply * fuel_ratio;
                 // Charged Power
                 double charged_particles_to_supply = max_power_to_supply * ChargedParticleRatio;
                 double charged_power_received = supplyManagedFNResourceWithMinimum(charged_particles_to_supply, minimumThrottle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-                double charged_power_ratio = ChargedParticleRatio > 0 ? charged_power_received / MaximumThermalPower / ChargedParticleRatio / TimeWarp.fixedDeltaTime : 0;
+                double charged_power_ratio = ChargedParticleRatio > 0 ? charged_power_received / MaximumPower / ChargedParticleRatio / TimeWarp.fixedDeltaTime : 0;
                 ongoing_charged_power_f = (float)(charged_power_received / TimeWarp.fixedDeltaTime);
                 // Thermal Power
                 double thermal_power_to_supply = max_power_to_supply * (1.0 - ChargedParticleRatio);
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(thermal_power_to_supply, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER);
-                double thermal_power_ratio = (1 - ChargedParticleRatio) > 0 ? thermal_power_received / MaximumThermalPower / (1 - ChargedParticleRatio) / TimeWarp.fixedDeltaTime : 0;
+                double thermal_power_ratio = (1 - ChargedParticleRatio) > 0 ? thermal_power_received / MaximumPower / (1 - ChargedParticleRatio) / TimeWarp.fixedDeltaTime : 0;
                 ongoing_thermal_power_f = (float) (thermal_power_received / TimeWarp.fixedDeltaTime);
                 // Total
                 double total_power_received = thermal_power_received + charged_power_received;
                 total_power_per_frame = total_power_received;
-                double total_power_ratio = total_power_received / MaximumThermalPower / TimeWarp.fixedDeltaTime;
+                double total_power_ratio = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
 
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) consumeReactorFuel(fuel, total_power_received * fuel.FuelUsePerMJ); // consume fuel
                  
@@ -309,13 +314,14 @@ namespace FNPlugin {
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
-            } else if (MaximumThermalPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * 86400 && IsNuclear) {
+            } else if (MaximumPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * 86400 && IsNuclear)
+            {
                 double daughter_half_life = 86400.0 / 24.0 * 9.0;
                 double time_t = Planetarium.GetUniversalTime() - last_active_time;
                 double power_fraction = 0.1 * Math.Exp(-time_t / daughter_half_life);
-                double power_to_supply = Math.Max(MaximumThermalPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
+                double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply, 1.0, FNResourceManager.FNRESOURCE_THERMALPOWER);
-                double total_power_ratio = thermal_power_received / MaximumThermalPower / TimeWarp.fixedDeltaTime;
+                double total_power_ratio = thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
                 supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 powerPcnt = 100.0 * total_power_ratio;
                 decay_ongoing = true;
@@ -329,7 +335,7 @@ namespace FNPlugin {
         }
 
         public virtual float GetThermalPowerAtTemp(float temp) {
-            return MaximumThermalPower;
+            return MaximumPower;
         }
                 
 
@@ -362,13 +368,18 @@ namespace FNPlugin {
             sb.AppendLine(originalName);
             sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(PowerOutput));
             sb.AppendLine("Heat Exchanger Temperature: " + ReactorTemp.ToString("0") + "K");
+            sb.AppendLine("Fuel Burnup: " + (fuelEfficiency * 100.0).ToString("0.00") + "%");
             sb.AppendLine("BASIC FUEL MODES");
             basic_fuelmodes.ForEach(fm => {
                 sb.AppendLine("---");
                 sb.AppendLine(fm.ModeGUIName);
                 sb.AppendLine("Power Multiplier: " + fm.NormalisedReactionRate.ToString("0.00"));
                 sb.AppendLine("Charged Particle Ratio: " + fm.ChargedPowerRatio.ToString("0.00"));
-                foreach (ReactorFuel fuel in fm.ReactorFuels) sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * PowerOutput * fm.NormalisedReactionRate * 86400/fuelEfficiency + fuel.Unit + "/day");
+                sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
+                foreach (ReactorFuel fuel in fm.ReactorFuels)
+                {
+                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * PowerOutput * fm.NormalisedReactionRate * 86400.0 / fuelEfficiency + fuel.Unit + "/day");
+                }
                 sb.AppendLine("---");
             });
             if (IsUpgradeable) {
@@ -377,13 +388,17 @@ namespace FNPlugin {
                 sb.AppendLine(upgradedName);
                 sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(upgradedPowerOutput));
                 sb.AppendLine("Heat Exchanger Temperature: " + upgradedReactorTemp.ToString("0") + "K");
+                sb.AppendLine("Fuel Burnup: " + (upgradedFuelEfficiency * 100.0).ToString("0.00") + "%");
                 sb.AppendLine("UPGRADED FUEL MODES");
                 advanced_fuelmodes.ForEach(fm => {
                     sb.AppendLine("---");
                     sb.AppendLine(fm.ModeGUIName);
                     sb.AppendLine("Power Multiplier: " + fm.NormalisedReactionRate.ToString("0.00"));
                     sb.AppendLine("Charged Particle Ratio: " + fm.ChargedPowerRatio.ToString("0.00"));
-                    foreach (ReactorFuel fuel in fm.ReactorFuels) sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * upgradedPowerOutput * fm.NormalisedReactionRate * 86400/upgradedFuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
+                    foreach (ReactorFuel fuel in fm.ReactorFuels) {
+                        sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * upgradedPowerOutput * fm.NormalisedReactionRate * 86400.0/upgradedFuelEfficiency + fuel.Unit + "/day");
+                    }
                     sb.AppendLine("---");
                 });
             }
@@ -395,7 +410,7 @@ namespace FNPlugin {
             double time_diff = now - last_active_time;
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ); // consume fuel
             if (breedtritium) {
-                tritium_rate = MaximumThermalPower / 1000.0 / GameConstants.tritiumBreedRate;
+                tritium_rate = MaximumPower / 1000.0 / GameConstants.tritiumBreedRate;
                 PartResourceDefinition lithium_definition = PartResourceLibrary.Instance.GetDefinition("Lithium");
                 PartResourceDefinition tritium_definition = PartResourceLibrary.Instance.GetDefinition("LqdTritium");
                 List<PartResource> lithium_resources = part.GetConnectedResources("Lithium").ToList();
@@ -445,10 +460,10 @@ namespace FNPlugin {
 
         protected double getFuelAvailability(ReactorFuel fuel) {
             if (!consumeGlobal) {
-                if (part.Resources.Contains(fuel.FuelName)) return part.Resources[fuel.FuelName].amount * FuelEfficiency;
+                if (part.Resources.Contains(fuel.FuelName)) return part.Resources[fuel.FuelName].amount;
                 else return 0;
             } else {
-                return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount) * FuelEfficiency;
+                return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
             }
         }
 
@@ -474,7 +489,7 @@ namespace FNPlugin {
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Max Thermal Power", bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(MaximumThermalPower*(1.0 - ChargedParticleRatio)) + "_th", GUILayout.Width(150));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(MaximumThermalPower) + "_th", GUILayout.Width(150));
             GUILayout.EndHorizontal();
             if (ChargedParticleRatio > 0) {
                 GUILayout.BeginHorizontal();
@@ -483,7 +498,7 @@ namespace FNPlugin {
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Max Charged Power", bold_label, GUILayout.Width(150));
-                GUILayout.Label(PluginHelper.getFormattedPowerString(MaximumThermalPower) + "_cp", GUILayout.Width(150));
+                GUILayout.Label(PluginHelper.getFormattedPowerString(MaximumChargedPower) + "_cp", GUILayout.Width(150));
                 GUILayout.EndHorizontal();
             }
             if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null) {

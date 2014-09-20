@@ -338,7 +338,7 @@ namespace FNPlugin{
 
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
-			assThermalPower = myAttachedReactor.MaximumThermalPower;
+			assThermalPower = myAttachedReactor.MaximumPower;
             if (myAttachedReactor is FNFusionReactor) {
                 assThermalPower = assThermalPower * 0.95f;
             }
@@ -387,7 +387,7 @@ namespace FNPlugin{
                 minISP = maxISP * 0.4f;
                 atmospherecurve.Add(0, maxISP, 0, 0);
                 atmospherecurve.Add(1, minISP, 0, 0);
-                thrust = (float)(2 * myAttachedReactor.MaximumThermalPower * 1000 / g0 / maxISP);
+                thrust = (float)(2 * myAttachedReactor.MaximumPower * 1000 / g0 / maxISP);
                 myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             } else {
