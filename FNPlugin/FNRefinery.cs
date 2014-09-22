@@ -248,14 +248,14 @@ namespace FNPlugin {
                 } else if (active_mode == 1) { // Aluminium Electrolysis
                     double electrical_power_provided = consumeFNResource((GameConstants.baseELCPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseELCPowerConsumption);
-                    double density_alumina = PartResourceLibrary.Instance.GetDefinition("Alumina").density;
-                    double aluminium_density = PartResourceLibrary.Instance.GetDefinition(PluginHelper.aluminium_resource_name).density;
-                    double oxygen_density = PartResourceLibrary.Instance.GetDefinition(PluginHelper.oxygen_resource_name).density;
+                    double density_alumina = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Alumina).density;
+                    double aluminium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Aluminium).density;
+                    double oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
                     electrolysis_rate_d = electrical_power_provided / GameConstants.aluminiumElectrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
-                    double alumina_consumption_rate = part.RequestResource("Alumina", electrolysis_rate_d * TimeWarp.fixedDeltaTime / density_alumina) / TimeWarp.fixedDeltaTime * density_alumina;
+                    double alumina_consumption_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Alumina, electrolysis_rate_d * TimeWarp.fixedDeltaTime / density_alumina) / TimeWarp.fixedDeltaTime * density_alumina;
                     double mass_rate = alumina_consumption_rate;
-                    electrolysis_rate_d = part.RequestResource(PluginHelper.aluminium_resource_name, -mass_rate * TimeWarp.fixedDeltaTime / aluminium_density) * aluminium_density;
-                    electrolysis_rate_d += part.RequestResource(PluginHelper.oxygen_resource_name, -GameConstants.aluminiumElectrolysisMassRatio * mass_rate * TimeWarp.fixedDeltaTime / oxygen_density) * oxygen_density;
+                    electrolysis_rate_d = part.RequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -mass_rate * TimeWarp.fixedDeltaTime / aluminium_density) * aluminium_density;
+                    electrolysis_rate_d += part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -GameConstants.aluminiumElectrolysisMassRatio * mass_rate * TimeWarp.fixedDeltaTime / oxygen_density) * oxygen_density;
                     electrolysis_rate_d = electrolysis_rate_d / TimeWarp.fixedDeltaTime;
                 } else if (active_mode == 2) { // Sabatier ISRU
                     if (FlightGlobals.getStaticPressure(vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01) {
@@ -264,58 +264,58 @@ namespace FNPlugin {
                         electrolysis_rate_d = electrical_power_provided / GameConstants.electrolysisEnergyPerTon * vessel.atmDensity / TimeWarp.fixedDeltaTime;
                         double hydrogen_rate = electrolysis_rate_d / (1 + GameConstants.electrolysisMassRatio);
                         double oxygen_rate = hydrogen_rate * (GameConstants.electrolysisMassRatio-1);
-                        double density_h = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_resource_name).density;
-                        double density_o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.oxygen_resource_name).density;
-                        double density_ch4 = PartResourceLibrary.Instance.GetDefinition(PluginHelper.methane_resource_name).density;
-                        double h2_rate = part.RequestResource(PluginHelper.hydrogen_resource_name, hydrogen_rate * TimeWarp.fixedDeltaTime / density_h / 2);
+                        double density_h = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+                        double density_o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
+                        double density_ch4 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Methane).density;
+                        double h2_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate * TimeWarp.fixedDeltaTime / density_h / 2);
                         if (h2_rate > 0) {
-                            double o_rate = part.RequestResource(PluginHelper.oxygen_resource_name, -oxygen_rate * TimeWarp.fixedDeltaTime / density_o);
+                            double o_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate * TimeWarp.fixedDeltaTime / density_o);
                             double methane_rate = oxygen_rate * 2;
-                            methane_rate_d = -part.RequestResource(PluginHelper.methane_resource_name, -methane_rate * TimeWarp.fixedDeltaTime / density_ch4) * density_ch4 / TimeWarp.fixedDeltaTime;
+                            methane_rate_d = -part.RequestResource(InterstellarResourcesConfiguration.Instance.Methane, -methane_rate * TimeWarp.fixedDeltaTime / density_ch4) * density_ch4 / TimeWarp.fixedDeltaTime;
                         }
                     } else {
                         ScreenMessages.PostScreenMessage("Ambient C02 insufficient.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         IsEnabled = false;
                     }
                 } else if (active_mode == 3) { // Water Electrolysis
-                    double density_h = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_resource_name).density;
-                    double density_o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.oxygen_resource_name).density;
-                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.water_resource_name).density;
+                    double density_h = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+                    double density_o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
+                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
                     double electrical_power_provided = consumeFNResource((GameConstants.baseELCPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseELCPowerConsumption);
                     electrolysis_rate_d = electrical_power_provided / GameConstants.electrolysisEnergyPerTon / TimeWarp.fixedDeltaTime;
-                    double water_consumption_rate = part.RequestResource(PluginHelper.water_resource_name, electrolysis_rate_d * TimeWarp.fixedDeltaTime / density_h2o) / TimeWarp.fixedDeltaTime*density_h2o;
+                    double water_consumption_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Water, electrolysis_rate_d * TimeWarp.fixedDeltaTime / density_h2o) / TimeWarp.fixedDeltaTime * density_h2o;
                     double hydrogen_rate = water_consumption_rate / (1 + GameConstants.electrolysisMassRatio);
                     double oxygen_rate = hydrogen_rate * GameConstants.electrolysisMassRatio;
-                    electrolysis_rate_d = part.RequestResource(PluginHelper.hydrogen_resource_name, -hydrogen_rate * TimeWarp.fixedDeltaTime / density_h);
-                    electrolysis_rate_d += part.RequestResource(PluginHelper.oxygen_resource_name, -oxygen_rate * TimeWarp.fixedDeltaTime / density_o);
+                    electrolysis_rate_d = part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_rate * TimeWarp.fixedDeltaTime / density_h);
+                    electrolysis_rate_d += part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate * TimeWarp.fixedDeltaTime / density_o);
                     electrolysis_rate_d = electrolysis_rate_d / TimeWarp.fixedDeltaTime * density_h;
                 } else if (active_mode == 4) { // Anthraquinone Process
-                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.water_resource_name).density;
-                    double density_h2o2 = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_peroxide_resource_name).density;
+                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
+                    double density_h2o2 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
                     double electrical_power_provided = consumeFNResource((GameConstants.baseAnthraquiononePowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseAnthraquiononePowerConsumption);
                     anthra_rate_d = electrical_power_provided / GameConstants.anthraquinoneEnergyPerTon / TimeWarp.fixedDeltaTime;
-                    double water_consumption_rate = part.RequestResource(PluginHelper.water_resource_name, anthra_rate_d * TimeWarp.fixedDeltaTime / density_h2o) / TimeWarp.fixedDeltaTime * density_h2o;
-                    anthra_rate_d = -part.RequestResource(PluginHelper.hydrogen_peroxide_resource_name, -water_consumption_rate * TimeWarp.fixedDeltaTime / density_h2o2) * density_h2o2/TimeWarp.fixedDeltaTime;
+                    double water_consumption_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Water, anthra_rate_d * TimeWarp.fixedDeltaTime / density_h2o) / TimeWarp.fixedDeltaTime * density_h2o;
+                    anthra_rate_d = -part.RequestResource(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide, -water_consumption_rate * TimeWarp.fixedDeltaTime / density_h2o2) * density_h2o2 / TimeWarp.fixedDeltaTime;
                     if (water_consumption_rate <= 0 && electrical_power_ratio > 0) {
                         ScreenMessages.PostScreenMessage("Water is required to perform the Anthraquinone Process.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         IsEnabled = false;
                     }
                 } else if (active_mode == 5) { // Monoprop Production
-                    double density_h2o2 = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_peroxide_resource_name).density;
-                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(PluginHelper.water_resource_name).density;
-                    double density_ammonia = PartResourceLibrary.Instance.GetDefinition(PluginHelper.ammonia_resource_name).density;
+                    double density_h2o2 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
+                    double density_h2o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
+                    double density_ammonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
                     double electrical_power_provided = consumeFNResource((GameConstants.basePechineyUgineKuhlmannPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePechineyUgineKuhlmannPowerConsumption);
                     monoprop_rate_d = electrical_power_provided / GameConstants.pechineyUgineKuhlmannEnergyPerTon / TimeWarp.fixedDeltaTime;
-                    double ammonia_consumption_rate = part.RequestResource(PluginHelper.ammonia_resource_name, 0.5 * monoprop_rate_d * (1 - GameConstants.pechineyUgineKuhlmannMassRatio) * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia / TimeWarp.fixedDeltaTime;
-                    double h202_consumption_rate = part.RequestResource(PluginHelper.hydrogen_peroxide_resource_name, 0.5 * monoprop_rate_d * GameConstants.pechineyUgineKuhlmannMassRatio * TimeWarp.fixedDeltaTime / density_h2o2) * density_h2o2 / TimeWarp.fixedDeltaTime;
+                    double ammonia_consumption_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, 0.5 * monoprop_rate_d * (1 - GameConstants.pechineyUgineKuhlmannMassRatio) * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia / TimeWarp.fixedDeltaTime;
+                    double h202_consumption_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide, 0.5 * monoprop_rate_d * GameConstants.pechineyUgineKuhlmannMassRatio * TimeWarp.fixedDeltaTime / density_h2o2) * density_h2o2 / TimeWarp.fixedDeltaTime;
                     if (ammonia_consumption_rate > 0 && h202_consumption_rate > 0) {
                         double mono_prop_produciton_rate = ammonia_consumption_rate + h202_consumption_rate;
                         double density_monoprop = PartResourceLibrary.Instance.GetDefinition("MonoPropellant").density;
                         monoprop_rate_d = -ORSHelper.fixedRequestResource(part,"MonoPropellant", -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime / density_monoprop)*density_monoprop/TimeWarp.fixedDeltaTime;
-                        ORSHelper.fixedRequestResource(part, PluginHelper.water_resource_name, -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime * 1.12436683185 / density_h2o);
+                        ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Water, -mono_prop_produciton_rate * TimeWarp.fixedDeltaTime * 1.12436683185 / density_h2o);
                     } else {
                         if (electrical_power_ratio > 0) {
                             monoprop_rate_d = 0;
@@ -324,19 +324,19 @@ namespace FNPlugin {
                         }
                     }
                 } else if (active_mode == 6) {
-                    double density_ammonia = PartResourceLibrary.Instance.GetDefinition(PluginHelper.ammonia_resource_name).density;
-                    double density_uf4 = PartResourceLibrary.Instance.GetDefinition("UF4").density;
-                    double density_un = PartResourceLibrary.Instance.GetDefinition("UraniumNitride").density;
+                    double density_ammonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
+                    double density_uf4 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).density;
+                    double density_un = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
                     double electrical_power_provided = consumeFNResource((GameConstants.baseUraniumAmmonolysisConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseUraniumAmmonolysisConsumption);
                     double lpersec = GameConstants.baseUraniumAmmonolysisRate * electrical_power_ratio;
                     double uf4persec = lpersec * 1.24597 / density_uf4;
                     double unpersec = lpersec / density_un;
                     double ammoniapersec = lpersec * 0.901 / density_ammonia;
-                    double uf4_rate = ORSHelper.fixedRequestResource(part, "UF4", uf4persec * TimeWarp.fixedDeltaTime);
-                    double ammonia_rate = ORSHelper.fixedRequestResource(part, PluginHelper.ammonia_resource_name, uf4persec * TimeWarp.fixedDeltaTime);
+                    double uf4_rate = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * TimeWarp.fixedDeltaTime);
+                    double ammonia_rate = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Ammonia, uf4persec * TimeWarp.fixedDeltaTime);
                     if (uf4_rate > 0 && ammonia_rate > 0) {
-                        uranium_nitride_rate_d = -ORSHelper.fixedRequestResource(part, "UraniumNitride", -uf4_rate * density_uf4 / 1.24597 / density_un)/TimeWarp.fixedDeltaTime*density_un;
+                        uranium_nitride_rate_d = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.UraniumNitride, -uf4_rate * density_uf4 / 1.24597 / density_un)/TimeWarp.fixedDeltaTime*density_un;
                     } else {
                         if (electrical_power_ratio > 0) {
                             uranium_nitride_rate_d = 0;
@@ -347,14 +347,14 @@ namespace FNPlugin {
 
                 } else if (active_mode == 7) {
                     if (FlightGlobals.getStaticPressure(vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.1) {
-                        double density_ammonia = PartResourceLibrary.Instance.GetDefinition(PluginHelper.ammonia_resource_name).density;
-                        double density_h = PartResourceLibrary.Instance.GetDefinition(PluginHelper.hydrogen_resource_name).density;
+                        double density_ammonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
+                        double density_h = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
                         double electrical_power_provided = consumeFNResource((GameConstants.baseHaberProcessPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                         electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseHaberProcessPowerConsumption);
                         double hydrogen_rate_t = electrical_power_provided / GameConstants.baseHaberProcessEnergyPerTon * GameConstants.ammoniaHydrogenFractionByMass/TimeWarp.fixedDeltaTime;
-                        double ammonia_rate_to_add_t = ORSHelper.fixedRequestResource(part, PluginHelper.hydrogen_resource_name, hydrogen_rate_t * TimeWarp.fixedDeltaTime / density_h) * density_h / GameConstants.ammoniaHydrogenFractionByMass/TimeWarp.fixedDeltaTime;
+                        double ammonia_rate_to_add_t = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate_t * TimeWarp.fixedDeltaTime / density_h) * density_h / GameConstants.ammoniaHydrogenFractionByMass / TimeWarp.fixedDeltaTime;
                         if (ammonia_rate_to_add_t > 0) {
-                            ammonia_rate_d = -ORSHelper.fixedRequestResource(part, PluginHelper.ammonia_resource_name, -ammonia_rate_to_add_t * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia/TimeWarp.fixedDeltaTime;
+                            ammonia_rate_d = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Ammonia, -ammonia_rate_to_add_t * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia / TimeWarp.fixedDeltaTime;
                         } else {
                             if (electrical_power_ratio > 0) {
                                 ScreenMessages.PostScreenMessage("Hydrogen is required to perform the Haber Process.", 5.0f, ScreenMessageStyle.UPPER_CENTER);

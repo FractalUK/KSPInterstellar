@@ -39,8 +39,8 @@ namespace FNPlugin
 			ModuleEngines curEngineT = (ModuleEngines)this.part.Modules ["ModuleEngines"];
 			minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
-            standard_deut_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "LQDDEUTERIUM").ratio;
-            standard_lith_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "LQDTRITIUM").ratio;
+            standard_deut_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio;
+            standard_lith_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio;
 
 		}
 
@@ -134,8 +134,8 @@ namespace FNPlugin
 
 			if (throttle > 0) {
                 double power = consumeFNResource(2500.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "LQDDEUTERIUM").ratio = (float)(standard_deut_rate / throttle / throttle);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name.ToUpperInvariant() == "LQDTRITIUM").ratio = (float)(standard_lith_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deut_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_lith_rate / throttle / throttle);
                 //curEngineT.propellants[1].ratio = (float)(standard_deut_rate / throttle / throttle);
                 //curEngineT.propellants[2].ratio = (float)(standard_lith_rate / throttle / throttle);
                 FloatCurve newISP = new FloatCurve();

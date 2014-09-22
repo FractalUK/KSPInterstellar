@@ -109,14 +109,14 @@ namespace FNPlugin
                 return;
             }
 
-            List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
+            List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
             float exotic_matter_available = (float) resources.Sum(res => res.amount);
 
             if (exotic_matter_available < megajoules_required * warp_factors[selected_factor]) {
                 ScreenMessages.PostScreenMessage("Warp drive charging!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-            part.RequestResource("ExoticMatter", megajoules_required * warp_factors[selected_factor]);
+            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, megajoules_required * warp_factors[selected_factor]);
             warp_sound.Play();
             warp_sound.loop = true;
             
@@ -452,7 +452,7 @@ namespace FNPlugin
 
 			float currentExoticMatter = 0;
 			float maxExoticMatter = 0;
-            List<PartResource> partresources = part.GetConnectedResources("ExoticMatter").ToList();
+            List<PartResource> partresources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
 			foreach (PartResource partresource in partresources) {
 				currentExoticMatter += (float)partresource.amount;
 				maxExoticMatter += (float)partresource.maxAmount;
@@ -462,13 +462,13 @@ namespace FNPlugin
 				float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * 1000;
 				float available_power = getStableResourceSupply (FNResourceManager.FNRESOURCE_MEGAJOULES);
 				float power_returned = consumeFNResource (Math.Min (maxPowerDrawForExoticMatter * TimeWarp.fixedDeltaTime, available_power * TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
-				part.RequestResource ("ExoticMatter", -power_returned / 1000.0f);
+                part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned / 1000.0f);
 			}
 
 
             if (!IsEnabled) {
                 //ChargeStatus = "";
-                List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
+                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
                 float exotic_matter_available = (float) resources.Sum(res => res.amount);
 
                 if (exotic_matter_available < megajoules_required * warp_factors[selected_factor]) {

@@ -64,6 +64,12 @@ namespace FNPlugin {
             }
         }
 
+        public override void OnStart(PartModule.StartState state)
+        {
+            if (state != StartState.Editor) breedtritium = true;
+            base.OnStart(state);
+        }
+
         public override string getResourceManagerDisplayName() {
             return TypeName;
         }

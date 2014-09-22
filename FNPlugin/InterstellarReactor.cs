@@ -309,8 +309,8 @@ namespace FNPlugin {
                 if (breedtritium) {
                     double tritium_rate = thermal_power_received / TimeWarp.fixedDeltaTime / 1000.0f / GameConstants.tritiumBreedRate;
                     double lith_rate = tritium_rate * TimeWarp.fixedDeltaTime;
-                    double lith_used = ORSHelper.fixedRequestResource(part, "Lithium", lith_rate);
-                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, "Tritium", -lith_used) / TimeWarp.fixedDeltaTime);
+                    double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
+                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -lith_used) / TimeWarp.fixedDeltaTime);
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
@@ -411,16 +411,16 @@ namespace FNPlugin {
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ); // consume fuel
             if (breedtritium) {
                 tritium_rate = MaximumPower / 1000.0 / GameConstants.tritiumBreedRate;
-                PartResourceDefinition lithium_definition = PartResourceLibrary.Instance.GetDefinition("Lithium");
-                PartResourceDefinition tritium_definition = PartResourceLibrary.Instance.GetDefinition("LqdTritium");
-                List<PartResource> lithium_resources = part.GetConnectedResources("Lithium").ToList();
-                List<PartResource> tritium_resources = part.GetConnectedResources("LqdTritium").ToList();
+                PartResourceDefinition lithium_definition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
+                PartResourceDefinition tritium_definition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
+                List<PartResource> lithium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium).ToList();
+                List<PartResource> tritium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Tritium).ToList();
                 double lithium_current_amount = lithium_resources.Sum(rs => rs.amount);
                 double tritium_missing_amount = tritium_resources.Sum(rs => rs.maxAmount - rs.amount);
                 double lithium_to_take = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, lithium_current_amount);
                 double tritium_to_add = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, tritium_missing_amount) * lithium_definition.density / tritium_definition.density; ;
-                ORSHelper.fixedRequestResource(part, "Lithium", Math.Min(tritium_to_add, lithium_to_take));
-                ORSHelper.fixedRequestResource(part, "LqdTritium", -Math.Min(tritium_to_add, lithium_to_take));
+                ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, Math.Min(tritium_to_add, lithium_to_take));
+                ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -Math.Min(tritium_to_add, lithium_to_take));
             }
         }
 

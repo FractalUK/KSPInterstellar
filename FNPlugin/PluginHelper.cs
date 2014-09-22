@@ -27,14 +27,6 @@ namespace FNPlugin {
         public const int REF_BODY_DRES = 15;
         public const int REF_BODY_EELOO = 16;
 
-        public static string hydrogen_resource_name = "LiquidFuel";
-        public static string oxygen_resource_name = "Oxidizer";
-        public static string aluminium_resource_name = "Aluminium";
-        public static string methane_resource_name = "LqdMethane";
-        public static string argon_resource_name = "Argon";
-        public static string water_resource_name = "LqdWater";
-        public static string hydrogen_peroxide_resource_name = "H2Peroxide";
-        public static string ammonia_resource_name = "Ammonia";
         public static bool using_toolbar = false;
 
         public const int interstellar_major_version = 10;
@@ -49,8 +41,8 @@ namespace FNPlugin {
         protected static TechUpdateWindow tech_window = null;
         protected static int installed_tech_tree_version_id = 0;
         protected static int new_tech_tree_version_id = 0;
-        
-        
+
+        public static ConfigNode PluginSettingsConfig { get { return GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings"); } }
         
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
@@ -341,38 +333,6 @@ namespace FNPlugin {
             if (!resources_configured) {
                 ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings");
                 if (plugin_settings != null) {
-                    if (plugin_settings.HasValue("HydrogenResourceName")) {
-                        PluginHelper.hydrogen_resource_name = plugin_settings.GetValue("HydrogenResourceName");
-                        Debug.Log("[KSP Interstellar] Hydrogen resource name set to " + PluginHelper.hydrogen_resource_name);
-                    }
-                    if (plugin_settings.HasValue("OxygenResourceName")) {
-                        PluginHelper.oxygen_resource_name = plugin_settings.GetValue("OxygenResourceName");
-                        Debug.Log("[KSP Interstellar] Oxygen resource name set to " + PluginHelper.oxygen_resource_name);
-                    }
-                    if (plugin_settings.HasValue("AluminiumResourceName")) {
-                        PluginHelper.aluminium_resource_name = plugin_settings.GetValue("AluminiumResourceName");
-                        Debug.Log("[KSP Interstellar] Aluminium resource name set to " + PluginHelper.aluminium_resource_name);
-                    }
-                    if (plugin_settings.HasValue("MethaneResourceName")) {
-                        PluginHelper.methane_resource_name = plugin_settings.GetValue("MethaneResourceName");
-                        Debug.Log("[KSP Interstellar] Methane resource name set to " + PluginHelper.methane_resource_name);
-                    }
-                    if (plugin_settings.HasValue("ArgonResourceName")) {
-                        PluginHelper.argon_resource_name = plugin_settings.GetValue("ArgonResourceName");
-                        Debug.Log("[KSP Interstellar] Argon resource name set to " + PluginHelper.argon_resource_name);
-                    }
-                    if (plugin_settings.HasValue("WaterResourceName")) {
-                        PluginHelper.water_resource_name = plugin_settings.GetValue("WaterResourceName");
-                        Debug.Log("[KSP Interstellar] Water resource name set to " + PluginHelper.water_resource_name);
-                    }
-                    if (plugin_settings.HasValue("HydrogenPeroxideResourceName")) {
-                        PluginHelper.hydrogen_peroxide_resource_name = plugin_settings.GetValue("HydrogenPeroxideResourceName");
-                        Debug.Log("[KSP Interstellar] Hydrogen Peroxide resource name set to " + PluginHelper.hydrogen_peroxide_resource_name);
-                    }
-                    if (plugin_settings.HasValue("AmmoniaResourceName")) {
-                        PluginHelper.ammonia_resource_name = plugin_settings.GetValue("AmmoniaResourceName");
-                        Debug.Log("[KSP Interstellar] Ammonia resource name set to " + PluginHelper.ammonia_resource_name);
-                    }
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled")) {
                         PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
                         Debug.Log("[KSP Interstellar] ThermalMechanics set to enabled: " + !PluginHelper.is_thermal_dissip_disabled);
@@ -416,11 +376,12 @@ namespace FNPlugin {
 										pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
 									}
 
-									PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
+                                    PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
-                                    if (intake_air_resource != null && !prefab_available_part.Resources.Contains("IntakeAtm")) {
+                                    if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
+                                    {
 										ConfigNode node = new ConfigNode("RESOURCE");
-										node.AddValue("name", "IntakeAtm");
+                                        node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
 										node.AddValue("maxAmount", intake_air_resource.maxAmount);
 										node.AddValue("amount", intake_air_resource.amount);
 										prefab_available_part.AddResource(node);

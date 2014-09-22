@@ -79,7 +79,7 @@ namespace FNPlugin {
 
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
-            antimatter = part.Resources["Antimatter"];
+            antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
 		}
 
 		public override void OnUpdate() {

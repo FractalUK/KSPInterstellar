@@ -66,11 +66,11 @@ namespace FNPlugin
         {
             if (!consumeGlobal)
             {
-                if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains("DepletedFuel"))
+                if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.DepletedFuel))
                 {
                     double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
                     part.Resources[fuel.FuelName].amount -= amount;
-                    part.Resources["DepletedFuel"].amount += amount;
+                    part.Resources[InterstellarResourcesConfiguration.Instance.DepletedFuel].amount += amount;
                     return amount;
                 } else return 0;
             } else

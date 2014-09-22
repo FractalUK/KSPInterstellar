@@ -196,7 +196,7 @@ namespace FNPlugin {
                     double now = Planetarium.GetUniversalTime();
                     double time_diff = now - last_active_time;
 
-                    List<PartResource> antimatter_resources = part.GetConnectedResources("Antimatter").ToList();
+                    List<PartResource> antimatter_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Antimatter).ToList();
                     float currentAntimatter_missing = 0;
                     foreach (PartResource partresource in antimatter_resources) {
                         currentAntimatter_missing += (float)(partresource.maxAmount - partresource.amount);
@@ -353,7 +353,7 @@ namespace FNPlugin {
                         electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseCentriPowerConsumption);
                         global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                         float deut_produced = (float)(global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
-                        deut_rate_f = -ORSHelper.fixedRequestResource(part, "Deuterium", -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                        deut_rate_f = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Deuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                     } else {
                         ScreenMessages.PostScreenMessage("You must be splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         IsEnabled = false;
