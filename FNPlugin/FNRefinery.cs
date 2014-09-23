@@ -56,7 +56,7 @@ namespace FNPlugin {
         protected bool play_down = true;
         protected Animation anim;
         protected String[] modes = { "Nuclear Reprocessing", "Aluminium Electrolysis","Sabatier ISRU","Water Electrolysis","Anthraquinone Process","Monopropellant Production","UF4 Ammonolysis","Haber Process"};
-        protected FuelReprocessor reprocessor;
+        protected NuclearFuelReprocessor reprocessor;
 
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
         public void ReprocessFuel() {
@@ -130,7 +130,7 @@ namespace FNPlugin {
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
             part.force_activate();
-            reprocessor = new FuelReprocessor(part);
+            reprocessor = new NuclearFuelReprocessor(part);
 
             if (part.airlock != null && part.airlock.transform != null) {
                 if (part.airlock.transform.gameObject != null) {
@@ -153,7 +153,7 @@ namespace FNPlugin {
         }
 
         public override void OnUpdate() {
-            Events["ReprocessFuel"].active = !IsEnabled;
+            Events["ReprocessFuel"].active = !IsEnabled && reprocessor.HasActivityRequirements;
             Events["ActivateElectrolysis"].active = !IsEnabled;
             Events["ActivateSabatier"].active = !IsEnabled;
             Events["ElectrolyseWater"].active = !IsEnabled;
@@ -236,9 +236,9 @@ namespace FNPlugin {
         public override void OnFixedUpdate() {
             if (IsEnabled) {
                 if (active_mode == 0) { // Fuel Reprocessing
-                    double electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                    electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePowerConsumption);
-                    reprocessor.performReprocessingFrame(electrical_power_ratio);
+                    double electrical_power_provided = consumeFNResource(reprocessor.PowerRequirements, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    electrical_power_ratio = (float)(electrical_power_provided / reprocessor.PowerRequirements);
+                    reprocessor.UpdateFrame(electrical_power_ratio);
                     if (reprocessor.getActinidesRemovedPerHour() > 0) {
                         reprocessing_rate_d = reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour();
                     } else {

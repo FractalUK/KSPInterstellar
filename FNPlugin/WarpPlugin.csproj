@@ -85,9 +85,10 @@
     <Compile Include="InterstellarResourcesConfiguration.cs" />
     <Compile Include="InterstellarTelescope.cs" />
     <Compile Include="INuclearFuelReprocessable.cs" />
+    <Compile Include="IRefineryActivity.cs" />
     <Compile Include="ITelescopeController.cs" />
     <Compile Include="IUpgradeableModule.cs" />
-    <Compile Include="FuelReprocessor.cs" />
+    <Compile Include="NuclearFuelReprocessor.cs" />
     <Compile Include="GameConstants.cs" />
     <Compile Include="InterstellarReactor.cs" />
     <Compile Include="InterstellarTokomakFusionReator.cs" />

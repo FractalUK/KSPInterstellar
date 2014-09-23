@@ -25,6 +25,15 @@ namespace FNPlugin {
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
+        public override float MaximumPower
+        {
+            get
+            {
+                float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
+                return isupgraded ? upgradedPowerOutput != 0 ? upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
+            }
+        }
+
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public float LaserPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }

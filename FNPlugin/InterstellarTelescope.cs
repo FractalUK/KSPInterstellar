@@ -169,10 +169,10 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
+                calculateTimeToHeliumDepletion();
+
                 if (ResearchAndDevelopment.Instance != null)
                 {
-                    calculateTimeToHeliumDepletion();
-
                     if (helium_time_scale <= 0) telescopeIsEnabled = false;
 
                     perform_exponent = -(Planetarium.GetUniversalTime() - lastMaintained) * GameConstants.telescopePerformanceTimescale;

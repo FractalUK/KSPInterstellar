@@ -307,10 +307,13 @@ namespace FNPlugin {
                 if (min_throttle > 1.05) IsEnabled = false;
 
                 if (breedtritium) {
-                    double tritium_rate = thermal_power_received / TimeWarp.fixedDeltaTime / 1000.0f / GameConstants.tritiumBreedRate;
-                    double lith_rate = tritium_rate * TimeWarp.fixedDeltaTime;
+                    PartResourceDefinition lithium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
+                    PartResourceDefinition tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
+                    double breed_rate = thermal_power_received / TimeWarp.fixedDeltaTime / 1000.0f / GameConstants.tritiumBreedRate;
+                    double lith_rate = breed_rate * TimeWarp.fixedDeltaTime / lithium_def.density;
                     double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
-                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -lith_used) / TimeWarp.fixedDeltaTime);
+                    double lt_density_ratio = lithium_def.density / tritium_def.density;
+                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
@@ -502,9 +505,16 @@ namespace FNPlugin {
                 GUILayout.EndHorizontal();
             }
             if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null) {
+                if (!current_fuel_mode.Aneutronic && breedtritium)
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Tritium Breed Rate", bold_label, GUILayout.Width(150));
+                    GUILayout.Label((tritium_produced_f*3600.0).ToString("0.000") + " l/hour" , GUILayout.Width(150));
+                    GUILayout.EndHorizontal();
+                }
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Fuel", bold_label, GUILayout.Width(150));
-                GUILayout.Label("Usage", GUILayout.Width(150));
+                GUILayout.Label("Usage", bold_label, GUILayout.Width(150));
                 GUILayout.EndHorizontal();
                 double fuel_lifetime_s = double.MaxValue;
                 foreach(ReactorFuel fuel in current_fuel_mode.ReactorFuels) 
@@ -522,11 +532,20 @@ namespace FNPlugin {
                 GUILayout.Label( (double.IsNaN(fuel_lifetime_s) ? "-" : (fuel_lifetime_s/86400.0).ToString("0.00")) + " days", GUILayout.Width(150));
                 GUILayout.EndHorizontal();
             }
-            if (!IsNuclear) {
+            if (!IsNuclear)
+            {
                 GUILayout.BeginHorizontal();
                 if (IsEnabled) if (GUILayout.Button("Deactivate", GUILayout.ExpandWidth(true))) DeactivateReactor();
                 if (!IsEnabled) if (GUILayout.Button("Activate", GUILayout.ExpandWidth(true))) ActivateReactor();
                 GUILayout.EndHorizontal();
+            } else
+            {
+                if (IsEnabled)
+                {
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Shutdown", GUILayout.ExpandWidth(true))) IsEnabled = false;
+                    GUILayout.EndHorizontal();
+                }
             }
             GUILayout.EndVertical();
             GUI.DragWindow();

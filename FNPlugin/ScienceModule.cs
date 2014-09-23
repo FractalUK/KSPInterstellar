@@ -50,7 +50,7 @@ namespace FNPlugin {
         protected double science_awaiting_addition = 0;
         protected Animation anim;
         protected Animation anim2;
-        protected FuelReprocessor reprocessor;
+        protected NuclearFuelReprocessor reprocessor;
         protected AntimatterFactory anti_factory;
 
         public bool CanProvideTelescopeControl
@@ -141,7 +141,7 @@ namespace FNPlugin {
 
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
-            reprocessor = new FuelReprocessor(part);
+            reprocessor = new NuclearFuelReprocessor(part);
             anti_factory = new AntimatterFactory(part);
             ConfigNode config = PluginHelper.getPluginSaveFile();
 
@@ -333,7 +333,7 @@ namespace FNPlugin {
                     double electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePowerConsumption);
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                    reprocessor.performReprocessingFrame(global_rate_multipliers);
+                    reprocessor.UpdateFrame(global_rate_multipliers);
                     if (reprocessor.getActinidesRemovedPerHour() > 0) {
                         reprocessing_rate_f = (float)(reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour());
                     } else {
