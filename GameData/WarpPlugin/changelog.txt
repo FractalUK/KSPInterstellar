@@ -1,3 +1,29 @@
+Version 0.12.1
+-Wrote new resource referencing system to avoid resource name bugs (fixes cryostat, etc, bugs)
+-Rewrote magnetic field system for planets and fixed abnormal radiation values
+-Types of radiation can now be distinguished internally
+-Fixed Tritium breeding in reactors
+-Fixed power consumption in inertial confinement reactors
+-Tokamaks start with tritium breeding turned on
+-Improved atmospheric intake code
+-Added turn off reactor button for nuclear reactors to the control system interface
+-Fixed prices
+-Added Taverius additions to B9 cargo bay radiators
+-Some code reorganisation
+
+Version 0.12.0
+-0.24.2 Compatibility
+-New Eletric Engine Effects
+-New Electric Engine System
+-New Reactor Code + Reactor Control System interface
+-Vastly improved VAB info for Reactor and Electric Engines
+-Implemented Oktav radiator glow + background He-3 decay
+-Changed fusion fuels to correct densities
+-Fixed Telescope experiment and integrated it with stock science system
+-Fixed Alcubierre drive volume
+-Added first attempt at part costs
+-Added first attempt at resource costs
+
 Version 0.11.0
 -Toolbar Integration
 -Updated tech tree with additional fusion power node
