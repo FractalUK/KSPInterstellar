@@ -51,10 +51,8 @@ namespace FNPlugin
                 if (cur_ref_body == old_ref_body)break;
                 mag_field_strength += cur_ref_body.GetBeltMagneticFieldMagnitude(Vector3d.Distance(FlightGlobals.ship_position, cur_ref_body.transform.position) - cur_ref_body.Radius, FlightGlobals.ship_latitude);
             }
-            Debug.Log(solar_radiation.ToString("E"));
             if (vessel.mainBody != FlightGlobals.fetch.bodies[PluginHelper.REF_BODY_KERBOL])
                 solar_radiation = solar_radiation * Math.Exp(-73840.5645666 * mag_field_strength) * Math.Exp(-vessel.atmDensity * 4.5);
-            Debug.Log(solar_radiation.ToString("E") + " " + mag_field_strength.ToString("E") + " " + vessel.atmDensity.ToString("E"));
             RadiationDose dose = new RadiationDose(Math.Pow(electron_rad_level / 3e-5, 3.0) * 3.2, ground_rad, solar_radiation + Math.Pow(proton_rad_level / 3e-5, 3.0) * 3.2, 0.0);
             return dose;
         }

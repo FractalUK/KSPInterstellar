@@ -309,7 +309,7 @@ namespace FNPlugin {
                 if (breedtritium) {
                     PartResourceDefinition lithium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
                     PartResourceDefinition tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
-                    double breed_rate = thermal_power_received / TimeWarp.fixedDeltaTime / 1000.0f / GameConstants.tritiumBreedRate;
+                    double breed_rate = thermal_power_received / TimeWarp.fixedDeltaTime / 100000.0 / GameConstants.tritiumBreedRate;
                     double lith_rate = breed_rate * TimeWarp.fixedDeltaTime / lithium_def.density;
                     double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
                     double lt_density_ratio = lithium_def.density / tritium_def.density;
@@ -509,27 +509,27 @@ namespace FNPlugin {
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Tritium Breed Rate", bold_label, GUILayout.Width(150));
-                    GUILayout.Label((tritium_produced_f*3600.0).ToString("0.000") + " l/hour" , GUILayout.Width(150));
+                    GUILayout.Label((tritium_produced_f*86400.0).ToString("0.000") + " l/day" , GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                 }
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Fuel", bold_label, GUILayout.Width(150));
                 GUILayout.Label("Usage", bold_label, GUILayout.Width(150));
                 GUILayout.EndHorizontal();
-                double fuel_lifetime_s = double.MaxValue;
+                double fuel_lifetime_d = double.MaxValue;
                 foreach(ReactorFuel fuel in current_fuel_mode.ReactorFuels) 
                 {
                     double availability = getFuelAvailability(fuel);
-                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ/TimeWarp.fixedDeltaTime/FuelEfficiency*current_fuel_mode.NormalisedReactionRate;
-                    fuel_lifetime_s = Math.Min(fuel_lifetime_s, availability / fuel_use);
+                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ/TimeWarp.fixedDeltaTime/FuelEfficiency*current_fuel_mode.NormalisedReactionRate*86400;
+                    fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label(fuel_use.ToString("0.00000") + " " + fuel.Unit + "/s", GUILayout.Width(150));
+                    GUILayout.Label(fuel_use.ToString("0.0000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                 }
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Lifetime");
-                GUILayout.Label( (double.IsNaN(fuel_lifetime_s) ? "-" : (fuel_lifetime_s/86400.0).ToString("0.00")) + " days", GUILayout.Width(150));
+                GUILayout.Label( (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", GUILayout.Width(150));
                 GUILayout.EndHorizontal();
             }
             if (!IsNuclear)
