@@ -53,15 +53,20 @@ namespace OpenResourceSystem {
                     ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION").FirstOrDefault();
                     Debug.Log("[ORS] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
                     if (atmospheric_resource_pack != null) {
-                        List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.GetNodes("ATMOSPHERIC_RESOURCE_DEFINITION").Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
-                        bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                        if (bodyAtmosphericComposition.Any()) {
-                            bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                        List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                        if (atmospheric_resource_list.Any())
+                        {
+                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                            if (bodyAtmosphericComposition.Any())
+                            {
+                                bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                                body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
+                            }
                         }
                     }
                 }
             } catch (Exception ex) {
-
+                Debug.Log("[ORS] Exception while loading atmospheric resources : " + ex.ToString());
             }
             return bodyAtmosphericComposition;
         }

@@ -45,10 +45,15 @@ namespace OpenResourceSystem {
                     ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION").FirstOrDefault();
                     Debug.Log("[ORS] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
                     if (oceanic_resource_pack != null) {
-                        List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.GetNodes("OCEANIC_RESOURCE_DEFINITION").Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
-                        bodyOceanicComposition = oceanic_resource_list.Select(orsc => new ORSOceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                        if (bodyOceanicComposition.Any()) {
-                            bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                        List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                        if (oceanic_resource_list.Any())
+                        {
+                            bodyOceanicComposition = oceanic_resource_list.Select(orsc => new ORSOceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                            if (bodyOceanicComposition.Any())
+                            {
+                                bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                                body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
+                            }
                         }
                     }
                 }

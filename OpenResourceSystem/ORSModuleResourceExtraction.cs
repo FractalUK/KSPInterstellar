@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace OpenResourceSystem {
     public class ORSModuleResourceExtraction : ORSResourceSuppliableModule {
@@ -44,12 +45,14 @@ namespace OpenResourceSystem {
         double extraction_rate_d = 0;
 
         [KSPEvent(guiActive = true, guiName = "Start Action", active = true)]
-        public void startResourceExtraction() {
+        public void startResourceExtraction() 
+        {
             IsEnabled = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Stop Action", active = true)]
-        public void stopResourceExtration() {
+        public void stopResourceExtration() 
+        {
             IsEnabled = false;
         }
 
@@ -59,49 +62,53 @@ namespace OpenResourceSystem {
             Events["startResourceExtraction"].guiName = extractActionName;
             Events["stopResourceExtration"].guiName = stopActionName;
             Fields["statusTitle"].guiName = unitName;
-            part.force_activate();
         }
 
-        public override void OnUpdate() {
-            if (HighLogic.LoadedSceneIsFlight) {
-                double resource_abundance = 0;
-                bool resource_available = false;
-                if (vessel.Landed) {
-                    ORSPlanetaryResourcePixel current_resource_abundance_pixel = ORSPlanetaryResourceMapData.getResourceAvailabilityByRealResourceName(vessel.mainBody.flightGlobalsIndex, resourceName, vessel.latitude, vessel.longitude);
-                    resource_abundance = current_resource_abundance_pixel.getAmount();
-                } else if (vessel.Splashed) {
-                    resource_abundance = ORSOceanicResourceHandler.getOceanicResourceContent(vessel.mainBody.flightGlobalsIndex, resourceName);
+        public override void OnUpdate()
+        {
+            double resource_abundance = 0;
+            bool resource_available = false;
+            if (vessel.Landed)
+            {
+                ORSPlanetaryResourcePixel current_resource_abundance_pixel = ORSPlanetaryResourceMapData.getResourceAvailabilityByRealResourceName(vessel.mainBody.flightGlobalsIndex, resourceName, vessel.latitude, vessel.longitude);
+                resource_abundance = current_resource_abundance_pixel.getAmount();
+            } else if (vessel.checkSplashed())
+            {
+                resource_abundance = ORSOceanicResourceHandler.getOceanicResourceContent(vessel.mainBody.flightGlobalsIndex, resourceName);
+            }
+            if (resource_abundance > 0)
+            {
+                resource_available = true;
+            }
+            Events["startResourceExtraction"].active = !IsEnabled && resource_available;
+            Events["stopResourceExtration"].active = IsEnabled;
+            if (IsEnabled)
+            {
+                Fields["powerStr"].guiActive = true;
+                Fields["resourceRate"].guiActive = true;
+                statusTitle = "Active";
+                double power_required = 0;
+                if (vessel.Landed)
+                {
+                    power_required = powerConsumptionLand;
+                } else if (vessel.Splashed)
+                {
+                    power_required = powerConsumptionOcean;
                 }
-                if (resource_abundance > 0) {
-                    resource_available = true;
-                }
-                Events["startResourceExtraction"].active = !IsEnabled && resource_available;
-                Events["stopResourceExtration"].active = IsEnabled;
-                if (IsEnabled) {
-                    Fields["powerStr"].guiActive = true;
-                    Fields["resourceRate"].guiActive = true;
-                    statusTitle = "Active";
-                    double power_required = 0;
-                    if (vessel.Landed) {
-                        power_required = powerConsumptionLand;
-                    } else if (vessel.Splashed) {
-                        power_required = powerConsumptionOcean;
-                    }
-                    powerStr = (power_required * electrical_power_ratio).ToString("0.000") + " MW / " + power_required.ToString("0.000") + " MW";
-                    double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
-                    double resource_rate_per_hour = extraction_rate_d * resource_density * 3600;
-                    resourceRate = formatMassStr(resource_rate_per_hour);
-                } else {
-                    Fields["powerStr"].guiActive = false;
-                    Fields["resourceRate"].guiActive = false;
-                    statusTitle = "Offline";
-                }
-
+                powerStr = (power_required * electrical_power_ratio).ToString("0.000") + " MW / " + power_required.ToString("0.000") + " MW";
+                double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
+                double resource_rate_per_hour = extraction_rate_d * resource_density * 3600;
+                resourceRate = formatMassStr(resource_rate_per_hour);
+            } else
+            {
+                Fields["powerStr"].guiActive = false;
+                Fields["resourceRate"].guiActive = false;
+                statusTitle = "Offline";
             }
         }
 
-        public override void OnFixedUpdate() {
-            if (IsEnabled) {
+        public void FixedUpdate() {
+            if (IsEnabled && HighLogic.LoadedSceneIsFlight) {
                 double power_requirements = 0;
                 double extraction_time = 0;
                 if (vessel.Landed) {

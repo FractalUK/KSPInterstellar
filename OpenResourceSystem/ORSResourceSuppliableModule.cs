@@ -7,7 +7,6 @@ namespace OpenResourceSystem {
     public abstract class ORSResourceSuppliableModule :PartModule, ORSResourceSuppliable, ORSResourceSupplier{
         protected Dictionary<String,double> fnresource_supplied = new Dictionary<String, double>();
 		protected Dictionary<String,ORSResourceManager> fnresource_managers = new Dictionary<String,ORSResourceManager> ();
-		protected Dictionary<String,bool> fnresource_manager_responsibilities = new Dictionary<String,bool> ();
 		protected String[] resources_to_supply;
 
         public void receiveFNResource(double power, String resourcename) {
