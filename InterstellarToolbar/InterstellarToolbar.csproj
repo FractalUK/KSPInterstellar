@@ -38,11 +38,6 @@
     <Reference Include="Interstellar">
       <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\WarpPlugin\Plugins\Interstellar.dll</HintPath>
     </Reference>
-    <Reference Include="OpenResourceSystem_1_4_1, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_4_1.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Aliases>ORSv1_4_1</Aliases>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

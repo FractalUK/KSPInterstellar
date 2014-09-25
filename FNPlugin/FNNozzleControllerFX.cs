@@ -1,5 +1,5 @@
-extern alias ORSv1_4_1;
-using ORSv1_4_1::OpenResourceSystem;
+extern alias ORSv1_4_2;
+using ORSv1_4_2::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -365,7 +365,16 @@ namespace FNPlugin{
                     if (double.IsNaN(proportion) || double.IsInfinity(proportion)) {
                         proportion = 1;
                     }
-                    part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                    float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                    if (temp > part.maxTemp - 10.0f)
+                    {
+                        ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        myAttachedEngine.Shutdown();
+                        part.temperature = 1;
+                    } else
+                    {
+                        part.temperature = temp;
+                    }
                 }
 				double thermal_power_received = consumeFNResource (assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);

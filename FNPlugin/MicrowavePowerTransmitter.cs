@@ -184,7 +184,8 @@ namespace FNPlugin {
                         if (thermal_source != null && !thermal_source.IsVolatileSource) {
                             double output = generator.getMaxPowerOutput();
                             if (thermal_source is InterstellarFusionReactor) {
-                                output = output * 0.95;
+                                InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
+                                output = output * 0.92;
                             }
                             output = output * transmitPower / 100.0;
                             double gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);

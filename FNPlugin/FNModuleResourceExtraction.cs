@@ -1,10 +1,10 @@
-﻿extern alias ORSv1_4_1;
+﻿extern alias ORSv1_4_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSv1_4_1::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin {
     [KSPModule("Resource Extractor")]

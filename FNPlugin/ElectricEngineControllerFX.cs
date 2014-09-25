@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_4_1;
+﻿extern alias ORSv1_4_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_1::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin
 {
@@ -215,7 +215,7 @@ namespace FNPlugin
                 if (_current_propellant != null && _attached_engine != null)
                 {
                     updateISP();
-                    int engine_count = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Count(ee => ee.IsOperational); // operational electric engines
+                    int engine_count = Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Count(ee => ee.IsOperational),1); // max of operational electric engines and 1
                     double total_max_thrust = evaluateMaxThrust();
                     double thrust_per_engine = total_max_thrust / (double)engine_count;
                     double power_per_engine = Math.Min(0.5 * _attached_engine.currentThrottle * thrust_per_engine * _current_propellant.IspMultiplier * baseISP / 1000.0 * 9.81, maxPower * _current_propellant.Efficiency);

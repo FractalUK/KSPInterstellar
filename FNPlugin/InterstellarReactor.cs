@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_4_1;
+﻿extern alias ORSv1_4_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_1::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule {
@@ -253,9 +253,15 @@ namespace FNPlugin {
             coretempStr = CoreTemperature.ToString("0") + " K";
             if (update_count - last_draw_update > 10) {
                 if (IsEnabled) {
-                    if (ongoing_thermal_power_f > 0) currentTPwr = PluginHelper.getFormattedPowerString(ongoing_thermal_power_f) + "_th";
-                    if (ongoing_charged_power_f > 0) currentCPwr = PluginHelper.getFormattedPowerString(ongoing_charged_power_f) + "_cp";
-                    statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
+                    if (current_fuel_mode != null && !current_fuel_mode.ReactorFuels.Any(fuel => getFuelAvailability(fuel) <= 0))
+                    {
+                        if (ongoing_thermal_power_f > 0) currentTPwr = PluginHelper.getFormattedPowerString(ongoing_thermal_power_f) + "_th";
+                        if (ongoing_charged_power_f > 0) currentCPwr = PluginHelper.getFormattedPowerString(ongoing_charged_power_f) + "_cp";
+                        statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
+                    } else if (current_fuel_mode != null)
+                    {
+                        statusStr = current_fuel_mode.ReactorFuels.FirstOrDefault(fuel => getFuelAvailability(fuel) <= 0).FuelName + " Deprived";
+                    }
                 } else {
                     if (powerPcnt > 0) statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
                     else statusStr = "Offline";
@@ -351,7 +357,7 @@ namespace FNPlugin {
         }
 
         public void enableIfPossible() {
-            if (IsNuclear && !IsEnabled) IsEnabled = true;
+            if (!IsNuclear && !IsEnabled) IsEnabled = true;
         }
 
         public bool isVolatileSource() {
