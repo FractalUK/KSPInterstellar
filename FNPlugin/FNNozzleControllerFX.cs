@@ -276,6 +276,7 @@ namespace FNPlugin{
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
 			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispMultiplier);
+            maxISP = Mathf.Max(maxISP, 3000); // cap ISP at 3000
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);

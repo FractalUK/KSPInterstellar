@@ -9,6 +9,8 @@ namespace FNPlugin
     {
         String ActivityName { get; }
 
+        double CurrentPower { get; }
+
         bool HasActivityRequirements { get; }
 
         double PowerRequirements { get; }

@@ -44,6 +44,7 @@ namespace FNPlugin {
         public const double baseAnthraquiononePowerConsumption = 1;
         public const double basePechineyUgineKuhlmannPowerConsumption = 5;
         public const double pechineyUgineKuhlmannMassRatio = 0.4847459883;
+        public const double pechineyUgineKuhlmannMassRatio2 = 0.4857142857;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
         public const double telescopePerformanceTimescale = 2.1964508725630127431022388314009e-8;
         public const double telescopeBaseScience = 0.1666667;
@@ -58,5 +59,10 @@ namespace FNPlugin {
         public const double baseHaberProcessEnergyPerTon = 34200;
         public const double baseHaberProcessPowerConsumption = 20;
         public const double ammoniaHydrogenFractionByMass = 0.17647;
+        public const double KEBRIN_DAY_SECONDS = 21600;
+        public const double HOUR_SECONDS = 3600;
+        public const double ELECTRON_CHARGE = 1.602176565e-19;
+        public const double ATOMIC_MASS_UNIT =  1.660538921e-27;
+        public const double STANDARD_GRAVITY = 9.80665;
     }
 }

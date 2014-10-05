@@ -25,6 +25,14 @@ namespace FNPlugin {
         public string centrifugeRate;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
         public string antimatterProductionEfficiency;
+        
+        // persistant false
+        [KSPField(isPersistant = false)]
+        public string animName1;
+        [KSPField(isPersistant = false)]
+        public string animName2;
+
+        // persistant true
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
@@ -33,10 +41,8 @@ namespace FNPlugin {
         public float last_active_time;
         [KSPField(isPersistant = true)]
         public float electrical_power_ratio;
-        [KSPField(isPersistant = false)]
-        public string animName1;
-        [KSPField(isPersistant = false)]
-        public string animName2;
+        [KSPField(isPersistant = true)]
+        public float science_to_add;
 
         protected float megajoules_supplied = 0;
         protected String[] modes = { "Researching", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
@@ -303,12 +309,12 @@ namespace FNPlugin {
             crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
             global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
 
-            if (ResearchAndDevelopment.Instance != null) {
-                if (!double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition) && science_awaiting_addition > 0) {
-                    ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
-                    ScreenMessages.PostScreenMessage(science_awaiting_addition.ToString("0") + " science has been added to the R&D centre.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
-                    science_awaiting_addition = 0;
-                }
+            if (ResearchAndDevelopment.Instance != null && !double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition) && science_awaiting_addition > 0)
+            {
+                //ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
+                science_to_add += (float)science_awaiting_addition;
+                ScreenMessages.PostScreenMessage(science_awaiting_addition.ToString("0") + " science has been added to the R&D centre.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
+                science_awaiting_addition = 0;
             }
 
             if (IsEnabled) {
@@ -324,10 +330,10 @@ namespace FNPlugin {
                     float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                     altitude_multiplier = Math.Max(altitude_multiplier, 1);
                     science_rate_f = (float)(GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / 86400.0f * global_rate_multipliers * stupidity / (Mathf.Sqrt(altitude_multiplier)));
-                    if (ResearchAndDevelopment.Instance != null) {
-                        if (!double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f)) {
-                            ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
-                        }
+                    if (ResearchAndDevelopment.Instance != null && !double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f))
+                    {
+                        //ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
+                        science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
                     }
                 } else if (active_mode == 1) { // Fuel Reprocessing
                     double electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);

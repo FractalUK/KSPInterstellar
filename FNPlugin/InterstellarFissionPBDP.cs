@@ -29,6 +29,8 @@ namespace FNPlugin
         }
 
         // Properties
+        public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+
         public override bool IsNeutronRich { get { return current_fuel_mode != null ? !current_fuel_mode.Aneutronic : false; } }
 
         public override float MaximumThermalPower { get { return isupgraded ? base.MaximumThermalPower : (float)(base.MaximumThermalPower * Math.Pow((tempZeroPower - CoreTemperature) / (tempZeroPower - optimalPebbleTemp), 0.81)); } }

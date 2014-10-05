@@ -5,7 +5,8 @@ using System.Text;
 
 namespace FNPlugin
 {
-    class InterstellarFusionReactor : InterstellarReactor, IChargedParticleSource
+    abstract class InterstellarFusionReactor : InterstellarReactor, IChargedParticleSource
     {
+        public abstract double CurrentMeVPerChargedProduct { get; }
     }
 }

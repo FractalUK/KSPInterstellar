@@ -24,7 +24,11 @@ namespace FNPlugin {
 
         // properties
 
+        public override double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+
         public override float MaximumThermalPower { get { return base.MaximumThermalPower * Mathf.Pow(plasma_ratio, 4.0f); } }
+
+        public override float MaximumChargedPower { get { return base.MaximumChargedPower * Mathf.Pow(plasma_ratio, 4.0f); } }
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 

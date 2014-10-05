@@ -10,5 +10,7 @@ namespace FNPlugin
         float MaximumChargedPower { get; }
 
         float ChargedParticleRatio { get; }
+
+        double CurrentMeVPerChargedProduct { get; }
     }
 }

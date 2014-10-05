@@ -20,18 +20,32 @@ namespace FNPlugin {
         protected double power_consumed;
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
+        protected float plasma_ratio = 1.0f;
+
+        public override double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
-        public override float MaximumPower
+        public override float MaximumThermalPower
         {
             get
             {
                 float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
-                return isupgraded ? upgradedPowerOutput != 0 ? upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
+                float laser_power_4 = Mathf.Pow(plasma_ratio, 4.0f);
+                return isupgraded ? upgradedPowerOutput != 0 ? laser_power_4 * upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : laser_power_4 * PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : laser_power_4 * PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
             }
+        }
+
+        public override float MaximumChargedPower 
+        { 
+            get 
+            {
+                float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
+                float laser_power_4 = Mathf.Pow(plasma_ratio, 4.0f);
+                return isupgraded ? upgradedPowerOutput != 0 ? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio : laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio : laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio; 
+            } 
         }
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
@@ -48,7 +62,7 @@ namespace FNPlugin {
         }
         
         public override bool shouldScaleDownJetISP() {
-            return true;
+            return isupgraded ? false : true;
         }
 
         public override void OnUpdate() {
@@ -68,13 +82,9 @@ namespace FNPlugin {
             if (IsEnabled)
             {
                 power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                if (power_consumed < LaserPowerRequirements) power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
-                if (power_consumed < LaserPowerRequirements) shutdown_c++;
-                if (shutdown_c > 3) IsEnabled = false;
-            } else
-            {
-                shutdown_c = 0;
-            }
+                if (power_consumed < LaserPowerRequirements)  power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
+                plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
+            } 
         }
 
         public override string getResourceManagerDisplayName() {
