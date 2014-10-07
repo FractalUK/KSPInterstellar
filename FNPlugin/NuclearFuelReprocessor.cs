@@ -51,7 +51,7 @@ namespace FNPlugin {
             _remaining_to_reprocess = nuclear_reactors.Sum(nfr => nfr.WasteToReprocess);
             _current_rate = enum_actinides_change;
             _remaining_seconds = _remaining_to_reprocess / _current_rate/ TimeWarp.fixedDeltaTime;
-            _status = _current_rate > 0 ? "Online" : "Power Deprived";
+            _status = _current_rate > 0 ? "Online" : _remaining_to_reprocess > 0 ? "Power Deprived" : "No Fuel To Reprocess";
         }
 
         public void UpdateGUI()
@@ -64,6 +64,14 @@ namespace FNPlugin {
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            if (_remaining_seconds > 0 && !double.IsNaN(_remaining_seconds) && !double.IsInfinity(_remaining_seconds))
+            {
+                int hrs = (int) (_remaining_seconds / 3600);
+                int mins = (int) ((_remaining_seconds - hrs*3600)/60);
+                int secs = (hrs * 60 + mins) % ((int)(_remaining_seconds / 60));
+                GUILayout.Label("Time Remaining", _bold_label, GUILayout.Width(150));
+                GUILayout.Label(hrs + " hours " + mins + " minutes " + secs + " seconds", GUILayout.Width(150));
+            }
             GUILayout.EndHorizontal();
         }
 

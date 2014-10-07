@@ -33,10 +33,7 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Games\Kerbal Space Program 0.24\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Interstellar">
-      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\WarpPlugin\Plugins\Interstellar.dll</HintPath>
+      <HintPath>C:\Games\Kerbal Space Program 0.25\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,12 +47,18 @@
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Games\Kerbal Space Program 0.24\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>C:\Games\Kerbal Space Program 0.25\KSP_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterstellarToolbar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FNPlugin\WarpPlugin.csproj">
+      <Project>{ad686af3-dddc-4991-909f-ead9c16c469b}</Project>
+      <Name>WarpPlugin</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

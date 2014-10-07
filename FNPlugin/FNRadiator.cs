@@ -163,7 +163,7 @@ namespace FNPlugin {
 			radiatorTemp = upgradedRadiatorTemp;
 			radiatorTempStr = radiatorTemp + "K";
 
-			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
 		}
 
 		[KSPAction("Deploy Radiator")]

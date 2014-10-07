@@ -42,6 +42,8 @@ namespace FNPlugin {
         protected static int installed_tech_tree_version_id = 0;
         protected static int new_tech_tree_version_id = 0;
 
+        public static bool TechnologyIsInUse { get { return (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX); } }
+
         public static ConfigNode PluginSettingsConfig { get { return GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings"); } }
         
         public static string getPluginSaveFilePath() {
@@ -86,15 +88,18 @@ namespace FNPlugin {
 			}
 		}
 
-        public static bool upgradeAvailable(string techid) {
-            if (HighLogic.CurrentGame != null) {
-                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-                    if (techid != null) {
-                        if (PluginHelper.hasTech(techid)) {
-                            return true;
-                        }
+        public static bool upgradeAvailable(string techid)
+        {
+            if (HighLogic.CurrentGame != null)
+            {
+                if (PluginHelper.TechnologyIsInUse)
+                {
+                    if (techid != null && PluginHelper.hasTech(techid))
+                    {
+                        return true;
                     }
-                } else {
+                } else
+                {
                     return true;
                 }
             }

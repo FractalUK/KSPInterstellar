@@ -84,7 +84,7 @@ namespace FNPlugin
             if (ResearchAndDevelopment.Instance == null) { return; }
             if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
             upgradePartModule();
-            ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
         public override void OnLoad(ConfigNode node)

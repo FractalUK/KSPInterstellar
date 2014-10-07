@@ -101,7 +101,7 @@ namespace FNPlugin{
 			if (ResearchAndDevelopment.Instance == null) { return;}
 			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
 			upgradePartModule ();
-			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
 		}
 
 		public void upgradePartModule() {
@@ -310,8 +310,9 @@ namespace FNPlugin{
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
 			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispMultiplier);
-            maxISP = Mathf.Max(maxISP, 3000); // cap ISP at 3000
+            
 			if (!currentpropellant_is_jet) {
+                maxISP = Mathf.Min(maxISP, 2997.13f); // cap ISP at 3000
 				minISP = maxISP * 0.4f;
 				newISP.Add (0, maxISP, 0, 0);
 				newISP.Add (1, minISP, 0, 0);
@@ -324,6 +325,7 @@ namespace FNPlugin{
 						maxISP = maxISP / 2.5f;
 					}
 				}
+                maxISP = Mathf.Min(maxISP, 2997.13f); // cap ISP at 3000
 				newISP.Add(0, maxISP*4.5f/5.0f);
 				newISP.Add(0.10f, maxISP);
                 newISP.Add(0.3f, maxISP * 4.0f / 5.0f);

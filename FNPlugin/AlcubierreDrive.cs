@@ -221,7 +221,7 @@ namespace FNPlugin
             warpdriveType = upgradedName;
             mass_divisor = 40f;
             //recalculatePower();
-			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
             //IsEnabled = false;
         }
 

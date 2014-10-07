@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin {
-    class ModuleModableScienceGenerator : PartModule, IScienceDataContainer {
+    class ModuleModableScienceGenerator : FNResourceSuppliableModule, IScienceDataContainer {
         [KSPField(isPersistant = true)]
         public bool Deployed;
         [KSPField(isPersistant = true)]
@@ -32,6 +32,8 @@ namespace FNPlugin {
         public string reviewEventName;
         [KSPField(isPersistant = false)]
         public string resetEventName;
+        [KSPField(isPersistant = false)]
+        public string experimentID;
 
         protected ScienceData science_data;
 

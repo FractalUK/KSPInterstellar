@@ -182,7 +182,7 @@ namespace FNPlugin {
             if (ResearchAndDevelopment.Instance == null) { return; }
             if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
             upgradePartModule();
-            ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
         [KSPEvent(guiActive = true, guiName = "Toggle Control Window", active = true)]
@@ -313,13 +313,13 @@ namespace FNPlugin {
                 double min_throttle = fuel_ratio > 0 ? minimumThrottle / fuel_ratio : 1;
                 max_power_to_supply = max_power_to_supply * fuel_ratio;
                 // Charged Power
-                double max_charged_to_supply = Math.Max(MaximumChargedPower * TimeWarp.fixedDeltaTime, 0);
+                double max_charged_to_supply = Math.Max(MaximumChargedPower * TimeWarp.fixedDeltaTime, 0) * fuel_ratio;
                 double charged_particles_to_supply = max_charged_to_supply;
                 double charged_power_received = supplyManagedFNResourceWithMinimum(charged_particles_to_supply, minimumThrottle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 double charged_power_ratio = ChargedParticleRatio > 0 ? charged_power_received / max_charged_to_supply : 0;
                 ongoing_charged_power_f = (float)(charged_power_received / TimeWarp.fixedDeltaTime);
                 // Thermal Power
-                double max_thermal_to_supply = Math.Max(MaximumThermalPower * TimeWarp.fixedDeltaTime, 0);
+                double max_thermal_to_supply = Math.Max(MaximumThermalPower * TimeWarp.fixedDeltaTime, 0) * fuel_ratio;
                 double thermal_power_to_supply = max_thermal_to_supply;
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(thermal_power_to_supply, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 double thermal_power_ratio = (1 - ChargedParticleRatio) > 0 ? thermal_power_received / max_thermal_to_supply : 0;

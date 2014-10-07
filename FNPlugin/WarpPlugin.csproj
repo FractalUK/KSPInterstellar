@@ -34,7 +34,7 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Games\Kerbal Space Program 0.24\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>C:\Games\Kerbal Space Program 0.25\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="OpenResourceSystem_1_4_2">
@@ -49,7 +49,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Games\Kerbal Space Program 0.24\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>C:\Games\Kerbal Space Program 0.25\KSP_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
