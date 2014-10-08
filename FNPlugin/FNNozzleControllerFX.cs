@@ -277,10 +277,9 @@ namespace FNPlugin{
 			FloatCurve vCurve = new FloatCurve ();
 			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispMultiplier);
 			if (!currentpropellant_is_jet) {
-                maxISP = Mathf.Min(maxISP, 2997.13f); // cap ISP at 3000
 				minISP = maxISP * 0.4f;
-				newISP.Add (0, maxISP, 0, 0);
-				newISP.Add (1, minISP, 0, 0);
+				newISP.Add (0, Mathf.Min(maxISP, 2997.13f), 0, 0);
+                newISP.Add(1, Mathf.Min(minISP, 2997.13f), 0, 0);
 				myAttachedEngine.useVelocityCurve = false;
 				myAttachedEngine.useEngineResponseTime = false;
 			} else {
@@ -290,10 +289,10 @@ namespace FNPlugin{
 						maxISP = maxISP / 2.5f;
 					}
 				}
-                maxISP = Mathf.Min(maxISP, 2997.13f); // cap ISP at 3000
-				newISP.Add(0, maxISP*4.0f/5.0f);
-				newISP.Add(0.15f, maxISP);
-				newISP.Add(1, maxISP*2.0f/3.0f);
+                newISP.Add(0, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
+                newISP.Add(0.15f, Mathf.Min(maxISP, 2997.13f));
+                newISP.Add(0.3f, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
+                newISP.Add(1, Mathf.Min(maxISP * 2.0f / 3.0f, 2997.13f));
 				vCurve.Add(0, 0.7f);
 				vCurve.Add((float)(maxISP*g0*1.0/3.0), 0.9f);
 				vCurve.Add((float)(maxISP*g0), 1.0f);

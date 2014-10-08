@@ -69,6 +69,11 @@ namespace FNPlugin
             return "ISRU Refinery";
         }
 
+        public override string GetInfo()
+        {
+            return "Refinery Module capable of advanced ISRU processing.";
+        }
+
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
