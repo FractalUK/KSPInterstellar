@@ -59,7 +59,9 @@
     <Compile Include="AntimatterFactory.cs" />
     <Compile Include="AtmosphericIntake.cs" />
     <Compile Include="AnthraquinoneProcessor.cs" />
+    <Compile Include="CareerTechTreeInfo.cs" />
     <Compile Include="InterstellarMagneticNozzleControllerFX.cs" />
+    <Compile Include="ITechInfoProvider.cs" />
     <Compile Include="MonopropellantProducer.cs" />
     <Compile Include="IChargedParticleSource.cs" />
     <Compile Include="InterstellarCatalysedFissionFusion.cs" />
@@ -114,7 +116,9 @@
     <Compile Include="ReactorFuel.cs" />
     <Compile Include="ReactorFuelMode.cs" />
     <Compile Include="SabatierReactor.cs" />
+    <Compile Include="SandboxTechTreeInfo.cs" />
     <Compile Include="ScienceModule.cs" />
+    <Compile Include="Technology.cs" />
     <Compile Include="TechUpdateWindow.cs" />
     <Compile Include="TextureTests.cs" />
     <Compile Include="UF4Ammonolysiser.cs" />

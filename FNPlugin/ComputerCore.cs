@@ -69,7 +69,7 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return;
 
-            if (isupgraded || !PluginHelper.TechnologyIsInUse)
+            if (isupgraded || !Technology.TechnologyIsInUse)
             {
                 upgradePartModule();
 

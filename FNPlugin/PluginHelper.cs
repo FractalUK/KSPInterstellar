@@ -42,7 +42,7 @@ namespace FNPlugin {
         protected static int installed_tech_tree_version_id = 0;
         protected static int new_tech_tree_version_id = 0;
 
-        public static bool TechnologyIsInUse { get { return (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX); } }
+        
 
         public static ConfigNode PluginSettingsConfig { get { return GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings"); } }
         
@@ -66,42 +66,11 @@ namespace FNPlugin {
 			return is_thermal_dissip_disabled;
 		}
 
-		public static bool hasTech(string techid) {
-			try{
-				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-				ConfigNode config = ConfigNode.Load (persistentfile);
-				ConfigNode gameconf = config.GetNode ("GAME");
-				ConfigNode[] scenarios = gameconf.GetNodes ("SCENARIO");
-				foreach (ConfigNode scenario in scenarios) {
-					if (scenario.GetValue ("name") == "ResearchAndDevelopment") {
-						ConfigNode[] techs = scenario.GetNodes ("Tech");
-						foreach (ConfigNode technode in techs) {
-							if (technode.GetValue ("id") == techid) {
-								return true;
-							}
-						}
-					}
-				}
-				return false;
-			} catch (Exception ex) {
-				return false;
-			}
-		}
-
         public static bool upgradeAvailable(string techid)
         {
             if (HighLogic.CurrentGame != null)
             {
-                if (PluginHelper.TechnologyIsInUse)
-                {
-                    if (techid != null && PluginHelper.hasTech(techid))
-                    {
-                        return true;
-                    }
-                } else
-                {
-                    return true;
-                }
+                return Technology.TechInfoProvider.IsAvailable(techid);
             }
             return false;
         }

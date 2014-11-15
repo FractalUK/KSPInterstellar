@@ -18,11 +18,14 @@ namespace FNPlugin {
             vessel = part.vessel;
             if (HighLogic.CurrentGame != null) {
                 if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-                    if (PluginHelper.hasTech("interstellarTechAntimatterPower")) {
-                        
-                    } else if (PluginHelper.hasTech("interstellarTechAccelerator")) {
+                    if (Technology.TechInfoProvider.IsAvailable("interstellarTechAntimatterPower"))
+                    {
+
+                    } else if (Technology.TechInfoProvider.IsAvailable("interstellarTechAccelerator"))
+                    {
                         efficiency = efficiency / 100;
-                    } else {
+                    } else 
+                    {
                         efficiency = efficiency / 10000;
                     }
                 }

@@ -222,11 +222,14 @@ namespace FNPlugin {
 				radiatorIsEnabled = true;
 			}
 
-			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-				if(PluginHelper.hasTech(upgradeTechReq)) {
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+            {
+                if (Technology.TechInfoProvider.IsAvailable(upgradeTechReq))
+                {
 					hasrequiredupgrade = true;
 				}
-			}else{
+			}else
+            {
 				hasrequiredupgrade = true;
 			}
 
@@ -376,11 +379,13 @@ namespace FNPlugin {
             if (HighLogic.CurrentGame != null) {
                 if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
                     if (upgradeTechReq != null) {
-                        if (PluginHelper.hasTech(upgradeTechReq)) {
+                        if (Technology.TechInfoProvider.IsAvailable(upgradeTechReq))
+                        {
                             return true;
                         }
                     }
-                } else {
+                } else 
+                {
                     return true;
                 }
             }

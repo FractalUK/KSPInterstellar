@@ -369,9 +369,11 @@ namespace FNPlugin
 			bool manual_upgrade = false;
 			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
 				if(upgradeTechReq != null) {
-					if(PluginHelper.hasTech(upgradeTechReq)) {
+                    if (Technology.TechInfoProvider.IsAvailable(upgradeTechReq))
+                    {
 						hasrequiredupgrade = true;
-					}else if(upgradeTechReq == "none") {
+					}else if(upgradeTechReq == "none")
+                    {
 						manual_upgrade = true;
 					}
 				}else{
