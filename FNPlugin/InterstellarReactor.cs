@@ -307,6 +307,7 @@ namespace FNPlugin {
                     IsEnabled = false;
                     return;
                 }
+
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
                 double fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => getFuelAvailability(fuel) / fuel.GetFuelUseForPower(FuelEfficiency,max_power_to_supply)), 1.0);
@@ -328,6 +329,7 @@ namespace FNPlugin {
                 double total_power_received = thermal_power_received + charged_power_received;
                 total_power_per_frame = total_power_received;
                 double total_power_ratio = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
+                ongoing_consumption_rate = (float)total_power_ratio;
 
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) consumeReactorFuel(fuel, total_power_received * fuel.FuelUsePerMJ); // consume fuel
                  
@@ -338,7 +340,6 @@ namespace FNPlugin {
                 powerPcnt = 100.0 * total_power_ratio;
 
                 if (min_throttle > 1.05) IsEnabled = false;
-
                 if (breedtritium) 
                 {
                     PartResourceDefinition lithium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
@@ -351,6 +352,11 @@ namespace FNPlugin {
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
+                if(Planetarium.GetUniversalTime() != 0)
+                {
+                    last_active_time = (float)(Planetarium.GetUniversalTime());
+                }
+
             } else if (MaximumPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * 86400 && IsNuclear)
             {
                 double daughter_half_life = 86400.0 / 24.0 * 9.0;
@@ -359,6 +365,7 @@ namespace FNPlugin {
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply, 1.0, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 double total_power_ratio = thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
+                ongoing_consumption_rate = (float)total_power_ratio;
                 supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 powerPcnt = 100.0 * total_power_ratio;
                 decay_ongoing = true;
