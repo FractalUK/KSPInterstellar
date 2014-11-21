@@ -145,11 +145,11 @@ namespace FNPlugin {
             }
             vmps = new List<VesselMicrowavePersistence>();
             vrps = new List<VesselRelayPersistence>();
+            ConfigNode config = PluginHelper.getPluginSaveFile();
             foreach (Vessel vess in FlightGlobals.Vessels) {
                 String vesselID = vess.id.ToString();
 
                 if (vess.isActiveVessel == false && vess.vesselName.ToLower().IndexOf("debris") == -1) {
-                    ConfigNode config = PluginHelper.getPluginSaveFile();
                     if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID)) {
                         ConfigNode power_node = config.GetNode("VESSEL_MICROWAVE_POWER_" + vesselID);
                         double nuclear_power = 0;
