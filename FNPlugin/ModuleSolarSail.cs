@@ -135,11 +135,13 @@ namespace FNPlugin {
             if (this.part != null) {
                 Vector3d sunPosition = FlightGlobals.fetch.bodies[0].position;
                 Vector3d ownPosition = this.part.transform.position;
+				Vector3d ownsunPosition = ownPosition - sunPosition;
                 Vector3d normal = this.part.transform.up;
                 if (surfaceTransform != null) {
                     normal = surfaceTransform.forward;
                 }
-                Vector3d force = normal * Vector3d.Dot((ownPosition - sunPosition).normalized, normal);
+				double cosConeAngle = Vector3.Dot (ownsunPosition.normalized (), normal);
+                Vector3d force = normal * cosConeAngle * cosConeAngle;
                 return force * surfaceArea * reflectedPhotonRatio * solarForceAtDistance();
             } else {
                 return Vector3d.zero;
