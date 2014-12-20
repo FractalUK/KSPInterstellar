@@ -1,14 +1,15 @@
-﻿extern alias ORSv1_3;
+﻿extern alias ORSv1_4_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin {
-    class ScienceModule : FNResourceSuppliableModule, ITelescopeController {
+    class ScienceModule : ModuleModableScienceGenerator, ITelescopeController
+    {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string statusTitle;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
@@ -25,6 +26,14 @@ namespace FNPlugin {
         public string centrifugeRate;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
         public string antimatterProductionEfficiency;
+        
+        // persistant false
+        [KSPField(isPersistant = false)]
+        public string animName1;
+        [KSPField(isPersistant = false)]
+        public string animName2;
+
+        // persistant true
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
@@ -33,10 +42,8 @@ namespace FNPlugin {
         public float last_active_time;
         [KSPField(isPersistant = true)]
         public float electrical_power_ratio;
-        [KSPField(isPersistant = false)]
-        public string animName1;
-        [KSPField(isPersistant = false)]
-        public string animName2;
+        [KSPField(isPersistant = true)]
+        public float science_to_add;
 
         protected float megajoules_supplied = 0;
         protected String[] modes = { "Researching", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
@@ -47,10 +54,9 @@ namespace FNPlugin {
         protected float electrolysis_rate_f = 0;
         protected float deut_rate_f = 0;
         protected bool play_down = true;
-        protected double science_awaiting_addition = 0;
         protected Animation anim;
         protected Animation anim2;
-        protected FuelReprocessor reprocessor;
+        protected NuclearFuelReprocessor reprocessor;
         protected AntimatterFactory anti_factory;
 
         public bool CanProvideTelescopeControl
@@ -141,7 +147,7 @@ namespace FNPlugin {
 
         public override void OnStart(PartModule.StartState state) {
             if (state == StartState.Editor) { return; }
-            reprocessor = new FuelReprocessor(part);
+            reprocessor = new NuclearFuelReprocessor(part);
             anti_factory = new AntimatterFactory(part);
             ConfigNode config = PluginHelper.getPluginSaveFile();
 
@@ -188,21 +194,16 @@ namespace FNPlugin {
                         stupidity += proto_crew_member.stupidity;
                     }
                     stupidity = 1.5f - stupidity / 2.0f;
-                    double science_to_add = GameConstants.baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
-                    //part.RequestResource ("Science", -science_to_add);
-                    science_awaiting_addition = science_to_add;
+                    double science_to_increment = GameConstants.baseScienceRate * time_diff / 86400 * electrical_power_ratio * stupidity * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
+                    science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
+                    science_to_add += (float)science_to_increment;
 
                 } else if (active_mode == 2) { // Antimatter persistence
                     double now = Planetarium.GetUniversalTime();
                     double time_diff = now - last_active_time;
 
-                    List<PartResource> antimatter_resources = part.GetConnectedResources("Antimatter").ToList();
-                    float currentAntimatter_missing = 0;
-                    foreach (PartResource partresource in antimatter_resources) {
-                        currentAntimatter_missing += (float)(partresource.maxAmount - partresource.amount);
-                    }
-
-
+                    List<PartResource> antimatter_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Antimatter).ToList();
+                    float currentAntimatter_missing = (float) antimatter_resources.Sum(ar => ar.maxAmount-ar.amount);
 
                     float total_electrical_power_provided = (float)(electrical_power_ratio * (GameConstants.baseAMFPowerConsumption + GameConstants.basePowerConsumption) * 1E6);
                     double antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6 / 20000.0;
@@ -213,6 +214,7 @@ namespace FNPlugin {
         }
 
         public override void OnUpdate() {
+            base.OnUpdate();
             Events["BeginResearch"].active = !IsEnabled;
             Events["ReprocessFuel"].active = !IsEnabled;
             Events["ActivateFactory"].active = !IsEnabled;
@@ -303,14 +305,6 @@ namespace FNPlugin {
             crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
             global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
 
-            if (ResearchAndDevelopment.Instance != null) {
-                if (!double.IsNaN(science_awaiting_addition) && !double.IsInfinity(science_awaiting_addition) && science_awaiting_addition > 0) {
-                    ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + (float)science_awaiting_addition;
-                    ScreenMessages.PostScreenMessage(science_awaiting_addition.ToString("0") + " science has been added to the R&D centre.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
-                    science_awaiting_addition = 0;
-                }
-            }
-
             if (IsEnabled) {
                 if (active_mode == 0) { // Research
                     double electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
@@ -324,16 +318,16 @@ namespace FNPlugin {
                     float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                     altitude_multiplier = Math.Max(altitude_multiplier, 1);
                     science_rate_f = (float)(GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / 86400.0f * global_rate_multipliers * stupidity / (Mathf.Sqrt(altitude_multiplier)));
-                    if (ResearchAndDevelopment.Instance != null) {
-                        if (!double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f)) {
-                            ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
-                        }
+                    if (ResearchAndDevelopment.Instance != null && !double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f))
+                    {
+                        //ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
+                        science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
                     }
                 } else if (active_mode == 1) { // Fuel Reprocessing
                     double electrical_power_provided = consumeFNResource(GameConstants.basePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.basePowerConsumption);
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                    reprocessor.performReprocessingFrame(global_rate_multipliers);
+                    reprocessor.UpdateFrame(global_rate_multipliers);
                     if (reprocessor.getActinidesRemovedPerHour() > 0) {
                         reprocessing_rate_f = (float)(reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour());
                     } else {
@@ -353,7 +347,7 @@ namespace FNPlugin {
                         electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / GameConstants.baseCentriPowerConsumption);
                         global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                         float deut_produced = (float)(global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
-                        deut_rate_f = -ORSHelper.fixedRequestResource(part, "Deuterium", -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                        deut_rate_f = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Deuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                     } else {
                         ScreenMessages.PostScreenMessage("You must be splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         IsEnabled = false;
@@ -372,6 +366,37 @@ namespace FNPlugin {
             } else {
 
             }
+        }
+
+        protected override bool generateScienceData()
+        {
+            ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(experimentID);
+            if (experiment == null) return false;
+
+            if (science_to_add > 0)
+            {
+                result_title = experiment.experimentTitle;
+                result_string = "Science experiments were conducted in the vicinity of " + vessel.mainBody.name + ".";
+
+                transmit_value = science_to_add;
+                recovery_value = science_to_add;
+                data_size = science_to_add * 1.25f;
+                xmit_scalar = 1;
+                
+                ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "");
+                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
+                ref_value = subject.scienceCap;
+
+                science_data = new ScienceData(science_to_add, 1, 0, subject.id, "Science Lab Data");
+
+                return true;
+            }
+            return false;
+        }
+
+        protected override void cleanUpScienceData()
+        {
+            science_to_add = 0;
         }
 
         public override string getResourceManagerDisplayName() {

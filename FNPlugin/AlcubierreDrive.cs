@@ -1,5 +1,5 @@
-﻿extern alias ORSv1_3;
-using ORSv1_3::OpenResourceSystem;
+﻿extern alias ORSv1_4_2;
+using ORSv1_4_2::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -109,14 +109,14 @@ namespace FNPlugin
                 return;
             }
 
-            List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
+            List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
             float exotic_matter_available = (float) resources.Sum(res => res.amount);
 
             if (exotic_matter_available < megajoules_required * warp_factors[selected_factor]) {
                 ScreenMessages.PostScreenMessage("Warp drive charging!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-            part.RequestResource("ExoticMatter", megajoules_required * warp_factors[selected_factor]);
+            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, megajoules_required * warp_factors[selected_factor]);
             warp_sound.Play();
             warp_sound.loop = true;
             
@@ -221,7 +221,7 @@ namespace FNPlugin
             warpdriveType = upgradedName;
             mass_divisor = 40f;
             //recalculatePower();
-			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
             //IsEnabled = false;
         }
 
@@ -356,7 +356,7 @@ namespace FNPlugin
 
             warp_sound = gameObject.AddComponent<AudioSource>();
             warp_sound.clip = GameDatabase.Instance.GetAudioClip("WarpPlugin/Sounds/warp_sound");
-            warp_sound.volume = 1;
+            warp_sound.volume = GameSettings.SHIP_VOLUME;
             warp_sound.panLevel = 0;
             warp_sound.rolloffMode = AudioRolloffMode.Linear;
             warp_sound.Stop();
@@ -369,9 +369,11 @@ namespace FNPlugin
 			bool manual_upgrade = false;
 			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
 				if(upgradeTechReq != null) {
-					if(PluginHelper.hasTech(upgradeTechReq)) {
+                    if (Technology.TechInfoProvider.IsAvailable(upgradeTechReq))
+                    {
 						hasrequiredupgrade = true;
-					}else if(upgradeTechReq == "none") {
+					}else if(upgradeTechReq == "none")
+                    {
 						manual_upgrade = true;
 					}
 				}else{
@@ -452,7 +454,7 @@ namespace FNPlugin
 
 			float currentExoticMatter = 0;
 			float maxExoticMatter = 0;
-            List<PartResource> partresources = part.GetConnectedResources("ExoticMatter").ToList();
+            List<PartResource> partresources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
 			foreach (PartResource partresource in partresources) {
 				currentExoticMatter += (float)partresource.amount;
 				maxExoticMatter += (float)partresource.maxAmount;
@@ -462,13 +464,13 @@ namespace FNPlugin
 				float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * 1000;
 				float available_power = getStableResourceSupply (FNResourceManager.FNRESOURCE_MEGAJOULES);
 				float power_returned = consumeFNResource (Math.Min (maxPowerDrawForExoticMatter * TimeWarp.fixedDeltaTime, available_power * TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
-				part.RequestResource ("ExoticMatter", -power_returned / 1000.0f);
+                part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned / 1000.0f);
 			}
 
 
             if (!IsEnabled) {
                 //ChargeStatus = "";
-                List<PartResource> resources = part.GetConnectedResources("ExoticMatter").ToList();
+                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
                 float exotic_matter_available = (float) resources.Sum(res => res.amount);
 
                 if (exotic_matter_available < megajoules_required * warp_factors[selected_factor]) {

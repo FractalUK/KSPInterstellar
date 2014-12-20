@@ -86,13 +86,13 @@ namespace FNPlugin {
 			Fields["ParticleFlux"].guiActive = IsEnabled;
 
             float lat = (float)vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
-            float Bmagf = VanAllen.getBeltMagneticFieldMag(vessel.mainBody.flightGlobalsIndex, (float)vessel.altitude, lat);
-            float Bradf = VanAllen.getBeltMagneticFieldRadial(vessel.mainBody.flightGlobalsIndex, (float)vessel.altitude, lat);
-            float Bthef = VanAllen.getBeltMagneticFieldAzimuthal(vessel.mainBody.flightGlobalsIndex, (float)vessel.altitude, lat);
-            float flux = VanAllen.getBeltAntiparticles(vessel.mainBody.flightGlobalsIndex, (float)vessel.altitude, lat);
-            Bmag = Bmagf.ToString("E") + "T";
-            Brad = Bradf.ToString("E") + "T";
-            Bthe = Bthef.ToString("E") + "T";
+            double Bmag = vessel.mainBody.GetBeltMagneticFieldMagnitude(vessel.altitude, lat);
+            double Brad = vessel.mainBody.GetBeltMagneticFieldRadial(vessel.altitude, lat);
+            double Bthe = vessel.mainBody.getBeltMagneticFieldAzimuthal(vessel.altitude, lat);
+            double flux = vessel.mainBody.GetBeltAntiparticles(vessel.altitude, lat);
+            this.Bmag = Bmag.ToString("E") + "T";
+            this.Brad = Brad.ToString("E") + "T";
+            this.Bthe = Bthe.ToString("E") + "T";
             ParticleFlux = flux.ToString("E");
         }
 

@@ -10,21 +10,13 @@ namespace OpenResourceSystem {
 
         public static double getOceanicResourceContent(int refBody, string resourcename) {
             List<ORSOceanicResource> bodyOceanicComposition = getOceanicCompositionForBody(refBody);
-            if (bodyOceanicComposition.Count > 0) {
-                foreach (ORSOceanicResource bodyAtmosphericResource in bodyOceanicComposition) {
-                    if (bodyAtmosphericResource.getResourceName() == resourcename) {
-                        return bodyAtmosphericResource.getResourceAbundance();
-                    }
-                }
-            }
-            return 0;
+            ORSOceanicResource resource = bodyOceanicComposition.FirstOrDefault(oor => oor.getResourceName() == resourcename);
+            return resource != null ? resource.getResourceAbundance() : 0;
         }
 
         public static double getOceanicResourceContent(int refBody, int resource) {
             List<ORSOceanicResource> bodyOceanicComposition = getOceanicCompositionForBody(refBody);
-            if (bodyOceanicComposition.Count > resource) {
-                return bodyOceanicComposition[resource].getResourceAbundance();
-            }
+            if (bodyOceanicComposition.Count > resource) return bodyOceanicComposition[resource].getResourceAbundance();
             return 0;
         }
 
@@ -50,23 +42,23 @@ namespace OpenResourceSystem {
                 if (body_oceanic_resource_list.ContainsKey(refBody)) {
                     return body_oceanic_resource_list[refBody];
                 } else {
-                    ConfigNode[] bodyOceanicResourceList = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_DEFINITION").Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToArray();
-                    foreach (ConfigNode bodyOceanicConfig in bodyOceanicResourceList) {
-                        string resourcename = null;
-                        if (bodyOceanicConfig.HasValue("resourceName")) {
-                            resourcename = bodyOceanicConfig.GetValue("resourceName");
+                    ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION").FirstOrDefault();
+                    Debug.Log("[ORS] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
+                    if (oceanic_resource_pack != null) {
+                        List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                        if (oceanic_resource_list.Any())
+                        {
+                            bodyOceanicComposition = oceanic_resource_list.Select(orsc => new ORSOceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                            if (bodyOceanicComposition.Any())
+                            {
+                                bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                                body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
+                            }
                         }
-                        double resourceabundance = double.Parse(bodyOceanicConfig.GetValue("abundance"));
-                        string displayname = bodyOceanicConfig.GetValue("guiName");
-                        ORSOceanicResource bodyOceanicResource = new ORSOceanicResource(resourcename, resourceabundance, displayname);
-                        bodyOceanicComposition.Add(bodyOceanicResource);
-                    }
-                    if (bodyOceanicComposition.Count > 1) {
-                        bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
                     }
                 }
             } catch (Exception ex) {
-
+                Debug.Log("[ORS] Exception while loading oceanic resources : " + ex.ToString());
             }
             return bodyOceanicComposition;
         }

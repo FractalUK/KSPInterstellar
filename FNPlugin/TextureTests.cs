@@ -81,7 +81,7 @@ namespace FNPlugin {
                 //Color32[] new_pixels = pixels.Select(px => (px.r + px.g + px.b) / 3).Select(intensity => new Color32((byte)Mathf.Max(255 - 2 * intensity, 0.0f), 20, (byte)Mathf.Max(2 * intensity - 255, 0.0f), 150)).ToArray();
                 //2*Mathf.Abs(128 - intensity);
                 int max_pixel = pixels.Max(px => (px.r + px.g + px.b) / 3);
-                Color32[] new_pixels = pixels.Select(px => (px.r + px.g + px.b) / 3).Select(intensity => new Color32((byte)Mathf.Max((float)intensity/(float)max_pixel*255f, 0.0f), 0, (byte)Mathf.Max((1.0f-(float)intensity/(float)max_pixel)*255f, 0.0f), 150)).ToArray();
+                Color32[] new_pixels = pixels.Select(px => (px.r + px.g + px.b) / 3).Select(intensity => new Color32((byte)Mathf.Max((float)intensity / (float)max_pixel * 255f, 0.0f), 0, (byte)Mathf.Max((1.0f - (float)intensity / (float)max_pixel) * 255f, 0.0f), (byte)Mathf.Max((float)intensity / (float)max_pixel * 255f, 0.0f))).ToArray();
                 //Color32[] new_pixels = pixels.Select(px => (px.r + px.g + px.b) / 3).Select(intensity => new Color32(255,0,0,255)).ToArray();
                 print("New Pixels " + new_pixels.Length);
                 print(tex.format);
@@ -103,5 +103,4 @@ namespace FNPlugin {
     }
 
 
-}
-*/
+}*/

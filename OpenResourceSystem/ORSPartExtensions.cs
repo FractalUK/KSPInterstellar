@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace OpenResourceSystem {
-    public static class PartExtensions {
+    public static class ORSPartExtensions {
 
         public static IEnumerable<PartResource> GetConnectedResources(this Part part, PartResourceDefinition definition) {
             List<PartResource> resources = new List<PartResource>();

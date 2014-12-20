@@ -1,5 +1,5 @@
-﻿extern alias ORSv1_3;
-using ORSv1_3::OpenResourceSystem;
+﻿extern alias ORSv1_4_2;
+using ORSv1_4_2::OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -169,10 +169,10 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
+                calculateTimeToHeliumDepletion();
+
                 if (ResearchAndDevelopment.Instance != null)
                 {
-                    calculateTimeToHeliumDepletion();
-
                     if (helium_time_scale <= 0) telescopeIsEnabled = false;
 
                     perform_exponent = -(Planetarium.GetUniversalTime() - lastMaintained) * GameConstants.telescopePerformanceTimescale;
@@ -194,7 +194,7 @@ namespace FNPlugin
 
         private void calculateTimeToHeliumDepletion()
         {
-            List<PartResource> helium_resources = part.GetConnectedResources("LqdHelium").ToList();
+            List<PartResource> helium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Helium).ToList();
             double max_helium = helium_resources.Sum(hr => hr.maxAmount);
             double cur_helium = helium_resources.Sum(hr => hr.amount);
             double helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;

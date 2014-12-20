@@ -1,4 +1,4 @@
-extern alias ORSv1_3;
+extern alias ORSv1_4_2;
 
 using System;
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin {
 	class AntimatterStorageTank : FNResourceSuppliableModule	{
@@ -79,7 +79,7 @@ namespace FNPlugin {
 
 			if (state == StartState.Editor) { return; }
 			this.part.force_activate();
-            antimatter = part.Resources["Antimatter"];
+            antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
 		}
 
 		public override void OnUpdate() {

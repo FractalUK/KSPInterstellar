@@ -10,6 +10,8 @@ namespace OpenResourceSystem {
         protected int body;
         protected string resourcename;
 
+        public CelestialBody Body { get { return FlightGlobals.Bodies.Count > body ? FlightGlobals.Bodies[body] : null; } }
+
         public ORSPlanetaryResourcePixel(string name, double quantity, int body) {
             this.name = name;
             this.quantity = quantity;

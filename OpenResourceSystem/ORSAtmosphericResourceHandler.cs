@@ -10,26 +10,14 @@ namespace OpenResourceSystem {
 
         public static double getAtmosphericResourceContent(int refBody, string resourcename) {
             List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
-            if (bodyAtmosphericComposition.Count > 0) {
-                foreach (ORSAtmosphericResource bodyAtmosphericResource in bodyAtmosphericComposition) {
-                    if (bodyAtmosphericResource.getResourceName() == resourcename) {
-                        return bodyAtmosphericResource.getResourceAbundance();
-                    }
-                }
-            }
-            return 0;
+            ORSAtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.getResourceName() == resourcename);
+            return resource != null ? resource.getResourceAbundance() : 0;
         }
 
         public static double getAtmosphericResourceContentByDisplayName(int refBody, string resourcename) {
             List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
-            if (bodyAtmosphericComposition.Count > 0) {
-                foreach (ORSAtmosphericResource bodyAtmosphericResource in bodyAtmosphericComposition) {
-                    if (bodyAtmosphericResource.getDisplayName() == resourcename) {
-                        return bodyAtmosphericResource.getResourceAbundance();
-                    }
-                }
-            }
-            return 0;
+            ORSAtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.getDisplayName() == resourcename);
+            return resource != null ? resource.getResourceAbundance() : 0;
         }
 
         public static double getAtmosphericResourceContent(int refBody, int resource) {
@@ -62,23 +50,23 @@ namespace OpenResourceSystem {
                 if (body_atmospheric_resource_list.ContainsKey(refBody)) {
                     return body_atmospheric_resource_list[refBody];
                 } else {
-                    ConfigNode[] bodyAtmosphericResourceList = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_DEFINITION").Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToArray();
-                    foreach (ConfigNode bodyAtmosphericConfig in bodyAtmosphericResourceList) {
-                        string resourcename = null;
-                        if (bodyAtmosphericConfig.HasValue("resourceName")) {
-                            resourcename = bodyAtmosphericConfig.GetValue("resourceName");
+                    ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION").FirstOrDefault();
+                    Debug.Log("[ORS] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+                    if (atmospheric_resource_pack != null) {
+                        List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                        if (atmospheric_resource_list.Any())
+                        {
+                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                            if (bodyAtmosphericComposition.Any())
+                            {
+                                bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                                body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
+                            }
                         }
-                        double resourceabundance = double.Parse(bodyAtmosphericConfig.GetValue("abundance"));
-                        string displayname = bodyAtmosphericConfig.GetValue("guiName");
-                        ORSAtmosphericResource bodyAtmosphericResource = new ORSAtmosphericResource(resourcename, resourceabundance, displayname);
-                        bodyAtmosphericComposition.Add(bodyAtmosphericResource);
-                    }
-                    if (bodyAtmosphericComposition.Count > 1) {
-                        bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
                     }
                 }
             } catch (Exception ex) {
-
+                Debug.Log("[ORS] Exception while loading atmospheric resources : " + ex.ToString());
             }
             return bodyAtmosphericComposition;
         }

@@ -1,5 +1,5 @@
-extern alias ORSv1_3;
-using ORSv1_3::OpenResourceSystem;
+extern alias ORSv1_4_2;
+using ORSv1_4_2::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -101,7 +101,7 @@ namespace FNPlugin{
 			if (ResearchAndDevelopment.Instance == null) { return;}
 			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
 			upgradePartModule ();
-			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
 		}
 
 		public void upgradePartModule() {
@@ -310,10 +310,11 @@ namespace FNPlugin{
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
 			maxISP = (float)(Math.Sqrt ((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispMultiplier);
+            
 			if (!currentpropellant_is_jet) {
 				minISP = maxISP * 0.4f;
-				newISP.Add (0, maxISP, 0, 0);
-				newISP.Add (1, minISP, 0, 0);
+                newISP.Add(0, Mathf.Min(maxISP, 2997.13f), 0, 0);
+                newISP.Add(1, Mathf.Min(minISP, 2997.13f), 0, 0);
 				myAttachedEngine.useVelocityCurve = false;
 				myAttachedEngine.useEngineResponseTime = false;
 			} else {
@@ -323,10 +324,10 @@ namespace FNPlugin{
 						maxISP = maxISP / 2.5f;
 					}
 				}
-				newISP.Add(0, maxISP*4.5f/5.0f);
-				newISP.Add(0.10f, maxISP);
-                newISP.Add(0.3f, maxISP * 4.0f / 5.0f);
-				newISP.Add(1, maxISP*2.0f/3.0f);
+                newISP.Add(0, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
+                newISP.Add(0.15f, Mathf.Min(maxISP, 2997.13f));
+                newISP.Add(0.3f, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
+                newISP.Add(1, Mathf.Min(maxISP * 2.0f / 3.0f, 2997.13f));
 				vCurve.Add(0, 1.0f);
 				vCurve.Add((float)(maxISP*g0*1.0/3.0), 1.0f);
 				vCurve.Add((float)(maxISP*g0), 1.0f);
@@ -338,8 +339,8 @@ namespace FNPlugin{
 
 			myAttachedEngine.atmosphereCurve = newISP;
 			myAttachedEngine.velocityCurve = vCurve;
-			assThermalPower = myAttachedReactor.MaximumThermalPower;
-            if (myAttachedReactor is FNFusionReactor) {
+			assThermalPower = myAttachedReactor.MaximumPower;
+            if (myAttachedReactor is InterstellarFusionReactor) {
                 assThermalPower = assThermalPower * 0.95f;
             }
 		}
@@ -387,7 +388,7 @@ namespace FNPlugin{
                 minISP = maxISP * 0.4f;
                 atmospherecurve.Add(0, maxISP, 0, 0);
                 atmospherecurve.Add(1, minISP, 0, 0);
-                thrust = (float)(2 * myAttachedReactor.MaximumThermalPower * 1000 / g0 / maxISP);
+                thrust = (float)(2 * myAttachedReactor.MaximumPower * 1000 / g0 / maxISP);
                 myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             } else {
@@ -428,7 +429,16 @@ namespace FNPlugin{
                     if (double.IsNaN(proportion) || double.IsInfinity(proportion)) {
                         proportion = 1;
                     }
-                    part.temperature = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                    float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                    if (temp > part.maxTemp - 10.0f)
+                    {
+                        ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        myAttachedEngine.Shutdown();
+                        part.temperature = 1;
+                    } else
+                    {
+                        part.temperature = temp;
+                    }
                     //myAttachedEngine.DeactivateRunningFX();
                 } else {
                     //myAttachedEngine.ActivateRunningFX();

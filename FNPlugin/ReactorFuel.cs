@@ -1,10 +1,10 @@
-﻿extern alias ORSv1_3;
+﻿extern alias ORSv1_4_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin {
     class ReactorFuel {
@@ -24,12 +24,14 @@ namespace FNPlugin {
 
         public double FuelUsePerMJ { get { return _fuel_usege_per_mw/_density; } }
 
+        public double EnergyDensity { get { return 0.001/_fuel_usege_per_mw; } }
+
         public string FuelName { get { return _fuel_name; } }
 
         public string Unit { get { return _unit; } }
 
         public double GetFuelUseForPower(double efficiency, double megajoules) {
-            return _fuel_usege_per_mw * megajoules / _density / efficiency;
+            return FuelUsePerMJ * megajoules / efficiency;
         }
 
     }

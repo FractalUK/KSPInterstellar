@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenResourceSystem</RootNamespace>
-    <AssemblyName>OpenResourceSystem_1_3_0</AssemblyName>
+    <AssemblyName>OpenResourceSystem_1_4_2</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -65,7 +65,7 @@
     <Compile Include="ORSResourceSupplier.cs" />
     <Compile Include="ORSGameConstants.cs" />
     <Compile Include="ORSOceanicResourceHandler.cs" />
-    <Compile Include="PartExtensions.cs" />
+    <Compile Include="ORSPartExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ORSResourceAbundanceMarker.cs" />
   </ItemGroup>

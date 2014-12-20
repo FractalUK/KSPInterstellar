@@ -1,10 +1,10 @@
-﻿extern alias ORSv1_3;
+﻿extern alias ORSv1_4_2;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSv1_3::OpenResourceSystem;
+using ORSv1_4_2::OpenResourceSystem;
 
 namespace FNPlugin {
     class AntimatterFactory {
@@ -18,11 +18,14 @@ namespace FNPlugin {
             vessel = part.vessel;
             if (HighLogic.CurrentGame != null) {
                 if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-                    if (PluginHelper.hasTech("interstellarTechAntimatterPower")) {
-                        
-                    } else if (PluginHelper.hasTech("interstellarTechAccelerator")) {
+                    if (Technology.TechInfoProvider.IsAvailable("interstellarTechAntimatterPower"))
+                    {
+
+                    } else if (Technology.TechInfoProvider.IsAvailable("interstellarTechAccelerator"))
+                    {
                         efficiency = efficiency / 100;
-                    } else {
+                    } else 
+                    {
                         efficiency = efficiency / 10000;
                     }
                 }
@@ -32,9 +35,9 @@ namespace FNPlugin {
 
         public void produceAntimatterFrame(double rate_multiplier) {
             double energy_provided = rate_multiplier * GameConstants.baseAMFPowerConsumption * 1E6f;
-            double antimatter_density = PartResourceLibrary.Instance.GetDefinition("Antimatter").density;
+            double antimatter_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter).density;
             double antimatter_mass = energy_provided / GameConstants.warpspeed / GameConstants.warpspeed / 200000.0f / antimatter_density*efficiency;
-            current_rate = -ORSHelper.fixedRequestResource(part, "Antimatter", -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+            current_rate = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Antimatter, -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
         }
 
         public double getAntimatterProductionRate() {

@@ -179,7 +179,7 @@ namespace FNPlugin {
 			radiatorTemp = upgradedRadiatorTemp;
 			radiatorTempStr = radiatorTemp + "K";
 
-			ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science - upgradeCost;
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
 		}
 
 		[KSPAction("Deploy Radiator")]
@@ -238,11 +238,14 @@ namespace FNPlugin {
 				radiatorIsEnabled = true;
 			}
 
-			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-				if(PluginHelper.hasTech(upgradeTechReq)) {
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+            {
+                if (Technology.TechInfoProvider.IsAvailable(upgradeTechReq))
+                {
 					hasrequiredupgrade = true;
 				}
-			}else{
+			}else
+            {
 				hasrequiredupgrade = true;
 			}
 
@@ -329,9 +332,7 @@ namespace FNPlugin {
 				}
 
                 double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
-				if (FNReactor.hasActiveReactors (vessel)) {
-					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
-				}
+                if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min(vessel.GetTemperatureofColdestThermalSource() / 1.01, radiator_temperature_temp_val);
 
                 double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
@@ -371,9 +372,7 @@ namespace FNPlugin {
 				}
 
                 double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
-				if (FNReactor.hasActiveReactors (vessel)) {
-					radiator_temperature_temp_val = Math.Min (FNReactor.getTemperatureofColdestReactor (vessel)/1.01, radiator_temperature_temp_val);
-				}
+				if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min (vessel.GetTemperatureofColdestThermalSource()/1.01, radiator_temperature_temp_val);
 
                 double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
@@ -397,11 +396,13 @@ namespace FNPlugin {
             if (HighLogic.CurrentGame != null) {
                 if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
                     if (upgradeTechReq != null) {
-                        if (PluginHelper.hasTech(upgradeTechReq)) {
+                        if (Technology.TechInfoProvider.IsAvailable(upgradeTechReq))
+                        {
                             return true;
                         }
                     }
-                } else {
+                } else 
+                {
                     return true;
                 }
             }

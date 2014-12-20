@@ -24,9 +24,13 @@ namespace FNPlugin {
 
         // properties
 
+        public override double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+
         public override float MaximumThermalPower { get { return base.MaximumThermalPower * Mathf.Pow(plasma_ratio, 4.0f); } }
 
-        public override float MinimumThermalPower { get { return MaximumThermalPower * minimumThrottle; } }
+        public override float MaximumChargedPower { get { return base.MaximumChargedPower * Mathf.Pow(plasma_ratio, 4.0f); } }
+
+        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
@@ -62,6 +66,12 @@ namespace FNPlugin {
                 if (power_consumed < HeatingPowerRequirements) power_consumed += part.RequestResource("ElectricCharge", (HeatingPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
                 plasma_ratio = (float)(power_consumed / HeatingPowerRequirements);
             }
+        }
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            if (state != StartState.Editor) breedtritium = true;
+            base.OnStart(state);
         }
 
         public override string getResourceManagerDisplayName() {
