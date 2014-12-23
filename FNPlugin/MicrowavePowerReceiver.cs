@@ -56,6 +56,7 @@ namespace FNPlugin {
         protected int connectedrelaysi = 0;
         protected int networkDepth = 0;
         protected double efficiency_d = 0;
+        protected double powerInputMegajoules = 0;
         protected double powerInput = 0;
         protected long deactivate_timer = 0;
         protected List<VesselMicrowavePersistence> vmps;
@@ -143,25 +144,40 @@ namespace FNPlugin {
                     anim.Play();
                 }
             }
+
+            loadTransmitterAndRelayLists();
+            penaltyFreeDistance = Math.Sqrt(1 / ((microwaveAngleTan * microwaveAngleTan) / collectorArea));
+
+            this.part.force_activate();
+        }
+
+        void loadTransmitterAndRelayLists()
+        {
             vmps = new List<VesselMicrowavePersistence>();
             vrps = new List<VesselRelayPersistence>();
-            foreach (Vessel vess in FlightGlobals.Vessels) {
+            foreach (Vessel vess in FlightGlobals.Vessels)
+            {
                 String vesselID = vess.id.ToString();
 
-                if (vess.isActiveVessel == false && vess.vesselName.ToLower().IndexOf("debris") == -1) {
+                if (vess.isActiveVessel == false && vess.vesselName.ToLower().IndexOf("debris") == -1)
+                {
                     ConfigNode config = PluginHelper.getPluginSaveFile();
-                    if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID)) {
+                    if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID))
+                    {
                         ConfigNode power_node = config.GetNode("VESSEL_MICROWAVE_POWER_" + vesselID);
                         double nuclear_power = 0;
                         double solar_power = 0;
-                        if (power_node.HasValue("nuclear_power")) {
+                        if (power_node.HasValue("nuclear_power"))
+                        {
                             nuclear_power = double.Parse(power_node.GetValue("nuclear_power"));
 
                         }
-                        if (power_node.HasValue("solar_power")) {
+                        if (power_node.HasValue("solar_power"))
+                        {
                             solar_power = double.Parse(power_node.GetValue("solar_power"));
                         }
-                        if (nuclear_power > 0 || solar_power > 0) {
+                        if (nuclear_power > 0 || solar_power > 0)
+                        {
                             VesselMicrowavePersistence vmp = new VesselMicrowavePersistence(vess);
                             vmp.setSolarPower(solar_power);
                             vmp.setNuclearPower(nuclear_power);
@@ -169,11 +185,14 @@ namespace FNPlugin {
                         }
                     }
 
-                    if (config.HasNode("VESSEL_MICROWAVE_RELAY_" + vesselID)) {
+                    if (config.HasNode("VESSEL_MICROWAVE_RELAY_" + vesselID))
+                    {
                         ConfigNode relay_node = config.GetNode("VESSEL_MICROWAVE_RELAY_" + vesselID);
-                        if (relay_node.HasValue("relay")) {
+                        if (relay_node.HasValue("relay"))
+                        {
                             bool relay = bool.Parse(relay_node.GetValue("relay"));
-                            if (relay) {
+                            if (relay)
+                            {
                                 VesselRelayPersistence vrp = new VesselRelayPersistence(vess);
                                 vrp.setActive(relay);
                                 vrps.Add(vrp);
@@ -182,10 +201,6 @@ namespace FNPlugin {
                     }
                 }
             }
-            penaltyFreeDistance = Math.Sqrt(1 / ((microwaveAngleTan * microwaveAngleTan) / collectorArea));
-
-            this.part.force_activate();
-
         }
 
         public override void OnUpdate() {
@@ -234,14 +249,12 @@ namespace FNPlugin {
             }
         }
 
+        uint counter = 0;       // OnFixedUpdate cycle counter
+
         public override void OnFixedUpdate() {
             int activeSatsIncr = 0;
             //int activeRelsIncr = 0;
-            double total_power = 0;
-            connectedsatsi = 0;
-            connectedrelaysi = 0;
-            networkDepth = 0;
-
+            
             base.OnFixedUpdate();
             if (receiverIsEnabled) {
                 if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && !isThermalReceiver) {
@@ -252,62 +265,81 @@ namespace FNPlugin {
                     }
                     return;
                 }
-                double atmosphericefficiency = Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
-                efficiency_d = GameConstants.microwave_dish_efficiency * atmosphericefficiency;
-                deactivate_timer = 0;
+
+                if (counter % 1000 == 999)
+                    loadTransmitterAndRelayLists();     // reload transmitter lists every 1000 cycles;
+
+                if (++counter % 20 == 1)       // recalculate input once per 20 physics cycles. Relay route algorythm is too expensive
+                {
+                    double total_power = 0;
+                    connectedsatsi = 0;
+                    connectedrelaysi = 0;
+                    networkDepth = 0;
+
+                    double atmosphericefficiency = Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
+                    efficiency_d = GameConstants.microwave_dish_efficiency * atmosphericefficiency;
+                    deactivate_timer = 0;
 
 
-                HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
-                //Transmitters power calculation
-                foreach (var connectedTransmitterEntry in GetConnectedTransmitters()) {
-                    VesselMicrowavePersistence transmitter = connectedTransmitterEntry.Key;
-                    Vessel transmitterVessel = connectedTransmitterEntry.Key.getVessel();
-                    double routeEfficiency = connectedTransmitterEntry.Value.Key;
-                    IEnumerable<VesselRelayPersistence> relays = connectedTransmitterEntry.Value.Value;
+                    HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
+                    //Transmitters power calculation
+                    foreach (var connectedTransmitterEntry in GetConnectedTransmitters())
+                    {
+                        VesselMicrowavePersistence transmitter = connectedTransmitterEntry.Key;
+                        Vessel transmitterVessel = connectedTransmitterEntry.Key.getVessel();
+                        double routeEfficiency = connectedTransmitterEntry.Value.Key;
+                        IEnumerable<VesselRelayPersistence> relays = connectedTransmitterEntry.Value.Value;
 
-                    received_power[transmitterVessel] = 0;
+                        received_power[transmitterVessel] = 0;
 
-                    // calculate maximum power receivable from satellite
-                    double satPowerCap = transmitter.getAvailablePower() * efficiency_d;
-                    double currentPowerFromSat = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllVesssels(transmitter);
-                    double powerAvailableFromSat = (satPowerCap - currentPowerFromSat);
-                    double satPower = Math.Min(GetSatPower(transmitter, routeEfficiency), powerAvailableFromSat); // get sat power and make sure we conserve enegy
-                    received_power[transmitterVessel] = satPower * atmosphericefficiency;
-                    total_power += satPower;
-                    if (satPower > 0) {
-                        activeSatsIncr++;
-                        if (relays != null) {
-                            foreach (var relay in relays) {
-                                usedRelays.Add(relay);
+                        // calculate maximum power receivable from satellite
+                        double satPowerCap = transmitter.getAvailablePower() * efficiency_d;
+                        double currentPowerFromSat = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllVesssels(transmitter);
+                        double powerAvailableFromSat = (satPowerCap - currentPowerFromSat);
+                        double satPower = Math.Min(GetSatPower(transmitter, routeEfficiency), powerAvailableFromSat); // get sat power and make sure we conserve enegy
+                        received_power[transmitterVessel] = satPower * atmosphericefficiency;
+                        total_power += satPower;
+                        if (satPower > 0)
+                        {
+                            activeSatsIncr++;
+                            if (relays != null)
+                            {
+                                foreach (var relay in relays)
+                                {
+                                    usedRelays.Add(relay);
+                                }
+                                networkDepth = Math.Max(networkDepth, relays.Count());
                             }
-                            networkDepth = Math.Max(networkDepth, relays.Count());
                         }
                     }
-                }
 
 
-                connectedsatsi = activeSatsIncr;
-                connectedrelaysi = usedRelays.Count;
+                    connectedsatsi = activeSatsIncr;
+                    connectedrelaysi = usedRelays.Count;
 
-                double powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency;
-                powerInput = powerInputMegajoules * 1000.0f * receiptPower/100.0f;
+                    powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency * receiptPower / 100.0f;
+                    powerInput = powerInputMegajoules * 1000.0f;
 
 
-                float animateTemp = (float)powerInputMegajoules / 3000;
-                if (animateTemp > 1) {
-                    animateTemp = 1;
-                }
+                    float animateTemp = (float)powerInputMegajoules / 3000;
+                    if (animateTemp > 1)
+                    {
+                        animateTemp = 1;
+                    }
 
-                if (animT != null) {
-                    animT[animTName].speed = 0.001f;
-                    animT[animTName].normalizedTime = animateTemp;
-                    animT.Blend(animTName, 2f);
+                    if (animT != null)
+                    {
+                        animT[animTName].speed = 0.001f;
+                        animT[animTName].normalizedTime = animateTemp;
+                        animT.Blend(animTName, 2f);
+                    }
+
                 }
 
                 if (!isThermalReceiver) {
                     supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                    double waste_head_production = powerInputMegajoules / GameConstants.microwave_dish_efficiency * (1.0f - GameConstants.microwave_dish_efficiency);
-                    supplyFNResource(waste_head_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    double waste_heat_production = powerInputMegajoules / GameConstants.microwave_dish_efficiency * (1.0f - GameConstants.microwave_dish_efficiency);
+                    supplyFNResource(waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 } else {
                     double cur_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
                     if (ThermalPower <= 0) {
