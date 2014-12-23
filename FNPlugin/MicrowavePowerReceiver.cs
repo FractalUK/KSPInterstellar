@@ -59,8 +59,6 @@ namespace FNPlugin {
         protected double powerInputMegajoules = 0;
         protected double powerInput = 0;
         protected long deactivate_timer = 0;
-        protected List<VesselMicrowavePersistence> vmps;
-        protected List<VesselRelayPersistence> vrps;
         protected MicrowavePowerTransmitter part_transmitter;
         protected bool has_transmitter = false;
         static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
@@ -145,62 +143,9 @@ namespace FNPlugin {
                 }
             }
 
-            loadTransmitterAndRelayLists();
             penaltyFreeDistance = Math.Sqrt(1 / ((microwaveAngleTan * microwaveAngleTan) / collectorArea));
 
             this.part.force_activate();
-        }
-
-        void loadTransmitterAndRelayLists()
-        {
-            vmps = new List<VesselMicrowavePersistence>();
-            vrps = new List<VesselRelayPersistence>();
-            foreach (Vessel vess in FlightGlobals.Vessels)
-            {
-                String vesselID = vess.id.ToString();
-
-                if (vess.isActiveVessel == false && vess.vesselName.ToLower().IndexOf("debris") == -1)
-                {
-                    ConfigNode config = PluginHelper.getPluginSaveFile();
-                    if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID))
-                    {
-                        ConfigNode power_node = config.GetNode("VESSEL_MICROWAVE_POWER_" + vesselID);
-                        double nuclear_power = 0;
-                        double solar_power = 0;
-                        if (power_node.HasValue("nuclear_power"))
-                        {
-                            nuclear_power = double.Parse(power_node.GetValue("nuclear_power"));
-
-                        }
-                        if (power_node.HasValue("solar_power"))
-                        {
-                            solar_power = double.Parse(power_node.GetValue("solar_power"));
-                        }
-                        if (nuclear_power > 0 || solar_power > 0)
-                        {
-                            VesselMicrowavePersistence vmp = new VesselMicrowavePersistence(vess);
-                            vmp.setSolarPower(solar_power);
-                            vmp.setNuclearPower(nuclear_power);
-                            vmps.Add(vmp);
-                        }
-                    }
-
-                    if (config.HasNode("VESSEL_MICROWAVE_RELAY_" + vesselID))
-                    {
-                        ConfigNode relay_node = config.GetNode("VESSEL_MICROWAVE_RELAY_" + vesselID);
-                        if (relay_node.HasValue("relay"))
-                        {
-                            bool relay = bool.Parse(relay_node.GetValue("relay"));
-                            if (relay)
-                            {
-                                VesselRelayPersistence vrp = new VesselRelayPersistence(vess);
-                                vrp.setActive(relay);
-                                vrps.Add(vrp);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         public override void OnUpdate() {
@@ -223,8 +168,8 @@ namespace FNPlugin {
             } else {
                 beamedpower = "Offline.";
             }
-            connectedsats = string.Format("{0}/{1}", connectedsatsi, vmps.Count);
-            connectedrelays = string.Format("{0}/{1}", connectedrelaysi, vrps.Count);
+            connectedsats = string.Format("{0}/{1}", connectedsatsi, MicrowaveSources.instance.transmitters.Count);
+            connectedrelays = string.Format("{0}/{1}", connectedrelaysi, MicrowaveSources.instance.relays.Count);
             networkDepthString = networkDepth.ToString();
             toteff = (efficiency_d * 100).ToString("0.00") + "%";
 
@@ -263,9 +208,6 @@ namespace FNPlugin {
                     }
                     return;
                 }
-
-                if (counter % 100 == 249)
-                    loadTransmitterAndRelayLists();     // reload transmitter lists every 1000 cycles;
 
                 if (++counter % 20 == 1)       // recalculate input once per 20 physics cycles. Relay route algorythm is too expensive
                 {
@@ -314,7 +256,7 @@ namespace FNPlugin {
 
 
                     connectedsatsi = activeSatsIncr;
-                    connectedrelaysi = usedRelays.Count;
+                    connectedrelaysi = usedRelays.Count;        
 
                     powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency * receiptPower / 100.0f;
                     powerInput = powerInputMegajoules * 1000.0f;
@@ -504,7 +446,8 @@ namespace FNPlugin {
             var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
 
 
-            foreach (VesselMicrowavePersistence transmitter in vmps) { //first check for direct connection from current vessel to transmitters, will always be optimal
+            foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.transmitters.Values)
+            { //first check for direct connection from current vessel to transmitters, will always be optimal
                 if (transmitter.getAvailablePower() > 0) { //ignore if no power or transmitter is on the same vessel
                     if (!isInlineReceiver || transmitter.getVessel() != vessel) {
                         if (lineOfSightTo(transmitter.getVessel())) {
@@ -526,7 +469,8 @@ namespace FNPlugin {
             var currentRelayGroup = new List<KeyValuePair<VesselRelayPersistence, int>>();//relays which are in line of sight, and we have not yet checked what they can see. Their index in relaysToCheck is also stored
 
             int relayIndex = 0;
-            foreach (VesselRelayPersistence relay in vrps) {
+            foreach (VesselRelayPersistence relay in MicrowaveSources.instance.relays)
+            {
                 if (relay.isActive()) {
                     if (lineOfSightTo(relay.getVessel())) {
                         double distance = ComputeDistance(vessel, relay.getVessel());

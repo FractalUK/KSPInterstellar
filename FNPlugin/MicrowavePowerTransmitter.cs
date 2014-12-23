@@ -11,6 +11,11 @@ namespace FNPlugin {
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public bool relay;
+        
+        [KSPField(isPersistant = true)]
+        protected float nuclear_power = 0;
+        [KSPField(isPersistant = true)]
+        protected float solar_power = 0;
 
         //Persistent False
         [KSPField(isPersistant = false)]
@@ -26,10 +31,7 @@ namespace FNPlugin {
 
         //Internal
         protected Animation anim;
-        protected double nuclear_power;
-        protected double solar_power;
-        protected long activeCount = 0;
-        protected double displayed_solar_power = 0;
+        protected float displayed_solar_power = 0;
         protected List<FNGenerator> generators;
         protected List<MicrowavePowerReceiver> receivers;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -45,7 +47,6 @@ namespace FNPlugin {
                 anim.Blend(animName, 2f);
             }
             transmitPower = 100;
-            activeCount = 8;
             IsEnabled = true;
         }
 
@@ -57,7 +58,6 @@ namespace FNPlugin {
                 anim[animName].normalizedTime = 1f;
                 anim.Blend(animName, 2f);
             }
-            activeCount = 8;
             IsEnabled = false;
         }
 
@@ -69,7 +69,6 @@ namespace FNPlugin {
                 anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
-            activeCount = 8;
             IsEnabled = true;
             relay = true;
         }
@@ -82,7 +81,6 @@ namespace FNPlugin {
                 anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
-            activeCount = 8;
             IsEnabled = false;
             relay = false;
         }
@@ -173,7 +171,6 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
-            activeCount++;
             nuclear_power = 0;
             solar_power = 0;
             displayed_solar_power = 0;
@@ -184,25 +181,25 @@ namespace FNPlugin {
                     if (generator.isActive()) {
                         IThermalSource thermal_source = generator.getThermalSource();
                         if (thermal_source != null && !thermal_source.IsVolatileSource) {
-                            double output = generator.getMaxPowerOutput();
+                            float output = generator.getMaxPowerOutput();
                             if (thermal_source is InterstellarFusionReactor) {
                                 InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
-                                output = output * 0.92;
+                                output = output * 0.92f;
                             }
-                            output = output * transmitPower / 100.0;
-                            double gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                            output = output * transmitPower / 100.0f;
+                            float gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                             nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
                         }
                     }
                 }
 
                 foreach (ModuleDeployableSolarPanel panel in panels) {
-                    double output = panel.flowRate;
-                    double spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
+                    float output = panel.flowRate;
+                    float spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
                     double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
                     displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
                     //scale solar power to what it would be in Kerbin orbit for file storage
-                    solar_power += spower / TimeWarp.fixedDeltaTime/inv_square_mult;
+                    solar_power += (float)(spower / TimeWarp.fixedDeltaTime/inv_square_mult);
                 }
             }
 
@@ -213,44 +210,6 @@ namespace FNPlugin {
             if (double.IsInfinity(solar_power) || double.IsNaN(solar_power)) {
                 solar_power = 0;
             } 
-
-            if (activeCount % 250 == 9) {
-                ConfigNode config = PluginHelper.getPluginSaveFile();
-                string vesselID = vessel.id.ToString();
-                if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID)) {
-                    ConfigNode power_node = config.GetNode("VESSEL_MICROWAVE_POWER_" + vesselID);
-                    if (power_node.HasValue("nuclear_power")) {
-                        power_node.SetValue("nuclear_power", MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel).ToString("E"));
-                    } else {
-                        power_node.AddValue("nuclear_power", MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel).ToString("E"));
-                    }
-                    if (power_node.HasValue("solar_power")) {
-                        power_node.SetValue("solar_power", MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel).ToString("E"));
-                    } else {
-                        power_node.AddValue("solar_power", MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel).ToString("E"));
-                    }
-
-                } else {
-                    ConfigNode power_node = config.AddNode("VESSEL_MICROWAVE_POWER_" + vesselID);
-                    power_node.AddValue("nuclear_power", MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel).ToString("E"));
-                    power_node.AddValue("solar_power", MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel).ToString("E"));
-                }
-
-                if (config.HasNode("VESSEL_MICROWAVE_RELAY_" + vesselID)) {
-                    ConfigNode relay_node = config.GetNode("VESSEL_MICROWAVE_RELAY_" + vesselID);
-                    if (relay_node.HasValue("relay")) {
-                        relay_node.SetValue("relay", MicrowavePowerTransmitter.vesselIsRelay(vessel).ToString());
-                    } else {
-                        relay_node.AddValue("relay", MicrowavePowerTransmitter.vesselIsRelay(vessel).ToString());
-                    }
-                } else {
-                    ConfigNode relay_node = config.AddNode("VESSEL_MICROWAVE_RELAY_" + vesselID);
-                    relay_node.AddValue("relay", MicrowavePowerTransmitter.vesselIsRelay(vessel).ToString());
-                }
-
-                config.Save(PluginHelper.getPluginSaveFilePath());
-            }
-            activeCount++;
         }
 
         public double getNuclearPower() {
@@ -294,7 +253,7 @@ namespace FNPlugin {
         public static bool vesselIsRelay(Vessel vess) {
             List<MicrowavePowerTransmitter> transmitters = vess.FindPartModulesImplementing<MicrowavePowerTransmitter>();
             foreach (MicrowavePowerTransmitter transmitter in transmitters) {
-                if (transmitter.getIsRelay()) {
+                if (transmitter.getIsRelay() && transmitter.isActive()) {
                     return true;
                 }
             }
