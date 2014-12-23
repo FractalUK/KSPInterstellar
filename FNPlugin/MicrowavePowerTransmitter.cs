@@ -177,6 +177,8 @@ namespace FNPlugin {
             nuclear_power = 0;
             solar_power = 0;
             displayed_solar_power = 0;
+
+            base.OnFixedUpdate();
             if (IsEnabled && !relay) {
                 foreach (FNGenerator generator in generators) {
                     if (generator.isActive()) {
