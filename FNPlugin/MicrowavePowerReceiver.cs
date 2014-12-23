@@ -252,8 +252,6 @@ namespace FNPlugin {
         uint counter = 0;       // OnFixedUpdate cycle counter
 
         public override void OnFixedUpdate() {
-            int activeSatsIncr = 0;
-            //int activeRelsIncr = 0;
             
             base.OnFixedUpdate();
             if (receiverIsEnabled) {
@@ -266,12 +264,13 @@ namespace FNPlugin {
                     return;
                 }
 
-                if (counter % 1000 == 999)
+                if (counter % 100 == 249)
                     loadTransmitterAndRelayLists();     // reload transmitter lists every 1000 cycles;
 
                 if (++counter % 20 == 1)       // recalculate input once per 20 physics cycles. Relay route algorythm is too expensive
                 {
                     double total_power = 0;
+                    int activeSatsIncr = 0;
                     connectedsatsi = 0;
                     connectedrelaysi = 0;
                     networkDepth = 0;
@@ -319,21 +318,19 @@ namespace FNPlugin {
 
                     powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency * receiptPower / 100.0f;
                     powerInput = powerInputMegajoules * 1000.0f;
+                }
 
+                float animateTemp = (float)powerInputMegajoules / 3000;
+                if (animateTemp > 1)
+                {
+                    animateTemp = 1;
+                }
 
-                    float animateTemp = (float)powerInputMegajoules / 3000;
-                    if (animateTemp > 1)
-                    {
-                        animateTemp = 1;
-                    }
-
-                    if (animT != null)
-                    {
-                        animT[animTName].speed = 0.001f;
-                        animT[animTName].normalizedTime = animateTemp;
-                        animT.Blend(animTName, 2f);
-                    }
-
+                if (animT != null)
+                {
+                    animT[animTName].speed = 0.001f;
+                    animT[animTName].normalizedTime = animateTemp;
+                    animT.Blend(animTName, 2f);
                 }
 
                 if (!isThermalReceiver) {

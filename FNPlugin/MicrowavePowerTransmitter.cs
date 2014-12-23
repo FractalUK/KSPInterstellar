@@ -214,7 +214,7 @@ namespace FNPlugin {
                 solar_power = 0;
             } 
 
-            if (activeCount % 1000 == 9) {
+            if (activeCount % 250 == 9) {
                 ConfigNode config = PluginHelper.getPluginSaveFile();
                 string vesselID = vessel.id.ToString();
                 if (config.HasNode("VESSEL_MICROWAVE_POWER_" + vesselID)) {
