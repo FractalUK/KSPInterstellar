@@ -209,7 +209,7 @@ namespace FNPlugin {
                     return;
                 }
 
-                if (++counter % 20 == 1)       // recalculate input once per 20 physics cycles. Relay route algorythm is too expensive
+                if (++counter % 10 == 1)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
                 {
                     double total_power = 0;
                     int activeSatsIncr = 0;
