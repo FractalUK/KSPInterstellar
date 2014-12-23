@@ -21,12 +21,11 @@ namespace FNPlugin
         void Start()
         {
             instance = this;
-            Debug.Log("[KSP Interstellar]: MicrowaveSources.Start called");
+            Debug.Log("[KSP Interstellar]: MicrowaveSources initialized");
         }
 
         public void calculateTransmitters()
         {
-            Debug.Log("[KSP Interstellar]: MicrowaveSources.calculateTransmitters called");
             transmitters.Clear();
             relays.Clear();
             foreach (var vessel in FlightGlobals.Vessels)
@@ -45,7 +44,6 @@ namespace FNPlugin
                         relays.Add(persistence_relay);
                     }
                 }
-                Debug.Log("[KSP Interstellar]: MicrowaveSources.calculateTransmitters called -" + transmitters.ToString());
             }            
         }
 
