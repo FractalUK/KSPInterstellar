@@ -318,14 +318,11 @@ namespace FNPlugin {
 														
 							if(prefab_available_part.FindModulesImplementing<ModuleResourceIntake>().Count > 0) {
 								ModuleResourceIntake intake = prefab_available_part.Modules["ModuleResourceIntake"] as ModuleResourceIntake;
-								if(intake.resourceName == "IntakeAir") {
-									Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "AtmosphericIntake");
-									AtmosphericIntake pm = null;
-									if(type != null) {
-										pm = prefab_available_part.gameObject.AddComponent(type) as AtmosphericIntake;
-										prefab_available_part.Modules.Add(pm);
-										pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
-									}
+								if(intake.resourceName == "IntakeAir") 
+                                {
+                                    var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
+									prefab_available_part.Modules.Add(pm);
+									pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
 
                                     PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
