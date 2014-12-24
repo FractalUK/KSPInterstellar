@@ -32,13 +32,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Games\Kerbal Space Program 0.25\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="OpenResourceSystem_1_4_2">
-      <HintPath>C:\Games\Kerbal Space Program 0.24\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_4_2.dll</HintPath>
+      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_4_2.dll</HintPath>
       <Aliases>ORSv1_4_2</Aliases>
     </Reference>
     <Reference Include="System" />
@@ -47,9 +45,8 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Games\Kerbal Space Program 0.25\KSP_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +57,7 @@
     <Compile Include="AtmosphericIntake.cs" />
     <Compile Include="AnthraquinoneProcessor.cs" />
     <Compile Include="InterstellarMagneticNozzleControllerFX.cs" />
+    <Compile Include="MicrowaveSources.cs" />
     <Compile Include="MonopropellantProducer.cs" />
     <Compile Include="IChargedParticleSource.cs" />
     <Compile Include="InterstellarCatalysedFissionFusion.cs" />
