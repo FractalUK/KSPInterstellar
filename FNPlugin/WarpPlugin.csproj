@@ -102,9 +102,7 @@
     <Compile Include="ISRUScoop.cs" />
     <Compile Include="FNResourceManager.cs" />
     <Compile Include="FNResourceSuppliableModule.cs" />
-    <Compile Include="MicrowavePowerReceiverBackup.cs" />
     <Compile Include="MicrowavePowerReceiver.cs" />
-    <Compile Include="MicrowavePowerTransmitterBackup.cs" />
     <Compile Include="MicrowavePowerTransmitter.cs" />
     <Compile Include="MicrowaveRoute.cs" />
     <Compile Include="ModableExperimentResultDialogPage.cs" />
