@@ -117,7 +117,6 @@
     <Compile Include="ReactorFuelMode.cs" />
     <Compile Include="SabatierReactor.cs" />
     <Compile Include="ScienceModule.cs" />
-    <Compile Include="TechUpdateWindow.cs" />
     <Compile Include="TextureTests.cs" />
     <Compile Include="UF4Ammonolysiser.cs" />
     <Compile Include="VABThermalUI.cs" />

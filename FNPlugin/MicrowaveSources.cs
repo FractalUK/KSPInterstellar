@@ -50,7 +50,7 @@ namespace FNPlugin
         uint counter = 0;
         void Update()                  // update every 40 frames
         {
-            if (counter++ % 40 == 0)
+            if (counter++ % 40 == 0 && HighLogic.LoadedSceneIsGame)
                 calculateTransmitters();
         }
     }
