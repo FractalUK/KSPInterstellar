@@ -102,9 +102,7 @@
     <Compile Include="ISRUScoop.cs" />
     <Compile Include="FNResourceManager.cs" />
     <Compile Include="FNResourceSuppliableModule.cs" />
-    <Compile Include="MicrowavePowerReceiverBackup.cs" />
     <Compile Include="MicrowavePowerReceiver.cs" />
-    <Compile Include="MicrowavePowerTransmitterBackup.cs" />
     <Compile Include="MicrowavePowerTransmitter.cs" />
     <Compile Include="MicrowaveRoute.cs" />
     <Compile Include="ModableExperimentResultDialogPage.cs" />
@@ -117,7 +115,6 @@
     <Compile Include="ReactorFuelMode.cs" />
     <Compile Include="SabatierReactor.cs" />
     <Compile Include="ScienceModule.cs" />
-    <Compile Include="TechUpdateWindow.cs" />
     <Compile Include="TextureTests.cs" />
     <Compile Include="UF4Ammonolysiser.cs" />
     <Compile Include="VABThermalUI.cs" />
