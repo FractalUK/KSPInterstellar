@@ -41,7 +41,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
-        public float receiptPower;
+        public float receiptPower = 100;
 
         //Internal 
 
@@ -82,7 +82,6 @@ namespace FNPlugin {
         [KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
         public void ActivateReceiver() {
             receiverIsEnabled = true;
-            receiptPower = 100;
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Receiver", active = true)]

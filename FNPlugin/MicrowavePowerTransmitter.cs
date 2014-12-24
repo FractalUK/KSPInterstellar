@@ -27,7 +27,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
         public string beamedpower;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
-        public float transmitPower;
+        public float transmitPower = 100;
 
         //Internal
         protected Animation anim;
@@ -46,7 +46,6 @@ namespace FNPlugin {
                 anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
-            transmitPower = 100;
             IsEnabled = true;
         }
 
