@@ -551,7 +551,7 @@ namespace FNPlugin
             var currentRelayGroup = new List<KeyValuePair<VesselRelayPersistence, int>>();//relays which are in line of sight, and we have not yet checked what they can see. Their index in relaysToCheck is also stored
 
             int relayIndex = 0;
-            foreach (VesselRelayPersistence relay in MicrowaveSources.instance.relays)
+            foreach (VesselRelayPersistence relay in MicrowaveSources.instance.relays.Values)
             {
                 if (relay.isActive())
                 {

@@ -315,5 +315,47 @@ namespace FNPlugin
             return false;
         }
 
+        public static double getEnumeratedNuclearPowerForVessel(ProtoVessel vess)
+        {
+            double total_nuclear_power = 0;
+            foreach (var ppart in vess.protoPartSnapshots)
+            {
+                foreach (var pmodule in ppart.modules)
+                {
+                    if (pmodule.moduleName == "MicrowavePowerTransmitter")
+                        total_nuclear_power += double.Parse(pmodule.moduleValues.GetValue("nuclear_power"));
+                }
+            }
+            return total_nuclear_power;
+        }
+
+        public static double getEnumeratedSolarPowerForVessel(ProtoVessel vess)
+        {
+            double total_solar_power = 0;
+            foreach (var ppart in vess.protoPartSnapshots)
+            {
+                foreach (var pmodule in ppart.modules)
+                {
+                    if (pmodule.moduleName == "MicrowavePowerTransmitter")
+                        total_solar_power += double.Parse(pmodule.moduleValues.GetValue("solar_power"));
+                }
+            }
+            return total_solar_power;
+        }
+
+        public static bool vesselIsRelay(ProtoVessel vess)
+        {
+            foreach (var ppart in vess.protoPartSnapshots)
+            {
+                foreach (var pmodule in ppart.modules)
+                {
+                    if (pmodule.moduleName == "MicrowavePowerTransmitter")
+                        if (bool.Parse(pmodule.moduleValues.GetValue("relay")))
+                            return true;
+                }
+            }
+            return false;
+        }
+
     }
 }
