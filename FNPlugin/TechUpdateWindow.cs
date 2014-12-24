@@ -51,7 +51,7 @@ namespace FNPlugin {
             ConfigNode new_tech_nodes = PluginHelper.getNewTechTreeFile();
             if (new_tech_nodes != null) {
                 new_tech_nodes.Save(PluginHelper.getTechTreeFilePath());
-                PopupDialog.SpawnPopupDialog("Restart KSP", "Changes to the tech tree have been applied, please restart KSP before continuing.", "OK", false, GUI.skin);
+                PopupDialog.SpawnPopupDialog("Reload save", "Changes to the tech tree have been applied, please reload the save.", "OK", false, GUI.skin);
             }
         }
     }
