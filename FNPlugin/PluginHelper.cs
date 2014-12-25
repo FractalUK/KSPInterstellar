@@ -29,18 +29,14 @@ namespace FNPlugin {
 
         public static bool using_toolbar = false;
 
-        public const int interstellar_major_version = 10;
-        public const int interstellar_minor_version = 0;
+        public const int interstellar_major_version = 13;
+        public const int interstellar_minor_version = 1;
         
 		protected static bool plugin_init = false;
 		protected static bool is_thermal_dissip_disabled_init = false;
 		protected static bool is_thermal_dissip_disabled = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
-        protected static bool tech_checked = false;
-        protected static TechUpdateWindow tech_window = null;
-        protected static int installed_tech_tree_version_id = 0;
-        protected static int new_tech_tree_version_id = 0;
 
         public static bool TechnologyIsInUse { get { return (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX); } }
 
@@ -48,14 +44,6 @@ namespace FNPlugin {
         
         public static string getPluginSaveFilePath() {
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
-        }
-
-        public static string getTechTreeFilePath() {
-            return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/tree.cfg";
-        }
-
-        public static string getNewTechTreeFilePath() {
-            return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/tree.cfg";
         }
 
         public static string getPluginSettingsFilePath() {
@@ -83,7 +71,7 @@ namespace FNPlugin {
 					}
 				}
 				return false;
-			} catch (Exception ex) {
+			} catch (Exception) {
 				return false;
 			}
 		}
@@ -174,16 +162,6 @@ namespace FNPlugin {
             if (config == null) {
                 config = new ConfigNode();
             }
-            return config;
-        }
-
-        public static ConfigNode getTechTreeFile() {
-            ConfigNode config = ConfigNode.Load(PluginHelper.getTechTreeFilePath());
-            return config;
-        }
-
-        public static ConfigNode getNewTechTreeFile() {
-            ConfigNode config = ConfigNode.Load(PluginHelper.getNewTechTreeFilePath());
             return config;
         }
 
@@ -294,38 +272,6 @@ namespace FNPlugin {
             }
         }
 
-        public void Start() {
-            tech_window = new TechUpdateWindow();
-            tech_checked = false;
-
-            if (!tech_checked) {
-                ConfigNode tech_nodes = PluginHelper.getTechTreeFile();
-                ConfigNode new_tech_nodes = PluginHelper.getNewTechTreeFile();
-
-                if (tech_nodes != null) {
-                    if (tech_nodes.HasNode("VERSION")) {
-                        ConfigNode version_node = tech_nodes.GetNode("VERSION");
-                        if (version_node.HasValue("id")) {
-                            installed_tech_tree_version_id = Convert.ToInt32(version_node.GetValue("id"));
-                        }
-                    }
-                }
-                if (new_tech_nodes != null) {
-                    if (new_tech_nodes.HasNode("VERSION")) {
-                        ConfigNode version_node2 = new_tech_nodes.GetNode("VERSION");
-                        if (version_node2.HasValue("id")) {
-                            new_tech_tree_version_id = Convert.ToInt32(version_node2.GetValue("id"));
-                        }
-                    }
-                }
-                if (new_tech_tree_version_id > installed_tech_tree_version_id) {
-                    tech_window.Show();
-                }
-
-                tech_checked = true;
-            }
-        }
-
 		public void Update() {
             this.enabled = true;
             AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
@@ -372,14 +318,11 @@ namespace FNPlugin {
 														
 							if(prefab_available_part.FindModulesImplementing<ModuleResourceIntake>().Count > 0) {
 								ModuleResourceIntake intake = prefab_available_part.Modules["ModuleResourceIntake"] as ModuleResourceIntake;
-								if(intake.resourceName == "IntakeAir") {
-									Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "AtmosphericIntake");
-									AtmosphericIntake pm = null;
-									if(type != null) {
-										pm = prefab_available_part.gameObject.AddComponent(type) as AtmosphericIntake;
-										prefab_available_part.Modules.Add(pm);
-										pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
-									}
+								if(intake.resourceName == "IntakeAir") 
+                                {
+                                    var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
+									prefab_available_part.Modules.Add(pm);
+									pm.area = intake.area*intake.unitScalar*intake.maxIntakeSpeed/20;
 
                                     PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
