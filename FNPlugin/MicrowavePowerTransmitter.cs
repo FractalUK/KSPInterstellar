@@ -138,16 +138,9 @@ namespace FNPlugin
                 if (!IsEnabled)
                 {
                     anim[animName].normalizedTime = 1f;
-                    anim[animName].speed = -1f;
-
+					anim[animName].enabled = true;
+					anim.Sample();
                 }
-                else
-                {
-                    anim[animName].normalizedTime = 0f;
-                    anim[animName].speed = 1f;
-
-                }
-                anim.Play();
             }
 
             this.part.force_activate();

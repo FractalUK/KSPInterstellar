@@ -27,6 +27,11 @@ namespace FNPlugin
 
         uint unloaded_counter = 0;
 
+		public void onVesselDestroy()
+		{
+
+		}
+
         public void calculateTransmitters()
         {
             unloaded_counter++;

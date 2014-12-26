@@ -146,15 +146,14 @@ namespace FNPlugin
                     {
                         anim[animName].normalizedTime = 1f;
                         anim[animName].speed = -1f;
-
                     }
                     else
                     {
                         anim[animName].normalizedTime = 0f;
                         anim[animName].speed = 1f;
-
                     }
-                    anim.Play();
+					anim[animName].enabled = true;
+					anim.Sample();
                 }
             }
 
@@ -206,7 +205,7 @@ namespace FNPlugin
                         play_down = true;
                         play_up = false;
                         anim[animName].speed = 1f;
-                        anim[animName].normalizedTime = 0f;
+						anim[animName].normalizedTime = 0.0f;
                         anim.Blend(animName, 2f);
                     }
                 }
@@ -217,7 +216,7 @@ namespace FNPlugin
                         play_down = false;
                         play_up = true;
                         anim[animName].speed = -1f;
-                        anim[animName].normalizedTime = 1f;
+						anim[animName].normalizedTime = 1.0f;
                         anim.Blend(animName, 2f);
                     }
                 }
@@ -330,6 +329,8 @@ namespace FNPlugin
             }
             else
             {
+				connectedsatsi = 0;
+				connectedrelaysi = 0;
                 received_power.Clear();
             }
         }

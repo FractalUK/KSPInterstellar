@@ -194,7 +194,6 @@ namespace FNPlugin {
                 if (hasTechsRequiredToUpgrade()) {
                     isupgraded = true;
                     hasrequiredupgrade = true;
-                    isupgraded = true;
                 }
                 return;
             }
@@ -208,7 +207,9 @@ namespace FNPlugin {
 				anim [animName].layer = 1;
 
 				if (radiatorIsEnabled) {
-					anim.Blend (animName, 1, 0);
+					anim[animName].normalizedTime = 1.0f;
+					anim[animName].enabled = true;
+					anim.Sample();
 				} else {
 					//anim.Blend (animName, 0, 0);
 				}
