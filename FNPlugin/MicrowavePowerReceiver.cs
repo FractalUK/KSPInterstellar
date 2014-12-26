@@ -146,11 +146,15 @@ namespace FNPlugin
                     {
                         anim[animName].normalizedTime = 1f;
                         anim[animName].speed = -1f;
+                        play_down = true;
+                        play_up = false;
                     }
                     else
                     {
                         anim[animName].normalizedTime = 0f;
                         anim[animName].speed = 1f;
+                        play_down = false;
+                        play_up = true;
                     }
 					anim[animName].enabled = true;
 					anim.Sample();
