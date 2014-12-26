@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
     class MicrowaveSources : MonoBehaviour
     {
         public Dictionary<Vessel, VesselMicrowavePersistence> transmitters = new Dictionary<Vessel, VesselMicrowavePersistence>();
@@ -20,17 +20,11 @@ namespace FNPlugin
 
         void Start()
         {
-            DontDestroyOnLoad(this.gameObject);
             instance = this;
             Debug.Log("[KSP Interstellar]: MicrowaveSources initialized");
         }
 
         uint unloaded_counter = 0;
-
-		public void onVesselDestroy()
-		{
-
-		}
 
         public void calculateTransmitters()
         {
@@ -75,7 +69,7 @@ namespace FNPlugin
                     var persistence = new VesselMicrowavePersistence(vessel);
                     persistence.setNuclearPower(MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel));
                     persistence.setSolarPower(MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel));
-                    if (persistence.getAvailablePower() > 1.0)
+                    if (persistence.getAvailablePower() > 0.1)
                         transmitters[vessel] = persistence;
                     else
                         transmitters.Remove(vessel);

@@ -29,24 +29,33 @@ namespace FNPlugin {
             }
         }
 
-        protected void OnGUI() {
+        protected void OnGUI() 
+        {
             string resourcename = FNResourceManager.FNRESOURCE_MEGAJOULES;
             Vessel vessel = FlightGlobals.ActiveVessel;
             ORSResourceManager mega_manager = null;
-            if (vessel != null) {
-                if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button) {
+            if (vessel != null) 
+            {
+                if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button) 
+                {
                     mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-                    if (mega_manager.getPartModule() != null) {
+                    if (mega_manager.getPartModule() != null) 
+                    {
                         mega_manager.OnGUI();
 
-                        if (!PluginHelper.using_toolbar) {
+                        if (!PluginHelper.using_toolbar) 
+                        {
                             GUILayout.BeginArea(button_position);
-                            if (GUILayout.Button(guibuttontexture)) {
+                            if (GUILayout.Button(guibuttontexture)) 
+                            {
                                 mega_manager.showWindow();
                             }
                             GUILayout.EndArea();
-                        } else {
-                            if (show_window) {
+                        } 
+                        else 
+                        {
+                            if (show_window) 
+                            {
                                 mega_manager.showWindow();
                                 show_window = false;
                             }

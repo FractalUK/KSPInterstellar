@@ -81,15 +81,23 @@ namespace FNPlugin {
         {
             get
             {
-                if (part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                try
                 {
-                    double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
-                    double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
-                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
-                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-                    return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
+                    if (part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                    {
+                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
+                        double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
+                        double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
+                        fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
+                        return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
+                    }
+                    return base.MaximumThermalPower;
                 }
-                return base.MaximumThermalPower;
+                catch (Exception error)
+                {
+                    UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.MaximumThermalPower exception");
+                    return base.MaximumThermalPower;
+                }
             }
         }
 

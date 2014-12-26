@@ -26,7 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release KSP 0.90|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release KSP 0.90\</OutputPath>
+    <OutputPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\WarpPlugin\Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,8 +40,17 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug KSP 0.90|AnyCPU'">
+    <OutputPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\WarpPlugin\Plugins\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.90' " Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
@@ -51,13 +60,8 @@
       <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.90' " Include="OpenResourceSystem_1_4_3">
-      <HintPath>..\OpenResourceSystem\bin\Release KSP 0.90\OpenResourceSystem_1_4_3.dll</HintPath>
-      <Aliases>ORSv1_4_3</Aliases>
-      <Private>False</Private>
-    </Reference>
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.25' " Include="OpenResourceSystem_1_4_3">
-      <HintPath>..\OpenResourceSystem\bin\Release KSP 0.25\OpenResourceSystem_1_4_3.dll</HintPath>
+    <Reference Include="OpenResourceSystem_1_4_3">
+      <HintPath>..\OpenResourceSystem\bin\$(Configuration)\OpenResourceSystem_1_4_3.dll</HintPath>
       <Aliases>ORSv1_4_3</Aliases>
       <Private>False</Private>
     </Reference>
@@ -67,7 +71,7 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.90' " Include="Toolbar, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="Toolbar, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\000_Toolbar\Toolbar.dll</HintPath>
       <Private>False</Private>
@@ -77,7 +81,7 @@
       <HintPath>..\..\..\..\..\Games\Kerbal Space Program\GameData\000_Toolbar\Toolbar.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.90' " Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\KSP_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
