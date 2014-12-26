@@ -52,7 +52,7 @@ namespace FNPlugin
         //
         protected Animation anim;
         protected Animation animT;
-        protected bool play_down = true;
+        protected bool play_down = false;
         protected bool play_up = true;
         protected int connectedsatsi = 0;
         protected int connectedrelaysi = 0;
@@ -129,36 +129,17 @@ namespace FNPlugin
                 animT = part.FindModelAnimators(animTName).FirstOrDefault();
                 if (animT != null)
                 {
+                    animT[animTName].enabled = true;
                     animT[animTName].layer = 1;
                     animT[animTName].normalizedTime = 0f;
                     animT[animTName].speed = 0.001f;
-                    animT.Play();
+                    animT.Sample();
                 }
             }
 
             if (animName != null)
             {
                 anim = part.FindModelAnimators(animName).FirstOrDefault();
-                if (anim != null)
-                {
-                    anim[animName].layer = 1;
-                    if (connectedsatsi > 0 || connectedrelaysi > 0)
-                    {
-                        anim[animName].normalizedTime = 1f;
-                        anim[animName].speed = -1f;
-                        play_down = true;
-                        play_up = false;
-                    }
-                    else
-                    {
-                        anim[animName].normalizedTime = 0f;
-                        anim[animName].speed = 1f;
-                        play_down = false;
-                        play_up = true;
-                    }
-					anim[animName].enabled = true;
-					anim.Sample();
-                }
             }
 
             penaltyFreeDistance = Math.Sqrt(1 / ((microwaveAngleTan * microwaveAngleTan) / collectorArea));
@@ -309,7 +290,7 @@ namespace FNPlugin
                 {
                     animT[animTName].speed = 0.001f;
                     animT[animTName].normalizedTime = animateTemp;
-                    animT.Blend(animTName, 2f);
+                    animT.Sample();
                 }
 
                 if (!isThermalReceiver)
