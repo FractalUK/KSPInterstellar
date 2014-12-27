@@ -253,7 +253,7 @@ namespace FNPlugin {
             }
 
             this.part.force_activate();
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
 
             print("[KSP Interstellar] Configuring Reactor");
         }
@@ -293,7 +293,7 @@ namespace FNPlugin {
 
                 last_draw_update = update_count;
             }
-            if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
+            //if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
             update_count++;
         }
 
@@ -526,9 +526,9 @@ namespace FNPlugin {
             return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
         }
 
-        private void OnGUI() 
+        public void OnGUI() 
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window) 
+            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Reactor System Interface");
         }
 
