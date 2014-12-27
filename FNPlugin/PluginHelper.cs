@@ -32,11 +32,11 @@ namespace FNPlugin
         public static bool using_toolbar = false;
 
         public const int interstellar_major_version = 13;
-        public const int interstellar_minor_version = 1;
+        public const int interstellar_minor_version = 3;
 
         protected static bool plugin_init = false;
-        protected static bool is_thermal_dissip_disabled_init = false;
         protected static bool is_thermal_dissip_disabled = false;
+        protected static bool is_panel_heating_clamped = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
 
@@ -57,6 +57,11 @@ namespace FNPlugin
         public static bool isThermalDissipationDisabled()
         {
             return is_thermal_dissip_disabled;
+        }
+
+        public static bool isSolarPanelHeatingClamped()
+        {
+            return is_panel_heating_clamped;
         }
 
         public static bool hasTech(string techid)
@@ -387,7 +392,13 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled"))
                     {
                         PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
-                        Debug.Log("[KSP Interstellar] ThermalMechanics set to enabled: " + !PluginHelper.is_thermal_dissip_disabled);
+                        Debug.Log("[KSP Interstellar] ThermalMechanics set to enabled: " + (!PluginHelper.is_thermal_dissip_disabled).ToString());
+                    }
+                    if (plugin_settings.HasValue("SolarPanelClampedHeating"))
+                    {
+                        PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
+                        Debug.Log("[KSP Interstellar] Solar panels clamped heating set to enabled: " + 
+                                    PluginHelper.is_panel_heating_clamped.ToString());
                     }
                     resources_configured = true;
                 }
