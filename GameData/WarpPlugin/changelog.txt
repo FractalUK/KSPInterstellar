@@ -1,3 +1,35 @@
+Version 0.13.2
+-Science tree loading bug fixes (yes, again, and I hope, for good).
+-Fixed wrong particle FX for 0.625m plasma engine.
+-Added micro microwave power reciever dish (just scaled down version of standard one, for small crafts).
+-Changed solar panel waste heat generation formula as explained here: http://forum.kerbalspaceprogram.com/...=1#post1629497
+-Fixed displayed ISP for arcjet thrusters for correct Kerbal Engineer delta-v predictions.
+
+Version 0.13.1
+-Microvawe network behaviour is now more stable, as is it's performance.
+-Adapted Interstellar mod and TechManager for KSP version 0.90
+-Nothing's changed in gameplay, it's adaptation and bugfix release.
+-TweakScale v1.50 compatibility
+-Science tree loading bug fixes
+
+Version 0.13
+-Added magnetic nozzles
+-Capped thermal rockets at ~3000s Isp
+-New refinery system with vastly improved GUI
+-Integrated computer cores and AI with the stock science system
+-Fusion reactor fuel scaling drastically changed to make alternative fuels more efficient
+-Decreased fusion fuel consumption to more realistic values
+-Attach node sizes fixed
+
+Version 0.12.2
+-Fixed Electric Engine nan bug
+-Fixed Antimatter Initialised Reactor
+-Fixed smallest fusion reactor
+-Removed precooler integrated intake
+-All atmospheric engines now shutdown correctly when non-precooled (they no longer explode)
+-Added resource deprived message to reactors
+-Update to ORS v1.4.2
+
 Version 0.12.1
 -Wrote new resource referencing system to avoid resource name bugs (fixes cryostat, etc, bugs)
 -Rewrote magnetic field system for planets and fixed abnormal radiation values
