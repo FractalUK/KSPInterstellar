@@ -1,3 +1,8 @@
+Version 0.13.3
+-Solar panel heat tweak from 0.13.2 is now togglable option in WarpPluginSettings.cfg
+-Fixed 3.5m fusion reactor .cfg to scale nods well with TweakScale
+-Old TweakScale configs for Interstellar mod revisioned. Now reactor power scales with size correctly.
+
 Version 0.13.2
 -Science tree loading bug fixes (yes, again, and I hope, for good).
 -Fixed wrong particle FX for 0.625m plasma engine.
