@@ -1,3 +1,8 @@
+Version 0.13.4
+-Initial CRP adaptation changes. Most gases and liquid resources are now taken CRP, but reactor fuel and some other stuff can't be shared that easy. Look at Resources/ResourcesNuclear.cfg to see native to Interstellar resources.
+-Antimatter tank cost fix. It's done by fixing KSPI_scale_fixes.cfg. Sorry, but it involves changing the CRP antimatter unit cost and tweakable status. I know this is bad, but otherwise there could be serious game balance flaws (like starting with full antimatter tank, or collecting it and selling it on Kerbin for billions).
+-WarpPlugin folder reorganization.
+
 Version 0.13.3
 -Solar panel heat tweak from 0.13.2 is now togglable option in WarpPluginSettings.cfg
 -Fixed 3.5m fusion reactor .cfg to scale nods well with TweakScale

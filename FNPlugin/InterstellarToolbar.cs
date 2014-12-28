@@ -19,7 +19,7 @@ namespace InterstellarToolbar {
             VABThermalUI.render_window = false;
             PluginHelper.using_toolbar = true;
             button_mega = ToolbarManager.Instance.add("interstellar", "mega_button");
-            button_mega.TexturePath = "WarpPlugin/megajoule_click2";
+            button_mega.TexturePath = "WarpPlugin/UITextures/megajoule_click2";
             button_mega.ToolTip = "Show Megajoule Power Manager";
             
             button_mega.OnClick += (e) => {
@@ -27,7 +27,7 @@ namespace InterstellarToolbar {
             };
 
             button_thermal = ToolbarManager.Instance.add("interstellar", "thermal_button");
-            button_thermal.TexturePath = "WarpPlugin/thermal_click";
+            button_thermal.TexturePath = "WarpPlugin/UITextures/thermal_click";
             button_thermal.ToolTip = "Toggle VAB Thermal Helper";
 
             button_thermal.OnClick += (e) => {

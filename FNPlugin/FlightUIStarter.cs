@@ -16,7 +16,7 @@ namespace FNPlugin {
         public static bool show_window = false;
 
         public void Start() {
-            guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/megajoule_click", false);
+            guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/UITextures/megajoule_click", false);
             if (!PluginHelper.using_toolbar) {
                 button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
             }
