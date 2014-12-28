@@ -1,7 +1,8 @@
 Version 0.13.4
--Initial CRP adaptation changes. Most gases and liquid resources are now taken CRP, but reactor fuel and some other stuff can't be shared that easy. Look at Resources/ResourcesNuclear.cfg to see native to Interstellar resources.
--Antimatter tank cost fix. It's done by fixing KSPI_scale_fixes.cfg. Sorry, but it involves changing the CRP antimatter unit cost and tweakable status. I know this is bad, but otherwise there could be serious game balance flaws (like starting with full antimatter tank, or collecting it and selling it on Kerbin for billions).
+-Initial CRP adaptation changes. Most gases and liquid resources are now taken from CRP, but reactor fuel and some other stuff can't be shared that easy (mostly isotopes and salts). Look at Resources/ResourcesNuclear.cfg to see native to Interstellar resources.
+-Antimatter tank cost fix. It's done by fixing KSPI_scale_fixes.cfg. Sorry, but it involves changing the CRP antimatter unit cost and tweakable status. I know this is bad, but otherwise there could be serious game balance flaws (like starting with full antimatter tank, or collecting it and then selling it for huge amount of credits). Antimatter cost is set to 1.
 -WarpPlugin folder reorganization.
+-Renamed tech tree, so it explicitly states KSP version. On your save load the game will ask you about the tech tree. Load KSPI_boris_090.
 
 Version 0.13.3
 -Solar panel heat tweak from 0.13.2 is now togglable option in WarpPluginSettings.cfg
