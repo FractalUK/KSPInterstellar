@@ -206,7 +206,7 @@ namespace FNPlugin
 
         public static bool lineOfSightToSun(Vessel vess)
         {
-            Vector3d a = vess.transform.position;
+            Vector3d a = PluginHelper.getVesselPos(vess);
             Vector3d b = FlightGlobals.Bodies[0].transform.position;
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
             {
@@ -229,6 +229,12 @@ namespace FNPlugin
                 }
             }
             return true;
+        }
+
+        public static Vector3d getVesselPos(Vessel v)
+        {
+            Vector3d v1p = (v.state == Vessel.State.ACTIVE) ? (Vector3d)v.transform.position : v.GetWorldPos3D();
+            return v1p;
         }
 
         public static float getMaxAtmosphericAltitude(CelestialBody body)

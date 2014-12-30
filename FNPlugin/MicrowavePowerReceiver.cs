@@ -190,7 +190,6 @@ namespace FNPlugin
                         play_down = true;
                         play_up = false;
                         anim[animName].speed = 1f;
-						anim[animName].normalizedTime = 0.0f;
                         anim.Blend(animName, 2f);
                     }
                 }
@@ -200,8 +199,9 @@ namespace FNPlugin
                     {
                         play_down = false;
                         play_up = true;
+                        if (anim[animName].normalizedTime == 0.0f)
+                            anim[animName].normalizedTime = 1.0f;
                         anim[animName].speed = -1f;
-						anim[animName].normalizedTime = 1.0f;
                         anim.Blend(animName, 2f);
                     }
                 }
@@ -288,7 +288,6 @@ namespace FNPlugin
 
                 if (animT != null)
                 {
-                    animT[animTName].speed = 0.001f;
                     animT[animTName].normalizedTime = animateTemp;
                     animT.Sample();
                 }
@@ -412,20 +411,17 @@ namespace FNPlugin
         protected bool lineOfSightTo(Vessel vess)
         {
             Vector3d a = vessel.transform.position;
-            Vector3d b = vess.transform.position;
+            Vector3d b = PluginHelper.getVesselPos(vess);
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
             {
                 Vector3d refminusa = referenceBody.position - a;
                 Vector3d bminusa = b - a;
                 if (Vector3d.Dot(refminusa, bminusa) > 0)
                 {
-                    if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude)
+                    Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
+                    if (tang.magnitude < referenceBody.Radius)
                     {
-                        Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-                        if (tang.magnitude < referenceBody.Radius)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
             }
@@ -457,12 +453,12 @@ namespace FNPlugin
         #region RelayRouting
         protected double ComputeVisibilityAndDistance(VesselRelayPersistence r, Vessel v)
         {
-            return r.lineOfSightTo(v) ? Vector3d.Distance(r.getVessel().transform.position, v.transform.position) : -1;
+            return r.lineOfSightTo(v) ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) : -1;
         }
 
         protected double ComputeDistance(Vessel v1, Vessel v2)
         {
-            return Vector3d.Distance(v1.transform.position, v2.transform.position);
+            return Vector3d.Distance(PluginHelper.getVesselPos(v1), PluginHelper.getVesselPos(v2));
         }
 
         protected double ComputeTransmissionEfficiency(double distance, double facingFactor)
@@ -480,7 +476,8 @@ namespace FNPlugin
         {
             double facingFactor = 1;
 
-            Vector3d directionVector = (powerVessel.transform.position - vessel.transform.position).normalized;
+            Vector3d powerv = PluginHelper.getVesselPos(powerVessel);
+            Vector3d directionVector = (powerv - vessel.transform.position).normalized;
             if (!isInlineReceiver)
             {
                 //Scale energy reception based on angle of reciever to transmitter
