@@ -403,7 +403,7 @@ namespace FNPlugin
                     }
                     if (plugin_settings.HasValue("SolarPanelClampedHeating"))
                     {
-                        PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
+                        PluginHelper.is_panel_heating_clamped = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
                         Debug.Log("[KSP Interstellar] Solar panels clamped heating set to enabled: " + 
                                     PluginHelper.is_panel_heating_clamped.ToString());
                     }
