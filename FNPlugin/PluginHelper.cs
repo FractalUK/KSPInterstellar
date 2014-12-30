@@ -398,7 +398,8 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled"))
                     {
                         PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
-                        Debug.Log("[KSP Interstellar] ThermalMechanics set to enabled: " + (!PluginHelper.is_thermal_dissip_disabled).ToString());
+                        Debug.Log("[KSP Interstellar] ThermalMechanics set to : " + 
+                            (!PluginHelper.is_thermal_dissip_disabled).ToString());
                     }
                     if (plugin_settings.HasValue("SolarPanelClampedHeating"))
                     {

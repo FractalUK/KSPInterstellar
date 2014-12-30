@@ -107,16 +107,22 @@ namespace FNPlugin {
         {
             get
             {
-                double temp_scale;
-                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                if (HighLogic.LoadedSceneIsFlight && !isupgraded)
                 {
-                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-                } else
-                {
-                    temp_scale = base.CoreTemperature/2.0;
+                    double temp_scale;
+                    if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                    {
+                        temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+                    }
+                    else
+                    {
+                        temp_scale = base.CoreTemperature / 2.0;
+                    }
+                    double temp_diff = (base.CoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
+                    return (float)(temp_scale + temp_diff);
                 }
-                double temp_diff = (base.CoreTemperature - temp_scale)*Math.Sqrt(powerPcnt/100.0);
-                return (float) (temp_scale + temp_diff);
+                else
+                    return base.CoreTemperature;
             }
         }
 
