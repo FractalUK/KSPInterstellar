@@ -32,7 +32,7 @@ namespace FNPlugin
         public static bool using_toolbar = false;
 
         public const int interstellar_major_version = 13;
-        public const int interstellar_minor_version = 3;
+        public const int interstellar_minor_version = 5;
 
         protected static bool plugin_init = false;
         protected static bool is_thermal_dissip_disabled = false;

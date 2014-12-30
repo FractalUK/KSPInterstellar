@@ -412,17 +412,20 @@ namespace FNPlugin
         {
             Vector3d a = vessel.transform.position;
             Vector3d b = PluginHelper.getVesselPos(vess);
+            if (Vector3d.Distance(a, b) < 2500.0)           // if both vessels are active
+                return true;
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
             {
                 Vector3d refminusa = referenceBody.position - a;
                 Vector3d bminusa = b - a;
-                if (Vector3d.Dot(refminusa, bminusa) > 0)
+                if (Vector3d.Dot(refminusa, bminusa) > 0 && (bminusa.magnitude > refminusa.magnitude - referenceBody.Radius))
                 {
                     Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-                    if (tang.magnitude < referenceBody.Radius)
-                    {
+                    Vector3d tang_knot = referenceBody.position - tang;
+                    Vector3d intersection_vector = (a - tang_knot).normalized *
+                        Math.Sqrt(referenceBody.Radius * referenceBody.Radius - tang.sqrMagnitude);
+                    if (intersection_vector.sqrMagnitude > (b - tang_knot).sqrMagnitude)
                         return false;
-                    }
                 }
             }
             return true;
