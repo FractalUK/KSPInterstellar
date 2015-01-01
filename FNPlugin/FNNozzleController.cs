@@ -1,6 +1,4 @@
-extern alias ORSv1_4_2;
-using ORSv1_4_2::OpenResourceSystem;
-
+using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,7 +72,7 @@ namespace FNPlugin{
 
 		//Constants
 		protected const double g0 = 9.82;
-        protected const double isp_temp_rat = 22.371670613;
+        protected const double isp_temp_rat = 20; //22.371670613;
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -422,7 +420,8 @@ namespace FNPlugin{
 				// get the flameout safety limit
 				atmospheric_limit = getAtmosphericLimit ();
                 double thrust_limit = myAttachedEngine.thrustPercentage / 100;
-                if (currentpropellant_is_jet) {
+                if (currentpropellant_is_jet) 
+                {
                     int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Where(prc => prc.isFunctional()).Count();
                     int intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
                     double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
@@ -445,15 +444,21 @@ namespace FNPlugin{
                 }
                 double thermal_consume_total = assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * atmospheric_limit;
                 double thermal_power_received = consumeFNResource(thermal_consume_total, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
-                if (thermal_power_received * TimeWarp.fixedDeltaTime < thermal_consume_total) {
+                
+                if (thermal_power_received * TimeWarp.fixedDeltaTime < thermal_consume_total) 
+                {
                     thermal_power_received += consumeFNResource(thermal_consume_total-thermal_power_received*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
                 }
+
 				consumeFNResource (thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 				float power_ratio = 0.0f;
 				double engineMaxThrust = 0.01;
-				if (assThermalPower > 0) {
+
+				if (assThermalPower > 0) 
+                {
 					power_ratio = (float)(thermal_power_received / assThermalPower);
-					engineMaxThrust = Math.Max(thrust_limit*2000.0 * thermal_power_received / maxISP / g0 * heat_exchanger_thrust_divisor*ispratio/myAttachedEngine.currentThrottle,0.01);
+                    double heatTrustModifier = myAttachedReactor.CoreTemperature < 1600 ? myAttachedReactor.CoreTemperature / 1600 : 1.0 + (myAttachedReactor.CoreTemperature - 1600.0) / 16000.0;
+                    engineMaxThrust = Math.Max(thrust_limit * 15000.0 * heatTrustModifier * thermal_power_received / maxISP / heat_exchanger_thrust_divisor * ispratio / myAttachedEngine.currentThrottle, 0.01);
 				} 
 				//print ("B: " + engineMaxThrust);
 				// set up TWR limiter if on

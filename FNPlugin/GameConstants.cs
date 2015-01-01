@@ -6,7 +6,7 @@ using System.Text;
 namespace FNPlugin {
     class GameConstants {
         public const double baseReprocessingRate = 400;
-        public const double basePowerConsumption = 5;
+        public const double basePowerConsumption = 0.5;
         public const double electrolysisEnergyPerTon = 18159;
         public const double bakingEnergyPerTon = 4920;
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
