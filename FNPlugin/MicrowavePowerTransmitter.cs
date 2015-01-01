@@ -177,12 +177,14 @@ namespace FNPlugin {
             nuclear_power = 0;
             solar_power = 0;
             displayed_solar_power = 0;
-            if (IsEnabled && !relay) {
+            if (IsEnabled && !relay) 
+            {
                 foreach (FNGenerator generator in generators) {
                     if (generator.isActive()) {
                         IThermalSource thermal_source = generator.getThermalSource();
                         if (thermal_source != null && !thermal_source.IsVolatileSource) {
                             double output = generator.getMaxPowerOutput();
+
                             if (thermal_source is InterstellarFusionReactor) {
                                 InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
                                 output = output * 0.92;
@@ -194,8 +196,24 @@ namespace FNPlugin {
                     }
                 }
 
-                foreach (ModuleDeployableSolarPanel panel in panels) {
+                foreach (ModuleDeployableSolarPanel panel in panels) 
+                {
                     double output = panel.flowRate;
+
+                    // attempt to retrieve all solar power output
+                    if (output == 0.0)
+                    {
+                        var partModulesList = panel.part.parent.Modules;
+                        foreach (var module in partModulesList)
+                        {
+                            var solarmodule = module as ModuleDeployableSolarPanel;
+                            if (solarmodule != null)
+                            {
+                                output += solarmodule.flowRate;
+                            }
+                        }
+                    }
+
                     double spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
                     double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
                     displayed_solar_power += spower / TimeWarp.fixedDeltaTime;

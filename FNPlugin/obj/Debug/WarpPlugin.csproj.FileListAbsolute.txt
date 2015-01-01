@@ -19,3 +19,16 @@ F:\My Documents\Repos\WarpPlugin\FNPlugin\obj\Debug\Interstellar.dll
 F:\My Documents\Repos\WarpPlugin\FNPlugin\obj\Debug\Interstellar.pdb
 F:\My Documents\Repos\WarpPlugin\FNPlugin\obj\Debug\WarpPlugin.csprojResolveAssemblyReference.cache
 F:\My Documents\Repos\WarpPlugin\FNPlugin\bin\Debug\OpenResourceSystem_1_4_1.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\obj\Debug\WarpPlugin.csprojResolveAssemblyReference.cache
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\Interstellar.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\Interstellar.pdb
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\Assembly-CSharp.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\OpenResourceSystem_1_4_2.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\UnityEngine.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\TDx.TDxInput.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\Mono.Cecil.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\Assembly-CSharp-firstpass.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\Mono.Security.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\bin\Debug\OpenResourceSystem_1_4_2.pdb
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\obj\Debug\Interstellar.dll
+E:\KSPI_NF_Integration\KSPInterstellar\FNPlugin\obj\Debug\Interstellar.pdb

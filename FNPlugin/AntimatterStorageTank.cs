@@ -1,12 +1,10 @@
-extern alias ORSv1_4_2;
-
 using System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_2::OpenResourceSystem;
+using OpenResourceSystem;
 
 namespace FNPlugin {
 	class AntimatterStorageTank : FNResourceSuppliableModule	{

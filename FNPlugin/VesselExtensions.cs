@@ -1,6 +1,4 @@
-﻿extern alias ORSv1_4_2;
-using ORSv1_4_2::OpenResourceSystem;
-
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
