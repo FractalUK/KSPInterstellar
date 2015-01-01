@@ -37,6 +37,7 @@ namespace FNPlugin
         protected static bool plugin_init = false;
         protected static bool is_thermal_dissip_disabled = false;
         protected static bool is_panel_heating_clamped = false;
+        protected static bool is_reciever_temp_tweaked = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
 
@@ -62,6 +63,11 @@ namespace FNPlugin
         public static bool isSolarPanelHeatingClamped()
         {
             return is_panel_heating_clamped;
+        }
+
+        public static bool isRecieverCoreTempTweaked()
+        {
+            return is_reciever_temp_tweaked;
         }
 
         public static bool hasTech(string techid)
@@ -406,6 +412,12 @@ namespace FNPlugin
                         PluginHelper.is_thermal_dissip_disabled = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
                         Debug.Log("[KSP Interstellar] Solar panels clamped heating set to enabled: " + 
                                     PluginHelper.is_panel_heating_clamped.ToString());
+                    }
+                    if (plugin_settings.HasValue("SolarPanelClampedHeating"))
+                    {
+                        PluginHelper.is_reciever_temp_tweaked = bool.Parse(plugin_settings.GetValue("RecieverTempTweak"));
+                        Debug.Log("[KSP Interstellar] Microwave reciever CoreTemp tweak is set to enabled: " +
+                                    PluginHelper.is_reciever_temp_tweaked.ToString());
                     }
                     resources_configured = true;
                 }
