@@ -239,21 +239,14 @@ namespace FNPlugin {
 			}
 
 			if (landed) {
-				if (refbody == REF_BODY_TYLO) {
-					multiplier = multiplier*3f;
-                }
-                else if (refbody == REF_BODY_KERBIN)
-                {
-                    multiplier = multiplier * 0.5f;
-                }
-                else if (refbody == REF_BODY_EVE)
-                {
+				if (refbody == REF_BODY_TYLO)
+                    multiplier = multiplier * 3f;
+                else if (refbody == REF_BODY_KERBIN) 
+                    multiplier = multiplier * 0.5f;         
+                else if (refbody == REF_BODY_EVE) 
                     multiplier = multiplier * 2.5f;
-                }
-                else
-                {
+                else 
                     multiplier = multiplier * 2f;
-                }
 			}
 
             return multiplier;
