@@ -348,7 +348,8 @@ namespace FNPlugin {
                     double lith_rate = breed_rate * TimeWarp.fixedDeltaTime / lithium_def.density;
                     double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
                     double lt_density_ratio = lithium_def.density / tritium_def.density;
-                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
+                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, 
+                        -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
