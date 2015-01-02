@@ -3,11 +3,4 @@ bin
 obj
 WarpPlugin.userprefs
 FNPlugin/obj
-WarpPlugin.dll
-*.png
-*.tga
-*.mu
-*.mbm
-*.ogg
-*.psd
 WPv023/
