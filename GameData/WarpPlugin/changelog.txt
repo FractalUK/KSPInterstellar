@@ -1,11 +1,18 @@
+Version 0.13.6
+-Changed microwave reciever radiator heat clamp. Fix is togglable with RecieverTempTweak option in PuginSettings.cfg
+-Computer Core now has maximum autopilot capabilities.
+-Helium cryostat editor cathegory changed from science to fuel.
+-Fixed water and argon resource mining and processing.
+
 Version 0.13.5
 -Legacy bug, wich caused all WasteHeat production to cease if ThermalMechanicsDisabled is set to False, was fixed. Now thermal mechanics works like in good old versions.
 -Radiator heat convection rate now depends not from the maximum radiator temperature, but from the current one. Expect lower ground-based power plants effeciency, due to higher radiator temperatures.
 -Microwave transmitters animation is now correctly played.
 -Microwave network manager fixes, thanks to Jarardo1's bug report. List of active transmitters and relays is now formed and maintained correctly.
 -Line of sight check in microwave code corrected.
--Fission reactor code corrected. I doesm't conflict with Thermal UI helper in the VAB any more.
+-Fission reactor code corrected. I doesn't conflict with Thermal UI helper in the VAB any more.
 -TechManager now reconstructs science tree on every RnD open. That should solve the issue with stock tech tree reappearing after some time.
+-Accelerometer sensor now handles both vanilla science experiment and Interstellar impactor one. It's done for career missions compatibility.
 
 Version 0.13.4
 -Initial CRP adaptation changes. Most gases and liquid resources are now taken from CRP, but reactor fuel and some other stuff can't be shared that easy (mostly isotopes and salts). Look at Resources/ResourcesNuclear.cfg to see native to Interstellar resources.
