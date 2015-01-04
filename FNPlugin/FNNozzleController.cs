@@ -457,7 +457,10 @@ namespace FNPlugin{
 				if (assThermalPower > 0) 
                 {
 					power_ratio = (float)(thermal_power_received / assThermalPower);
-                    double heatTrustModifier = myAttachedReactor.CoreTemperature < 1600 ? myAttachedReactor.CoreTemperature / 1600 : 1.0 + (myAttachedReactor.CoreTemperature - 1600.0) / 16000.0;
+                    double heatTrustModifier = myAttachedReactor.CoreTemperature < 1600 
+                        ? (myAttachedReactor.CoreTemperature + 400.0) / 2000.0 
+                        : 1.0 + (myAttachedReactor.CoreTemperature - 1600.0) / 16000.0;
+
                     engineMaxThrust = Math.Max(thrust_limit * 15000.0 * heatTrustModifier * thermal_power_received / maxISP / heat_exchanger_thrust_divisor * ispratio / myAttachedEngine.currentThrottle, 0.01);
 				} 
 				//print ("B: " + engineMaxThrust);
@@ -466,13 +469,14 @@ namespace FNPlugin{
 				double engine_thrust = engineMaxThrust/myAttachedEngine.thrustPercentage*100;
 				// engine thrust fixed
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
-                if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)) {
-                    if (isLFO) {
-                        myAttachedEngine.maxThrust = (float)(2.2222 * engine_thrust);
-                    } else {
+                if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)) 
+                {
+                    if (isLFO) 
+                        myAttachedEngine.maxThrust = (float)(1.5 * engine_thrust);
+                    else 
                         myAttachedEngine.maxThrust = (float)engine_thrust;
-                    }
-                } else {
+                } 
+                else {
                     myAttachedEngine.maxThrust = 0.000001f;
                 }
 								
