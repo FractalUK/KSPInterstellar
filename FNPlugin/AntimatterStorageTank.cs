@@ -213,18 +213,18 @@ namespace FNPlugin {
 
         protected string formatAntimatterMassStr(double amount) {
             if (amount >= 1000) {
-                return (amount/1000).ToString("0.00") + " g";
+                return (amount/1000).ToString("0.0000") + " g";
             } else {
                 if (amount >= 1) {
-                    return (amount).ToString("0.00") + " mg";
+                    return (amount).ToString("0.0000") + " mg";
                 } else {
                     if (amount >= 1e-3) {
-                        return (amount * 1e3).ToString("0.00") + " ug";
+                        return (amount * 1e3).ToString("0.0000") + " ug";
                     } else {
                         if (amount > 1e-6) {
-                            return (amount * 1e6).ToString("0.00") + " ng";
+                            return (amount * 1e6).ToString("0.0000") + " ng";
                         } else {
-                            return (amount * 1e9).ToString("0.00") + " pg";
+                            return (amount * 1e9).ToString("0.0000") + " pg";
                         }
                     }
                 }

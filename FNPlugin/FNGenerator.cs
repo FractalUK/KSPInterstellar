@@ -126,9 +126,29 @@ namespace FNPlugin {
             Events["EditorSwapType"].guiActiveEditor = true;
 		}
 
-        public void OnEditorAttach() {
-            List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
-            myAttachedReactor = source_list.FirstOrDefault();
+        public void OnEditorAttach() 
+        {
+            myAttachedReactor = null;
+            
+            // first look if part itself contains an energysource
+            foreach (var module in part.Modules)
+            {
+                var thermalsource = module as IThermalSource;
+
+                if (thermalsource != null)
+                {
+                    myAttachedReactor = thermalsource;
+                    break;
+                }
+            }
+
+            if (myAttachedReactor == null)
+            {
+                List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
+                //myAttachedReactor = source_list.FirstOrDefault();
+                myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); //  prevent connecting to self contained sources
+            }
+
             if (myAttachedReactor != null && myAttachedReactor is IChargedParticleSource && (myAttachedReactor as IChargedParticleSource).ChargedParticleRatio > 0)
             {
                 generatorType = altUpgradedName;
@@ -184,8 +204,27 @@ namespace FNPlugin {
 				upgradePartModule ();
 			}
 
-            List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
-            myAttachedReactor = source_list.FirstOrDefault();
+            myAttachedReactor = null;
+
+            // first look if part contains an thermal source
+            foreach (var module in part.Modules)
+            {
+                var thermalsource = module as IThermalSource;
+
+                if (thermalsource != null)
+                {
+                    myAttachedReactor = thermalsource;
+                    break;
+                }
+            }
+            // if not a self contained energy source, look for attached parts
+            if (myAttachedReactor == null)
+            {
+                List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
+                //myAttachedReactor = source_list.FirstOrDefault();
+                myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); // prevent connecting to self contained energy sources
+            }
+        
 			print("[KSP Interstellar] Configuring Generator");
 		}
 

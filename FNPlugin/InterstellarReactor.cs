@@ -67,6 +67,8 @@ namespace FNPlugin {
         public float fuelEfficiency;
         [KSPField(isPersistant = false)]
         public float upgradedFuelEfficiency;
+        [KSPField(isPersistant = false)]
+        public bool containsPowerGenerator = false;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -101,6 +103,8 @@ namespace FNPlugin {
         protected int windowID = 90175467;
         protected bool render_window = false;
         protected GUIStyle bold_label;
+
+        public bool IsSelfContained { get { return containsPowerGenerator; } }
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 

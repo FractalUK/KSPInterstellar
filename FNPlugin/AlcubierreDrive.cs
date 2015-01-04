@@ -11,7 +11,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
 		[KSPField(isPersistant = true)]
-		public bool IsCharging = true;
+		public bool IsCharging = false;
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
@@ -33,7 +33,7 @@ namespace FNPlugin
         //public const float warpspeed = 29979245.8f;
         protected double megajoules_required = 1000;
                 
-        private float[] warp_factors = {0.1f,0.25f,0.5f,0.75f,1.0f,2.0f,3.0f,4.0f,5.0f,7.5f,10.0f,15f,20.0f};
+        private float[] warp_factors = {0.1f,0.2f,0.35f,0.5f,0.75f,1.0f,1.5f,2.0f,3.0f,4.0f,5.0f,7.5f,10.0f,15f,20.0f};
 		[KSPField(isPersistant = true)]
         public int selected_factor = 0;
         protected float mass_divisor = 10f;
@@ -424,6 +424,9 @@ namespace FNPlugin
             
             //warp_effect.transform.localScale.y = 2.5f;
             //warp_effect.transform.localScale.z = 200f;
+
+            // disable charging at startup
+            IsCharging = false;
 
         }
 
