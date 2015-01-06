@@ -143,8 +143,6 @@ namespace FNPlugin{
             {
                 // first try to connect to local IThermalSource
                 myAttachedReactor = this.part.FindModulesImplementing<IThermalSource>().FirstOrDefault();
-                // deactivate at start
-                part.deactivate();
             }
 
             if (myAttachedReactor == null)
@@ -347,10 +345,10 @@ namespace FNPlugin{
 						maxISP = maxISP / 2.5f;
 					}
 				}
-                newISP.Add(0, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
-                newISP.Add(0.15f, Mathf.Min(maxISP, 2997.13f));
-                newISP.Add(0.3f, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
-                newISP.Add(1, Mathf.Min(maxISP * 2.0f / 3.0f, 2997.13f));
+                newISP.Add(0, Mathf.Min(maxISP * 4.0f / 5.0f, 4000.0f));
+                newISP.Add(0.15f, Mathf.Min(maxISP, 4000.0f));
+                newISP.Add(0.3f, Mathf.Min(maxISP * 4.0f / 5.0f, 4000.0f));
+                newISP.Add(1, Mathf.Min(maxISP * 2.0f / 3.0f, 4000.0f));
 				vCurve.Add(0, 1.0f);
 				vCurve.Add((float)(maxISP*g0*1.0/3.0), 1.0f);
 				vCurve.Add((float)(maxISP*g0), 1.0f);
@@ -497,7 +495,7 @@ namespace FNPlugin{
 				//print ("B: " + engineMaxThrust);
 				// set up TWR limiter if on
                 //double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle)/ispratio;
-				double engine_thrust = engineMaxThrust/myAttachedEngine.thrustPercentage*100;
+				double engine_thrust = engineMaxThrust/myAttachedEngine.thrustPercentage*100.0;
 				// engine thrust fixed
 				//print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
                 if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)) 
