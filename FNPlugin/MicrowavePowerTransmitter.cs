@@ -203,15 +203,8 @@ namespace FNPlugin {
                     // attempt to retrieve all solar power output
                     if (output == 0.0)
                     {
-                        var partModulesList = panel.part.parent.Modules;
-                        foreach (var module in partModulesList)
-                        {
-                            var solarmodule = module as ModuleDeployableSolarPanel;
-                            if (solarmodule != null)
-                            {
-                                output += solarmodule.flowRate;
-                            }
-                        }
+                        var solarpanels = panel.part.parent.FindModulesImplementing<ModuleDeployableSolarPanel>();
+                        solarpanels.ForEach(s => output += s.flowRate);
                     }
 
                     double spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
