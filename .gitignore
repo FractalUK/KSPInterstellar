@@ -4,4 +4,5 @@ obj
 WarpPlugin.userprefs
 FNPlugin/obj
 WPv023/
+*.suo
 

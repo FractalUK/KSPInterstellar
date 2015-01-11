@@ -156,7 +156,8 @@ namespace FNPlugin {
             }
         }
 
-		public override void OnStart(PartModule.StartState state) {
+		public override void OnStart(PartModule.StartState state) 
+        {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
@@ -221,7 +222,6 @@ namespace FNPlugin {
             if (myAttachedReactor == null)
             {
                 List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
-                //myAttachedReactor = source_list.FirstOrDefault();
                 myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); // prevent connecting to self contained energy sources
             }
         
