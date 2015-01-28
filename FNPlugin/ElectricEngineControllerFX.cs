@@ -1,9 +1,11 @@
-﻿using System;
+﻿extern alias ORSv1_4_3;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin
 {
@@ -30,6 +32,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float maxPower;
         [KSPField(isPersistant = false)]
+        public float powerTrustMultiplier = 1.0f;
+        [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
         public string originalName;
@@ -51,6 +55,9 @@ namespace FNPlugin
         public string upgradeCostStr = "";
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
+
+        //Config settings settings
+        protected double g0 = PluginHelper.GravityConstant;
 
         // internal
         protected List<ElectricEnginePropellant> _propellants;
@@ -99,7 +106,7 @@ namespace FNPlugin
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
             _attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
             this.resources_to_supply = resources_to_supply;
-            _propellants = getPropellants();
+            _propellants = getPropellantsEngineType();
             base.OnStart(state);
 
             if (state == StartState.Editor)
@@ -214,9 +221,10 @@ namespace FNPlugin
                 {
                     updateISP();
                     int engine_count = Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Count(ee => ee.IsOperational),1); // max of operational electric engines and 1
+                    double powerTrustModifier = GetPowerTrustModifier();
                     double total_max_thrust = evaluateMaxThrust();
                     double thrust_per_engine = total_max_thrust / (double)engine_count;
-                    double power_per_engine = Math.Min(0.5 * _attached_engine.currentThrottle * thrust_per_engine * _current_propellant.IspMultiplier * baseISP / 10000.0, maxPower * _current_propellant.Efficiency);
+                    double power_per_engine = Math.Min(_attached_engine.currentThrottle * thrust_per_engine * _current_propellant.IspMultiplier * baseISP / powerTrustModifier * g0, maxPower * _current_propellant.Efficiency);
                     double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / _current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     double heat_to_produce = power_received * (1.0 - _current_propellant.Efficiency);
                     double heat_production = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
@@ -224,8 +232,9 @@ namespace FNPlugin
                     _electrical_consumption_f = (float)power_received;
                     _heat_production_f = (float)heat_production;
                     // thrust values
+                    
                     double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
-                    double actual_max_thrust = _current_propellant.Efficiency * 200000.0f * power_received / (_current_propellant.IspMultiplier * baseISP * _attached_engine.currentThrottle);
+                    double actual_max_thrust = _current_propellant.Efficiency * powerTrustModifier * power_received / (_current_propellant.IspMultiplier * baseISP * g0 * _attached_engine.currentThrottle);
 
                     if (_attached_engine.currentThrottle > 0)
                     {
@@ -259,7 +268,7 @@ namespace FNPlugin
         {
             isupgraded = true;
             type = upgradedtype;
-            _propellants = getPropellants();
+            _propellants = getPropellantsEngineType();
             engineTypeStr = upgradedName;
 
             if (!vacplasmaadded && type == (int)ElectricEngineType.VACUUMTHRUSTER)
@@ -275,9 +284,10 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            List<ElectricEnginePropellant> props = getPropellants();
+            double powerTrustModifier = GetPowerTrustModifier();
+            List<ElectricEnginePropellant> props = getPropellantsEngineType();
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
-            double thrust_per_mw = 2e7  / baseISP / 1000.0;
+            double thrust_per_mw = (2e6 * powerTrustMultiplier) / g0 / baseISP / 1000.0;
             props.ForEach(prop =>
             {
                 double ispProp = baseISP * prop.IspMultiplier;
@@ -307,8 +317,9 @@ namespace FNPlugin
         {
             if (_current_propellant != null)
             {
+                double powerTrustModifier = GetPowerTrustModifier();
                 double total_power_output = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                double final_thrust_store = _current_propellant.Efficiency * 20000.0 * total_power_output / (baseISP * _current_propellant.IspMultiplier);
+                double final_thrust_store = _current_propellant.Efficiency * powerTrustModifier * total_power_output / (baseISP * _current_propellant.IspMultiplier * g0);
                 return final_thrust_store;
             } 
             return 0;
@@ -319,6 +330,11 @@ namespace FNPlugin
             FloatCurve newISP = new FloatCurve();
             newISP.Add(0, (float)(baseISP * _current_propellant.IspMultiplier));
             _attached_engine.atmosphereCurve = newISP;
+        }
+
+        protected double GetPowerTrustModifier()
+        {
+            return GameConstants.BaseTrustPowerMultiplier * PluginHelper.GlobalElectricEnginePowerMaxTrustMult * powerTrustMultiplier;
         }
 
         protected void updatePropellantBar()
@@ -350,7 +366,7 @@ namespace FNPlugin
             }
         }
 
-        protected List<ElectricEnginePropellant> getPropellants()
+        protected List<ElectricEnginePropellant> getPropellantsEngineType()
         { // propellants relevent to me
             ConfigNode[] propellantlist = GameDatabase.Instance.GetConfigNodes("ELECTRIC_PROPELLANT");
             List<ElectricEnginePropellant> propellant_list;

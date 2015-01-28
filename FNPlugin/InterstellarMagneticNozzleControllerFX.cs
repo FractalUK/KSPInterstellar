@@ -1,4 +1,6 @@
-using OpenResourceSystem;
+extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,20 +14,23 @@ namespace FNPlugin{
 
 		//Persistent False
 		[KSPField(isPersistant = false)]
-		public float radius; 
+		public float radius;
+        [KSPField(isPersistant = false)]
+        public float powerTrustMultiplier = 1.0f;
+
+        //Config settings
+        protected double g0 = PluginHelper.GravityConstant;
 
 		//External
 		public bool static_updating = true;
 		public bool static_updating2 = true;
 
-
 		//Internal
 		protected ModuleEnginesFX _attached_engine;
 		protected IChargedParticleSource _attached_reactor;
 
-
-
-		public override void OnStart(PartModule.StartState state) {
+		public override void OnStart(PartModule.StartState state) 
+        {
             if (state == StartState.Editor) return;
 
 			_attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
@@ -48,7 +53,7 @@ namespace FNPlugin{
                 if (_attached_reactor is InterstellarFusionReactor) max_power *= 0.9;
                 double dilution_factor = 15000.0;
                 double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / dilution_factor;
-                double isp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;
+                double isp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / g0;
                 FloatCurve new_isp = new FloatCurve();
                 new_isp.Add(0, (float)isp, 0, 0);
                 _attached_engine.atmosphereCurve = new_isp;
@@ -76,7 +81,8 @@ namespace FNPlugin{
                 if (max_power > 0)
                 {
                     power_ratio = (float)(charged_power_received / max_power);
-                    engineMaxThrust = Math.Max(20000.0 * charged_power_received*megajoules_ratio*atmo_thrust_factor*exchanger_thrust_divisor / isp / _attached_engine.currentThrottle, 0.000000001);
+                    double powerTrustModifier = GameConstants.BaseTrustPowerMultiplier * powerTrustMultiplier; 
+                    engineMaxThrust = Math.Max(powerTrustModifier * charged_power_received * megajoules_ratio * atmo_thrust_factor * exchanger_thrust_divisor / isp / g0 / _attached_engine.currentThrottle, 0.000000001);
                 }
 
                 if (!double.IsInfinity(engineMaxThrust) && !double.IsNaN(engineMaxThrust))

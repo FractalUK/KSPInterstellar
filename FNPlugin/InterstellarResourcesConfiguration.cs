@@ -35,6 +35,7 @@ namespace FNPlugin
         private readonly String _argon;
         private readonly String _water;
         private readonly String _methane;
+        private readonly String _nitrogen;
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -60,6 +61,7 @@ namespace FNPlugin
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
+        public String Nitrogen { get { return _nitrogen; } }
 
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {
@@ -104,6 +106,11 @@ namespace FNPlugin
                 {
                     _ammonia = plugin_settings.GetValue("AmmoniaResourceName");
                     Debug.Log("[KSP Interstellar] Ammonia resource name set to " + Ammonia);
+                }
+                if (plugin_settings.HasValue("NitrogenResourceName"))
+                {
+                    _nitrogen = plugin_settings.GetValue("NitrogenResourceName");
+                    Debug.Log("[KSP Interstellar] Nitrogen resource name set to " + Ammonia);
                 }
             } else
             {

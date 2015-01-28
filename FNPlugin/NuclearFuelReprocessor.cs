@@ -1,4 +1,6 @@
-﻿using OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +26,7 @@ namespace FNPlugin {
 
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Actinides).Any(rs => rs.amount < rs.maxAmount); } }
 
-        public double PowerRequirements { get { return GameConstants.basePowerConsumption; } }
+        public double PowerRequirements { get { return PluginHelper.BasePowerConsumption; } }
 
         public String Status { get { return String.Copy(_status); } }
 
@@ -38,7 +40,7 @@ namespace FNPlugin {
         {
             _current_power = PowerRequirements * rate_multiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
-            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / 86400.0 * rate_multiplier;
+            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / GameConstants.EARH_DAY_SECONDS * rate_multiplier;
             double enum_actinides_change = 0;
             foreach (INuclearFuelReprocessable nuclear_reactor in nuclear_reactors)
             {

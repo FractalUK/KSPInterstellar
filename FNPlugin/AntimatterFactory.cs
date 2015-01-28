@@ -1,8 +1,10 @@
-﻿using System;
+﻿extern alias ORSv1_4_3;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     class AntimatterFactory {
@@ -29,7 +31,7 @@ namespace FNPlugin {
         }
 
         public void produceAntimatterFrame(double rate_multiplier) {
-            double energy_provided = rate_multiplier * GameConstants.baseAMFPowerConsumption * 1E6f;
+            double energy_provided = rate_multiplier * PluginHelper.BaseAMFPowerConsumption * 1E6f;
             double antimatter_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter).density;
             double antimatter_mass = energy_provided / GameConstants.warpspeed / GameConstants.warpspeed / 200000.0f / antimatter_density*efficiency;
             current_rate = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Antimatter, -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;

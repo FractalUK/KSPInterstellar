@@ -1,4 +1,6 @@
-﻿using OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace FNPlugin
 
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0); } }
 
-        public double PowerRequirements { get { return GameConstants.baseELCPowerConsumption; } }
+        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
         public String Status { get { return String.Copy(_status); } }
 
@@ -46,7 +48,7 @@ namespace FNPlugin
         public void UpdateFrame(double rate_multiplier)
         {
             _current_power = PowerRequirements * rate_multiplier;
-            _current_rate = CurrentPower / GameConstants.electrolysisEnergyPerTon;
+            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
             _alumina_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * TimeWarp.fixedDeltaTime / _alumina_density) / TimeWarp.fixedDeltaTime * _alumina_density;
             _aluminium_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * TimeWarp.fixedDeltaTime / _aluminium_density) * _aluminium_density / TimeWarp.fixedDeltaTime;
             _oxygen_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -GameConstants.aluminiumElectrolysisMassRatio * _alumina_consumption_rate * TimeWarp.fixedDeltaTime / _oxygen_density) * _oxygen_density / TimeWarp.fixedDeltaTime;

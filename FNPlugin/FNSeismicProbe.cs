@@ -114,7 +114,7 @@ namespace FNPlugin {
                         if (impact_node.HasValue("transmitted")) {
                             impact_node.SetValue("transmitted", "True");
                         }
-                        config.Save(PluginHelper.getPluginSaveFilePath());
+                        config.Save(PluginHelper.PluginSaveFilePath);
                     }
                 }
             }
@@ -141,7 +141,7 @@ namespace FNPlugin {
                     probe_node.AddValue("is_active", probeIsEnabled.ToString());
                     probe_node.AddValue("celestial_body", vessel.mainBody.flightGlobalsIndex.ToString());
                 }
-                config.Save(PluginHelper.getPluginSaveFilePath());
+                config.Save(PluginHelper.PluginSaveFilePath);
             }
 
         }

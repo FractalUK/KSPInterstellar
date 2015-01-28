@@ -1,14 +1,16 @@
+extern alias ORSv1_4_3;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     [KSPModule("Radiation Status")]
 	class FNModuleRadiation : PartModule	{
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Rad.")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Rad.")]
 		public string radiationLevel = ":";
         [KSPField(isPersistant = false, guiActive = false, guiName = "Accumulated Dose")]
         public string radiationLevel2 = ":";
@@ -67,16 +69,31 @@ namespace FNPlugin {
             } catch (Exception ex) { }
         }
 
-		public override void OnStart(PartModule.StartState state) {
-			if (state == StartState.Editor) { return; }
+		public override void OnStart(PartModule.StartState state) 
+        {
+			if (state == StartState.Editor)
+                return; 
+
             //if (!vessel.isEVA) {
             //    part.force_activate();
             //}
+
+            if (PluginHelper.RadiationMechanicsDisabled)
+            {
+                Fields["radiationLevel"].guiActive = false;
+                Fields["radiationLevel2"].guiActive = false;
+                Fields["radiationStatus"].guiActive = false;
+                return;
+            }
+
             print("[KSP Interstellar] Radiation Module Loaded.");
             Fields["radiationLevel"].guiActive = true;
 		}
 
-        public override void OnUpdate() {
+        public override void OnUpdate() 
+        {
+            if (PluginHelper.RadiationMechanicsDisabled) return;
+
             Fields["radiationLevel"].guiActive = true;
             Fields["radiationLevel2"].guiActive = vessel.isEVA;
             double rad_level_yr = radiation_level * 24 * 365.25;
@@ -168,7 +185,8 @@ namespace FNPlugin {
             
 		}
 
-        public override string GetInfo() {
+        public override string GetInfo() 
+        {
             return "Rad Hardness: " + rad_hardness.ToString("0.00");
         }
 

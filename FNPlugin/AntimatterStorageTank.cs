@@ -1,10 +1,12 @@
+extern alias ORSv1_4_3;
+
 using System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
 	class AntimatterStorageTank : FNResourceSuppliableModule	{
@@ -55,7 +57,7 @@ namespace FNPlugin {
 			lightGameObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 			lightGameObject.AddComponent<Light>();
 			lightGameObject.renderer.material.shader = Shader.Find("Unlit/Transparent");
-			lightGameObject.renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/explode", false);
+			lightGameObject.renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/explode", false);
 			lightGameObject.renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.9f);
 			Light light = lightGameObject.light;
 			lightGameObject.transform.position = part.transform.position;
@@ -213,18 +215,18 @@ namespace FNPlugin {
 
         protected string formatAntimatterMassStr(double amount) {
             if (amount >= 1000) {
-                return (amount/1000).ToString("0.0000") + " g";
+                return (amount/1000).ToString("0.00") + " g";
             } else {
                 if (amount >= 1) {
-                    return (amount).ToString("0.0000") + " mg";
+                    return (amount).ToString("0.00") + " mg";
                 } else {
                     if (amount >= 1e-3) {
-                        return (amount * 1e3).ToString("0.0000") + " ug";
+                        return (amount * 1e3).ToString("0.00") + " ug";
                     } else {
                         if (amount > 1e-6) {
-                            return (amount * 1e6).ToString("0.0000") + " ng";
+                            return (amount * 1e6).ToString("0.00") + " ng";
                         } else {
-                            return (amount * 1e9).ToString("0.0000") + " pg";
+                            return (amount * 1e9).ToString("0.00") + " pg";
                         }
                     }
                 }

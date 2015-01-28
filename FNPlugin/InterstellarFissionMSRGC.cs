@@ -1,4 +1,5 @@
-﻿using OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,15 +81,23 @@ namespace FNPlugin {
         {
             get
             {
-                if (part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                try
                 {
-                    double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
-                    double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
-                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
-                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-                    return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
+                    if (part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                    {
+                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
+                        double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
+                        double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
+                        fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
+                        return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
+                    }
+                    return base.MaximumThermalPower;
                 }
-                return base.MaximumThermalPower;
+                catch (Exception error)
+                {
+                    UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.MaximumThermalPower exception: " + error.Message);
+                    return base.MaximumThermalPower;
+                }
             }
         }
 
@@ -98,16 +107,22 @@ namespace FNPlugin {
         {
             get
             {
-                double temp_scale;
-                if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                if (HighLogic.LoadedSceneIsFlight && !isupgraded)
                 {
-                    temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-                } else
-                {
-                    temp_scale = base.CoreTemperature/2.0;
+                    double temp_scale;
+                    if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                    {
+                        temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+                    }
+                    else
+                    {
+                        temp_scale = base.CoreTemperature / 2.0;
+                    }
+                    double temp_diff = (base.CoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
+                    return (float)(temp_scale + temp_diff);
                 }
-                double temp_diff = (base.CoreTemperature - temp_scale)*Math.Sqrt(powerPcnt/100.0);
-                return (float) (temp_scale + temp_diff);
+                else
+                    return base.CoreTemperature;
             }
         }
 
@@ -125,7 +140,7 @@ namespace FNPlugin {
         {
             // start as normal
             base.OnStart(state);
-            
+
             // auto switch if current fuel mode is depleted
             if (isCurrentFuelDepleted())
                 SwapFuelMode();

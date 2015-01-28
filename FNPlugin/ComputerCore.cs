@@ -78,7 +78,7 @@ namespace FNPlugin
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
-                double science_to_increment = baseScienceRate * time_diff / 86400 * electrical_power_ratio * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
+                double science_to_increment = baseScienceRate * time_diff / GameConstants.EARH_DAY_SECONDS * electrical_power_ratio * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
                 science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
                 science_to_add += (float)science_to_increment;
 

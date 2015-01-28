@@ -1,4 +1,6 @@
-using OpenResourceSystem;
+extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,9 +72,9 @@ namespace FNPlugin{
         protected float atmospheric_limit;
         protected float old_atmospheric_limit;
 
-		//Constants
-		protected const double g0 = 9.81;
-        protected const double isp_temp_rat = 22.371670613;
+        //Config settings settings
+        protected double g0 = PluginHelper.GravityConstant;
+        protected double isp_temp_rat = PluginHelper.IspCoreTempMult;
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();

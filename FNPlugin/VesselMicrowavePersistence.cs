@@ -13,10 +13,12 @@ namespace FNPlugin {
             this.vessel = vessel;
         }
 
-        public double getAvailablePower() {
+        public double getAvailablePower() 
+        {
+            Vector3d vessel_pos = PluginHelper.getVesselPos(vessel);
             double power = 0;
             if (PluginHelper.lineOfSightToSun(vessel) && solar_power > 0) {
-                double inv_square_mult = Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
+                double inv_square_mult = Math.Pow(Vector3d.Distance(vessel_pos, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
                 power = nuclear_power + solar_power/inv_square_mult;
             } else {
                 power = nuclear_power;

@@ -1,4 +1,6 @@
-﻿using OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace FNPlugin
 
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) && FlightGlobals.getStaticPressure(_vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01; } }
 
-        public double PowerRequirements { get { return GameConstants.baseELCPowerConsumption; } }
+        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
         public String Status { get { return String.Copy(_status); } }
 
@@ -47,7 +49,7 @@ namespace FNPlugin
         public void UpdateFrame(double rate_multiplier)
         {
             _current_power = PowerRequirements * rate_multiplier;
-            _current_rate = CurrentPower / GameConstants.electrolysisEnergyPerTon * _vessel.atmDensity;
+            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon * _vessel.atmDensity;
             double h_rate_temp = _current_rate / (1 + GameConstants.electrolysisMassRatio);
             double o_rate_temp = h_rate_temp * (GameConstants.electrolysisMassRatio - 1.0);
             _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, h_rate_temp * TimeWarp.fixedDeltaTime / _hydrogen_density / 2);

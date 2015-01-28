@@ -164,7 +164,7 @@ namespace FNPlugin {
                 impact_node.AddValue(string.Intern("number"), (science_experiment_number + 1).ToString("0"));
                 science_node.AddNode(impact_node);
 
-                config.Save(PluginHelper.getPluginSaveFilePath());
+                config.Save(PluginHelper.PluginSaveFilePath);
             }
         }
     }

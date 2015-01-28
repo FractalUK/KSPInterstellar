@@ -1,4 +1,6 @@
-﻿using OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace FNPlugin
 
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0); } }
 
-        public double PowerRequirements { get { return GameConstants.baseUraniumAmmonolysisConsumption; } }
+        public double PowerRequirements { get { return PluginHelper.BaseUraniumAmmonolysisPowerConsumption; } }
 
         public String Status { get { return String.Copy(_status); } }
 

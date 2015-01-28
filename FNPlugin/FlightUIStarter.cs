@@ -1,9 +1,11 @@
-﻿using System;
+﻿extern alias ORSv1_4_3;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
@@ -14,7 +16,7 @@ namespace FNPlugin {
         public static bool show_window = false;
 
         public void Start() {
-            guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/megajoule_click", false);
+            guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/UITextures/megajoule_click", false);
             if (!PluginHelper.using_toolbar) {
                 button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
             }
@@ -27,24 +29,33 @@ namespace FNPlugin {
             }
         }
 
-        protected void OnGUI() {
+        protected void OnGUI() 
+        {
             string resourcename = FNResourceManager.FNRESOURCE_MEGAJOULES;
             Vessel vessel = FlightGlobals.ActiveVessel;
             ORSResourceManager mega_manager = null;
-            if (vessel != null) {
-                if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button) {
+            if (vessel != null) 
+            {
+                if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button) 
+                {
                     mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-                    if (mega_manager.getPartModule() != null) {
+                    if (mega_manager.getPartModule() != null) 
+                    {
                         mega_manager.OnGUI();
 
-                        if (!PluginHelper.using_toolbar) {
+                        if (!PluginHelper.using_toolbar) 
+                        {
                             GUILayout.BeginArea(button_position);
-                            if (GUILayout.Button(guibuttontexture)) {
+                            if (GUILayout.Button(guibuttontexture)) 
+                            {
                                 mega_manager.showWindow();
                             }
                             GUILayout.EndArea();
-                        } else {
-                            if (show_window) {
+                        } 
+                        else 
+                        {
+                            if (show_window) 
+                            {
                                 mega_manager.showWindow();
                                 show_window = false;
                             }

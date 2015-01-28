@@ -1,9 +1,11 @@
-﻿using System;
+﻿extern alias ORSv1_4_3;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule {
@@ -240,7 +242,7 @@ namespace FNPlugin {
 
             if (!reactorInit && startDisabled) 
             {
-                last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * 86400.0);
+                last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * GameConstants.EARH_DAY_SECONDS);
                 IsEnabled = false;
                 startDisabled = false;
                 reactorInit = true;
@@ -255,7 +257,7 @@ namespace FNPlugin {
             }
 
             this.part.force_activate();
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
 
             print("[KSP Interstellar] Configuring Reactor");
         }
@@ -295,7 +297,7 @@ namespace FNPlugin {
 
                 last_draw_update = update_count;
             }
-            if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
+            //if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
             update_count++;
         }
 
@@ -350,7 +352,8 @@ namespace FNPlugin {
                     double lith_rate = breed_rate * TimeWarp.fixedDeltaTime / lithium_def.density;
                     double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
                     double lt_density_ratio = lithium_def.density / tritium_def.density;
-                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
+                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, 
+                        -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
@@ -359,9 +362,10 @@ namespace FNPlugin {
                     last_active_time = (float)(Planetarium.GetUniversalTime());
                 }
 
-            } else if (MaximumPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * 86400 && IsNuclear)
+            }
+            else if (MaximumPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * GameConstants.EARH_DAY_SECONDS && IsNuclear)
             {
-                double daughter_half_life = 86400.0 / 24.0 * 9.0;
+                double daughter_half_life = GameConstants.EARH_DAY_SECONDS / 24.0 * 9.0;
                 double time_t = Planetarium.GetUniversalTime() - last_active_time;
                 double power_fraction = 0.1 * Math.Exp(-time_t / daughter_half_life);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
@@ -432,7 +436,7 @@ namespace FNPlugin {
                 sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                 foreach (ReactorFuel fuel in fm.ReactorFuels)
                 {
-                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * PowerOutput * fm.NormalisedReactionRate * 86400.0 / fuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * PowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / fuelEfficiency + fuel.Unit + "/day");
                 }
                 sb.AppendLine("---");
             });
@@ -451,7 +455,7 @@ namespace FNPlugin {
                     sb.AppendLine("Charged Particle Ratio: " + fm.ChargedPowerRatio.ToString("0.00"));
                     sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                     foreach (ReactorFuel fuel in fm.ReactorFuels) {
-                        sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * upgradedPowerOutput * fm.NormalisedReactionRate * 86400.0/upgradedFuelEfficiency + fuel.Unit + "/day");
+                        sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * upgradedPowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / upgradedFuelEfficiency + fuel.Unit + "/day");
                     }
                     sb.AppendLine("---");
                 });
@@ -528,9 +532,9 @@ namespace FNPlugin {
             return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
         }
 
-        private void OnGUI() 
+        public void OnGUI() 
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window) 
+            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Reactor System Interface");
         }
 
@@ -571,7 +575,7 @@ namespace FNPlugin {
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Tritium Breed Rate", bold_label, GUILayout.Width(150));
-                    GUILayout.Label((tritium_produced_f*86400.0).ToString("0.000") + " l/day" , GUILayout.Width(150));
+                    GUILayout.Label((tritium_produced_f * GameConstants.EARH_DAY_SECONDS).ToString("0.000") + " l/day", GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                 }
                 GUILayout.BeginHorizontal();
@@ -582,7 +586,7 @@ namespace FNPlugin {
                 foreach(ReactorFuel fuel in current_fuel_mode.ReactorFuels) 
                 {
                     double availability = getFuelAvailability(fuel);
-                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ/TimeWarp.fixedDeltaTime/FuelEfficiency*current_fuel_mode.NormalisedReactionRate*86400;
+                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
                     fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));

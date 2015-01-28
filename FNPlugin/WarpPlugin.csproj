@@ -23,17 +23,47 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release KSP 0.90|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\WarpPlugin\Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release KSP 0.25|AnyCPU'">
+    <OutputPath>bin\Release KSP 0.25\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug KSP 0.90|AnyCPU'">
+    <OutputPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\WarpPlugin\Plugins\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
+    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.25' " Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenResourceSystem_1_4_3">
+      <HintPath>..\OpenResourceSystem\obj\Debug KSP 0.90\OpenResourceSystem_1_4_3.dll</HintPath>
+      <Aliases>ORSv1_4_3</Aliases>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -41,9 +71,25 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="Toolbar, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\000_Toolbar\Toolbar.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.25' " Include="Toolbar, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\GameData\000_Toolbar\Toolbar.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.25' " Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -54,6 +100,8 @@
     <Compile Include="AtmosphericIntake.cs" />
     <Compile Include="AnthraquinoneProcessor.cs" />
     <Compile Include="InterstellarMagneticNozzleControllerFX.cs" />
+    <Compile Include="InterstellarToolbar.cs" />
+    <Compile Include="MicrowaveSources.cs" />
     <Compile Include="MonopropellantProducer.cs" />
     <Compile Include="IChargedParticleSource.cs" />
     <Compile Include="InterstellarCatalysedFissionFusion.cs" />
@@ -94,9 +142,7 @@
     <Compile Include="ISRUScoop.cs" />
     <Compile Include="FNResourceManager.cs" />
     <Compile Include="FNResourceSuppliableModule.cs" />
-    <Compile Include="MicrowavePowerReceiverBackup.cs" />
     <Compile Include="MicrowavePowerReceiver.cs" />
-    <Compile Include="MicrowavePowerTransmitterBackup.cs" />
     <Compile Include="MicrowavePowerTransmitter.cs" />
     <Compile Include="MicrowaveRoute.cs" />
     <Compile Include="ModableExperimentResultDialogPage.cs" />
@@ -109,7 +155,6 @@
     <Compile Include="ReactorFuelMode.cs" />
     <Compile Include="SabatierReactor.cs" />
     <Compile Include="ScienceModule.cs" />
-    <Compile Include="TechUpdateWindow.cs" />
     <Compile Include="TextureTests.cs" />
     <Compile Include="UF4Ammonolysiser.cs" />
     <Compile Include="VABThermalUI.cs" />
@@ -141,11 +186,5 @@
   -->
   <ItemGroup>
     <None Include="License.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\OpenResourceSystem\OpenResourceSystem.csproj">
-      <Project>{bca16e74-23e5-4327-9d24-b908a8ce3836}</Project>
-      <Name>OpenResourceSystem</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>

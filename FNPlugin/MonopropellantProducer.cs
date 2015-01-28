@@ -1,4 +1,6 @@
-﻿using OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +35,7 @@ namespace FNPlugin
 
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0); } }
 
-        public double PowerRequirements { get { return GameConstants.basePechineyUgineKuhlmannPowerConsumption; } }
+        public double PowerRequirements { get { return PluginHelper.BasePechineyUgineKuhlmannPowerConsumption; } }
 
         public String Status { get { return String.Copy(_status); } }
 
@@ -50,7 +52,7 @@ namespace FNPlugin
         public void UpdateFrame(double rate_multiplier)
         {
             _current_power = PowerRequirements * rate_multiplier;
-            _current_rate = CurrentPower / GameConstants.pechineyUgineKuhlmannEnergyPerTon;
+            _current_rate = CurrentPower / PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
             _ammonia_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, 0.5 * _current_rate * (1 - GameConstants.pechineyUgineKuhlmannMassRatio) * TimeWarp.fixedDeltaTime / _ammonia_density) * _ammonia_density / TimeWarp.fixedDeltaTime;
             _hydrogen_peroxide_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide, 0.5 * _current_rate * GameConstants.pechineyUgineKuhlmannMassRatio * TimeWarp.fixedDeltaTime / _hydrogen_peroxide_density) * _hydrogen_peroxide_density / TimeWarp.fixedDeltaTime;
             if (_ammonia_consumption_rate > 0 && _hydrogen_peroxide_consumption_rate > 0)

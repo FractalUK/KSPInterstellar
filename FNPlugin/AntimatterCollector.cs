@@ -1,8 +1,10 @@
-﻿using System;
+﻿extern alias ORSv1_4_3;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     public class AntimatterCollector : PartModule    {
@@ -48,7 +50,7 @@ namespace FNPlugin {
                 double flux = vessel.mainBody.GetBeltAntiparticles(vessel.altitude, lat);
                 part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, -flux * TimeWarp.fixedDeltaTime);
                 last_active_time = (float)Planetarium.GetUniversalTime();
-                collection_rate_d = flux * 86400;
+                collection_rate_d = flux * GameConstants.EARH_DAY_SECONDS;
             }
         }
     }

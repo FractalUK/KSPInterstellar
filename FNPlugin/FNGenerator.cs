@@ -128,8 +128,6 @@ namespace FNPlugin {
 
         public void OnEditorAttach() 
         {
-            myAttachedReactor = null;
-            
             // first look if part itself contains an energysource
             foreach (var module in part.Modules)
             {
@@ -145,7 +143,6 @@ namespace FNPlugin {
             if (myAttachedReactor == null)
             {
                 List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
-                //myAttachedReactor = source_list.FirstOrDefault();
                 myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); //  prevent connecting to self contained sources
             }
 
@@ -205,8 +202,6 @@ namespace FNPlugin {
 				upgradePartModule ();
 			}
 
-            myAttachedReactor = null;
-
             // first look if part contains an thermal source
             foreach (var module in part.Modules)
             {
@@ -224,7 +219,7 @@ namespace FNPlugin {
                 List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
                 myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); // prevent connecting to self contained energy sources
             }
-        
+
 			print("[KSP Interstellar] Configuring Generator");
 		}
 

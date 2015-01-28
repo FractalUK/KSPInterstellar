@@ -10,6 +10,9 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public float maxThrust;
 
+        //Config settings settings
+        protected double g0 = PluginHelper.GravityConstant;
+
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
         public string electricalPowerConsumptionStr = "";
@@ -47,7 +50,7 @@ namespace FNPlugin {
                 float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0);
                 double currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
 
-                double power_required = total_thrust * currentIsp * 9.82 * 0.5 / 1000.0;
+                double power_required = total_thrust * currentIsp * g0 * 0.5 / 1000.0;
                 double power_received = consumeFNResource(power_required * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                 electrical_consumption_f = (float)power_received;
                 double power_ratio = power_required > 0 ? Math.Min(power_received / power_required, 1.0) : 1;
