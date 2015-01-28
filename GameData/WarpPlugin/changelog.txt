@@ -1,3 +1,62 @@
+Version 0.13.6
+-Changed microwave reciever radiator heat clamp. Fix is togglable with RecieverTempTweak option in PuginSettings.cfg
+-Computer Core now has maximum autopilot capabilities.
+-Helium cryostat editor cathegory changed from science to fuel.
+-Fixed water and argon resource mining and processing.
+
+Version 0.13.5
+-Legacy bug, wich caused all WasteHeat production to cease if ThermalMechanicsDisabled is set to False, was fixed. Now thermal mechanics works like in good old versions.
+-Radiator heat convection rate now depends not from the maximum radiator temperature, but from the current one. Expect lower ground-based power plants effeciency, due to higher radiator temperatures.
+-Microwave transmitters animation is now correctly played.
+-Microwave network manager fixes, thanks to Jarardo1's bug report. List of active transmitters and relays is now formed and maintained correctly.
+-Line of sight check in microwave code corrected.
+-Fission reactor code corrected. I doesn't conflict with Thermal UI helper in the VAB any more.
+-TechManager now reconstructs science tree on every RnD open. That should solve the issue with stock tech tree reappearing after some time.
+-Accelerometer sensor now handles both vanilla science experiment and Interstellar impactor one. It's done for career missions compatibility.
+
+Version 0.13.4
+-Initial CRP adaptation changes. Most gases and liquid resources are now taken from CRP, but reactor fuel and some other stuff can't be shared that easy (mostly isotopes and salts). Look at Resources/ResourcesNuclear.cfg to see native to Interstellar resources.
+-Antimatter tank cost fix. It's done by fixing KSPI_scale_fixes.cfg. Sorry, but it involves changing the CRP antimatter unit cost and tweakable status. I know this is bad, but otherwise there could be serious game balance flaws (like starting with full antimatter tank, or collecting it and then selling it for huge amount of credits). Antimatter cost is set to 1.
+-WarpPlugin folder reorganization.
+-Renamed tech tree, so it explicitly states KSP version. On your save load the game will ask you about the tech tree. Load KSPI_boris_090.
+
+Version 0.13.3
+-Solar panel heat tweak from 0.13.2 is now togglable option in WarpPluginSettings.cfg
+-Fixed 3.5m fusion reactor .cfg to scale nods well with TweakScale
+-Old TweakScale configs for Interstellar mod revisioned. Now reactor power scales with size correctly.
+
+Version 0.13.2
+-Science tree loading bug fixes (yes, again, and I hope, for good).
+-Fixed wrong particle FX for 0.625m plasma engine.
+-Added micro microwave power reciever dish (just scaled down version of standard one, for small crafts).
+-Changed solar panel waste heat generation formula as explained here: http://forum.kerbalspaceprogram.com/...=1#post1629497
+-Fixed displayed ISP for arcjet thrusters for correct Kerbal Engineer delta-v predictions.
+
+Version 0.13.1
+-Microvawe network behaviour is now more stable, as is it's performance.
+-Adapted Interstellar mod and TechManager for KSP version 0.90
+-Nothing's changed in gameplay, it's adaptation and bugfix release.
+-TweakScale v1.50 compatibility
+-Science tree loading bug fixes
+
+Version 0.13
+-Added magnetic nozzles
+-Capped thermal rockets at ~3000s Isp
+-New refinery system with vastly improved GUI
+-Integrated computer cores and AI with the stock science system
+-Fusion reactor fuel scaling drastically changed to make alternative fuels more efficient
+-Decreased fusion fuel consumption to more realistic values
+-Attach node sizes fixed
+
+Version 0.12.2
+-Fixed Electric Engine nan bug
+-Fixed Antimatter Initialised Reactor
+-Fixed smallest fusion reactor
+-Removed precooler integrated intake
+-All atmospheric engines now shutdown correctly when non-precooled (they no longer explode)
+-Added resource deprived message to reactors
+-Update to ORS v1.4.2
+
 Version 0.12.1
 -Wrote new resource referencing system to avoid resource name bugs (fixes cryostat, etc, bugs)
 -Rewrote magnetic field system for planets and fixed abnormal radiation values
