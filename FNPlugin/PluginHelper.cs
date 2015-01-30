@@ -95,6 +95,9 @@ namespace FNPlugin
 		private static double _lfoFuelTrustModifier = GameConstants.LfoFuelTrustModifier;
         public static double LfoFuelTrustModifier { get { return _lfoFuelTrustModifier; } }
 
+        private static double _electricEngineIspMult = 1;
+        public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }
+
         //------------------------------------------------------------------------------------------
 
 		private static double _basePowerConsumption = GameConstants.basePowerConsumption;
@@ -517,6 +520,12 @@ namespace FNPlugin
                         PluginHelper._ispCoreTempMult = double.Parse(plugin_settings.GetValue("IspCoreTempMult"));
                         Debug.Log("[KSP Interstellar] Isp core temperature multiplier set to: " + PluginHelper.IspCoreTempMult.ToString("0.000000"));
                     }
+                    if (plugin_settings.HasValue("ElectricEngineIspMult"))
+                    {
+                        PluginHelper._electricEngineIspMult = double.Parse(plugin_settings.GetValue("ElectricEngineIspMult"));
+                        Debug.Log("[KSP Interstellar] Electric EngineIsp Multiplier set to: " + PluginHelper.ElectricEngineIspMult.ToString("0.000000"));
+                    }
+                    
 
 
                     if (plugin_settings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))

@@ -143,7 +143,12 @@ namespace FNPlugin {
 
             // auto switch if current fuel mode is depleted
             if (isCurrentFuelDepleted())
-                SwapFuelMode();
+            {
+                fuel_mode++;
+                if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+                
+                current_fuel_mode = fuel_modes[fuel_mode];
+            }
         }
 
         public override void OnFixedUpdate()
