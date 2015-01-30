@@ -70,7 +70,8 @@ namespace FNPlugin
         private double density_alumina;
         private double density_aluminium;
         private double density_uf4;
-        private double density_un; 
+        private double density_un;
+		private double density_nitrogen; 
 
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
         public void ReprocessFuel() 
@@ -184,6 +185,7 @@ namespace FNPlugin
             density_aluminium = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Aluminium).density;
             density_uf4 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).density;
             density_un = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
+			density_nitrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen).density;
         }
 
         public override void OnUpdate() 
@@ -411,8 +413,8 @@ namespace FNPlugin
                     }
                 }
 
-            } 
-            else if (active_mode == 7) 
+            }
+			else if (active_mode == 7) // Haber Process
             {
                 bool atmosphereNitrogenIsAvailable = false;
                 float nitrogen_available = 0;
@@ -432,18 +434,15 @@ namespace FNPlugin
                     double hydrogen_rate_t = electrical_power_provided / PluginHelper.HaberProcessEnergyPerTon * GameConstants.ammoniaHydrogenFractionByMass / TimeWarp.fixedDeltaTime;
                     double ammonia_rate_to_add_t = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate_t * TimeWarp.fixedDeltaTime / density_h) * density_h / GameConstants.ammoniaHydrogenFractionByMass / TimeWarp.fixedDeltaTime;
                         
-                    double nitrogen_rate_to_add_t = atmosphereNitrogenIsAvailable ? 1 
-                        : ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Nitrogen, hydrogen_rate_t * TimeWarp.fixedDeltaTime / density_h) * density_h / GameConstants.ammoniaHydrogenFractionByMass / TimeWarp.fixedDeltaTime;
+                    double nitrogen_rate_to_add_t = atmosphereNitrogenIsAvailable ? 1
+						: ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Nitrogen, hydrogen_rate_t * TimeWarp.fixedDeltaTime / density_nitrogen) * density_nitrogen / GameConstants.ammoniaHydrogenFractionByMass / TimeWarp.fixedDeltaTime;
 
-                    if (ammonia_rate_to_add_t > 0 && nitrogen_rate_to_add_t > 0) 
+                    if ((ammonia_rate_to_add_t > 0) && (nitrogen_rate_to_add_t > 0)) 
                         ammonia_rate_d = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Ammonia, -ammonia_rate_to_add_t * TimeWarp.fixedDeltaTime / density_ammonia) * density_ammonia / TimeWarp.fixedDeltaTime;
-                    else 
+					else if (electrical_power_ratio > 0)
                     {
-                        if (electrical_power_ratio > 0) 
-                        {
                             ScreenMessages.PostScreenMessage("Hydrogen is required to perform the Haber Process.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             IsEnabled = false;
-                        }
                     }
                 } 
                 else
