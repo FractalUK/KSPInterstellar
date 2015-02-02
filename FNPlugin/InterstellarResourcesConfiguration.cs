@@ -27,15 +27,16 @@ namespace FNPlugin
         private const String _DEUTERIUM = "LqdDeuterium";
         private const String _TRITIUM = "LqdTritium";
 
-        private readonly String _hydrogen_peroxide;
-        private readonly String _ammonia;
-        private readonly String _hydrogen;
-        private readonly String _oxygen;
         private readonly String _aluminium;
+        private readonly String _ammonia;
         private readonly String _argon;
-        private readonly String _water;
+        private readonly String _carbonDioxide = "CarbonDioxide";
+        private readonly String _hydrogen;
+        private readonly String _hydrogen_peroxide;
         private readonly String _methane;
-        private readonly String _nitrogen;
+        private readonly String _nitrogen = "Nitrogen";
+        private readonly String _oxygen;
+        private readonly String _water = "Water";
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -43,6 +44,7 @@ namespace FNPlugin
         public String Ammonia { get { return _ammonia; } }
         public String Antimatter { get { return _ANTIMATTER; } }
         public String Argon { get { return _argon; } }
+        public String CarbonDioxide { get { return _carbonDioxide; } }
         public String DepletedFuel { get { return _DEPLETED_FUEL; } }
         public String Deuterium { get { return _DEUTERIUM; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
@@ -53,6 +55,7 @@ namespace FNPlugin
         public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
         public String Lithium { get { return _LITHIUM; } }
         public String Methane { get { return _methane; } }
+        public String Nitrogen { get { return _nitrogen; } }
         public String Oxygen { get { return _oxygen; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
         public String ThoriumTetraflouride { get { return _THORIUM_TETRAFLOURIDE; } }
@@ -61,7 +64,7 @@ namespace FNPlugin
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
-        public String Nitrogen { get { return _nitrogen; } }
+        
 
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {
@@ -110,7 +113,12 @@ namespace FNPlugin
                 if (plugin_settings.HasValue("NitrogenResourceName"))
                 {
                     _nitrogen = plugin_settings.GetValue("NitrogenResourceName");
-                    Debug.Log("[KSP Interstellar] Nitrogen resource name set to " + Ammonia);
+                    Debug.Log("[KSP Interstellar] Nitrogen resource name set to " + Nitrogen);
+                }
+                if (plugin_settings.HasValue("CarbonDioxideResourceName"))
+                {
+                    _carbonDioxide = plugin_settings.GetValue("CarbonDioxide");
+                    Debug.Log("[KSP Interstellar] CarbonDioxide resource name set to " + CarbonDioxide);
                 }
             } else
             {

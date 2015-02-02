@@ -106,14 +106,45 @@ namespace OpenResourceSystem {
 			return manager.getCurrentResourceDemand ();
 		}
 
-		public float getStableResourceSupply(String resourcename) {
-			if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+		public float getStableResourceSupply(String resourcename) 
+        {
+			if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
 				return 0;
-			}
 
 			ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 			return manager.getStableResourceSupply ();
 		}
+
+        public float getCurrentHighPriorityResourceDemand(String resourcename) 
+        {
+			if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) 
+				return 0;
+
+			ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+			return manager.getCurrentHighPriorityResourceDemand();
+		}
+
+        public float getResourceSupply(String resourcename)
+        {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+            {
+                return 0;
+            }
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            return manager.getResourceSupply();
+        }
+
+        public float getResourceDemand(String resourcename)
+        {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+            {
+                return 0;
+            }
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            return manager.getResourceDemand();
+        }
 
 		public float getCurrentUnfilledResourceDemand(String resourcename) {
 			if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
@@ -140,6 +171,17 @@ namespace OpenResourceSystem {
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getSpareResourceCapacity();
+        }
+
+        public double getTotalResourceCapacity(String resourcename)
+        {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+            {
+                return 0;
+            }
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            return manager.getTotalResourceCapacity();
         }
 
 		public override void OnStart(PartModule.StartState state) {

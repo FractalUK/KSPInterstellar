@@ -231,10 +231,8 @@ namespace FNPlugin {
             if (state == StartState.Editor) 
             {
                 if (this.HasTechsRequiredToUpgrade()) 
-                {
-                    isupgraded = true;
                     upgradePartModule();
-                }
+
                 return;
             }
 
@@ -413,6 +411,7 @@ namespace FNPlugin {
 
         public void upgradePartModule() 
         {
+            isupgraded = true;
             fuel_modes = getReactorFuelModes();
         }
 

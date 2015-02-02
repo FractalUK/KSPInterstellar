@@ -98,6 +98,12 @@ namespace FNPlugin
         private static double _electricEngineIspMult = 1;
         public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }
 
+        private static float _electricEnginePowerPropellantIspMultLimiter = 1;
+        public static float ElectricEnginePowerPropellantIspMultLimiter { get { return _electricEnginePowerPropellantIspMultLimiter; } }
+
+        private static float _electricEngineAtmosphericDensityTrustLimiter = 0;
+        public static float ElectricEngineAtmosphericDensityTrustLimiter { get { return _electricEngineAtmosphericDensityTrustLimiter; } }
+
         //------------------------------------------------------------------------------------------
 
 		private static double _basePowerConsumption = GameConstants.basePowerConsumption;
@@ -147,6 +153,9 @@ namespace FNPlugin
 		private static float _ispNtrPropellantModifierBase = 0;
         public static float IspNtrPropellantModifierBase { get { return _ispNtrPropellantModifierBase; } }
 
+        private static float _ispElectroPropellantModifierBase = 0;
+        public static float IspElectroPropellantModifierBase { get { return _ispElectroPropellantModifierBase; } }
+
 		private static float _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
         public static float MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
 
@@ -167,6 +176,9 @@ namespace FNPlugin
 
         private static bool _radiationMechanicsDisabled = false;
         public static bool RadiationMechanicsDisabled { get { return _radiationMechanicsDisabled; } }
+
+        private static bool _matchDemandWithSupply = false;
+        public static bool MatchDemandWithSupply { get { return _matchDemandWithSupply; } }
 
         #endregion
 
@@ -503,6 +515,11 @@ namespace FNPlugin
                         PluginHelper._limitedWarpTravel = bool.Parse(plugin_settings.GetValue("LimitedWarpTravel"));
                         Debug.Log("[KSP Interstellar] Apply Limited Warp Travel: " + PluginHelper.LimitedWarpTravel.ToString());
                     }
+                    if (plugin_settings.HasValue("MatchDemandWithSupply"))
+                    {
+                        PluginHelper._matchDemandWithSupply = bool.Parse(plugin_settings.GetValue("MatchDemandWithSupply"));
+                        Debug.Log("[KSP Interstellar] Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
+                    }
 
                     if (plugin_settings.HasValue("MaxPowerDrawForExoticMatterMult"))
                     {
@@ -582,8 +599,24 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("IspNtrPropellantModifierBase"))
                     {
                         PluginHelper._ispNtrPropellantModifierBase = float.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
-                        Debug.Log("[KSP Interstellar] Base Power Consumption set to: " + PluginHelper.IspNtrPropellantModifierBase.ToString("0.0"));
+                        Debug.Log("[KSP Interstellar] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspNtrPropellantModifierBase.ToString("0.0"));
                     }
+                    if (plugin_settings.HasValue("IspElectroPropellantModifierBase"))
+                    {
+                        PluginHelper._ispElectroPropellantModifierBase = float.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
+                        Debug.Log("[KSP Interstellar] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspElectroPropellantModifierBase.ToString("0.0"));
+                    }
+                    if (plugin_settings.HasValue("ElectricEnginePowerPropellantIspMultLimiter"))
+                    {
+                        PluginHelper._electricEnginePowerPropellantIspMultLimiter = float.Parse(plugin_settings.GetValue("ElectricEnginePowerPropellantIspMultLimiter"));
+                        Debug.Log("[KSP Interstellar] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
+                    }
+                    if (plugin_settings.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
+                    {
+                        PluginHelper._electricEngineAtmosphericDensityTrustLimiter = float.Parse(plugin_settings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
+                        Debug.Log("[KSP Interstellar] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityTrustLimiter.ToString("0.0"));
+                    }
+
                     if (plugin_settings.HasValue("MaxAtmosphericAltitudeMult"))
                     {
                         PluginHelper._maxAtmosphericAltitudeMult = double.Parse(plugin_settings.GetValue("MaxAtmosphericAltitudeMult"));

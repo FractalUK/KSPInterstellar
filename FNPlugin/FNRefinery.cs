@@ -64,6 +64,7 @@ namespace FNPlugin
         // cashed values that onle need to be retreived once
         private double density_h;
         private double density_o;
+        private double density_co2;
         private double density_h2o2;
         private double density_h2o;
         private double density_ammonia;
@@ -176,16 +177,18 @@ namespace FNPlugin
                 }
             }
 
-            density_h = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
-            density_o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
-            density_h2o2 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
-            density_h2o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
             density_ammonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
             density_alumina = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Alumina).density;
             density_aluminium = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Aluminium).density;
+            density_co2 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.CarbonDioxide).density;
+            density_h = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+            density_h2o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
+            density_h2o2 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
+            density_nitrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen).density;
+            density_o = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
             density_uf4 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).density;
             density_un = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
-			density_nitrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen).density;
+			
         }
 
         public override void OnUpdate() 
@@ -329,6 +332,7 @@ namespace FNPlugin
                     double oxygen_rate = hydrogen_rate * (GameConstants.electrolysisMassRatio-1);
                     double density_ch4 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Methane).density;
                     double h2_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate * TimeWarp.fixedDeltaTime / density_h / 2);
+                    double c02_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.CarbonDioxide, hydrogen_rate * TimeWarp.fixedDeltaTime / density_h / 2);
                     if (h2_rate > 0) 
                     {
                         double o_rate = part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate * TimeWarp.fixedDeltaTime / density_o);

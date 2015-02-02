@@ -324,34 +324,42 @@ namespace FNPlugin {
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 
-		public override void OnFixedUpdate() {
+		public override void OnFixedUpdate() 
+        {
 			base.OnFixedUpdate ();
-			if (IsEnabled && myAttachedReactor != null && FNRadiator.hasRadiatorsForVessel (vessel)) {
+			if (IsEnabled && myAttachedReactor != null && FNRadiator.hasRadiatorsForVessel (vessel)) 
+            {
 				updateGeneratorPower ();
                 double electricdt = 0;
                 double electricdtps = 0;
                 double max_electricdtps = 0;
                 double input_power = 0;
-                double currentmegajoules = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                double electrical_power_currently_needed = (getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoules);
-                if (!chargedParticleMode) {
+
+                double currentmegajoulesSpareCapacity = TimeWarp.fixedDeltaTime > 1 && PluginHelper.MatchDemandWithSupply
+                    ? getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime
+                    : getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                double electrical_power_currently_needed = (getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) + currentmegajoulesSpareCapacity);
+                if (!chargedParticleMode) 
+                {
                     double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
                     totalEff = carnotEff * pCarnotEff;
-                    if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) {
-                        return;
-                    }
+                    if (totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) return;
+                    
                     double thermal_power_currently_needed = electrical_power_currently_needed / totalEff;
                     double thermaldt = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
                     input_power = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
-                    if (input_power < thermaldt) {
+                    if (input_power < thermaldt) 
                         input_power += consumeFNResource(thermaldt-input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-                    }
+                    
                     double wastedt = input_power * totalEff;
                     consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
                     electricdt = input_power * totalEff;
                     electricdtps = Math.Max(electricdt / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxThermalPower * totalEff;
-                } else {
+                } 
+                else 
+                {
                     totalEff = 0.85;
                     double charged_power_currently_needed = electrical_power_currently_needed / totalEff;
                     input_power = consumeFNResource(Math.Max(charged_power_currently_needed*TimeWarp.fixedDeltaTime,0), FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -363,7 +371,9 @@ namespace FNPlugin {
                     //supplyFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 				outputPower = -(float)supplyFNResourceFixedMax (electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-			} else {
+			} 
+            else 
+            {
 				if (IsEnabled && !vessel.packed) {
 					if (!FNRadiator.hasRadiatorsForVessel (vessel)) {
 						IsEnabled = false;

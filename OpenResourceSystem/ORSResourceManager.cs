@@ -26,6 +26,7 @@ namespace OpenResourceSystem {
 		protected double stable_supply = 0;
 		protected double stored_stable_supply = 0;
         protected double stored_resource_demand = 0;
+        protected double stored_current_hp_demand;
 		protected double current_resource_demand = 0;
 		protected double high_priority_resource_demand = 0;
 		protected double charge_resource_demand = 0;
@@ -105,13 +106,16 @@ namespace OpenResourceSystem {
 			return managedPowerSupplyWithMinimum (pm, power, 0);
 		}
 
-		public double getSpareResourceCapacity() {
-			partresources = my_part.GetConnectedResources(resource_name).ToList();
-			double spare_capacity = 0;
-			foreach (PartResource partresource in partresources) {
-				spare_capacity += partresource.maxAmount - partresource.amount;
-			}
-			return spare_capacity;
+		public double getSpareResourceCapacity() 
+        {
+            return my_part.GetConnectedResources(resource_name).ToList()
+                .Sum(partresource => partresource.maxAmount - partresource.amount); ;
+		}
+
+        public double getTotalResourceCapacity()
+        {
+            return my_part.GetConnectedResources(resource_name).ToList()
+                .Sum(partresource => partresource.maxAmount);
 		}
 
         public float managedPowerSupplyWithMinimum(ORSResourceSupplier pm, float power, float rat_min) {
@@ -139,9 +143,22 @@ namespace OpenResourceSystem {
             return (float) stored_stable_supply;
         }
 
+        public float getResourceSupply() {
+            return (float)stored_supply;
+        }
+
+        public float getResourceDemand() {
+            return (float)stored_resource_demand;
+        }
+
 		public float getCurrentResourceDemand() {
 			return (float) current_resource_demand;
 		}
+
+        public float getCurrentHighPriorityResourceDemand() {
+            return (float)stored_current_hp_demand;
+		}
+        
 
 		public float getCurrentUnfilledResourceDemand() {
 			return (float) (current_resource_demand - powersupply);
@@ -170,7 +187,7 @@ namespace OpenResourceSystem {
 			stored_stable_supply = stable_supply;
             stored_resource_demand = current_resource_demand;
 			double stored_current_demand = current_resource_demand;
-			double stored_current_hp_demand = high_priority_resource_demand;
+			stored_current_hp_demand = high_priority_resource_demand;
 			double stored_current_charge_demand = charge_resource_demand;
             stored_charge_demand = charge_resource_demand;
 
@@ -239,10 +256,12 @@ namespace OpenResourceSystem {
             power_draw_list_archive.Reverse();
             
             // check engines
-            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) {
+            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) 
+            {
                 ORSResourceSuppliable ms = power_kvp.Key;
 
-                if (ms.getPowerPriority() == 1) {
+                if (ms.getPowerPriority() == 1) 
+                {
                     double power = power_kvp.Value;
 					current_resource_demand += power;
 					high_priority_resource_demand += power;
@@ -258,10 +277,12 @@ namespace OpenResourceSystem {
 
             }
             // check others
-            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) {
+            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) 
+            {
                 ORSResourceSuppliable ms = power_kvp.Key;
                 
-                if (ms.getPowerPriority() == 2) {
+                if (ms.getPowerPriority() == 2) 
+                {
                     double power = power_kvp.Value;
 					current_resource_demand += power;
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
