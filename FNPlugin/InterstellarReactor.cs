@@ -216,6 +216,26 @@ namespace FNPlugin {
             IsEnabled = !IsEnabled;
         }
 
+        private bool CanPartUpgradeAlternative()
+        {
+            if (PluginHelper.PartTechUpgrades == null )
+            {
+                print("[KSP Interstellar] PartTechUpgrades is not initialized");
+                return false;
+            }
+            
+            string upgradetechName;
+            if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out upgradetechName))
+            {
+                print("[KSP Interstellar] PartTechUpgrade entry is not found for part '" + part.name + "'");
+                return false;
+            }
+
+            print("[KSP Interstellar] Found matching Interstellar upgradetech for part '" + part.name + "' with technode " + upgradetechName);
+            
+            return PluginHelper.upgradeAvailable(upgradetechName);
+        }
+
         public override void OnStart(PartModule.StartState state) 
         {
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
@@ -230,13 +250,13 @@ namespace FNPlugin {
 
             if (state == StartState.Editor) 
             {
-                if (this.HasTechsRequiredToUpgrade()) 
+                if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative()) 
                     upgradePartModule();
 
                 return;
             }
 
-            if (this.HasTechsRequiredToUpgrade()) hasrequiredupgrade = true;
+            if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative()) hasrequiredupgrade = true;
 
             if (!reactorInit && startDisabled) 
             {

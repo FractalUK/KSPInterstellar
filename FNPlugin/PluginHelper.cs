@@ -59,6 +59,8 @@ namespace FNPlugin
             get {  return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/WarpPluginSettings.cfg"; }
         }
 
+        public static Dictionary<string, string> PartTechUpgrades { get; private set; }
+
         private static double _maxAtmosphericAltitudeMult = 1;
         public static double MaxAtmosphericAltitudeMult { get { return _maxAtmosphericAltitudeMult; } }
 
@@ -490,6 +492,20 @@ namespace FNPlugin
                 ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings");
                 if (plugin_settings != null)
                 {
+                    if (plugin_settings.HasValue("PartTechUpgrades"))
+                    {
+                        PartTechUpgrades = new Dictionary<string, string>();
+                        
+                        string rawstring = plugin_settings.GetValue("PartTechUpgrades");
+                        string[] splitValues = rawstring.Split(',').Select(sValue => sValue.Trim()).ToArray();
+
+                        int pairs = splitValues.Length / 2;
+                        int totalValues = pairs * 2;
+                        for (int i = 0; i < totalValues; i+=2)
+                            PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
+
+                        Debug.Log("[KSP Interstellar] Part Tech Upgrades set to: " + rawstring);
+                    }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
                         PluginHelper._radiationMechanicsDisabled = bool.Parse(plugin_settings.GetValue("RadiationMechanicsDisabled"));
