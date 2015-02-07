@@ -335,7 +335,7 @@ namespace FNPlugin {
                 double max_electricdtps = 0;
                 double input_power = 0;
 
-                double currentmegajoulesSpareCapacity = TimeWarp.fixedDeltaTime > 1 && PluginHelper.MatchDemandWithSupply
+                double currentmegajoulesSpareCapacity = TimeWarp.fixedDeltaTime > 1 || !PluginHelper.MatchDemandWithSupply
                     ? getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime
                     : getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
 

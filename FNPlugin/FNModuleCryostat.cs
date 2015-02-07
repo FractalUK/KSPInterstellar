@@ -32,18 +32,15 @@ namespace FNPlugin {
         private PartResource _selectedResource;
         private bool isInEditorMode;
 
-
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Type")]
-        private int _selectedResourceId = 0;
-
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
         public string powerStatusStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Resource")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Type")]
+        private int _selectedResourceId = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Resource")]
         public string resourceType = String.Empty;
 
-
-        [KSPEvent(guiName = "Swap Type", guiActiveEditor = true, guiActiveUnfocused = false, guiActive = true)]
+        [KSPEvent(guiName = "Swap Type", guiActive = false, guiActiveEditor = false, guiActiveUnfocused = false)]
         public void SwapType()
         {
             if (SelectedResourceId < (_partResources.Count - 1))
@@ -110,17 +107,29 @@ namespace FNPlugin {
 
         public override void OnStart(PartModule.StartState state) 
         {
-            _partResources = part.Resources;
+            //_partResources = part.Resources;
+            //isInEditorMode = state == StartState.Editor;
+            //if (maxStoreAmount > 0)
+            //{
+            //    var partResource = _partResources.list.Last();
+            //    part.Resources.list.Remove(partResource);
+            //    PartModule.DestroyImmediate(partResource);
 
-            isInEditorMode = state == StartState.Editor;
+            //    resourceType = SetSelectedResourceId(_selectedResourceId, true);
+            //    print("[KSPI] resourceType " + resourceType);
+            //}
 
-            if (maxStoreAmount > 0)
-            {
-                resourceType = SetSelectedResourceId(_selectedResourceId, true);
-                print("[KSPI] resourceType " + resourceType);
-            }
+            //if (state == StartState.Editor) { return; }
 
-            if (state == StartState.Editor) { return; }
+            //if (maxStoreAmount > 0)
+            //{
+            //    ConfigNode node = new ConfigNode("RESOURCE");
+            //    node.AddValue("name", "LqdMethane");
+            //    node.AddValue("amount", 0);
+            //    node.AddValue("maxAmount", maxStoreAmount);
+            //    var partResource = part.AddResource(node);
+            //    partResource.enabled = true;
+            //}
             
             this.part.force_activate();
             cryostat_resource = part.Resources[resourceName];

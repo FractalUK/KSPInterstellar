@@ -29,6 +29,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float baseISP;
         [KSPField(isPersistant = false)]
+        public float exitArea = 0;
+        [KSPField(isPersistant = false)]
         public float maxPower;
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplier = 1.0f;
@@ -240,7 +242,7 @@ namespace FNPlugin
 
             if (Current_propellant == null || _attached_engine == null) return;
 
-            updateISP();
+            //updateISP();
 
             double power_received;
             double power_per_engine;
@@ -275,7 +277,12 @@ namespace FNPlugin
                     
             // produce trust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
-            double actual_max_thrust = Current_propellant.Efficiency * GetPowerTrustModifier() * GetAtmosphericDensityModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
+            double max_thrust_in_space = Current_propellant.Efficiency * GetPowerTrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
+            double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel * part.vessel.atmDensity), 0.0);
+            double isp_efficiency = actual_max_thrust / max_thrust_in_space;
+
+            // update engine ISP
+            updateISP(isp_efficiency);
 
             if (_attached_engine.currentThrottle > 0)
             {
@@ -358,10 +365,10 @@ namespace FNPlugin
             return Current_propellant.Efficiency * GetPowerTrustModifier() * total_power_output / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
         }
 
-        protected void updateISP()
+        protected void updateISP(double isp_efficiency)
         {
             FloatCurve newISP = new FloatCurve();
-            newISP.Add(0, (float)(modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier));
+            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier));
             _attached_engine.atmosphereCurve = newISP;
         }
 

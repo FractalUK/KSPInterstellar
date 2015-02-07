@@ -20,6 +20,7 @@ namespace FNPlugin {
         public const double electrolysisEnergyPerTon = 18159;
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
+        public const double EarthAthmospherePresureAsSeaLevel = 101.325;
 
         public const double electrolysisMassRatio = 7.936429;
         public const double aluminiumElectrolysisMassRatio = 1.5;
