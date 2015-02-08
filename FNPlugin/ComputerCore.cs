@@ -78,7 +78,7 @@ namespace FNPlugin
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
-                double science_to_increment = baseScienceRate * time_diff / GameConstants.EARH_DAY_SECONDS * electrical_power_ratio * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
+                double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
                 science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
                 science_to_add += (float)science_to_increment;
 
@@ -86,11 +86,9 @@ namespace FNPlugin
                 curReaction.PitchTorque = 5;
                 curReaction.RollTorque = 5;
                 curReaction.YawTorque = 5;
-            } else
-            {
+            } 
+            else
                 computercoreType = originalName;
-            }
-
 
             this.part.force_activate();
         }
@@ -98,13 +96,12 @@ namespace FNPlugin
         public override void OnUpdate()
         {
             base.OnUpdate();
+
             if (ResearchAndDevelopment.Instance != null)
-            {
                 Events["RetrofitCore"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;
-            } else
-            {
+            else
                 Events["RetrofitCore"].active = false;
-            }
+
             Fields["upgradeCostStr"].guiActive = !isupgraded;
             Fields["nameStr"].guiActive = isupgraded;
             Fields["scienceRate"].guiActive = isupgraded;
@@ -113,29 +110,27 @@ namespace FNPlugin
             scienceRate = scienceratetmp.ToString("0.000") + "/Day";
 
             if (ResearchAndDevelopment.Instance != null)
-            {
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
-            }
         }
 
         public override void OnFixedUpdate()
         {
-
-            if (!isupgraded)
-            {
-                float power_returned = consumeFNResource(megajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-            } else
+            if (isupgraded)
             {
                 float power_returned = consumeFNResource(upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                 electrical_power_ratio = power_returned / upgradedMegajouleRate;
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
                 science_rate_f = (float) (baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));
+
                 if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
-                {
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
-                }
             }
+            //else 
+            //{
+            //    float power_returned = consumeFNResource(megajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            //}
+
             last_active_time = (float)Planetarium.GetUniversalTime();
         }
 
@@ -220,7 +215,8 @@ namespace FNPlugin
                 String[] result_strs = _experiment_node.GetNode("RESULTS").GetValuesStartsWith("default");
                 int indx = rnd.Next(result_strs.Length);
                 return result_strs[indx];
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
             {
                 Debug.Log("[KSPI] Exception Generation Experiment Result: " + ex.Message + ": " + ex.StackTrace);
                 return " has detected a glitch in the universe and recommends checking your installation of KSPInterstellar.";

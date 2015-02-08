@@ -279,10 +279,9 @@ namespace FNPlugin
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
             double max_thrust_in_space = Current_propellant.Efficiency * GetPowerTrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
             double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel * part.vessel.atmDensity), 0.0);
-            double isp_efficiency = actual_max_thrust / max_thrust_in_space;
 
             // update engine ISP
-            updateISP(isp_efficiency);
+            updateISP(actual_max_thrust / Math.Max(max_thrust_in_space, 0.00001f));
 
             if (_attached_engine.currentThrottle > 0)
             {
