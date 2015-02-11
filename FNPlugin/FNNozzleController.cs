@@ -59,7 +59,7 @@ namespace FNPlugin
 		protected float powerRatio = 0.358f;
 		protected float engineMaxThrust;
 		protected bool isLFO = false;
-		protected float ispMultiplier = 1;
+		protected float ispPropellantMultiplier = 1;
 		protected ConfigNode[] propellants;
 		protected VInfoBox fuel_gauge;
 		protected bool hasrequiredupgrade = false;
@@ -76,10 +76,6 @@ namespace FNPlugin
         //protected bool flameFxOn = true;
         protected float atmospheric_limit;
         protected float old_atmospheric_limit;
-
-		//Config settings 
-        protected double g0 = PluginHelper.GravityConstant;
-        protected double isp_temp_rat = PluginHelper.IspCoreTempMult;
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -254,7 +250,7 @@ namespace FNPlugin
 			foreach(ConfigNode prop_node in assprops) 
             {
 				fuelmode = chosenpropellant.GetValue("guiName");
-				ispMultiplier = float.Parse(chosenpropellant.GetValue("ispMultiplier"));
+				ispPropellantMultiplier = float.Parse(chosenpropellant.GetValue("ispMultiplier"));
 				isLFO = bool.Parse(chosenpropellant.GetValue("isLFO"));
 
                 currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
@@ -317,14 +313,13 @@ namespace FNPlugin
 
 		}
 
-        public void updateIspEngineParams(float athmosphere_isp_efficiency) 
+        public void updateIspEngineParams() 
         {
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
 
-            float ispModifier = PluginHelper.IspNtrPropellantModifierBase == 0 ? 1 : (PluginHelper.IspNtrPropellantModifierBase + ispMultiplier) / (1.0f + PluginHelper.IspNtrPropellantModifierBase);
-            maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispModifier);
+            maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
             
 			if (!currentpropellant_is_jet) 
             {
@@ -349,9 +344,9 @@ namespace FNPlugin
                 newISP.Add(0.3f, Mathf.Min(maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
                 newISP.Add(1, Mathf.Min(maxISP * 2.0f / 3.0f, PluginHelper.MaxThermalNozzleIsp));
 				vCurve.Add(0, 1.0f);
-				vCurve.Add((float)(maxISP*g0*1.0/3.0), 1.0f);
-				vCurve.Add((float)(maxISP*g0), 1.0f);
-				vCurve.Add ((float)(maxISP*g0*4.0/3.0), 0);
+                vCurve.Add((float)(maxISP * PluginHelper.GravityConstant * 1.0 / 3.0), 1.0f);
+                vCurve.Add((float)(maxISP * PluginHelper.GravityConstant), 1.0f);
+                vCurve.Add((float)(maxISP * PluginHelper.GravityConstant * 4.0 / 3.0), 0);
 				myAttachedEngine.useVelocityCurve = true;
 				myAttachedEngine.useEngineResponseTime = true;
 				myAttachedEngine.ignitionThreshold = 0.01f;
@@ -412,13 +407,13 @@ namespace FNPlugin
                 //        attached_reactor_upgraded = true;
                 //    }
                 //}
-                float ispModifier = (PluginHelper.IspNtrPropellantModifierBase + ispMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
-                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * isp_temp_rat * ispModifier);
+
+                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
                 minISP = maxISP * 0.4f;
                 atmospherecurve.Add(0, maxISP, 0, 0);
                 atmospherecurve.Add(1, minISP, 0, 0);
 
-                thrust = (float)(myAttachedReactor.MaximumPower * GetPowerTrustModifier() * GetHeatTrustModifier() / g0 / maxISP);
+                thrust = (float)(myAttachedReactor.MaximumPower * GetPowerTrustModifier() * GetHeatTrustModifier() / PluginHelper.GravityConstant / maxISP);
                 myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             } 
@@ -428,6 +423,13 @@ namespace FNPlugin
                 myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
+        }
+
+        private double GetIspPropellantModifier()
+        {
+            double ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0 ? ispPropellantMultiplier
+                : (PluginHelper.IspNtrPropellantModifierBase + ispPropellantMultiplier) / (1.0f + PluginHelper.IspNtrPropellantModifierBase));
+            return ispModifier;
         }
 
 		public override void OnFixedUpdate() 
@@ -443,7 +445,7 @@ namespace FNPlugin
                     if (myAttachedEngine.useVelocityCurve)
                         vcurve_at_current_velocity = myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude);
 
-                    fuel_flow_rate = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / g0 / 0.005 * TimeWarp.fixedDeltaTime;
+                    fuel_flow_rate = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / PluginHelper.GravityConstant / 0.005 * TimeWarp.fixedDeltaTime;
                     if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity))
                         fuel_flow_rate = fuel_flow_rate / vcurve_at_current_velocity;
                 }
@@ -469,7 +471,7 @@ namespace FNPlugin
             if (!myAttachedReactor.IsActive)
                 myAttachedReactor.enableIfPossible();
 
-            updateIspEngineParams(1.0f);
+            updateIspEngineParams();
             float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0);
             float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate(curve_eval_point);
             this.current_isp = currentIsp;
@@ -516,7 +518,7 @@ namespace FNPlugin
                 power_ratio = (float)(thermal_power_received / assThermalPower);
                 double ispRatio = currentIsp / maxISP;
                 double thrust_limit = myAttachedEngine.thrustPercentage / 100.0;
-                engineMaxThrust = Math.Max(thrust_limit * GetPowerTrustModifier() * GetHeatTrustModifier() * thermal_power_received / maxISP / g0 * GetHeatExchangerThrustDivisor() * ispRatio / myAttachedEngine.currentThrottle, 0.01);
+                engineMaxThrust = Math.Max(thrust_limit * GetPowerTrustModifier() * GetHeatTrustModifier() * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * ispRatio / myAttachedEngine.currentThrottle, 0.01);
             }
 
             //print ("B: " + engineMaxThrust);
@@ -553,7 +555,7 @@ namespace FNPlugin
                 //if (!double.IsNaN(additional_thrust_compensator) && !double.IsInfinity(additional_thrust_compensator)) {
                 //vcurve_at_current_velocity = additional_thrust_compensator;
                 //}
-                fuel_flow_rate = engine_thrust / current_isp / g0 / 0.005 * TimeWarp.fixedDeltaTime;
+                fuel_flow_rate = engine_thrust / current_isp / PluginHelper.GravityConstant / 0.005 * TimeWarp.fixedDeltaTime;
                 if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity))
                     fuel_flow_rate = fuel_flow_rate / vcurve_at_current_velocity;
 
