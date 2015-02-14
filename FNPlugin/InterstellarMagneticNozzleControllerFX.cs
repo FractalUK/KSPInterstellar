@@ -17,6 +17,11 @@ namespace FNPlugin{
 		public float radius;
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplier = 1.0f;
+        [KSPField(isPersistant = false)]
+        public float powerThrustMultiplier = 1.0f;
+
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Power")]
+        private string _recievedChargedPower = String.Empty;
 
         //Config settings
         protected double g0 = PluginHelper.GravityConstant;
@@ -28,6 +33,11 @@ namespace FNPlugin{
 		//Internal
 		protected ModuleEnginesFX _attached_engine;
 		protected IChargedParticleSource _attached_reactor;
+
+        protected float NozzlePowerThrustMultiplier
+        {
+            get { return powerTrustMultiplier * powerThrustMultiplier; }
+        }
 
 		public override void OnStart(PartModule.StartState state) 
         {
@@ -46,7 +56,8 @@ namespace FNPlugin{
 
 		}
                 
-		public void FixedUpdate() {
+		public void FixedUpdate() 
+        {
             if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_reactor != null && _attached_engine.isOperational)
             {
                 double max_power = _attached_reactor.MaximumChargedPower;
@@ -60,45 +71,45 @@ namespace FNPlugin{
 
                 double charged_power_received = consumeFNResource(max_power * TimeWarp.fixedDeltaTime * _attached_engine.currentThrottle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
                 consumeFNResource(charged_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                double megajoules_received = consumeFNResource(charged_power_received * TimeWarp.fixedDeltaTime * 0.01, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
-                double megajoules_received = consumeFNResource(charged_power_received * TimeWarp.fixedDeltaTime * 0.01, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime;
+                _recievedChargedPower = megajoules_received.ToString("0.000 MW");
+
                 double megajoules_ratio = megajoules_received / charged_power_received / 0.01;
                 megajoules_ratio = (double.IsNaN(megajoules_ratio) || double.IsInfinity(megajoules_ratio)) ? 0 : megajoules_ratio;
 
                 double atmo_thrust_factor = Math.Min(1.0,Math.Max(1.0 - Math.Pow(vessel.atmDensity,0.2),0));
-
                 double exchanger_thrust_divisor = 1;
+
                 if (radius > _attached_reactor.getRadius())
-                {
                     exchanger_thrust_divisor = _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius;
-                } else
-                {
+                else
                     exchanger_thrust_divisor = radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius();
-                }
 
                 double engineMaxThrust = 0.000000001;
                 float power_ratio;
                 if (max_power > 0)
                 {
                     power_ratio = (float)(charged_power_received / max_power);
-                    double powerTrustModifier = GameConstants.BaseTrustPowerMultiplier * powerTrustMultiplier; 
+                    double powerTrustModifier = GameConstants.BaseTrustPowerMultiplier * NozzlePowerThrustMultiplier;
                     engineMaxThrust = Math.Max(powerTrustModifier * charged_power_received * megajoules_ratio * atmo_thrust_factor * exchanger_thrust_divisor / isp / g0 / _attached_engine.currentThrottle, 0.000000001);
                 }
 
                 if (!double.IsInfinity(engineMaxThrust) && !double.IsNaN(engineMaxThrust))
-                {
                     _attached_engine.maxThrust = (float)engineMaxThrust;
-                } else
-                {
+                else
                     _attached_engine.maxThrust = 0.000000001f;
-                }
-            } else if (_attached_engine != null)
+
+            } 
+            else if (_attached_engine != null)
             {
                 _attached_engine.maxThrust = 0.000000001f;
+                _recievedChargedPower = "0";
             }
 		}
 
-		public override string GetInfo() {
+		public override string GetInfo() 
+        {
 			return "";
 		}
 
