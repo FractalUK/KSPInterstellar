@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using TweakScale;
 
 namespace FNPlugin
 {
-    class ThermalNozzleController : FNResourceSuppliableModule, IUpgradeableModule 
+    class ThermalNozzleController : FNResourceSuppliableModule, IUpgradeableModule , IRescalable<ThermalNozzleController>
     {
 		// Persistent True
 		[KSPField(isPersistant = true)]
@@ -35,12 +36,14 @@ namespace FNPlugin
 		public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplier = 1.0f;
+        [KSPField(isPersistant = false)]
+        public float IspTempMultOffset = 0f;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Radius", guiUnits = "m")]
-        public float radius; 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
+        public float radius;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
         public float exitArea = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 1;
 
 		//External
@@ -54,9 +57,17 @@ namespace FNPlugin
 		public string fuelmode;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Radius Modifier")]
-        public string radiusModifier;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Static Presure")]
+        public string staticPresure;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
+        public float pressureTreshold;
 
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
+        public string radiusModifier;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Vacuum")]
+        public string vacuumPerformance;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Sea")]
+        public string surfacePerformance;
 
 		//Internal
 		protected float maxISP;
@@ -99,9 +110,13 @@ namespace FNPlugin
 			setupPropellants();
 		}
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Refresh", active = true)]
-        public void Refresh()
+        public void OnRescale(TweakScale.ScalingFactor factor)
         {
+            // update variables
+            radius *= factor.relative.linear;
+            exitArea *= factor.relative.quadratic;
+
+            // update simulation
             UpdateRadiusModifier();
         }
         
@@ -204,7 +219,9 @@ namespace FNPlugin
 
 		public override void OnUpdate() 
         {
-            // does not seem to be called while in edit mode
+            // Note: does not seem to be called while in edit mode
+            staticPresure = (GameConstants.EarthAthmospherePresureAsSeaLevel * FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
+            pressureTreshold = exitArea * (float)GameConstants.EarthAthmospherePresureAsSeaLevel * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
 
 			Fields["engineType"].guiActive = isJet;
 			if (ResearchAndDevelopment.Instance != null && isJet) 
@@ -337,11 +354,11 @@ namespace FNPlugin
 			FloatCurve newISP = new FloatCurve();
 			FloatCurve vCurve = new FloatCurve ();
 
-            maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
+            maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
             
 			if (!currentpropellant_is_jet) 
             {
-				//minISP = maxISP * 0.4f;
+				minISP = maxISP * 0.4f;
                 //newISP.Add(0, Mathf.Min(maxISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
                 //newISP.Add(1, Mathf.Min(minISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
                 newISP.Add(0, Mathf.Min(maxISP * athmosphere_isp_efficiency, PluginHelper.MaxThermalNozzleIsp), 0, 0);
@@ -426,8 +443,8 @@ namespace FNPlugin
                 //        attached_reactor_upgraded = true;
                 //    }
                 //}
-                
-                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
+
+                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
                 minISP = maxISP * 0.4f;
                 atmospherecurve.Add(0, maxISP, 0, 0);
                 atmospherecurve.Add(1, minISP, 0, 0);
@@ -454,6 +471,8 @@ namespace FNPlugin
 
 		public override void OnFixedUpdate() 
         {
+            staticPresure = (GameConstants.EarthAthmospherePresureAsSeaLevel * FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
+            
             // note: does not seem to be called in edit mode
 
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null)
@@ -501,8 +520,9 @@ namespace FNPlugin
             }
             else
             {
-                //updateIspEngineParams();
-                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
+                //updateIspEngineParams(1);
+                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
+                assThermalPower = myAttachedReactor is InterstellarFusionReactor ? myAttachedReactor.MaximumPower * 0.95f : myAttachedReactor.MaximumPower;
                 this.current_isp = maxISP;
             }
 
@@ -526,12 +546,8 @@ namespace FNPlugin
                 else
                     part.temperature = temp;
 
-                //myAttachedEngine.DeactivateRunningFX();
             }
-            //else
-            //{
-            //    //myAttachedEngine.ActivateRunningFX();
-            //}
+
 
             double thermal_consume_total = assThermalPower * TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * GetAtmosphericLimit();
             double thermal_power_received = consumeFNResource(thermal_consume_total, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
@@ -551,16 +567,16 @@ namespace FNPlugin
                 engineMaxThrust = Math.Max(thrust_limit * GetPowerTrustModifier() * GetHeatTrustModifier() * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * ispRatio / myAttachedEngine.currentThrottle, 0.01);
             }
 
-            //print ("B: " + engineMaxThrust);
-            // set up TWR limiter if on
-            //double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle)/ispratio;
             double max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100.0;
             double engine_thrust = max_thrust_in_space;
             
             // update engine ISP for thermal noozle
             if (!currentpropellant_is_jet)
             {
-                engine_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel * part.vessel.atmDensity), 0.00001);
+                pressureTreshold = exitArea * (float)GameConstants.EarthAthmospherePresureAsSeaLevel * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
+                //engine_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.00001);
+                //engine_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel * 1), 0.00001);
+                engine_thrust = Math.Max(max_thrust_in_space - pressureTreshold, 0.00001);
                 var thrustAtmosphereRatio = (float)engine_thrust / Math.Max((float)max_thrust_in_space, 0.000001f);
                 updateIspEngineParams(thrustAtmosphereRatio);
                 this.current_isp = maxISP * thrustAtmosphereRatio;
@@ -614,7 +630,7 @@ namespace FNPlugin
             {
 				float ispMultiplier = float.Parse(propellant_node.GetValue("ispMultiplier"));
 				string guiname = propellant_node.GetValue("guiName");
-				return_str = return_str + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString ("0.00") + " x 17 x Sqrt(Core Temperature)" + "\n";
+                return_str = return_str + "--" + guiname + "--\n" + "ISP: " + (PluginHelper.IspCoreTempMult + IspTempMultOffset).ToString("0.00") + " x Sqrt(Core Temperature)" + "\n";
 			}
 			return return_str;
 		}
@@ -762,7 +778,34 @@ namespace FNPlugin
 
         private void UpdateRadiusModifier()
         {
-            radiusModifier = (GetHeatExchangerThrustDivisor() * 100.0).ToString("0.00") + "%";
+            if (myAttachedReactor != null)
+            {
+                Fields["vacuumPerformance"].guiActiveEditor = true;
+                Fields["radiusModifier"].guiActiveEditor = true;
+                Fields["surfacePerformance"].guiActiveEditor = true;
+
+                var heatExchangerThrustDivisor = GetHeatExchangerThrustDivisor();
+
+                radiusModifier = (heatExchangerThrustDivisor * 100.0).ToString("0.00") + "%";
+
+                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
+
+                var max_thrust_in_space = GetPowerTrustModifier() * GetHeatTrustModifier() * myAttachedReactor.MaximumThermalPower / maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor;
+
+                vacuumPerformance = max_thrust_in_space.ToString("0.0") + "kN @ " + maxISP.ToString("0.0") + "s";
+
+                var maxSurfaceTrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel), 0.00001);
+
+                var maxSurfaceISP = maxISP * (maxSurfaceTrust / max_thrust_in_space);
+
+                surfacePerformance = maxSurfaceTrust.ToString("0.0") + "kN @ " + maxSurfaceISP.ToString("0.0") + "s";
+            }
+            else
+            {
+                Fields["vacuumPerformance"].guiActiveEditor = false;
+                Fields["radiusModifier"].guiActiveEditor = false;
+                Fields["surfacePerformance"].guiActiveEditor = false;
+            }
         }
 
 
@@ -778,7 +821,7 @@ namespace FNPlugin
             float heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
                 ? myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius
                 //: radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
-                : radius / myAttachedReactor.getRadius();
+                : (1f + radius / myAttachedReactor.getRadius()) / 2f ;
 
             return heat_exchanger_thrust_divisor;
         }

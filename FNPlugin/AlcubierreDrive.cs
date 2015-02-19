@@ -137,8 +137,9 @@ namespace FNPlugin
             
             //Orbit planetOrbit = vessel.orbit.referenceBody.orbit;
             Vector3d heading = part.transform.up;
+            double temp1 = heading.y;
             heading.y = heading.z;
-            heading.z = heading.y;
+            heading.z = temp1;
             
             Vector3d position = vessel.orbit.pos;
             heading = heading * GameConstants.warpspeed * warp_factors[selected_factor];

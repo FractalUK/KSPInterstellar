@@ -455,7 +455,7 @@ namespace FNPlugin{
 			foreach (ConfigNode propellant_node in prop_nodes) {
 				float ispMultiplier = float.Parse(propellant_node.GetValue("ispMultiplier"));
 				string guiname = propellant_node.GetValue("guiName");
-				return_str = return_str + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString ("0.00") + " x 17 x Sqrt(Core Temperature)" + "\n";
+				return_str = return_str + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString ("0.00") + " x Sqrt(Core Temperature)" + "\n";
 			}
 			return return_str;
 		}

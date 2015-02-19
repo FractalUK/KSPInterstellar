@@ -1,14 +1,16 @@
 ﻿extern alias ORSv1_4_3;
 
+using ORSv1_4_3::OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_3::OpenResourceSystem;
+using TweakScale;
 
 namespace FNPlugin {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule {
+    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule, IRescalable<ThermalNozzleController>
+    {
         public enum ReactorTypes {
             FISSION_MSR = 1,
             FISSION_GFR = 2,
@@ -53,7 +55,7 @@ namespace FNPlugin {
         public float upgradeCost;
         [KSPField(isPersistant = false)]
         public float radius;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor=true, guiName="Upgrade")]
         public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]
         public float minimumThrottle = 0;
@@ -72,7 +74,10 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public bool containsPowerGenerator = false;
 
+
         // GUI
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiFormat="0.0000", guiUnits = " t")]
+        public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorTypeStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
@@ -119,6 +124,12 @@ namespace FNPlugin {
         public float ChargedParticleRatio { get { return current_fuel_mode != null ? (float) current_fuel_mode.ChargedPowerRatio : 0f; } }
 
         public virtual float CoreTemperature { get {return isupgraded ? upgradedReactorTemp != 0 ? upgradedReactorTemp : ReactorTemp : ReactorTemp; } }
+
+        public void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            // update variables
+            partMass *= factor.relative.cubic;
+        }
 
         public virtual float MaximumThermalPower 
         { 
@@ -238,6 +249,9 @@ namespace FNPlugin {
 
         public override void OnStart(PartModule.StartState state) 
         {
+            // Gui Fields
+            Fields["partMass"].guiActiveEditor = partMass > 0;
+            
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
             print("[KSP Interstellar] Configuring Reactor Fuel Modes");
@@ -250,8 +264,16 @@ namespace FNPlugin {
 
             if (state == StartState.Editor) 
             {
-                if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative()) 
+                print("[KSPI] Checking for upgrade tech: " + UpgradeTechnology);
+
+                if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
+                {
+                    print("[KSPI] Found required upgradeTech, Upgrading Reactor");
                     upgradePartModule();
+                }
+
+                reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
+                coretempStr = CoreTemperature.ToString("0") + " K";
 
                 return;
             }

@@ -38,10 +38,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Radius", guiUnits = "m")]
         public float radius; 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
-        public float exitArea = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
-        public float partMass = 1;
+        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
+        //public float exitArea = 0;
 
 		//External
 		public bool static_updating = true;
@@ -54,8 +52,6 @@ namespace FNPlugin
 		public string fuelmode;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Radius Modifier")]
-        public string radiusModifier;
 
 
 		//Internal
@@ -98,12 +94,6 @@ namespace FNPlugin
 			
 			setupPropellants();
 		}
-
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Refresh", active = true)]
-        public void Refresh()
-        {
-            UpdateRadiusModifier();
-        }
         
 		[KSPAction("Toggle Propellant")]
 		public void TogglePropellantAction(KSPActionParam param) 
@@ -161,8 +151,6 @@ namespace FNPlugin
                 estimateEditorPerformance();
                 return;
             }
-            else
-                UpdateRadiusModifier();
 
 			fuel_gauge = part.stackIcon.DisplayInfo();
 			
@@ -331,7 +319,7 @@ namespace FNPlugin
 
 		}
 
-        public void updateIspEngineParams(float athmosphere_isp_efficiency = 1) 
+        public void updateIspEngineParams() 
         {
 			// recaculate ISP based on power and core temp available
 			FloatCurve newISP = new FloatCurve();
@@ -341,11 +329,9 @@ namespace FNPlugin
             
 			if (!currentpropellant_is_jet) 
             {
-				//minISP = maxISP * 0.4f;
-                //newISP.Add(0, Mathf.Min(maxISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
-                //newISP.Add(1, Mathf.Min(minISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
-                newISP.Add(0, Mathf.Min(maxISP * athmosphere_isp_efficiency, PluginHelper.MaxThermalNozzleIsp), 0, 0);
-
+				minISP = maxISP * 0.4f;
+                newISP.Add(0, Mathf.Min(maxISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
+                newISP.Add(1, Mathf.Min(minISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
 				myAttachedEngine.useVelocityCurve = false;
 				myAttachedEngine.useEngineResponseTime = false;
 			} 
@@ -416,7 +402,6 @@ namespace FNPlugin
             //bool attached_reactor_upgraded = false;
             FloatCurve atmospherecurve = new FloatCurve();
             float thrust = 0;
-            UpdateRadiusModifier();
 
             if (myAttachedReactor != null) 
             {
@@ -494,17 +479,8 @@ namespace FNPlugin
                 myAttachedReactor.enableIfPossible();
 
             // determine ISP
-            if (currentpropellant_is_jet)
-            {
-                updateIspEngineParams();
-                this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
-            }
-            else
-            {
-                //updateIspEngineParams();
-                maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
-                this.current_isp = maxISP;
-            }
+            updateIspEngineParams();
+            this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
 
             // get the flameout safety limit
             if (currentpropellant_is_jet)
@@ -548,24 +524,15 @@ namespace FNPlugin
                 power_ratio = (float)(thermal_power_received / assThermalPower);
                 double ispRatio = this.current_isp / maxISP;
                 double thrust_limit = myAttachedEngine.thrustPercentage / 100.0;
+                
+                //engineMaxThrust = Math.Max(thrust_limit * 2000.0 * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * (this.current_isp / maxISP) / myAttachedEngine.currentThrottle, 0.01);
                 engineMaxThrust = Math.Max(thrust_limit * GetPowerTrustModifier() * GetHeatTrustModifier() * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * ispRatio / myAttachedEngine.currentThrottle, 0.01);
             }
 
             //print ("B: " + engineMaxThrust);
             // set up TWR limiter if on
             //double additional_thrust_compensator = myAttachedEngine.finalThrust / (myAttachedEngine.maxThrust * myAttachedEngine.currentThrottle)/ispratio;
-            double max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100.0;
-            double engine_thrust = max_thrust_in_space;
-            
-            // update engine ISP for thermal noozle
-            if (!currentpropellant_is_jet)
-            {
-                engine_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAsSeaLevel * part.vessel.atmDensity), 0.00001);
-                var thrustAtmosphereRatio = (float)engine_thrust / Math.Max((float)max_thrust_in_space, 0.000001f);
-                updateIspEngineParams(thrustAtmosphereRatio);
-                this.current_isp = maxISP * thrustAtmosphereRatio;
-                //this.current_isp = currentIsp;
-            }
+            double engine_thrust = engineMaxThrust / myAttachedEngine.thrustPercentage * 100.0;
 
             // engine thrust fixed
             //print ("A: " + engine_thrust*myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude));
@@ -760,10 +727,10 @@ namespace FNPlugin
             return GameConstants.BaseTrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxTrustMult * powerTrustMultiplier;
         }
 
-        private void UpdateRadiusModifier()
-        {
-            radiusModifier = (GetHeatExchangerThrustDivisor() * 100.0).ToString("0.00") + "%";
-        }
+        //private void UpdateRadiusModifier()
+        //{
+        //    radiusModifier = (GetHeatExchangerThrustDivisor() * 100.0).ToString("0.00") + "%";
+        //}
 
 
         private double GetHeatExchangerThrustDivisor()

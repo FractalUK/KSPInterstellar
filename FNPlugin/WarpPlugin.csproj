@@ -65,6 +65,10 @@
       <Aliases>ORSv1_4_3</Aliases>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Scale_Redist, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\TweakScale\plugins\Scale_Redist.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

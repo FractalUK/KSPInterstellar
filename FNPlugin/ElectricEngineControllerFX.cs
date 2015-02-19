@@ -330,7 +330,7 @@ namespace FNPlugin
             double powerTrustModifier = GetPowerTrustModifier();
             List<ElectricEnginePropellant> props = getPropellantsEngineType();
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
-            double thrust_per_mw = (2e6 * powerTrustMultiplier) / g0 / modifiedEngineBaseISP / 1000.0;
+            double thrust_per_mw = (2e6 * powerTrustMultiplier) / g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
             {
                 double ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (float)prop.IspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
