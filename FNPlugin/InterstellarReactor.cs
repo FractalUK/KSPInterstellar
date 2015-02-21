@@ -76,7 +76,7 @@ namespace FNPlugin {
 
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiFormat="0.0000", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorTypeStr;
