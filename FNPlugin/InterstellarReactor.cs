@@ -39,11 +39,19 @@ namespace FNPlugin {
         // Persistent False
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
         public float PowerOutput;
+        [KSPField(isPersistant = false)]
+        public float PowerOutputExponent = 3.2f;
+        [KSPField(isPersistant = false)]
+        public float PowerOutputBase;
         [KSPField(isPersistant = false)]
         public float upgradedReactorTemp;
         [KSPField(isPersistant = false)]
+        public float upgradedPowerOutputExponent = 3.2f;
+        [KSPField(isPersistant = false)]
+        public float upgradedPowerOutputBase;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgraded Power Output", guiUnits = " MW")]
         public float upgradedPowerOutput;
         [KSPField(isPersistant = false)]
         public string animName;
@@ -76,7 +84,7 @@ namespace FNPlugin {
 
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Empty Mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string reactorTypeStr;
@@ -90,6 +98,9 @@ namespace FNPlugin {
         public string currentCPwr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
         public string fuelModeStr = "";
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Max Thermal Power", guiUnits = " MW")]
+        public float maximumThermalPowerFloat;
 
         protected bool hasrequiredupgrade = false;
         protected double tritium_rate;
@@ -125,10 +136,15 @@ namespace FNPlugin {
 
         public virtual float CoreTemperature { get {return isupgraded ? upgradedReactorTemp != 0 ? upgradedReactorTemp : ReactorTemp : ReactorTemp; } }
 
-        public void OnRescale(TweakScale.ScalingFactor factor)
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
         {
-            // update variables
-            partMass *= factor.relative.cubic;
+            //PowerOutput *= (float)Math.Pow(factor.relative.linear, PowerOutputExponent);
+            PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
+            
+            //upgradedPowerOutput *= (float)Math.Pow(factor.relative.linear, upgradedPowerOutputExponent);
+            upgradedPowerOutput = upgradedPowerOutputBase * (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
+
+            maximumThermalPowerFloat = MaximumThermalPower;
         }
 
         public virtual float MaximumThermalPower 
@@ -136,7 +152,11 @@ namespace FNPlugin {
             get 
             {
                 float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                return isupgraded ? upgradedPowerOutput != 0 ? upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor; 
+                return isupgraded 
+                    ? upgradedPowerOutput != 0 
+                        ? upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
+                        : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
+                    : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor; 
             } 
         }
 
@@ -249,6 +269,9 @@ namespace FNPlugin {
 
         public override void OnStart(PartModule.StartState state) 
         {
+            PowerOutputBase = PowerOutput;
+            upgradedPowerOutputBase = upgradedPowerOutput;
+
             // Gui Fields
             Fields["partMass"].guiActiveEditor = partMass > 0;
             
@@ -262,6 +285,7 @@ namespace FNPlugin {
             windowID = rnd.Next(int.MaxValue);
             base.OnStart(state);
 
+            
             if (state == StartState.Editor) 
             {
                 print("[KSPI] Checking for upgrade tech: " + UpgradeTechnology);
@@ -272,6 +296,7 @@ namespace FNPlugin {
                     upgradePartModule();
                 }
 
+                maximumThermalPowerFloat = MaximumThermalPower;
                 reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
                 coretempStr = CoreTemperature.ToString("0") + " K";
 

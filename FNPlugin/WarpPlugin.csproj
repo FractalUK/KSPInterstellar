@@ -96,6 +96,8 @@
     <Compile Include="AntimatterFactory.cs" />
     <Compile Include="AtmosphericIntake.cs" />
     <Compile Include="AnthraquinoneProcessor.cs" />
+    <Compile Include="InterstellarFissionMSRGCsmall.cs" />
+    <Compile Include="InterstellarFissionPBDPsmall.cs" />
     <Compile Include="ThermalNozzleController.cs" />
     <Compile Include="InterstellarMagneticNozzleControllerFX.cs" />
     <Compile Include="InterstellarToolbar.cs" />
