@@ -99,8 +99,8 @@ namespace FNPlugin {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
         public string fuelModeStr = "";
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Max Thermal Power", guiUnits = " MW")]
-        public float maximumThermalPowerFloat;
+	    [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Thermal Power", guiUnits = " MW")]
+		public float maximumThermalPowerFloat = 0;
 
         protected bool hasrequiredupgrade = false;
         protected double tritium_rate;
@@ -138,13 +138,18 @@ namespace FNPlugin {
 
         public virtual void OnRescale(TweakScale.ScalingFactor factor)
         {
-            //PowerOutput *= (float)Math.Pow(factor.relative.linear, PowerOutputExponent);
-            PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
-            
-            //upgradedPowerOutput *= (float)Math.Pow(factor.relative.linear, upgradedPowerOutputExponent);
-            upgradedPowerOutput = upgradedPowerOutputBase * (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
+			
+			if (PowerOutputBase > 0 && PowerOutputExponent > 0 && factor.absolute.linear > 0)
+			{
+				//PowerOutput *= (float)Math.Pow(factor.relative.linear, PowerOutputExponent);
+				PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
 
-            maximumThermalPowerFloat = MaximumThermalPower;
+				//upgradedPowerOutput *= (float)Math.Pow(factor.relative.linear, upgradedPowerOutputExponent);
+				upgradedPowerOutput = upgradedPowerOutputBase *
+									  (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
+			}
+
+	        maximumThermalPowerFloat = MaximumThermalPower;
         }
 
         public virtual float MaximumThermalPower 
@@ -152,11 +157,14 @@ namespace FNPlugin {
             get 
             {
                 float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                return isupgraded 
+                var result =
+				 isupgraded 
                     ? upgradedPowerOutput != 0 
                         ? upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
                         : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
-                    : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor; 
+                    : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
+
+	            return result;
             } 
         }
 
@@ -281,7 +289,7 @@ namespace FNPlugin {
             fuel_modes = getReactorFuelModes();
             setDefaultFuelMode();
             print("[KSP Interstellar] Configuration Complete");
-            System.Random rnd = new System.Random();
+            var rnd = new System.Random();
             windowID = rnd.Next(int.MaxValue);
             base.OnStart(state);
 
@@ -290,7 +298,7 @@ namespace FNPlugin {
             {
                 print("[KSPI] Checking for upgrade tech: " + UpgradeTechnology);
 
-                if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
+                if (this.HasTechsRequiredToUpgrade()|| CanPartUpgradeAlternative())
                 {
                     print("[KSPI] Found required upgradeTech, Upgrading Reactor");
                     upgradePartModule();
@@ -323,8 +331,9 @@ namespace FNPlugin {
 
             this.part.force_activate();
             //RenderingManager.AddToPostDrawQueue(0, OnGUI);
-
-            print("[KSP Interstellar] Configuring Reactor");
+			print("[KSP Interstellar] Configuring Reactor");
+            
+			maximumThermalPowerFloat = MaximumThermalPower;
         }
 
         public override void OnUpdate() 
@@ -572,6 +581,11 @@ namespace FNPlugin {
         protected virtual void setDefaultFuelMode()
         {
             current_fuel_mode = fuel_modes.FirstOrDefault();
+
+			if (current_fuel_mode == null)
+				print("[KSP Interstellar] Warning : current_fuel_mode is null");
+			else
+				print("[KSP Interstellar] current_fuel_mode = " + current_fuel_mode.ModeGUIName);
         }
 
         protected virtual double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
