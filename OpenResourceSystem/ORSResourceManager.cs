@@ -121,7 +121,10 @@ namespace OpenResourceSystem {
         public double managedPowerSupplyWithMinimum(ORSResourceSupplier pm, double power, double rat_min) {
 			double power_seconds_units = power / TimeWarp.fixedDeltaTime;
 			double power_min_seconds_units = power_seconds_units * rat_min;
-			double managed_supply_val_add = Math.Min (power_seconds_units, Math.Max(getCurrentUnfilledResourceDemand()+getSpareResourceCapacity()/TimeWarp.fixedDeltaTime,power_min_seconds_units));
+			double managed_supply_val_add = 
+                Math.Min (power_seconds_units, 
+                          Math.Max(getCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime,
+                                   power_min_seconds_units));
 			powersupply += managed_supply_val_add;
 			stable_supply += power_seconds_units;
             if (power_supplies.ContainsKey(pm)) {
@@ -129,7 +132,7 @@ namespace OpenResourceSystem {
             } else {
                 power_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
             }
-			return managed_supply_val_add*TimeWarp.fixedDeltaTime;
+			return managed_supply_val_add * TimeWarp.fixedDeltaTime;
 		}
 
         public float getStableResourceSupply() {
@@ -141,7 +144,7 @@ namespace OpenResourceSystem {
 		}
 
 		public float getCurrentUnfilledResourceDemand() {
-			return (float) (current_resource_demand-powersupply);
+			return (float) (current_resource_demand - powersupply);
 		}
 
 		public double getResourceBarRatio() {
@@ -211,7 +214,7 @@ namespace OpenResourceSystem {
 
 
 			//Prioritise supplying stock ElectricCharge resource
-			if (String.Equals(this.resource_name,ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
+			if (String.Equals(this.resource_name, ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
 				List<PartResource> electric_charge_resources = my_part.GetConnectedResources ("ElectricCharge").ToList(); 
 				double stock_electric_charge_needed = 0;
 				foreach (PartResource partresource in electric_charge_resources) {
@@ -281,7 +284,7 @@ namespace OpenResourceSystem {
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
 						power = power * demand_supply_ratio;
 					}
-					double power_supplied = Math.Max(Math.Min(powersupply, power),0.0);
+					double power_supplied = Math.Max(Math.Min(powersupply, power), 0.0);
 					powersupply -= power_supplied;
 
 					//notify of supply
@@ -290,17 +293,16 @@ namespace OpenResourceSystem {
 			}
 
 
-            powersupply -= Math.Max(currentmegajoules,0.0);
+            powersupply -= Math.Max(currentmegajoules, 0.0);
 
 			internl_power_extract = -powersupply * TimeWarp.fixedDeltaTime;
 
             pluginSpecificImpl();
 
-            if (internl_power_extract > 0) {
+            if (internl_power_extract > 0) 
                 internl_power_extract = Math.Min(internl_power_extract, currentmegajoules);
-            } else if (internl_power_extract < 0) {
+            else
                 internl_power_extract = Math.Max(internl_power_extract, -missingmegajoules);
-			}
 
             //my_part.RequestResource(this.resource_name, internl_power_extract);
             ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);

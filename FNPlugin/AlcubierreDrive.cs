@@ -1,5 +1,5 @@
-﻿extern alias ORSv1_4_2;
-using ORSv1_4_2::OpenResourceSystem;
+﻿extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -260,76 +260,32 @@ namespace FNPlugin
             warp_effect2.renderer.material.shader = Shader.Find("Unlit/Transparent");
 
             warp_textures = new Texture[33];
-            warp_textures[0] = GameDatabase.Instance.GetTexture("WarpPlugin/warp", false);
-            warp_textures[1] = GameDatabase.Instance.GetTexture("WarpPlugin/warp2", false);
-            warp_textures[2] = GameDatabase.Instance.GetTexture("WarpPlugin/warp3", false);
-            warp_textures[3] = GameDatabase.Instance.GetTexture("WarpPlugin/warp4", false);
-            warp_textures[4] = GameDatabase.Instance.GetTexture("WarpPlugin/warp5", false);
-            warp_textures[5] = GameDatabase.Instance.GetTexture("WarpPlugin/warp6", false);
-            warp_textures[6] = GameDatabase.Instance.GetTexture("WarpPlugin/warp7", false);
-            warp_textures[7] = GameDatabase.Instance.GetTexture("WarpPlugin/warp8", false);
-            warp_textures[8] = GameDatabase.Instance.GetTexture("WarpPlugin/warp9", false);
-            warp_textures[9] = GameDatabase.Instance.GetTexture("WarpPlugin/warp10", false);
-            warp_textures[10] = GameDatabase.Instance.GetTexture("WarpPlugin/warp11", false);
-            warp_textures[11] = GameDatabase.Instance.GetTexture("WarpPlugin/warp10", false);
-            warp_textures[12] = GameDatabase.Instance.GetTexture("WarpPlugin/warp11", false);
-            warp_textures[13] = GameDatabase.Instance.GetTexture("WarpPlugin/warp12", false);
-            warp_textures[14] = GameDatabase.Instance.GetTexture("WarpPlugin/warp13", false);
-            warp_textures[15] = GameDatabase.Instance.GetTexture("WarpPlugin/warp14", false);
-            warp_textures[16] = GameDatabase.Instance.GetTexture("WarpPlugin/warp15", false);
-            warp_textures[17] = GameDatabase.Instance.GetTexture("WarpPlugin/warp16", false);
-            warp_textures[18] = GameDatabase.Instance.GetTexture("WarpPlugin/warp15", false);
-            warp_textures[19] = GameDatabase.Instance.GetTexture("WarpPlugin/warp14", false);
-            warp_textures[20] = GameDatabase.Instance.GetTexture("WarpPlugin/warp13", false);
-            warp_textures[21] = GameDatabase.Instance.GetTexture("WarpPlugin/warp12", false);
-            warp_textures[22] = GameDatabase.Instance.GetTexture("WarpPlugin/warp11", false);
-            warp_textures[23] = GameDatabase.Instance.GetTexture("WarpPlugin/warp10", false);
-            warp_textures[24] = GameDatabase.Instance.GetTexture("WarpPlugin/warp9", false);
-            warp_textures[25] = GameDatabase.Instance.GetTexture("WarpPlugin/warp8", false);
-            warp_textures[26] = GameDatabase.Instance.GetTexture("WarpPlugin/warp7", false);
-            warp_textures[27] = GameDatabase.Instance.GetTexture("WarpPlugin/warp6", false);
-            warp_textures[28] = GameDatabase.Instance.GetTexture("WarpPlugin/warp5", false);
-            warp_textures[29] = GameDatabase.Instance.GetTexture("WarpPlugin/warp4", false);
-            warp_textures[30] = GameDatabase.Instance.GetTexture("WarpPlugin/warp3", false);
-            warp_textures[31] = GameDatabase.Instance.GetTexture("WarpPlugin/warp2", false);
-            warp_textures[32] = GameDatabase.Instance.GetTexture("WarpPlugin/warp", false);
+
+            const string warp_tecture_path = "WarpPlugin/ParticleFX/warp";
+            for (int i = 0; i < 11; i++)
+                warp_textures[i] = GameDatabase.Instance.GetTexture((i > 0) ?
+                    warp_tecture_path + (i + 1).ToString() : warp_tecture_path, false);
+            warp_textures[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp10", false);
+            for (int i = 12; i < 33; i++)
+            {
+                int j = i > 17 ? 34 - i : i;
+                warp_textures[i] = GameDatabase.Instance.GetTexture(j > 1 ?
+                    warp_tecture_path + (j + 1).ToString() : warp_tecture_path, false);
+            }
 
             warp_textures2 = new Texture[33];
-            warp_textures2[0] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr", false);
-            warp_textures2[1] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr2", false);
-            warp_textures2[2] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr3", false);
-            warp_textures2[3] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr4", false);
-            warp_textures2[4] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr5", false);
-            warp_textures2[5] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr6", false);
-            warp_textures2[6] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr7", false);
-            warp_textures2[7] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr8", false);
-            warp_textures2[8] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr9", false);
-            warp_textures2[9] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr10", false);
-            warp_textures2[10] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr11", false);
-            warp_textures2[11] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr10", false);
-            warp_textures2[12] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr11", false);
-            warp_textures2[13] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr12", false);
-            warp_textures2[14] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr13", false);
-            warp_textures2[15] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr14", false);
-            warp_textures2[16] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr15", false);
-            warp_textures2[17] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr16", false);
-            warp_textures2[18] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr15", false);
-            warp_textures2[19] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr14", false);
-            warp_textures2[20] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr13", false);
-            warp_textures2[21] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr12", false);
-            warp_textures2[22] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr11", false);
-            warp_textures2[23] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr10", false);
-            warp_textures2[24] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr9", false);
-            warp_textures2[25] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr8", false);
-            warp_textures2[26] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr7", false);
-            warp_textures2[27] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr6", false);
-            warp_textures2[28] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr5", false);
-            warp_textures2[29] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr4", false);
-            warp_textures2[30] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr3", false);
-            warp_textures2[31] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr2", false);
-            warp_textures2[32] = GameDatabase.Instance.GetTexture("WarpPlugin/warpr", false);
-            
-                        
+
+            const string warpr_tecture_path = "WarpPlugin/ParticleFX/warpr";
+            for (int i = 0; i < 11; i++)
+                warp_textures2[i] = GameDatabase.Instance.GetTexture((i > 0) ?
+                    warpr_tecture_path + (i + 1).ToString() : warpr_tecture_path, false);
+            warp_textures2[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warpr10", false);
+            for (int i = 12; i < 33; i++)
+            {
+                int j = i > 17 ? 34 - i : i;
+                warp_textures2[i] = GameDatabase.Instance.GetTexture(j > 1 ?
+                    warpr_tecture_path + (j + 1).ToString() : warpr_tecture_path, false);
+            }           
 
             warp_effect.renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
             warp_effect2.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 0.1f);

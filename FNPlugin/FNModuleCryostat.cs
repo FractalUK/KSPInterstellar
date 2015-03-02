@@ -1,10 +1,10 @@
-﻿extern alias ORSv1_4_2;
+﻿extern alias ORSv1_4_3;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSv1_4_2::OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     [KSPModule("Cyrostat Tank")]
@@ -40,18 +40,23 @@ namespace FNPlugin {
         }
 
         public override void OnFixedUpdate() {
-            if (cryostat_resource != null && cryostat_resource.amount > 0) {
+            if (cryostat_resource != null && cryostat_resource.amount > 0.0) 
+            {
                 double charge = consumeFNResource(powerReqKW / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0;
-                if (charge <= powerReqKW * TimeWarp.fixedDeltaTime) {
+                if (charge <= powerReqKW * TimeWarp.fixedDeltaTime) 
+                {
                     double rem_charge = powerReqKW * TimeWarp.fixedDeltaTime - charge;
                     charge += ORSHelper.fixedRequestResource(part, "ElectricCharge", rem_charge);
                 }
-                power_d = charge/TimeWarp.fixedDeltaTime;
+                power_d = charge / TimeWarp.fixedDeltaTime;
 
-                if (charge >= powerReqKW) {
+                if (charge >= powerReqKW) 
+                {
                     cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boilOffRate * TimeWarp.fixedDeltaTime * cryostat_resource.maxAmount);
-                } else {
-                    cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - (boilOffRate + boilOffAddition) * TimeWarp.fixedDeltaTime * cryostat_resource.maxAmount*boilOffMultiplier);
+                } 
+                else 
+                {
+                    cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - (boilOffRate + boilOffAddition) * TimeWarp.fixedDeltaTime * cryostat_resource.maxAmount * boilOffMultiplier);
                 }
             }
         }
