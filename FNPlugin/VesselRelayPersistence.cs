@@ -25,8 +25,8 @@ namespace FNPlugin {
         }
 
         public bool lineOfSightTo(Vessel vess) {
-            Vector3d a = vessel.transform.position;
-            Vector3d b = vess.transform.position;
+            Vector3d a = PluginHelper.getVesselPos(vessel);
+            Vector3d b = PluginHelper.getVesselPos(vess);
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies) {
                 Vector3d refminusa = referenceBody.position - a;
                 Vector3d bminusa = b - a;

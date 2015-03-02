@@ -74,7 +74,7 @@ namespace OpenResourceSystem {
                         string tex_path = planetary_resource_config_node.GetValue("displayTexture");
                         resource_info.setDisplayTexture(tex_path);
                     } else {
-                        string tex_path = planetary_resource_config_node.GetValue("WarpPlugin/resource_point");
+                        string tex_path = planetary_resource_config_node.GetValue("WarpPlugin/ParticleFX/resource_point");
                         resource_info.setDisplayTexture(tex_path);
                     }
                     if (planetary_resource_config_node.HasValue("displayThreshold")) {

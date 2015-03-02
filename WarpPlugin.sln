@@ -1,29 +1,42 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarpPlugin", "FNPlugin\WarpPlugin.csproj", "{AD686AF3-DDDC-4991-909F-EAD9C16C469B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836} = {BCA16E74-23E5-4327-9D24-B908A8CE3836}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D6D5782-3585-4E07-A0C6-6E9915C9E30F}"
 	ProjectSection(SolutionItems) = preProject
 		License.md = License.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterstellarToolbar", "InterstellarToolbar\InterstellarToolbar.csproj", "{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenResourceSystem", "OpenResourceSystem\OpenResourceSystem.csproj", "{BCA16E74-23E5-4327-9D24-B908A8CE3836}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug KSP 0.90|Any CPU = Debug KSP 0.90|Any CPU
 		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Release KSP 0.25|Any CPU = Release KSP 0.25|Any CPU
+		Release KSP 0.90|Any CPU = Release KSP 0.90|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Debug KSP 0.90|Any CPU.ActiveCfg = Debug KSP 0.90|Any CPU
+		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Debug KSP 0.90|Any CPU.Build.0 = Debug KSP 0.90|Any CPU
 		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E07DD2EF-6BDB-4519-92C3-6C9E2D944361}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release KSP 0.25|Any CPU.ActiveCfg = Release KSP 0.25|Any CPU
+		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release KSP 0.25|Any CPU.Build.0 = Release KSP 0.25|Any CPU
+		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release KSP 0.90|Any CPU.ActiveCfg = Release KSP 0.90|Any CPU
+		{AD686AF3-DDDC-4991-909F-EAD9C16C469B}.Release KSP 0.90|Any CPU.Build.0 = Release KSP 0.90|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Debug KSP 0.90|Any CPU.ActiveCfg = Debug KSP 0.90|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Debug KSP 0.90|Any CPU.Build.0 = Debug KSP 0.90|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Release KSP 0.25|Any CPU.ActiveCfg = Release KSP 0.25|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Release KSP 0.25|Any CPU.Build.0 = Release KSP 0.25|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Release KSP 0.90|Any CPU.ActiveCfg = Release KSP 0.90|Any CPU
+		{BCA16E74-23E5-4327-9D24-B908A8CE3836}.Release KSP 0.90|Any CPU.Build.0 = Release KSP 0.90|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
