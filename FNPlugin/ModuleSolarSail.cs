@@ -140,9 +140,15 @@ namespace FNPlugin {
                 if (surfaceTransform != null) {
                     normal = surfaceTransform.forward;
                 }
-				double cosConeAngle = Vector3.Dot (ownsunPosition.normalized (), normal);
-                Vector3d force = normal * cosConeAngle * cosConeAngle;
-                return force * surfaceArea * reflectedPhotonRatio * solarForceAtDistance();
+				// If normal points away from sun, negate so our force is always away from the sun
+				// so that turning the backside towards the sun thrusts correctly
+				if (Vector3d.Dot (normal, ownsunPosition) < 0) {
+					normal = -normal;
+				}
+				// Magnitude of force proportional to cosine-squared of angle between sun-line and normal
+				double cosConeAngle = Vector3.Dot (ownsunPosition.normalized, normal);
+                Vector3d force = normal * cosConeAngle * cosConeAngle * surfaceArea * reflectedPhotonRatio * solarForceAtDistance();
+				return force;
             } else {
                 return Vector3d.zero;
             }
