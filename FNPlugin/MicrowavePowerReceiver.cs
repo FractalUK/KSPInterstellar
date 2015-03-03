@@ -30,6 +30,8 @@ namespace FNPlugin
         public float ThermalPower;
         [KSPField(isPersistant = false)]
         public float radius;
+        [KSPField(isPersistant = false)]
+        public float heatTransportationEfficiency = 0.7f;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Input Power")]
@@ -65,7 +67,9 @@ namespace FNPlugin
         protected bool has_transmitter = false;
         static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
         double penaltyFreeDistance = 1;//should be set to proper value by OnStart method
-        
+
+        public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
+
         public bool IsSelfContained { get { return false; } }
 
         public float CoreTemperature { get { return PluginHelper.IsRecieverCoreTempTweaked ? 3500 : 1500; } }

@@ -3,6 +3,8 @@ using System;
 namespace FNPlugin{
 	public interface IThermalSource
     {
+        float ThermalTransportationEfficiency { get; }
+
         float MaximumPower { get; }
 
         float MinimumPower { get; }

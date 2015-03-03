@@ -11,7 +11,8 @@ using TweakScale;
 namespace FNPlugin {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
-        public enum ReactorTypes {
+        public enum ReactorTypes 
+        {
             FISSION_MSR = 1,
             FISSION_GFR = 2,
             FUSION_DT = 4,
@@ -37,6 +38,8 @@ namespace FNPlugin {
         public bool startDisabled;
 
         // Persistent False
+        [KSPField(isPersistant = false)]
+        public float heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
@@ -122,6 +125,8 @@ namespace FNPlugin {
         protected bool render_window = false;
         protected GUIStyle bold_label;
 
+        public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
+
         public bool IsSelfContained { get { return containsPowerGenerator; } }
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
@@ -138,18 +143,23 @@ namespace FNPlugin {
 
         public virtual void OnRescale(TweakScale.ScalingFactor factor)
         {
-			
-			if (PowerOutputBase > 0 && PowerOutputExponent > 0 && factor.absolute.linear > 0)
-			{
-				//PowerOutput *= (float)Math.Pow(factor.relative.linear, PowerOutputExponent);
-				PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
+            try
+            {
+                if (PowerOutputBase > 0 && PowerOutputExponent > 0 && factor.absolute.linear > 0)
+                {
+                    //PowerOutput *= (float)Math.Pow(factor.relative.linear, PowerOutputExponent);
+                    PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
 
-				//upgradedPowerOutput *= (float)Math.Pow(factor.relative.linear, upgradedPowerOutputExponent);
-				upgradedPowerOutput = upgradedPowerOutputBase *
-									  (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
-			}
+                    //upgradedPowerOutput *= (float)Math.Pow(factor.relative.linear, upgradedPowerOutputExponent);
+                    upgradedPowerOutput = upgradedPowerOutputBase * (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
+                }
 
-	        maximumThermalPowerFloat = MaximumThermalPower;
+                maximumThermalPowerFloat = MaximumThermalPower;
+            }
+            catch (Exception error)
+            {
+                UnityEngine.Debug.Log("[KSPI] - InterstellarReactor.OnRescale exception: " + error.Message);
+            }
         }
 
         public virtual float MaximumThermalPower 

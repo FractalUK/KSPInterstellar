@@ -52,7 +52,8 @@ namespace FNPlugin
 		public string fuelmode;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
-
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
+        public float fuelFlowCooling;
 
 		//Internal
 		protected float maxISP;
@@ -78,6 +79,7 @@ namespace FNPlugin
         //protected bool flameFxOn = true;
         protected float atmospheric_limit;
         protected float old_atmospheric_limit;
+        protected double currentintakeatm;
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -131,8 +133,6 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-            
-
             engineType = originalName;
             myAttachedEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
             // find attached thermal source
@@ -369,7 +369,7 @@ namespace FNPlugin
             if (currentpropellant_is_jet) 
             {
                 string resourcename = myAttachedEngine.propellants[0].name;
-                double currentintakeatm = getIntakeAvailable(vessel, resourcename);
+                currentintakeatm = getIntakeAvailable(vessel, resourcename);
                 if (getFuelRateThermalJetsForVessel(vessel, resourcename) > 0) 
                 {
                     // divide current available intake resource by fuel useage across all engines
@@ -445,6 +445,7 @@ namespace FNPlugin
                 GenerateTrustFromReactorHeat();
             else
             {
+                fuelFlowCooling = 0;
                 if (myAttachedEngine.realIsp > 0)
                 {
                     atmospheric_limit = GetAtmosphericLimit();
@@ -565,7 +566,16 @@ namespace FNPlugin
 
                 if (atmospheric_limit > 0 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
                     fuel_flow_rate = fuel_flow_rate / atmospheric_limit;
+
+                // calculate fuelFlowCooling
+                fuelFlowCooling = (float)fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);
+                if (currentpropellant_is_jet)
+                    fuelFlowCooling *= (float)currentintakeatm ;
+
+                consumeFNResource(fuelFlowCooling * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
+            else
+                fuelFlowCooling = 0;
         }
 
 		public override string GetInfo() 
