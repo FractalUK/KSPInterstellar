@@ -50,6 +50,18 @@ namespace FNPlugin
         //Internal 
 
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
+        protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
+        public void AttachThermalReciever(Guid key, float radius)
+        {
+            if (!connectedRecievers.ContainsKey(key))
+                connectedRecievers.Add(key, radius);
+        }
+
+        public void DetachThermalReciever(Guid key)
+        {
+            if (connectedRecievers.ContainsKey(key))
+                connectedRecievers.Remove(key);
+        }
 
         //
         protected Animation anim;

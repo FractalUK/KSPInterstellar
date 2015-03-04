@@ -23,6 +23,18 @@ namespace FNPlugin  {
 
         // internal
 		protected float _thermalpower;
+        protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
+        public void AttachThermalReciever(Guid key, float radius)
+        {
+            if (!connectedRecievers.ContainsKey(key))
+                connectedRecievers.Add(key, radius);
+        }
+
+        public void DetachThermalReciever(Guid key)
+        {
+            if (connectedRecievers.ContainsKey(key))
+                connectedRecievers.Remove(key);
+        }
 
         //properties
 

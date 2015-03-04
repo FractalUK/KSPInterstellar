@@ -3,6 +3,10 @@ using System;
 namespace FNPlugin{
 	public interface IThermalSource
     {
+        void AttachThermalReciever(Guid key, float radius);
+
+        void DetachThermalReciever(Guid key);
+
         float ThermalTransportationEfficiency { get; }
 
         float MaximumPower { get; }

@@ -42,8 +42,6 @@ namespace FNPlugin {
         public float heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
-        public float PowerOutput;
         [KSPField(isPersistant = false)]
         public float PowerOutputExponent = 3.2f;
         [KSPField(isPersistant = false)]
@@ -54,8 +52,6 @@ namespace FNPlugin {
         public float upgradedPowerOutputExponent = 3.2f;
         [KSPField(isPersistant = false)]
         public float upgradedPowerOutputBase;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgraded Power Output", guiUnits = " MW")]
-        public float upgradedPowerOutput;
         [KSPField(isPersistant = false)]
         public string animName;
         [KSPField(isPersistant = false)]
@@ -66,8 +62,6 @@ namespace FNPlugin {
         public float upgradeCost;
         [KSPField(isPersistant = false)]
         public float radius;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor=true, guiName="Upgrade")]
-        public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]
         public float minimumThrottle = 0;
         [KSPField(isPersistant = false)]
@@ -85,26 +79,37 @@ namespace FNPlugin {
         [KSPField(isPersistant = false)]
         public bool containsPowerGenerator = false;
 
+        // Visible imput parameters 
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
+        public float PowerOutput;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgraded Power Output", guiUnits = " MW")]
+        public float upgradedPowerOutput;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Upgrade")]
+        public string upgradeTechReq = String.Empty;
 
-        // GUI
+        // GUI strings
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+        public string reactorTypeStr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
+        public string coretempStr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        public string statusStr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
+        public string currentTPwr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Charged Power")]
+        public string currentCPwr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
+        public string fuelModeStr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Connections")]
+        public string connectedRecieversStr = String.Empty;
+
+        // Gui floats
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Empty Mass", guiUnits = " t")]
         public float partMass = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
-        public string reactorTypeStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temp")]
-        public string coretempStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
-        public string statusStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
-        public string currentTPwr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Charged Power")]
-        public string currentCPwr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
-        public string fuelModeStr = "";
-
 	    [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Thermal Power", guiUnits = " MW")]
 		public float maximumThermalPowerFloat = 0;
 
+        // value types
         protected bool hasrequiredupgrade = false;
         protected double tritium_rate;
         protected int deactivate_timer = 0;
@@ -119,11 +124,45 @@ namespace FNPlugin {
         protected float ongoing_total_power_f;
         protected double total_power_per_frame;
         protected bool decay_ongoing = false;
-
         protected Rect windowPosition = new Rect(20, 20, 300, 100);
         protected int windowID = 90175467;
         protected bool render_window = false;
         protected GUIStyle bold_label;
+
+        // reference types
+        protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
+
+        public void AttachThermalReciever(Guid key, float radius)
+        {
+            try
+            {
+                UnityEngine.Debug.Log("[KSPI] - InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
+
+                if (!connectedRecievers.ContainsKey(key))
+                    connectedRecievers.Add(key, radius);
+
+                UpdateConnectedRecieversStr();
+            }
+            catch (Exception error)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - InterstellarReactor.ConnectReciever exception: " + error.Message);
+            }
+        }
+
+        public void DetachThermalReciever(Guid key)
+        {
+            if (connectedRecievers.ContainsKey(key))
+                connectedRecievers.Remove(key);
+
+            UpdateConnectedRecieversStr();
+        }
+
+        private void UpdateConnectedRecieversStr()
+        {
+            if (connectedRecievers == null) return;
+
+            connectedRecieversStr = connectedRecievers.Count().ToString() + " (" + connectedRecievers.Sum(r => r.Value).ToString("0.000") +"m)";
+        }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
@@ -147,10 +186,7 @@ namespace FNPlugin {
             {
                 if (PowerOutputBase > 0 && PowerOutputExponent > 0 && factor.absolute.linear > 0)
                 {
-                    //PowerOutput *= (float)Math.Pow(factor.relative.linear, PowerOutputExponent);
                     PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
-
-                    //upgradedPowerOutput *= (float)Math.Pow(factor.relative.linear, upgradedPowerOutputExponent);
                     upgradedPowerOutput = upgradedPowerOutputBase * (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
                 }
 
@@ -247,21 +283,24 @@ namespace FNPlugin {
         [KSPAction("Activate Reactor")]
         public void ActivateReactorAction(KSPActionParam param) 
         {
-            if (IsNuclear) { return; }
+            if (IsNuclear) return; 
+
             ActivateReactor();
         }
 
         [KSPAction("Deactivate Reactor")]
         public void DeactivateReactorAction(KSPActionParam param)
         {
-            if (IsNuclear) { return; }
+            if (IsNuclear) return; 
+
             DeactivateReactor();
         }
 
         [KSPAction("Toggle Reactor")]
         public void ToggleReactorAction(KSPActionParam param)
         {
-            if (IsNuclear) { return; }
+            if (IsNuclear) return;
+
             IsEnabled = !IsEnabled;
         }
 
