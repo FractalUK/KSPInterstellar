@@ -8,12 +8,6 @@ namespace FNPlugin {
     [KSPModule("IC Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor, IChargedParticleSource
     {
-        [KSPField(isPersistant = true)]
-        public int fuel_mode = 0;
-
-        [KSPField(isPersistant = false)]
-        public float powerRequirements;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Laser Consumption")]
         public string laserPower;
 
@@ -21,8 +15,6 @@ namespace FNPlugin {
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
         protected float plasma_ratio = 1.0f;
-
-        public override double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
@@ -53,11 +45,12 @@ namespace FNPlugin {
         public float LaserPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }
 
         [KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
-        public void SwapFuelMode() {
+        public void SwapFuelMode() 
+        {
             fuel_mode++;
-            if (fuel_mode >= fuel_modes.Count) {
+            if (fuel_mode >= fuel_modes.Count) 
                 fuel_mode = 0;
-            }
+            
             current_fuel_mode = fuel_modes[fuel_mode];
         }
         

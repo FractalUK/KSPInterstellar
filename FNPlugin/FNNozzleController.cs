@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class FNNozzleController : FNResourceSuppliableModule, IUpgradeableModule 
+    class FNNozzleController : FNResourceSuppliableModule, IUpgradeableModule, INoozle
     {
 		// Persistent True
 		[KSPField(isPersistant = true)]
@@ -80,6 +80,10 @@ namespace FNPlugin
         protected float atmospheric_limit;
         protected float old_atmospheric_limit;
         protected double currentintakeatm;
+
+        public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
+        public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
+        public int Fuel_mode { get { return fuel_mode; } }
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -638,15 +642,15 @@ namespace FNPlugin
 		// enumeration of the fuel useage rates of all jets on a vessel
 		public static int getEnginesRunningOfTypeForVessel (Vessel vess, string resourcename) 
         {
-			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
+            List<INoozle> nozzles = vess.FindPartModulesImplementing<INoozle>();
 			int engines = 0;
-			foreach (FNNozzleController nozzle in nozzles) 
+            foreach (INoozle nozzle in nozzles) 
             {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
 
-                if (prop_node == null || prop_node[nozzle.fuel_mode] == null) continue;
+                if (prop_node == null || prop_node[nozzle.Fuel_mode] == null) continue;
 
-                ConfigNode[] assprops = prop_node[nozzle.fuel_mode].GetNodes("PROPELLANT");
+                ConfigNode[] assprops = prop_node[nozzle.Fuel_mode].GetNodes("PROPELLANT");
                 if (assprops[0].GetValue("name").Equals(resourcename) && nozzle.getNozzleFlowRate() > 0)
                 {
                     engines++;
@@ -658,20 +662,20 @@ namespace FNPlugin
 		// enumeration of the fuel useage rates of all jets on a vessel
 		public static double getFuelRateThermalJetsForVessel (Vessel vess, string resourcename) 
         {
-			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
+            List<INoozle> nozzles = vess.FindPartModulesImplementing<INoozle>();
 			int engines = 0;
 			bool updating = true;
-			foreach (FNNozzleController nozzle in nozzles) 
+			foreach (INoozle nozzle in nozzles) 
             {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
 
                 if (prop_node == null) continue; 
 
-				ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
+				ConfigNode[] assprops = prop_node [nozzle.Fuel_mode].GetNodes ("PROPELLANT");
 
-                if (prop_node[nozzle.fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
+                if (prop_node[nozzle.Fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
 
-				if (!nozzle.static_updating2) 
+				if (!nozzle.Static_updating2) 
 					updating = false;
 							
 				if (nozzle.getNozzleFlowRate () > 0) 
@@ -681,18 +685,18 @@ namespace FNPlugin
 			if (updating) 
             {
 				double enum_rate = 0;
-				foreach (FNNozzleController nozzle in nozzles) 
+                foreach (INoozle nozzle in nozzles) 
                 {
 					ConfigNode[] prop_node = nozzle.getPropellants ();
 
                     if (prop_node == null) continue;
 
-                    ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
+                    ConfigNode[] assprops = prop_node [nozzle.Fuel_mode].GetNodes ("PROPELLANT");
 
-                    if (prop_node[nozzle.fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
+                    if (prop_node[nozzle.Fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
 
 					enum_rate += nozzle.getNozzleFlowRate ();
-					nozzle.static_updating2 = false;
+					nozzle.Static_updating2 = false;
 				}
 
 				if (fuel_flow_amounts.ContainsKey (resourcename)) 

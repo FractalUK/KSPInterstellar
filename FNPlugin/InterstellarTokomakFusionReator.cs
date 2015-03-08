@@ -8,12 +8,6 @@ namespace FNPlugin {
     
     class InterstellarTokamakFusionReator : InterstellarFusionReactor
     {
-        [KSPField(isPersistant = true)]
-        public int fuel_mode = 0;
-
-        [KSPField(isPersistant = false)]
-        public float powerRequirements;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heating maintance")]
         public string tokomakPower;
 
@@ -24,8 +18,6 @@ namespace FNPlugin {
 
         // properties
 
-        public override double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
-
         public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
 
         public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
@@ -34,20 +26,9 @@ namespace FNPlugin {
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
-        public override bool IsNeutronRich {  get { return !current_fuel_mode.Aneutronic; }  }
-
         public float HeatingPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }
 
-        [KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
-        public void SwapFuelMode() {
-            if (fuel_modes == null || fuel_modes.Count == 0)
-                return;
-            fuel_mode++;
-            if (fuel_mode >= fuel_modes.Count) {
-                fuel_mode = 0;
-            }
-            current_fuel_mode = fuel_modes[fuel_mode];
-        }
+
 
         public override void OnUpdate() 
         {

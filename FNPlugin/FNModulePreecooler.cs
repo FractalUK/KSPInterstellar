@@ -4,46 +4,69 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
-    class FNModulePreecooler : PartModule {
+namespace FNPlugin 
+{
+    class FNModulePreecooler : PartModule 
+    {
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Precooler status")]
         public string statusStr;
 
         protected bool functional = false;
-        protected ModuleResourceIntake attachedIntake;
+        
+        public ModuleResourceIntake attachedIntake;
 
-        public override void OnStart(PartModule.StartState state) {
-            if (state == StartState.Editor) { return; }
+        public List<ModuleResourceIntake> radialAttachedIntakes;
 
-            foreach (AttachNode attach_node in part.attachNodes) {
-                if (attach_node.attachedPart != null) {
-                    List<ModuleResourceIntake> mres = attach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == "IntakeAir").ToList();
-                    if(mres.Count > 0) {
-                        attachedIntake = mres.First();
-                    }
+        public override void OnStart(PartModule.StartState state) 
+        {
+            if (state == StartState.Editor) return;
+
+            foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null)) 
+            {
+                List<ModuleResourceIntake> mres = attach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == "IntakeAir").ToList();
+                if(mres.Count > 0) 
+                {
+                    attachedIntake = mres.First();
+                    break;
                 }
             }
+
+            // if not did found and stack connected airintakes, find an radial connected air intake
+            if (attachedIntake == null)
+            {
+                radialAttachedIntakes = this.part.children
+                    .Where(c => c.attachMode == AttachModes.SRF_ATTACH)  
+                    .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>())
+                    .Where(mre => mre.resourceName == "IntakeAir")
+                    .ToList();
+            }
+
             part.force_activate();
         }
 
-        public override void OnUpdate() {
-            if (functional) {
+        public override void OnUpdate() 
+        {
+            if (functional) 
                 statusStr = "Active.";
-            } else {
+            else 
                 statusStr = "Offline.";
+        }
+
+        public int ValidAttachedIntakes
+        {
+            get
+            {
+                return attachedIntake != null ? 1 : Math.Min(radialAttachedIntakes.Count(), 2);
             }
         }
 
-        public override void OnFixedUpdate() {
-            functional = false;
-            if (attachedIntake != null) {
-                if (attachedIntake.intakeEnabled) {
-                    functional = true;
-                }
-            }
+        public override void OnFixedUpdate() 
+        {
+            functional = ((attachedIntake != null && attachedIntake.intakeEnabled) || radialAttachedIntakes.Any(i => i.intakeEnabled) );
         }
 
-        public bool isFunctional() {
+        public bool isFunctional() 
+        {
             return functional;
         }
     }

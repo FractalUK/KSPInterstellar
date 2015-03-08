@@ -8,7 +8,8 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin{
-	class FNNozzleControllerFX : FNResourceSuppliableModule, IUpgradeableModule{
+    class FNNozzleControllerFX : FNResourceSuppliableModule, IUpgradeableModule, INoozle
+    {
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled;
@@ -75,6 +76,10 @@ namespace FNPlugin{
         //Config settings settings
         protected double g0 = PluginHelper.GravityConstant;
         protected double isp_temp_rat = PluginHelper.IspCoreTempMult;
+
+        public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
+        public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
+        public int Fuel_mode { get { return fuel_mode; } }
 
 		//Static
 		static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
@@ -464,18 +469,21 @@ namespace FNPlugin{
 		// Static Methods
 		// Amount of intake air available to use of a particular resource type
 		public static double getIntakeAvailable(Vessel vess, string resourcename) {
-			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
+            List<INoozle> nozzles = vess.FindPartModulesImplementing<INoozle>();
 			bool updating = true;
-			foreach (FNNozzleController nozzle in nozzles) {
-				if (!nozzle.static_updating) {
+            foreach (INoozle nozzle in nozzles)
+            {
+				if (!nozzle.Static_updating) {
 					updating = false;
 					break;
 				}
 			}
 
-			if (updating) {
-				foreach (FNNozzleController nozzle in nozzles) {
-					nozzle.static_updating = false;
+			if (updating) 
+            {
+                foreach (INoozle nozzle in nozzles)
+                {
+					nozzle.Static_updating = false;
 				}
 
 				List<PartResource> partresources = vess.rootPart.GetConnectedResources (resourcename).ToList();
@@ -501,14 +509,16 @@ namespace FNPlugin{
 		}
 
 		// enumeration of the fuel useage rates of all jets on a vessel
-		public static int getEnginesRunningOfTypeForVessel (Vessel vess, string resourcename) {
-			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
+		public static int getEnginesRunningOfTypeForVessel (Vessel vess, string resourcename) 
+        {
+            List<INoozle> nozzles = vess.FindPartModulesImplementing<INoozle>();
 			int engines = 0;
-			foreach (FNNozzleController nozzle in nozzles) {
+            foreach (INoozle nozzle in nozzles)
+            {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
 				if (prop_node != null) {
-					ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
-					if (prop_node [nozzle.fuel_mode] != null) {
+					ConfigNode[] assprops = prop_node [nozzle.Fuel_mode].GetNodes ("PROPELLANT");
+					if (prop_node [nozzle.Fuel_mode] != null) {
 						if (assprops [0].GetValue ("name").Equals (resourcename)) {
 							if (nozzle.getNozzleFlowRate () > 0) {
 								engines++;
@@ -522,16 +532,18 @@ namespace FNPlugin{
 
 		// enumeration of the fuel useage rates of all jets on a vessel
 		public static double getFuelRateThermalJetsForVessel (Vessel vess, string resourcename) {
-			List<FNNozzleController> nozzles = vess.FindPartModulesImplementing<FNNozzleController> ();
+            List<INoozle> nozzles = vess.FindPartModulesImplementing<INoozle>();
 			int engines = 0;
 			bool updating = true;
-			foreach (FNNozzleController nozzle in nozzles) {
+            foreach (INoozle nozzle in nozzles)
+            {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
 				if (prop_node != null) {
-					ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
-					if (prop_node [nozzle.fuel_mode] != null) {
-						if (assprops [0].GetValue ("name").Equals (resourcename)) {
-							if (!nozzle.static_updating2) {
+					ConfigNode[] assprops = prop_node [nozzle.Fuel_mode].GetNodes ("PROPELLANT");
+					if (prop_node [nozzle.Fuel_mode] != null) {
+						if (assprops [0].GetValue ("name").Equals (resourcename)) 
+                        {
+							if (!nozzle.Static_updating2) {
 								updating = false;
 							}
 							if (nozzle.getNozzleFlowRate () > 0) {
@@ -544,14 +556,15 @@ namespace FNPlugin{
 
 			if (updating) {
 				double enum_rate = 0;
-				foreach (FNNozzleController nozzle in nozzles) {
+                foreach (INoozle nozzle in nozzles)
+                {
 					ConfigNode[] prop_node = nozzle.getPropellants ();
 					if (prop_node != null) {
-						ConfigNode[] assprops = prop_node [nozzle.fuel_mode].GetNodes ("PROPELLANT");
-						if (prop_node [nozzle.fuel_mode] != null) {
+						ConfigNode[] assprops = prop_node [nozzle.Fuel_mode].GetNodes ("PROPELLANT");
+						if (prop_node [nozzle.Fuel_mode] != null) {
 							if (assprops [0].GetValue ("name").Equals (resourcename)) {
 								enum_rate += nozzle.getNozzleFlowRate ();
-								nozzle.static_updating2 = false;
+								nozzle.Static_updating2 = false;
 							}
 						}
 					}

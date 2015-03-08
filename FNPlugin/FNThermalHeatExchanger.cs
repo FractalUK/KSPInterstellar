@@ -23,17 +23,49 @@ namespace FNPlugin  {
 
         // internal
 		protected float _thermalpower;
+
+
+        // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
+        protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
+        protected float connectedRecieversSum;
+
         public void AttachThermalReciever(Guid key, float radius)
         {
-            if (!connectedRecievers.ContainsKey(key))
-                connectedRecievers.Add(key, radius);
+            try
+            {
+                UnityEngine.Debug.Log("[KSPI] - InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
+
+                if (!connectedRecievers.ContainsKey(key))
+                {
+                    connectedRecievers.Add(key, radius);
+                    connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
+                    connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
+                }
+            }
+            catch (Exception error)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - InterstellarReactor.ConnectReciever exception: " + error.Message);
+            }
         }
 
         public void DetachThermalReciever(Guid key)
         {
             if (connectedRecievers.ContainsKey(key))
+            {
                 connectedRecievers.Remove(key);
+                connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
+                connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
+            }
+        }
+
+        public float GetFractionThermalReciever(Guid key)
+        {
+            float result;
+            if (connectedRecieversFraction.TryGetValue(key, out result))
+                return result;
+            else
+                return 0;
         }
 
         //properties

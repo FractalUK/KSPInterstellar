@@ -128,10 +128,12 @@ namespace FNPlugin {
         protected int windowID = 90175467;
         protected bool render_window = false;
         protected GUIStyle bold_label;
+        
 
         // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
-
+        protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
+        protected float connectedRecieversSum;
         public void AttachThermalReciever(Guid key, float radius)
         {
             try
@@ -139,7 +141,11 @@ namespace FNPlugin {
                 UnityEngine.Debug.Log("[KSPI] - InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
 
                 if (!connectedRecievers.ContainsKey(key))
+                {
                     connectedRecievers.Add(key, radius);
+                    connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
+                    connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum );
+                }
 
                 UpdateConnectedRecieversStr();
             }
@@ -152,16 +158,29 @@ namespace FNPlugin {
         public void DetachThermalReciever(Guid key)
         {
             if (connectedRecievers.ContainsKey(key))
+            {
                 connectedRecievers.Remove(key);
+                connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
+                connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum );
+            }
 
             UpdateConnectedRecieversStr();
+        }
+
+        public float GetFractionThermalReciever(Guid key)
+        {
+            float result;
+            if (connectedRecieversFraction.TryGetValue(key, out result))
+                return result;
+            else
+                return 0;
         }
 
         private void UpdateConnectedRecieversStr()
         {
             if (connectedRecievers == null) return;
 
-            connectedRecieversStr = connectedRecievers.Count().ToString() + " (" + connectedRecievers.Sum(r => r.Value).ToString("0.000") +"m)";
+            connectedRecieversStr = connectedRecievers.Count().ToString() + " (" + connectedRecieversSum.ToString("0.000") +"m)";
         }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
@@ -203,14 +222,8 @@ namespace FNPlugin {
             get 
             {
                 float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                var result =
-				 isupgraded 
-                    ? upgradedPowerOutput != 0 
-                        ? upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
-                        : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
-                    : PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
-
-	            return result;
+                var result = isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput;
+                return result * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
             } 
         }
 
@@ -387,6 +400,8 @@ namespace FNPlugin {
 
         public override void OnUpdate() 
         {
+            maximumThermalPowerFloat = MaximumThermalPower;
+
             //Update Events
             Events["ActivateReactor"].active = !IsEnabled && !IsNuclear;
             Events["DeactivateReactor"].active = IsEnabled && !IsNuclear;

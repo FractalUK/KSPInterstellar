@@ -4,9 +4,15 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
     [KSPModule("Radiator")]
-	class FNRadiator : FNResourceSuppliableModule	{
+    class FlatFNRadiator : FNRadiator  {}
+
+
+    [KSPModule("Radiator")]
+	class FNRadiator : FNResourceSuppliableModule	
+    {
 		[KSPField(isPersistant = true)]
 		public bool radiatorIsEnabled;
         [KSPField(isPersistant = true)]

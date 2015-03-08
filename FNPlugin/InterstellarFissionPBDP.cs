@@ -41,7 +41,6 @@ namespace FNPlugin
         { 
             get 
             { 
-                //return isupgraded  ? base.MaximumThermalPower : 
                 return (float)(base.MaximumThermalPower * Math.Pow((ZeroPowerTemp - CoreTemperature) / (ZeroPowerTemp - OptimalTemp), 0.81)); 
             } 
         }
