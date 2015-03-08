@@ -21,24 +21,42 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return;
 
+            // first look for stack attacke air intake
             foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null)) 
             {
-                List<ModuleResourceIntake> mres = attach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == "IntakeAir").ToList();
-                if(mres.Count > 0) 
+                attachedIntake = attach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == "IntakeAir");
+
+                if (attachedIntake != null) break;
+            }
+
+            if (attachedIntake == null)
+            {
+                // look for stack attacked parts one part further
+                foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null))
                 {
-                    attachedIntake = mres.First();
-                    break;
+                    foreach (AttachNode subAttach_node in attach_node.attachedPart.attachNodes.Where(a => a.attachedPart != null))
+                    {
+                        attachedIntake = subAttach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == "IntakeAir");
+
+                        if (attachedIntake != null) break;
+                    }
+                    if (attachedIntake != null) break;
                 }
             }
 
             // if not did found and stack connected airintakes, find an radial connected air intake
             if (attachedIntake == null)
             {
-                radialAttachedIntakes = this.part.children
-                    .Where(c => c.attachMode == AttachModes.SRF_ATTACH)  
-                    .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>())
-                    .Where(mre => mre.resourceName == "IntakeAir")
-                    .ToList();
+                foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null))
+                {
+                    radialAttachedIntakes = attach_node.attachedPart.children
+                        .Where(c => c.attachMode == AttachModes.SRF_ATTACH)
+                        .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>())
+                        .Where(mre => mre.resourceName == "IntakeAir")
+                        .ToList();
+
+                    if (radialAttachedIntakes.Count > 0) break;
+                }
             }
 
             part.force_activate();
