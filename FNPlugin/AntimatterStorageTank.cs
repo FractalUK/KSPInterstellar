@@ -1,4 +1,4 @@
-extern alias ORSv1_4_2;
+extern alias ORSv1_4_3;
 
 using System;
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_2::OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
 	class AntimatterStorageTank : FNResourceSuppliableModule	{
@@ -57,7 +57,7 @@ namespace FNPlugin {
 			lightGameObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 			lightGameObject.AddComponent<Light>();
 			lightGameObject.renderer.material.shader = Shader.Find("Unlit/Transparent");
-			lightGameObject.renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/explode", false);
+			lightGameObject.renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/explode", false);
 			lightGameObject.renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.9f);
 			Light light = lightGameObject.light;
 			lightGameObject.transform.position = part.transform.position;

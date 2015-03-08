@@ -1,5 +1,5 @@
-extern alias ORSv1_4_2;
-using ORSv1_4_2::OpenResourceSystem;
+extern alias ORSv1_4_3;
+using ORSv1_4_3::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
@@ -43,13 +43,16 @@ namespace FNPlugin {
 
                 if (solarPanel != null)
                 {
-                    float solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
-                    float heat_rate = solar_rate * 0.5f / 1000.0f;
-
                     double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
                     FloatCurve satcurve = new FloatCurve();
                     satcurve.Add(0.0f, (float)inv_square_mult);
                     solarPanel.powerCurve = satcurve;
+
+                    float solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
+                    float clamper = PluginHelper.isSolarPanelHeatingClamped() ?
+                        (float)Math.Min(Math.Max((Math.Sqrt(inv_square_mult) - 1.5), 0.0), 1.0) :
+                        1.0f;
+                    float heat_rate =  clamper * solar_rate * 0.5f / 1000.0f;
 
                     if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.98 && solarPanel.panelState == ModuleDeployableSolarPanel.panelStates.EXTENDED && solarPanel.sunTracking)
                     {

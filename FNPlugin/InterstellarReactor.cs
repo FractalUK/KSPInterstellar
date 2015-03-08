@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_4_2;
+﻿extern alias ORSv1_4_3;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_2::OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule {
@@ -253,7 +253,7 @@ namespace FNPlugin {
             }
 
             this.part.force_activate();
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
 
             print("[KSP Interstellar] Configuring Reactor");
         }
@@ -293,7 +293,7 @@ namespace FNPlugin {
 
                 last_draw_update = update_count;
             }
-            if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
+            //if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
             update_count++;
         }
 
@@ -348,7 +348,8 @@ namespace FNPlugin {
                     double lith_rate = breed_rate * TimeWarp.fixedDeltaTime / lithium_def.density;
                     double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
                     double lt_density_ratio = lithium_def.density / tritium_def.density;
-                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
+                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, 
+                        -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
                     if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
@@ -526,9 +527,9 @@ namespace FNPlugin {
             return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
         }
 
-        private void OnGUI() 
+        public void OnGUI() 
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window) 
+            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Reactor System Interface");
         }
 

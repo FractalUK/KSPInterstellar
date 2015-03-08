@@ -1,11 +1,11 @@
-﻿extern alias ORSv1_4_2;
+﻿extern alias ORSv1_4_3;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSv1_4_2::OpenResourceSystem;
+using ORSv1_4_3::OpenResourceSystem;
 
 namespace FNPlugin {
     public class FNResourceManager : ORSResourceManager {
@@ -22,20 +22,19 @@ namespace FNPlugin {
                 flow_type = FNRESOURCE_FLOWTYPE_EVEN;
             }
 
-            if (String.Equals(this.resource_name, FNResourceManager.FNRESOURCE_WASTEHEAT)) { // passive dissip of waste heat - a little bit of this
+            if (String.Equals(this.resource_name, FNResourceManager.FNRESOURCE_WASTEHEAT) && 
+                !PluginHelper.isThermalDissipationDisabled()) 
+            {   // passive dissip of waste heat - a little bit of this
                 double vessel_mass = my_vessel.GetTotalMass();
                 double passive_dissip = passive_temp_p4 * GameConstants.stefan_const * vessel_mass * 2.0;
                 internl_power_extract += passive_dissip * TimeWarp.fixedDeltaTime;
 
-                if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody)) { // passive convection - a lot of this
+                if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody)) 
+                { // passive convection - a lot of this
                     double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position);
                     double delta_temp = 20;
                     double conv_power_dissip = pressure * delta_temp * vessel_mass * 2.0 * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
                     internl_power_extract += conv_power_dissip;
-                }
-
-                if (internl_power_extract < 0 && PluginHelper.isThermalDissipationDisabled()) { // set buildup/dissip of waste heat to 0 if waste heat is disabled
-                    internl_power_extract = 0;
                 }
             }
         }

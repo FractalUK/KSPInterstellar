@@ -135,12 +135,20 @@ namespace FNPlugin {
             if (this.part != null) {
                 Vector3d sunPosition = FlightGlobals.fetch.bodies[0].position;
                 Vector3d ownPosition = this.part.transform.position;
+				Vector3d ownsunPosition = ownPosition - sunPosition;
                 Vector3d normal = this.part.transform.up;
                 if (surfaceTransform != null) {
                     normal = surfaceTransform.forward;
                 }
-                Vector3d force = normal * Vector3d.Dot((ownPosition - sunPosition).normalized, normal);
-                return force * surfaceArea * reflectedPhotonRatio * solarForceAtDistance();
+				// If normal points away from sun, negate so our force is always away from the sun
+				// so that turning the backside towards the sun thrusts correctly
+				if (Vector3d.Dot (normal, ownsunPosition) < 0) {
+					normal = -normal;
+				}
+				// Magnitude of force proportional to cosine-squared of angle between sun-line and normal
+				double cosConeAngle = Vector3.Dot (ownsunPosition.normalized, normal);
+                Vector3d force = normal * cosConeAngle * cosConeAngle * surfaceArea * reflectedPhotonRatio * solarForceAtDistance();
+				return force;
             } else {
                 return Vector3d.zero;
             }
