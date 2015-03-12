@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Refinery
 {
     class WaterElectroliser : IRefineryActivity
     {
@@ -18,7 +18,6 @@ namespace FNPlugin
         protected double _water_density;
         protected double _oxygen_density;
         protected double _hydrogen_density;
-
         protected double _water_consumption_rate;
         protected double _hydrogen_production_rate;
         protected double _oxygen_production_rate;

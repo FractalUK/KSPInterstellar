@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using TweakScale;
+using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {

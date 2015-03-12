@@ -6,7 +6,12 @@ using System.Linq;
 using System.Text;
 
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
+    [KSPModule("Fission Reactor")]
+    class InterstellarFissionMSRGCsmall : InterstellarFissionMSRGC { }
+
+
     [KSPModule("Fission Reactor")]
     class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable {
         [KSPField(isPersistant = true)]

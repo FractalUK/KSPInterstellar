@@ -7,7 +7,10 @@ using System.Text;
 using UnityEngine;
 using ORSv1_4_3::OpenResourceSystem;
 
-namespace FNPlugin {
+using FNPlugin.Refinery; 
+
+namespace FNPlugin 
+{
     class ScienceModule : ModuleModableScienceGenerator, ITelescopeController
     {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]

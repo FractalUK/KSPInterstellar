@@ -7,6 +7,8 @@ using System.Text;
 using UnityEngine;
 using ORSv1_4_3::OpenResourceSystem;
 
+using FNPlugin.Refinery;
+
 namespace FNPlugin 
 {
     [KSPModule("Refinery")]

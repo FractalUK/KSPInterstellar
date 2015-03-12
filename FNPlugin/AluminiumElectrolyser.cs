@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Refinery
 {
     class AluminiumElectrolyser : IRefineryActivity
     {

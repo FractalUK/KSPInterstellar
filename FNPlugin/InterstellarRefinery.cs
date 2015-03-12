@@ -5,7 +5,7 @@ using System.Text;
 
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Refinery
 {
     [KSPModule("ISRU Refinery")]
     class InterstellarRefinery : FNResourceSuppliableModule
@@ -32,8 +32,10 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return;
+
             System.Random rnd = new System.Random();
             _window_ID = rnd.Next(int.MaxValue);
+
             _refinery_activities = new List<IRefineryActivity>();
             _refinery_activities.Add(new NuclearFuelReprocessor(this.part));
             _refinery_activities.Add(new AluminiumElectrolyser(this.part));
@@ -42,6 +44,8 @@ namespace FNPlugin
             _refinery_activities.Add(new AnthraquinoneProcessor(this.part));
             _refinery_activities.Add(new MonopropellantProducer(this.part));
             _refinery_activities.Add(new UF4Ammonolysiser(this.part));
+            _refinery_activities.Add(new HaberProcess(this.part));
+            
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 

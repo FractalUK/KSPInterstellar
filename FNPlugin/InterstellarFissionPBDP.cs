@@ -8,6 +8,9 @@ using System.Text;
 namespace FNPlugin
 {
     [KSPModule("Fission Reactor")]
+    class InterstellarFissionPBDPsmall : InterstellarFissionPBDP {}
+
+    [KSPModule("Fission Reactor")]
     class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
     {
         // Persistant False

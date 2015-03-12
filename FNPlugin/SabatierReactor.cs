@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Refinery
 {
     class SabatierReactor : IRefineryActivity
     {
@@ -50,9 +50,12 @@ namespace FNPlugin
         {
             _current_power = PowerRequirements * rate_multiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon * _vessel.atmDensity;
+
             double h_rate_temp = _current_rate / (1 + GameConstants.electrolysisMassRatio);
             double o_rate_temp = h_rate_temp * (GameConstants.electrolysisMassRatio - 1.0);
+
             _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, h_rate_temp * TimeWarp.fixedDeltaTime / _hydrogen_density / 2);
+            
             if (_hydrogen_consumption_rate > 0)
             {
                 _oxygen_production_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -o_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime / _oxygen_density;

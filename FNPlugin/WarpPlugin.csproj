@@ -91,17 +91,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlcubierreDrive.cs" />
+    <Compile Include="INoozle.cs" />
     <Compile Include="AluminiumElectrolyser.cs" />
     <Compile Include="AntimatterCollector.cs" />
     <Compile Include="AntimatterFactory.cs" />
     <Compile Include="AtmosphericIntake.cs" />
     <Compile Include="AnthraquinoneProcessor.cs" />
-    <Compile Include="InterstellarFissionMSRGCsmall.cs" />
-    <Compile Include="InterstellarFissionPBDPsmall.cs" />
     <Compile Include="ThermalNozzleController.cs" />
     <Compile Include="InterstellarMagneticNozzleControllerFX.cs" />
     <Compile Include="InterstellarToolbar.cs" />
     <Compile Include="MicrowaveSources.cs" />
+    <Compile Include="HaberProcess.cs" />
     <Compile Include="MonopropellantProducer.cs" />
     <Compile Include="IChargedParticleSource.cs" />
     <Compile Include="InterstellarCatalysedFissionFusion.cs" />
@@ -187,4 +187,5 @@
   <ItemGroup>
     <None Include="License.md" />
   </ItemGroup>
+  <ItemGroup />
 </Project>

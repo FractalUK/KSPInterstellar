@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
+namespace FNPlugin.Refinery
+{
     class NuclearFuelReprocessor : IRefineryActivity
     {
         protected Part _part;
