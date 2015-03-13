@@ -52,17 +52,17 @@ namespace FNPlugin
 
             //List<IChargedParticleSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IChargedParticleSource>()).ToList();
             //_attached_reactor = source_list.FirstOrDefault();
-            _attached_reactor = BreathFirstSearchForChargedParticleSource(100);
+            _attached_reactor = BreathFirstSearchForChargedParticleSource(10, 1);
 
             if (_attached_reactor == null)
                 UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
 		}
 
-        private IChargedParticleSource BreathFirstSearchForChargedParticleSource(int maxdepth)
+        private IChargedParticleSource BreathFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
         {
-            for (int currentDepth = 0; currentDepth <= maxdepth; currentDepth++)
+            for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {
-                IChargedParticleSource particleSource = FindChargedParticleSource(part, currentDepth);
+                IChargedParticleSource particleSource = FindChargedParticleSource(part, currentDepth, parentdepth);
 
                 if (particleSource != null)
                 {
@@ -73,14 +73,24 @@ namespace FNPlugin
             return null;
         }
 
-        private IChargedParticleSource FindChargedParticleSource(Part currentpart, int depth)
+        private IChargedParticleSource FindChargedParticleSource(Part currentpart, int stackdepth, int parentdepth)
         {
-            if (depth == 0)
+            if (stackdepth == 0)
                 return currentpart.FindModulesImplementing<IChargedParticleSource>().FirstOrDefault();
 
             foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
             {
-                IChargedParticleSource particleSource = FindChargedParticleSource(attachNodes.attachedPart, depth - 1);
+                IChargedParticleSource particleSource = FindChargedParticleSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth);
+
+                if (particleSource != null)
+                {
+                    return particleSource;
+                }
+            }
+
+            if (parentdepth > 0)
+            {
+                IChargedParticleSource particleSource = FindChargedParticleSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1));
 
                 if (particleSource != null)
                     return particleSource;
@@ -99,7 +109,11 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_reactor != null && _attached_engine.isOperational)
             {
-                _max_power = _attached_reactor.MaximumChargedPower;
+                double exchanger_thrust_divisor = radius > _attached_reactor.getRadius()
+                    ? _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius
+                    : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius();
+
+                _max_power = _attached_reactor.MaximumChargedPower * (float)exchanger_thrust_divisor;
 
                 if (_attached_reactor is InterstellarFusionReactor)
                     _max_power *= 0.9f;
@@ -111,7 +125,9 @@ namespace FNPlugin
                 new_isp.Add(0, (float)current_isp, 0, 0);
                 _attached_engine.atmosphereCurve = new_isp;
 
-                double charged_power_received = consumeFNResource(_max_power * TimeWarp.fixedDeltaTime * _attached_engine.currentThrottle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
+
+
+                double charged_power_received = consumeFNResource(_max_power * TimeWarp.fixedDeltaTime * _attached_engine.currentThrottle * exchanger_thrust_divisor, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
                 consumeFNResource(charged_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 _recievedChargedPower = consumeFNResource(charged_power_received * TimeWarp.fixedDeltaTime * 0.01 * Math.Max(_attached_reactor_distance, 1), FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
@@ -119,19 +135,15 @@ namespace FNPlugin
                 megajoules_ratio = (double.IsNaN(megajoules_ratio) || double.IsInfinity(megajoules_ratio)) ? 0 : megajoules_ratio;
 
                 double atmo_thrust_factor = Math.Min(1.0,Math.Max(1.0 - Math.Pow(vessel.atmDensity,0.2),0));
-                double exchanger_thrust_divisor = 1;
+                
 
-                if (radius > _attached_reactor.getRadius())
-                    exchanger_thrust_divisor = _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius;
-                else
-                    exchanger_thrust_divisor = radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius();
 
                 double engineMaxThrust = 0.000000001;
                 if (_max_power > 0)
                 {
                     float power_ratio = (float)(charged_power_received / _max_power);
                     double powerTrustModifier = GameConstants.BaseTrustPowerMultiplier * NozzlePowerThrustMultiplier;
-                    engineMaxThrust = Math.Max(powerTrustModifier * charged_power_received * megajoules_ratio * atmo_thrust_factor * exchanger_thrust_divisor / current_isp / PluginHelper.GravityConstant / _attached_engine.currentThrottle, 0.000000001);
+                    engineMaxThrust = Math.Max(powerTrustModifier * charged_power_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant / _attached_engine.currentThrottle, 0.000000001);
                 }
 
                 if (!double.IsInfinity(engineMaxThrust) && !double.IsNaN(engineMaxThrust))
