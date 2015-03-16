@@ -17,7 +17,7 @@ namespace FNPlugin {
 
         public const double anthraquinoneEnergyPerTon = 1834.321;
         public const double haberProcessEnergyPerTon = 34200;
-        public const double electrolysisEnergyPerTon = 18159;
+        public const double waterElectrolysisEnergyPerTon = 18159;
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
         public const double EarthAthmospherePresureAtSeaLevel = 101.325;

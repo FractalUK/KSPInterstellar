@@ -45,7 +45,10 @@ namespace FNPlugin.Refinery
             _refinery_activities.Add(new MonopropellantProducer(this.part));
             _refinery_activities.Add(new UF4Ammonolysiser(this.part));
             _refinery_activities.Add(new HaberProcess(this.part));
-            
+            _refinery_activities.Add(new AmmoniaElectrolyzer(this.part));
+
+            _refinery_activities.OrderBy(a => a.ActivityName);
+
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
@@ -59,17 +62,15 @@ namespace FNPlugin.Refinery
         {
             if (HighLogic.LoadedSceneIsFlight && refinery_is_enabled && _current_activity != null)
             {
-                double power_ratio = consumeFNResource(_current_activity.PowerRequirements*TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime/_current_activity.PowerRequirements;
+                double power_ratio = consumeFNResource(_current_activity.PowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime/_current_activity.PowerRequirements;
                 _current_activity.UpdateFrame(power_ratio);
             }
         }
 
         public override string getResourceManagerDisplayName()
         {
-            if (refinery_is_enabled && _current_activity != null)
-            {
-                return "ISRU Refinery (" + _current_activity.ActivityName + ")";
-            }
+            if (refinery_is_enabled && _current_activity != null) return "ISRU Refinery (" + _current_activity.ActivityName + ")";
+
             return "ISRU Refinery";
         }
 
@@ -81,9 +82,7 @@ namespace FNPlugin.Refinery
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
-            {
                 _window_position = GUILayout.Window(_window_ID, _window_position, Window, "ISRU Refinery Interface");
-            }
         }
 
 
@@ -94,11 +93,12 @@ namespace FNPlugin.Refinery
                 _bold_label = new GUIStyle(GUI.skin.label);
                 _bold_label.fontStyle = FontStyle.Bold;
             }
+
             if (GUI.Button(new Rect(_window_position.width - 20, 2, 18, 18), "x"))
-            {
                 _render_window = false;
-            }
+
             GUILayout.BeginVertical();
+
             if (_current_activity == null || !refinery_is_enabled)
             {
                 _refinery_activities.ForEach(act =>
@@ -111,7 +111,8 @@ namespace FNPlugin.Refinery
                     }
                     GUILayout.EndHorizontal();
                 });
-            } else
+            } 
+            else
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(150));

@@ -43,9 +43,22 @@ namespace FNPlugin
         public override float MaximumThermalPower 
         { 
             get 
-            { 
-                return (float)(base.MaximumThermalPower * Math.Pow((ZeroPowerTemp - CoreTemperature) / (ZeroPowerTemp - OptimalTemp), 0.81)); 
+            {
+                return base.MaximumThermalPower * (float)OverheatingRatio; 
             } 
+        }
+
+        public override float MaximumChargedPower
+        {
+            get
+            {
+                return base.MaximumChargedPower * (float)OverheatingRatio;
+            }
+        }
+
+        private double OverheatingRatio
+        {
+            get { return Math.Pow((ZeroPowerTemp - CoreTemperature) / (ZeroPowerTemp - OptimalTemp), 0.81); }
         }
 
         public float OptimalTemp { get { return isupgraded ? upgradedOptimalPebbleTemp : optimalPebbleTemp; } }
@@ -76,7 +89,7 @@ namespace FNPlugin
                         UnityEngine.Debug.Log("[KSPI] - InterstellarFissionPBDP.CoreTemperature getResourceBarRatio exception: " + error.Message + " returning 0");
                         resourceBarRatio = 0;
                     }
-                    var temperatureIncrease = Math.Pow(resourceBarRatio, 0.3) * (ZeroPowerTemp - OptimalTemp);
+                    var temperatureIncrease = Math.Pow(resourceBarRatio, 0.25) * (ZeroPowerTemp - OptimalTemp);
 
                     return (float)Math.Min(Math.Max(OptimalTemp + temperatureIncrease, OptimalTemp), ZeroPowerTemp);
                 } 

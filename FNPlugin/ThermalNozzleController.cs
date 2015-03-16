@@ -639,7 +639,7 @@ namespace FNPlugin
             }
 
             var requested_thermal_power = assThermalPower * myAttachedEngine.currentThrottle * GetAtmosphericLimit() * this.myAttachedReactor.GetFractionThermalReciever(id);
-            requestedReactorPower = requested_thermal_power.ToString("0.00") + " MW " + this.myAttachedReactor.GetFractionThermalReciever(id).ToString("0.00") + "%";
+            requestedReactorPower = requested_thermal_power.ToString("0.00") + " MW " + (this.myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
 
             double thermal_consume_total = TimeWarp.fixedDeltaTime * requested_thermal_power;
             double thermal_power_received = consumeFNResource(thermal_consume_total, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;

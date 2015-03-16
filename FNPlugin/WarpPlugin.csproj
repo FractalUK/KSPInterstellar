@@ -60,10 +60,10 @@
       <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OpenResourceSystem_1_4_3">
-      <HintPath>..\OpenResourceSystem\obj\Debug KSP 0.90\OpenResourceSystem_1_4_3.dll</HintPath>
+    <Reference Include="OpenResourceSystem_1_4_3, Version=1.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_4_3.dll</HintPath>
       <Aliases>ORSv1_4_3</Aliases>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Scale_Redist, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -92,16 +92,17 @@
   <ItemGroup>
     <Compile Include="AlcubierreDrive.cs" />
     <Compile Include="INoozle.cs" />
-    <Compile Include="AluminiumElectrolyser.cs" />
+    <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="AntimatterCollector.cs" />
     <Compile Include="AntimatterFactory.cs" />
     <Compile Include="AtmosphericIntake.cs" />
     <Compile Include="AnthraquinoneProcessor.cs" />
+    <Compile Include="Refinery\AmmoniaElectrolyzer.cs" />
     <Compile Include="ThermalNozzleController.cs" />
     <Compile Include="InterstellarMagneticNozzleControllerFX.cs" />
     <Compile Include="InterstellarToolbar.cs" />
     <Compile Include="MicrowaveSources.cs" />
-    <Compile Include="HaberProcess.cs" />
+    <Compile Include="Refinery\HaberProcess.cs" />
     <Compile Include="MonopropellantProducer.cs" />
     <Compile Include="IChargedParticleSource.cs" />
     <Compile Include="InterstellarCatalysedFissionFusion.cs" />
@@ -128,7 +129,7 @@
     <Compile Include="FNResourceScanner.cs" />
     <Compile Include="FNSeismicProbe.cs" />
     <Compile Include="FNThermalHeatExchanger.cs" />
-    <Compile Include="InterstellarRefinery.cs" />
+    <Compile Include="Refinery\InterstellarRefinery.cs" />
     <Compile Include="InterstellarResourcesConfiguration.cs" />
     <Compile Include="InterstellarTelescope.cs" />
     <Compile Include="INuclearFuelReprocessable.cs" />
@@ -174,7 +175,7 @@
     <Compile Include="ModuleSolarSail.cs" />
     <Compile Include="IThermalSource.cs" />
     <Compile Include="FNModuleRadiation.cs" />
-    <Compile Include="WaterElectroliser.cs" />
+    <Compile Include="Refinery\WaterElectroliser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -187,5 +188,4 @@
   <ItemGroup>
     <None Include="License.md" />
   </ItemGroup>
-  <ItemGroup />
 </Project>

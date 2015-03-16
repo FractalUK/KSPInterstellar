@@ -140,7 +140,7 @@ namespace FNPlugin
 		private static double _haberProcessEnergyPerTon = GameConstants.haberProcessEnergyPerTon;
 		public static double HaberProcessEnergyPerTon { get { return PowerConsumptionMultiplier * _haberProcessEnergyPerTon; } }
 
-		private static double _electrolysisEnergyPerTon = GameConstants.electrolysisEnergyPerTon;
+		private static double _electrolysisEnergyPerTon = GameConstants.waterElectrolysisEnergyPerTon;
 		public static double ElectrolysisEnergyPerTon { get { return PowerConsumptionMultiplier * _electrolysisEnergyPerTon; } }
 
 		private static double _aluminiumElectrolysisEnergyPerTon = GameConstants.aluminiumElectrolysisEnergyPerTon;

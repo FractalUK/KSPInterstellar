@@ -234,7 +234,11 @@ namespace FNPlugin {
             get
             {
                 float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                return isupgraded ? upgradedPowerOutput != 0 ? charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio : charged_fuel_factor * PowerOutput * ChargedParticleRatio :  charged_fuel_factor * PowerOutput * ChargedParticleRatio;
+                return isupgraded 
+                    ? upgradedPowerOutput != 0 
+                        ? charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio 
+                        : charged_fuel_factor * PowerOutput * ChargedParticleRatio 
+                    :  charged_fuel_factor * PowerOutput * ChargedParticleRatio;
             }
         }
 

@@ -20,7 +20,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
         public string upgradeTechReq;
 		[KSPField(isPersistant = false)]
 		public bool isDeployable = true;
@@ -31,21 +31,23 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public float radiatorTemp;
 		[KSPField(isPersistant = false)]
-		public float radiatorArea;
-		[KSPField(isPersistant = false)]
 		public string originalName;
 		[KSPField(isPersistant = false)]
 		public float upgradeCost = 100;
 		[KSPField(isPersistant = false)]
 		public string upgradedName;
-		[KSPField(isPersistant = false)]
-		public float upgradedRadiatorTemp;
-		
+        [KSPField(isPersistant = false)]
+        public float upgradedRadiatorTemp;
+	
 
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
 		public string radiatorType;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
 		public string radiatorTempStr;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor= true, guiName = "Base Radiator Area")]
+        public float radiatorArea;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgraded Radiator Area")]
+        public float upgradedRadiatorArea = 0;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
@@ -53,7 +55,6 @@ namespace FNPlugin
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
 		public string upgradeCostStr;
 
-		//public static double stefan_const = 5.6704e-8;
         protected static float rad_const_h = 1000;
         protected static double alpha = 0.001998001998001998001998001998;
 
@@ -191,8 +192,14 @@ namespace FNPlugin
 			}
 		}
 
-		public override void OnStart(PartModule.StartState state) {
-			Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = String.Format("Deploy Radiator");
+        public float CurrentRadiatorArea  {  get { return isupgraded ? upgradedRadiatorArea : radiatorArea; } }
+
+		public override void OnStart(PartModule.StartState state) 
+        {
+            if (upgradedRadiatorArea == 0)
+                upgradedRadiatorArea = radiatorArea * 1.7f;
+
+    		Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = String.Format("Deploy Radiator");
 			Actions["RetractRadiatorAction"].guiName = Events["RetractRadiator"].guiName = String.Format("Retract Radiator");
 			Actions["ToggleRadiatorAction"].guiName = String.Format("Toggle Radiator");
 
@@ -253,15 +260,22 @@ namespace FNPlugin
             this.part.force_activate();
 		}
 
-		public override void OnUpdate() {
+		public override void OnUpdate() 
+        {
+
+
 			Events["DeployRadiator"].active = !radiatorIsEnabled && isDeployable;
 			Events["RetractRadiator"].active = radiatorIsEnabled && isDeployable;
-			if (ResearchAndDevelopment.Instance != null) {
+
+			if (ResearchAndDevelopment.Instance != null) 
 				Events ["RetrofitRadiator"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
-			} else {
+			else 
 				Events ["RetrofitRadiator"].active = false;
-			}
+
+            Fields["upgradeTechReq"].guiActive = !isupgraded;
 			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
+            Fields["radiatorArea"].guiActive = !isupgraded;
+            Fields["upgradedRadiatorArea"].guiActive = isupgraded;
 
 			if (ResearchAndDevelopment.Instance != null) {
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
@@ -292,7 +306,7 @@ namespace FNPlugin
 				float low_temp = FlightGlobals.getExternalTemperature (vessel.transform.position);
 
                 float delta_temp = Mathf.Max(0, (float)current_rad_temp - low_temp);
-				conv_power_dissip = pressure * delta_temp * radiatorArea * rad_const_h/1e6f * TimeWarp.fixedDeltaTime*convectiveBonus;
+                conv_power_dissip = pressure * delta_temp * CurrentRadiatorArea * rad_const_h / 1e6f * TimeWarp.fixedDeltaTime * convectiveBonus;
 				if (!radiatorIsEnabled) {
 					conv_power_dissip = conv_power_dissip / 2.0f;
 				}
@@ -321,9 +335,9 @@ namespace FNPlugin
                 double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
                 if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min(vessel.GetTemperatureofColdestThermalSource() / 1.01, radiator_temperature_temp_val);
 
-                double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
+                double thermal_power_dissip = (GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
-                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e6 / (GameConstants.stefan_const * radiatorArea), 0.25), radiatorTemp));
+                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e6 / (GameConstants.stefan_const * CurrentRadiatorArea), 0.25), radiatorTemp));
                 instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody) + 273.16, 2.7));
                 if (current_rad_temp <= 0) {
                     current_rad_temp = instantaneous_rad_temp;
@@ -361,9 +375,9 @@ namespace FNPlugin
                 double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
 				if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min (vessel.GetTemperatureofColdestThermalSource()/1.01, radiator_temperature_temp_val);
 
-                double thermal_power_dissip = (GameConstants.stefan_const * radiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
+                double thermal_power_dissip = (GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
 				radiatedThermalPower = consumeFNResource (thermal_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
-                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e7 / (GameConstants.stefan_const * radiatorArea), 0.25), radiatorTemp));
+                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e7 / (GameConstants.stefan_const * CurrentRadiatorArea), 0.25), radiatorTemp));
                 instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody) + 273.16, 2.7));
                 if (current_rad_temp <= 0) {
                     current_rad_temp = instantaneous_rad_temp;
@@ -399,13 +413,13 @@ namespace FNPlugin
 		}
 
 		public override string GetInfo() {
-            float thermal_power_dissip = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(radiatorTemp, 4) / 1e6);
-            float thermal_power_dissip2 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(upgradedRadiatorTemp, 4) / 1e6);
-            float thermal_power_dissip3 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(600, 4) / 1e6);
-            float thermal_power_dissip4 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(1200, 4) / 1e6);
-            float thermal_power_dissip5 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(1800, 4) / 1e6);
-            float thermal_power_dissip6 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(2400, 4) / 1e6);
-            float thermal_power_dissip7 = (float)(GameConstants.stefan_const * radiatorArea * Math.Pow(3000, 4) / 1e6);
+            float thermal_power_dissip = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(radiatorTemp, 4) / 1e6);
+            float thermal_power_dissip2 = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(upgradedRadiatorTemp, 4) / 1e6);
+            float thermal_power_dissip3 = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(600, 4) / 1e6);
+            float thermal_power_dissip4 = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(1200, 4) / 1e6);
+            float thermal_power_dissip5 = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(1800, 4) / 1e6);
+            float thermal_power_dissip6 = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(2400, 4) / 1e6);
+            float thermal_power_dissip7 = (float)(GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(3000, 4) / 1e6);
             return String.Format("Maximum Waste Heat Radiated\n Base: {0} MW\n Upgraded: {1} MW\n-----\nRadiator Performance at:\n600K: {2} MW\n1200K: {3} MW\n1800K: {4} MW\n2400K: {5} MW\n3000K: {6} MW\n", thermal_power_dissip, thermal_power_dissip2, thermal_power_dissip3, thermal_power_dissip4, thermal_power_dissip5, thermal_power_dissip6, thermal_power_dissip7);
 		}
 

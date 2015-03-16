@@ -7,7 +7,7 @@ namespace FNPlugin
 {
     public interface IChargedParticleSource : IThermalSource
     {
-        float MaximumChargedPower { get; }
+        float MaximumChargedPower { get; } 
 
         float ChargedParticleRatio { get; }
 
