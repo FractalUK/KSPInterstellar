@@ -55,8 +55,11 @@ namespace FNPlugin.Refinery
             var spare_capacity_nitrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Nitrogen);
             var spare_capacity_hydrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Hydrogen);
 
+            double max_nitrogen_mass_rate = (_current_mass_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass)) * TimeWarp.fixedDeltaTime / _nitrogen_density;
+            double max_hydrogen_mass_rate = (_current_mass_rate * GameConstants.ammoniaHydrogenFractionByMass) * TimeWarp.fixedDeltaTime / _hydrogen_density;
+
             // prevent overflow
-            if (spare_capacity_nitrogen <= 0 || spare_capacity_hydrogen <= 0)
+            if (spare_capacity_nitrogen <= max_nitrogen_mass_rate || spare_capacity_hydrogen <= max_hydrogen_mass_rate)
             {
                 _ammonia_consumption_mass_rate = 0;
                 _hydrogen_production_mass_rate = 0;
@@ -97,6 +100,13 @@ namespace FNPlugin.Refinery
             GUILayout.BeginHorizontal();
             GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(150));
             GUILayout.Label((_nitrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.EndHorizontal();
+
+            var spare_capacity_nitrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Nitrogen);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Spare Capacity Nitrogen", _bold_label, GUILayout.Width(150));
+            GUILayout.Label(spare_capacity_nitrogen.ToString("0.000"), GUILayout.Width(150));
             GUILayout.EndHorizontal();
         }
 
