@@ -150,6 +150,8 @@ namespace FNPlugin
 		public static double PechineyUgineKuhlmannEnergyPerTon { get { return PowerConsumptionMultiplier * _pechineyUgineKuhlmannEnergyPerTon; } }
 
 
+        private static double _powerConsumptionMultiplier = 1;
+        public static double PowerConsumptionMultiplier { get { return _powerConsumptionMultiplier; } }
         
         //----------------------------------------------------------------------------------------------
 		private static float _ispNtrPropellantModifierBase = 0;
@@ -161,8 +163,7 @@ namespace FNPlugin
 		private static float _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
         public static float MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
 
-		private static double _powerConsumptionMultiplier = 1;
-        public static double PowerConsumptionMultiplier { get { return _powerConsumptionMultiplier; } }
+
 
 		private static bool _isPanelHeatingClamped = false;
         public static bool IsSolarPanelHeatingClamped { get { return _isPanelHeatingClamped; }}
@@ -495,13 +496,13 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("PartTechUpgrades"))
                     {
                         PartTechUpgrades = new Dictionary<string, string>();
-                        
+
                         string rawstring = plugin_settings.GetValue("PartTechUpgrades");
                         string[] splitValues = rawstring.Split(',').Select(sValue => sValue.Trim()).ToArray();
 
                         int pairs = splitValues.Length / 2;
                         int totalValues = pairs * 2;
-                        for (int i = 0; i < totalValues; i+=2)
+                        for (int i = 0; i < totalValues; i += 2)
                             PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
 
                         Debug.Log("[KSP Interstellar] Part Tech Upgrades set to: " + rawstring);
@@ -558,7 +559,7 @@ namespace FNPlugin
                         PluginHelper._electricEngineIspMult = double.Parse(plugin_settings.GetValue("ElectricEngineIspMult"));
                         Debug.Log("[KSP Interstellar] Electric EngineIsp Multiplier set to: " + PluginHelper.ElectricEngineIspMult.ToString("0.000000"));
                     }
-                    
+
 
 
                     if (plugin_settings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
@@ -653,148 +654,124 @@ namespace FNPlugin
 
             }
 
+            if (plugin_init) return;
 
+            gdb = GameDatabase.Instance;
+            plugin_init = true;
 
-            if (!plugin_init)
+            AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
+            if (kerbalRadiationPart.partPrefab.Modules != null)
             {
-                gdb = GameDatabase.Instance;
-                plugin_init = true;
-
-                AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
-                if (kerbalRadiationPart.partPrefab.Modules != null)
-                {
-                    if (kerbalRadiationPart.partPrefab.FindModulesImplementing<FNModuleRadiation>().Count == 0)
-                    {
-                        kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
-                    }
-                }
-                else
-                {
+                if (kerbalRadiationPart.partPrefab.FindModulesImplementing<FNModuleRadiation>().Count == 0)
                     kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
-                }
+            }
+            else
+                kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
 
-                List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
-                foreach (AvailablePart available_part in available_parts)
+            List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
+            foreach (AvailablePart available_part in available_parts)
+            {
+                Part prefab_available_part = available_part.partPrefab;
+                try
                 {
-                    Part prefab_available_part = available_part.partPrefab;
-                    try
+                    if (prefab_available_part.Modules == null) continue;
+
+                    if (prefab_available_part.FindModulesImplementing<ModuleResourceIntake>().Count > 0)
                     {
-                        if (prefab_available_part.Modules != null)
+                        ModuleResourceIntake intake = prefab_available_part.Modules["ModuleResourceIntake"] as ModuleResourceIntake;
+                        if (intake.resourceName == "IntakeAir")
                         {
+                            var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
+                            prefab_available_part.Modules.Add(pm);
+                            pm.area = intake.area * intake.unitScalar * intake.maxIntakeSpeed / 20;
 
-                            if (prefab_available_part.FindModulesImplementing<ModuleResourceIntake>().Count > 0)
+                            PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
+
+                            if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
                             {
-                                ModuleResourceIntake intake = prefab_available_part.Modules["ModuleResourceIntake"] as ModuleResourceIntake;
-                                if (intake.resourceName == "IntakeAir")
-                                {
-                                    var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
-                                    prefab_available_part.Modules.Add(pm);
-                                    pm.area = intake.area * intake.unitScalar * intake.maxIntakeSpeed / 20;
-
-                                    PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
-
-                                    if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
-                                    {
-                                        ConfigNode node = new ConfigNode("RESOURCE");
-                                        node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
-                                        node.AddValue("maxAmount", intake_air_resource.maxAmount);
-                                        node.AddValue("amount", intake_air_resource.amount);
-                                        prefab_available_part.AddResource(node);
-                                    }
-                                }
-
+                                ConfigNode node = new ConfigNode("RESOURCE");
+                                node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+                                node.AddValue("maxAmount", intake_air_resource.maxAmount);
+                                node.AddValue("amount", intake_air_resource.amount);
+                                prefab_available_part.AddResource(node);
                             }
+                        }
 
-                            if (prefab_available_part.FindModulesImplementing<ModuleDeployableSolarPanel>().Count > 0)
+                    }
+
+                    if (prefab_available_part.FindModulesImplementing<ModuleDeployableSolarPanel>().Count > 0)
+                    {
+                        ModuleDeployableSolarPanel panel = prefab_available_part.Modules["ModuleDeployableSolarPanel"] as ModuleDeployableSolarPanel;
+                        if (panel.chargeRate > 0)
+                        {
+                            Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
+                            if (type != null)
                             {
-                                ModuleDeployableSolarPanel panel = prefab_available_part.Modules["ModuleDeployableSolarPanel"] as ModuleDeployableSolarPanel;
-                                if (panel.chargeRate > 0)
-                                {
-                                    Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
-                                    FNSolarPanelWasteHeatModule pm = null;
-                                    if (type != null)
-                                    {
-                                        pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
-                                        prefab_available_part.Modules.Add(pm);
-                                    }
-                                }
-
-
-                                if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
-                                {
-                                    ConfigNode node = new ConfigNode("RESOURCE");
-                                    node.AddValue("name", "WasteHeat");
-                                    node.AddValue("maxAmount", panel.chargeRate * 100);
-                                    node.AddValue("amount", 0);
-                                    PartResource pr = prefab_available_part.AddResource(node);
-
-                                    if (available_part.resourceInfo != null && pr != null)
-                                    {
-                                        if (available_part.resourceInfo.Length == 0)
-                                        {
-                                            available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                                        }
-                                        else
-                                        {
-                                            available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                                        }
-                                    }
-                                }
-
+                                FNSolarPanelWasteHeatModule pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
+                                prefab_available_part.Modules.Add(pm);
                             }
+                        }
 
-                            if (prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0)
-                            {
-                                available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();
-                                available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                                AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "Electric Engine Controller").First();
-                                mod_info.moduleName = "Electric Engine";
-                            }
 
-                            if (prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0)
-                            {
-                                available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
-                                available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                                AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "FNNozzle Controller").First();
-                                mod_info.moduleName = "Thermal Nozzle";
-                            }
+                        if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
+                        {
+                            ConfigNode node = new ConfigNode("RESOURCE");
+                            node.AddValue("name", "WasteHeat");
+                            node.AddValue("maxAmount", panel.chargeRate * 100);
+                            node.AddValue("amount", 0);
+                            PartResource pr = prefab_available_part.AddResource(node);
 
-                            if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)
+                            if (available_part.resourceInfo != null && pr != null)
                             {
-                                Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
-                                FNModuleRadiation pm = null;
-                                if (type != null)
-                                {
-                                    pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
-                                    prefab_available_part.Modules.Add(pm);
-                                    double rad_hardness = prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5;
-                                    pm.rad_hardness = rad_hardness;
-                                    AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
-                                    minfo.moduleName = "Radiation Status";
-                                    minfo.info = pm.GetInfo();
-                                    available_part.moduleInfos.Add(minfo);
-                                }
-                                print("Adding ModuleRadiation to " + prefab_available_part.name);
+                                if (available_part.resourceInfo.Length == 0)
+                                    available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                                else
+                                    available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
                             }
                         }
                     }
-                    catch (Exception ex)
+
+                    if (prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0)
                     {
-                        if (prefab_available_part != null)
-                        {
-                            print("[KSP Interstellar] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
-                        }
-                        else
-                        {
-                            print("[KSP Interstellar] Exception caught adding to unknown module");
-                        }
+                        available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();
+                        available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
+                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "Electric Engine Controller").First();
+                        mod_info.moduleName = "Electric Engine";
                     }
 
+                    if (prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0)
+                    {
+                        available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
+                        available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
+                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "FNNozzle Controller").First();
+                        mod_info.moduleName = "Thermal Nozzle";
+                    }
 
+                    if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)
+                    {
+                        Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
+                        if (type != null)
+                        {
+                            FNModuleRadiation pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
+                            prefab_available_part.Modules.Add(pm);
+                            double rad_hardness = prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5;
+                            pm.rad_hardness = rad_hardness;
+                            AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
+                            minfo.moduleName = "Radiation Status";
+                            minfo.info = pm.GetInfo();
+                            available_part.moduleInfos.Add(minfo);
+                        }
+                        print("Adding ModuleRadiation to " + prefab_available_part.name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (prefab_available_part != null)
+                        print("[KSP Interstellar] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
+                    else
+                        print("[KSP Interstellar] Exception caught adding to unknown module");
                 }
             }
-
-            //Destroy (this);
         }
 
         protected static bool warning_displayed = false;
@@ -807,9 +784,6 @@ namespace FNPlugin
                 warning_displayed = true;
             }
         }
-
-
-
 
     }
 }

@@ -164,28 +164,44 @@ namespace FNPlugin
             //}
             
             this.part.force_activate();
-            cryostat_resource = part.Resources[resourceName];
+            //cryostat_resource = part.Resources[resourceName];
         }
 
         public override void OnUpdate() 
         {
-            Events["Activate"].active = isDisabled;
-            Events["Deactivate"].active = !isDisabled;
+            if (part.Resources.Contains(resourceName))
+                cryostat_resource = part.Resources[resourceName];
+            else
+                cryostat_resource = null;
 
-            var resourceRatio = cryostat_resource.amount / cryostat_resource.maxAmount;
 
-            currentPowerReq = fullPowerReqKW > powerReqKW
-                ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
-                : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
+            if (cryostat_resource != null)
+            {
+                Events["Activate"].active = isDisabled;
+                Events["Deactivate"].active = !isDisabled;
+                Fields["powerStatusStr"].guiActive = true;
 
-            powerStatusStr = powerReqKW < 1.0e+3
-                ? recievedPowerKW.ToString("0.000") + " KW / " + currentPowerReq.ToString("0.000") + " KW"
-                : powerReqKW < 1.0e+6
-                    ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
-                    : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
+                var resourceRatio = cryostat_resource.amount / cryostat_resource.maxAmount;
 
-            if (_selectedResource != null)
-                resourceType = _selectedResource.resourceName;
+                currentPowerReq = fullPowerReqKW > powerReqKW
+                    ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
+                    : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
+
+                powerStatusStr = powerReqKW < 1.0e+3
+                    ? recievedPowerKW.ToString("0.000") + " KW / " + currentPowerReq.ToString("0.000") + " KW"
+                    : powerReqKW < 1.0e+6
+                        ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
+                        : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
+
+                if (_selectedResource != null)
+                    resourceType = _selectedResource.resourceName;
+            }
+            else
+            {
+                Events["Activate"].active = false;
+                Events["Deactivate"].active = false;
+                Fields["powerStatusStr"].guiActive = false;
+            }
         }
 
         public override void OnFixedUpdate() 

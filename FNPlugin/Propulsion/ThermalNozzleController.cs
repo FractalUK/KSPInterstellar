@@ -25,6 +25,9 @@ namespace FNPlugin
 		[KSPField(isPersistant = true)]
 		public int fuel_mode = 0;
 
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Soot Accumulation", guiUnits = " %")]
+        public float sootAccumulationPercentage;
+
 		//Persistent False
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
@@ -59,28 +62,36 @@ namespace FNPlugin
 		public string fuelmode;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Isp Multiplier")]
         public float ispPropellantMultiplier = 1;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Soot Factor")]
+        public float propellantSootFactor = 1;
+
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
         public float thrustPropellantMultiplier = 1;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Base Heat Production")]
+        public float heatProductionBase;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Extra Heat Production ")]
+        public float heatProductionExtra;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
         public float fuelFlowCooling;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Static Presure")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
         public string staticPresure;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
         public float pressureTreshold;
-        
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Atmospheric Limit")]
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmospheric Limit")]
         public float atmospheric_limit;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Requested")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested")]
         public string requestedReactorPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Vacuum")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Vacuum")]
         public string vacuumPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Sea")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Sea")]
         public string surfacePerformance;
 
 
@@ -236,6 +247,9 @@ namespace FNPlugin
             // if engine isn't already initialised, initialise it
 			if (engineInit == false) 
 				engineInit = true;
+
+            if (myAttachedEngine != null)
+                heatProductionBase = myAttachedEngine.heatProduction;
 			
 			// if we can upgrade, let's do so
 			if (isupgraded && isJet) 
@@ -369,6 +383,11 @@ namespace FNPlugin
                     thrustPropellantMultiplier = float.Parse(chosenpropellant.GetValue("thrustMultiplier"));
                 else
                     thrustPropellantMultiplier = 1;
+
+                if (chosenpropellant.HasValue("sootFactor"))
+                    propellantSootFactor = float.Parse(chosenpropellant.GetValue("sootFactor"));
+                else
+                    propellantSootFactor = 0;
 
 				isLFO = bool.Parse(chosenpropellant.GetValue("isLFO"));
                 currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
@@ -556,7 +575,8 @@ namespace FNPlugin
 
         private double GetIspPropellantModifier()
         {
-            double ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0 ? ispPropellantMultiplier
+            double ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0 
+                ? ispPropellantMultiplier
                 : (PluginHelper.IspNtrPropellantModifierBase + ispPropellantMultiplier) / (1.0f + PluginHelper.IspNtrPropellantModifierBase));
             return ispModifier;
         }
@@ -647,10 +667,19 @@ namespace FNPlugin
             if (thermal_power_received * TimeWarp.fixedDeltaTime < thermal_consume_total)
                 thermal_power_received += consumeFNResource(thermal_consume_total - thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
 
-            consumeFNResource(thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-            var heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
+            // modify sootAccumulation
+            if (myAttachedEngine.currentThrottle > 0 && propellantSootFactor != 0)
+            {
+                sootAccumulationPercentage = Math.Min(100, Math.Max(0, sootAccumulationPercentage + (TimeWarp.fixedDeltaTime * propellantSootFactor)));
+                heatProductionExtra = (sootAccumulationPercentage / 50f) * heatProductionBase;
+                myAttachedEngine.heatProduction = heatProductionBase + heatProductionExtra;
+            }
+
+            // consume wasteheat
+            consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             
             // calculate max thrust
+            var heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
             double engineMaxThrust = 0.01;
             if (assThermalPower > 0)
             {
@@ -674,7 +703,7 @@ namespace FNPlugin
             }
 
             if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust))
-                myAttachedEngine.maxThrust = thrustPropellantMultiplier == 1f ? (float)engine_thrust : (float)(engine_thrust * thrustPropellantMultiplier);
+                myAttachedEngine.maxThrust = (float)engine_thrust * thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f);
             else
                 myAttachedEngine.maxThrust = 0.000001f;
 
