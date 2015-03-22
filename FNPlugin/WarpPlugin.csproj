@@ -169,8 +169,8 @@
     <Compile Include="Microwave\VesselMicrowavePersistence.cs" />
     <Compile Include="Microwave\VesselRelayPersistence.cs" />
     <Compile Include="Propulsion\VistaEngineController.cs" />
-    <Compile Include="FNRadiator.cs" />
-    <Compile Include="FNSolarPanelWasteHeatModule.cs" />
+    <Compile Include="Wasteheat\FNRadiator.cs" />
+    <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
     <Compile Include="Reactors\Interfaces\IThermalSource.cs" />

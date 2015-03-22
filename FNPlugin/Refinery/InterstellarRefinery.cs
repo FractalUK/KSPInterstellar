@@ -16,6 +16,9 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string status_str = "";
 
+        [KSPField(isPersistant = false)]
+        public float powerReqMult = 1f;
+
         private List<IRefineryActivity> _refinery_activities;
         private IRefineryActivity _current_activity = null;
         private Rect _window_position = new Rect(20, 20, 300, 100);
@@ -62,7 +65,8 @@ namespace FNPlugin.Refinery
         {
             if (HighLogic.LoadedSceneIsFlight && refinery_is_enabled && _current_activity != null)
             {
-                double power_ratio = consumeFNResource(_current_activity.PowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES)/TimeWarp.fixedDeltaTime/_current_activity.PowerRequirements;
+                var fixedConsumedPower = consumeFNResource(powerReqMult * _current_activity.PowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var power_ratio = fixedConsumedPower / TimeWarp.fixedDeltaTime / _current_activity.PowerRequirements / powerReqMult;
                 _current_activity.UpdateFrame(power_ratio);
             }
         }
