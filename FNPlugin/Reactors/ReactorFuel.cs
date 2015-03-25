@@ -30,8 +30,9 @@ namespace FNPlugin {
 
         public string Unit { get { return _unit; } }
 
-        public double GetFuelUseForPower(double efficiency, double megajoules) {
-            return FuelUsePerMJ * megajoules / efficiency;
+        public double GetFuelUseForPower(double efficiency, double megajoules, double fuelUsePerMJMult)
+        {
+            return FuelUsePerMJ * fuelUsePerMJMult * megajoules / efficiency;
         }
 
     }

@@ -11,6 +11,23 @@ using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
+    public class ThermalSourceSearchResult
+    {
+        public ThermalSourceSearchResult(IThermalSource source, float cost)
+        {
+            Cost = cost;
+            Source = source;
+        }
+
+        public float Cost { get; private set; }
+        public IThermalSource Source { get; private set; }
+
+        public void IncreaseCost( float cost)
+        {
+            Cost += cost;
+        }
+    }
+
     class ThermalNozzleController : FNResourceSuppliableModule, INoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
 		// Persistent True
@@ -69,9 +86,9 @@ namespace FNPlugin
         public float thrustPropellantMultiplier = 1;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Base Heat Production")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Base Heat Production")]
         public float heatProductionBase;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Extra Heat Production ")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Extra Heat Production ")]
         public float heatProductionExtra;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
@@ -271,40 +288,64 @@ namespace FNPlugin
 
         private void FindAttachedThermalSource()
         {
-            // first look for any directly connected thermal source in attached part
-            foreach (AttachNode attach_node in part.attachNodes.Where(n => n.attachedPart != null))
-            {
-                List<IThermalSource> thermalSources = attach_node.attachedPart.FindModulesImplementing<IThermalSource>();
+            MyAttachedReactor = BreathFirstSearchForThermalSource(10, 1);
+        }
 
-                MyAttachedReactor = thermalSources.FirstOrDefault();
-                if (MyAttachedReactor != null)
+        private IThermalSource BreathFirstSearchForThermalSource(int stackdepth, int parentdepth)
+        {
+            for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
+            {
+                var source = FindThermalSource(part, currentDepth, parentdepth);
+
+                if (source != null)
                 {
-                    partDistance = 0;
-                    return;
+                    partDistance =  (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+                    UnityEngine.Debug.Log("[KSPI] - BreathFirstSearchForThermalSource- Found thermal source with distance " + partDistance);
+                    return source.Source;
+                }
+            }
+            return null;
+        }
+
+        private ThermalSourceSearchResult FindThermalSource(Part currentpart, int stackdepth, int parentdepth)
+        {
+            if (stackdepth == 0)
+            {
+                var source = currentpart.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+                if (source != null)
+                    return new ThermalSourceSearchResult(source, 0);
+                else
+                    return null;
+            }
+
+            bool containsNonAndrogynous = currentpart.partInfo.title.Contains("Non-androgynous");
+            var containtDockingNode = currentpart.Modules.Contains("ModuleAdaptiveDockingNode");
+
+            int stackDepthCost = containsNonAndrogynous && containtDockingNode ? 0 : 1;
+
+            foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
+            {
+                var source = FindThermalSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth);
+
+                if (source != null)
+                {
+                    source.IncreaseCost(stackDepthCost);
+                    return source;
                 }
             }
 
-            // if nothing found, find molten salt reactor in sub attached parts
-            foreach (AttachNode attach_node in part.attachNodes.Where(n => n.attachedPart != null))
+            if (parentdepth > 0)
             {
-                var count = attach_node.attachedPart.attachNodes.Where(n => n.attachedPart != null).Count();
+                var source = FindThermalSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1));
 
-                var Apart = attach_node.attachedPart;
-
-                foreach (AttachNode subAttach_node in attach_node.attachedPart.attachNodes.Where(n => n.attachedPart != null))
+                if (source != null)
                 {
-                    var subAttachPart = subAttach_node.attachedPart;
-
-                    List<IThermalSource> SubThermalSources = subAttachPart.FindModulesImplementing<IThermalSource>();
-
-                    MyAttachedReactor = SubThermalSources.FirstOrDefault();
-                    if (MyAttachedReactor != null)
-                    {
-                        partDistance = 1;
-                        return;
-                    }
+                    source.IncreaseCost(2f);
+                    return source;
                 }
             }
+
+            return null;
         }
 
 		public override void OnUpdate() 

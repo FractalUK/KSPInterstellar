@@ -78,6 +78,8 @@ namespace FNPlugin {
         public float upgradedFuelEfficiency;
         [KSPField(isPersistant = false)]
         public bool containsPowerGenerator = false;
+        [KSPField(isPersistant = false)]
+        public float fuelUsePerMJMult = 1f;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
@@ -456,7 +458,7 @@ namespace FNPlugin {
 
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
-                double fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => getFuelAvailability(fuel) / fuel.GetFuelUseForPower(FuelEfficiency,max_power_to_supply)), 1.0);
+                double fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => getFuelAvailability(fuel) / fuel.GetFuelUseForPower(FuelEfficiency, max_power_to_supply, fuelUsePerMJMult)), 1.0);
                 double min_throttle = fuel_ratio > 0 ? minimumThrottle / fuel_ratio : 1;
                 max_power_to_supply = max_power_to_supply * fuel_ratio;
                 // Charged Power
@@ -477,7 +479,10 @@ namespace FNPlugin {
                 double total_power_ratio = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
                 ongoing_consumption_rate = (float)total_power_ratio;
 
-                foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) consumeReactorFuel(fuel, total_power_received * fuel.FuelUsePerMJ); // consume fuel
+                foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+                {
+                    consumeReactorFuel(fuel, total_power_received * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
+                }
                  
                 ongoing_total_power_f = ongoing_charged_power_f + ongoing_thermal_power_f;
                 // Waste Heat
@@ -579,7 +584,7 @@ namespace FNPlugin {
                 sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                 foreach (ReactorFuel fuel in fm.ReactorFuels)
                 {
-                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * PowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / fuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / fuelEfficiency + fuel.Unit + "/day");
                 }
                 sb.AppendLine("---");
             });
@@ -598,7 +603,7 @@ namespace FNPlugin {
                     sb.AppendLine("Charged Particle Ratio: " + fm.ChargedPowerRatio.ToString("0.00"));
                     sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                     foreach (ReactorFuel fuel in fm.ReactorFuels) {
-                        sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * upgradedPowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / upgradedFuelEfficiency + fuel.Unit + "/day");
+                        sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * upgradedPowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / upgradedFuelEfficiency + fuel.Unit + "/day");
                     }
                     sb.AppendLine("---");
                 });
@@ -610,7 +615,10 @@ namespace FNPlugin {
         {
             double now = Planetarium.GetUniversalTime();
             double time_diff = now - last_active_time;
-            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ); // consume fuel
+            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+            {
+                consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
+            }
             if (breedtritium) 
             {
                 tritium_rate = MaximumPower / 1000.0 / GameConstants.tritiumBreedRate;
@@ -734,7 +742,7 @@ namespace FNPlugin {
                 foreach(ReactorFuel fuel in current_fuel_mode.ReactorFuels) 
                 {
                     double availability = getFuelAvailability(fuel);
-                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
+                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
                     fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
