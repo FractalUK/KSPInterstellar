@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin {
     [KSPModule("Electrical Generator")]
@@ -68,6 +69,7 @@ namespace FNPlugin {
 		protected Animation anim;
 		protected bool hasstarted = false;
         protected long update_count = 0;
+        protected int partDistance;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -90,11 +92,15 @@ namespace FNPlugin {
 		}
 
         [KSPEvent(guiName = "Swap Type", guiActiveEditor = false, guiActiveUnfocused = false, guiActive = false)]
-        public void EditorSwapType() {
-            if (!chargedParticleMode) {
+        public void EditorSwapType() 
+        {
+            if (!chargedParticleMode) 
+            {
                 generatorType = altUpgradedName;
                 chargedParticleMode = true;
-            } else {
+            } 
+            else 
+            {
                 generatorType = upgradedName;
                 chargedParticleMode = false;
             }
@@ -115,42 +121,41 @@ namespace FNPlugin {
 			IsEnabled = !IsEnabled;
 		}
 
-		public void upgradePartModule () {
+		public void upgradePartModule () 
+        {
 			isupgraded = true;
 			pCarnotEff = upgradedpCarnotEff;
-            if (chargedParticleMode) {
-                generatorType = altUpgradedName;
-            } else {
-                generatorType = upgradedName;
-            }
+            generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
             Events["EditorSwapType"].guiActiveEditor = true;
 		}
 
         public void OnEditorAttach() 
         {
-            // first look if part itself contains an energysource
-            foreach (var module in part.Modules)
-            {
-                var thermalsource = module as IThermalSource;
+            FindAttachedThermalSource();
 
-                if (thermalsource != null)
-                {
-                    myAttachedReactor = thermalsource;
-                    break;
-                }
-            }
+            //// first look if part itself contains an energysource
+            //foreach (var module in part.Modules)
+            //{
+            //    var thermalsource = module as IThermalSource;
 
-            if (myAttachedReactor == null)
-            {
-                List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
-                myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); //  prevent connecting to self contained sources
-            }
+            //    if (thermalsource != null)
+            //    {
+            //        myAttachedReactor = thermalsource;
+            //        break;
+            //    }
+            //}
 
-            if (myAttachedReactor != null && myAttachedReactor is IChargedParticleSource && (myAttachedReactor as IChargedParticleSource).ChargedParticleRatio > 0)
-            {
-                generatorType = altUpgradedName;
-                chargedParticleMode = true;
-            }
+            //if (myAttachedReactor == null)
+            //{
+            //    List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
+            //    myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); //  prevent connecting to self contained sources
+            //}
+
+            //if (myAttachedReactor != null && myAttachedReactor is IChargedParticleSource && (myAttachedReactor as IChargedParticleSource).ChargedParticleRatio > 0)
+            //{
+            //    generatorType = altUpgradedName;
+            //    chargedParticleMode = true;
+            //}
         }
 
 		public override void OnStart(PartModule.StartState state) 
@@ -159,7 +164,9 @@ namespace FNPlugin {
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
             generatorType = originalName;
-            if (state == StartState.Editor) {
+
+            if (state == StartState.Editor) 
+            {
                 if (this.HasTechsRequiredToUpgrade())
                 {
                     isupgraded = true;
@@ -171,81 +178,92 @@ namespace FNPlugin {
             }
 
             if (this.HasTechsRequiredToUpgrade())
-            {
                 hasrequiredupgrade = true;
-            }
 
 			this.part.force_activate();
 			
-
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
-			if (anim != null) {
+			if (anim != null) 
+            {
 				anim [animName].layer = 1;
-				if (!IsEnabled) {
+				if (!IsEnabled) 
+                {
 					anim [animName].normalizedTime = 1f;
 					anim [animName].speed = -1f;
-
-				} else {
+				} 
+                else 
+                {
 					anim [animName].normalizedTime = 0f;
 					anim [animName].speed = 1f;
-
 				}
 				anim.Play ();
 			}
 
-			if (generatorInit == false) {
+			if (generatorInit == false) 
+            {
 				generatorInit = true;
 				IsEnabled = true;
 			}
 
-			if (isupgraded) {
+			if (isupgraded) 
 				upgradePartModule ();
-			}
 
-            // first look if part contains an thermal source
-            foreach (var module in part.Modules)
-            {
-                var thermalsource = module as IThermalSource;
-
-                if (thermalsource != null)
-                {
-                    myAttachedReactor = thermalsource;
-                    break;
-                }
-            }
-            // if not a self contained energy source, look for attached parts
-            if (myAttachedReactor == null)
-            {
-                List<IThermalSource> source_list = part.attachNodes.Where(atn => atn.attachedPart != null).SelectMany(atn => atn.attachedPart.FindModulesImplementing<IThermalSource>()).ToList();
-                myAttachedReactor = source_list.FirstOrDefault(s => !s.IsSelfContained); // prevent connecting to self contained energy sources
-            }
+            FindAttachedThermalSource();
 
 			print("[KSP Interstellar] Configuring Generator");
 		}
 
-		public override void OnUpdate() {
+        private void FindAttachedThermalSource()
+        {
+            partDistance = 0;
+
+            // first look if part contains an thermal source
+            myAttachedReactor = part.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+            if (myAttachedReactor != null) return;
+
+            // otherwise look for other non selfcontained thermal sources
+            var source = ThermalSourceSearchResult.BreathFirstSearchForThermalSource(part, 3, 0, true);
+            if (source == null) return;
+            
+            // verify cost is not higher than 1
+            partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+            if (partDistance > 0) return;
+
+            myAttachedReactor = source.Source;
+        }
+
+		public override void OnUpdate() 
+        {
 			Events["ActivateGenerator"].active = !IsEnabled;
 			Events["DeactivateGenerator"].active = IsEnabled;
 			Fields["OverallEfficiency"].guiActive = IsEnabled;
 			Fields["MaxPowerStr"].guiActive = IsEnabled;
-			if (ResearchAndDevelopment.Instance != null) {
+
+			if (ResearchAndDevelopment.Instance != null) 
+            {
 				Events ["RetrofitGenerator"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science.ToString("0") + " / " + upgradeCost;
-			} else {
+			} 
+            else 
 				Events ["RetrofitGenerator"].active = false;
-			}
+			
 			Fields["upgradeCostStr"].guiActive = !isupgraded  && hasrequiredupgrade;
 
-			if (IsEnabled) {
-				if (play_up && anim != null) {
+			if (IsEnabled) 
+            {
+				if (play_up && anim != null) 
+                {
 					play_down = true;
 					play_up = false;
 					anim [animName].speed = 1f;
 					anim [animName].normalizedTime = 0f;
 					anim.Blend (animName, 2f);
 				}
-			} else {
-				if (play_down && anim != null) {
+			} 
+            else 
+            {
+				if (play_down && anim != null) 
+                {
 					play_down = false;
 					play_up = true;
 					anim [animName].speed = -1f;
@@ -254,72 +272,68 @@ namespace FNPlugin {
 				}
 			}
             
-			if (IsEnabled) {
+			if (IsEnabled) 
+            {
 				float percentOutputPower = (float) (totalEff * 100.0);
 				float outputPowerReport = -outputPower;
-				if (update_count - last_draw_update > 10) {
+				if (update_count - last_draw_update > 10) 
+                {
                     OutputPower = getPowerFormatString(outputPowerReport) + "_e";
 					OverallEfficiency = percentOutputPower.ToString ("0.0") + "%";
-					if (totalEff >= 0) {
-                        if (!chargedParticleMode) {
-                            MaxPowerStr = getPowerFormatString(maxThermalPower * totalEff) + "_e";
-                        } else {
-                            MaxPowerStr = getPowerFormatString(maxChargedPower * totalEff) + "_e";
-                        }
-					} else {
-						MaxPowerStr = (0).ToString() + "MW";
-					}
+
+                    MaxPowerStr = (totalEff >= 0) 
+                        ? !chargedParticleMode
+                            ? getPowerFormatString(maxThermalPower * totalEff) + "_e"
+                            : getPowerFormatString(maxChargedPower * totalEff) + "_e"
+                        : (0).ToString() + "MW";
+
                     last_draw_update = update_count;
 				}
-			} else {
+			} 
+            else 
 				OutputPower = "Generator Offline";
-			}
 
             update_count++;
 		}
 
-		public float getMaxPowerOutput() {
+		public float getMaxPowerOutput() 
+        {
             float maxTotalEff = 0;
-            if (!chargedParticleMode) {
+            if (!chargedParticleMode) 
+            {
                 double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
                 maxTotalEff = (float)carnotEff * pCarnotEff;
                 return maxThermalPower * maxTotalEff;
-            } else {
+            } 
+            else 
+            {
                 maxTotalEff = 0.85f;
                 return maxChargedPower * maxTotalEff;
             }
 		}
 
-        public float getCurrentPower() {
-            return outputPower;
-        }
 
-        public bool isActive() {
-            return IsEnabled;
-        }
+        public bool isActive() { return IsEnabled; }
 
-        public IThermalSource getThermalSource() {
-            return myAttachedReactor;
-        }
-               
+        public IThermalSource getThermalSource() {  return myAttachedReactor;  }
 
-		public void updateGeneratorPower() {
+		public void updateGeneratorPower() 
+        {
 			hotBathTemp = myAttachedReactor.CoreTemperature;
             float heat_exchanger_thrust_divisor = 1;
-            if (radius > myAttachedReactor.getRadius()) {
+
+            if (radius > myAttachedReactor.getRadius()) 
                 heat_exchanger_thrust_divisor = myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius;
-            } else {
+            else 
                 heat_exchanger_thrust_divisor = radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
-            }
-            if (myAttachedReactor.getRadius() <= 0 || radius <= 0) {
+            
+            if (myAttachedReactor.getRadius() <= 0 || radius <= 0) 
                 heat_exchanger_thrust_divisor = 1;
-            }
+            
 			maxThermalPower = myAttachedReactor.MaximumPower*heat_exchanger_thrust_divisor;
 
-            if (myAttachedReactor is IChargedParticleSource) 
-                maxChargedPower = (myAttachedReactor as IChargedParticleSource).MaximumChargedPower * heat_exchanger_thrust_divisor;
-            else 
-                maxChargedPower = 0;
+            maxChargedPower = (myAttachedReactor is IChargedParticleSource)
+                ? (myAttachedReactor as IChargedParticleSource).MaximumChargedPower * heat_exchanger_thrust_divisor : 0;
             
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
@@ -368,20 +382,22 @@ namespace FNPlugin {
                     double wastedt = input_power * totalEff;
                     max_electricdtps = maxChargedPower * totalEff;
                     consumeFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                    //supplyFNResource(wastedt, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 				outputPower = -(float)supplyFNResourceFixedMax (electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 			} 
             else 
             {
-				if (IsEnabled && !vessel.packed) {
-					if (!FNRadiator.hasRadiatorsForVessel (vessel)) {
+				if (IsEnabled && !vessel.packed) 
+                {
+					if (!FNRadiator.hasRadiatorsForVessel (vessel)) 
+                    {
 						IsEnabled = false;
 						Debug.Log ("[WarpPlugin] Generator Shutdown: No radiators available!");
 						ScreenMessages.PostScreenMessage ("Generator Shutdown: No radiators available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
 					}
 
-					if (myAttachedReactor == null) {
+					if (myAttachedReactor == null) 
+                    {
 						IsEnabled = false;
 						Debug.Log ("[WarpPlugin] Generator Shutdown: No reactor available!");
 						ScreenMessages.PostScreenMessage ("Generator Shutdown: No reactor available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);

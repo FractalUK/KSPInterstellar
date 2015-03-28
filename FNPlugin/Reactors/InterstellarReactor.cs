@@ -393,9 +393,8 @@ namespace FNPlugin {
                 reactorInit = true;
             }
             print("[KSP Interstellar] Reactor Persistent Resource Update");
-            if (IsEnabled && last_active_time > 0) {
+            if (IsEnabled && last_active_time > 0) 
                 doPersistentResourceUpdate();
-            }
 
             this.part.force_activate();
             //RenderingManager.AddToPostDrawQueue(0, OnGUI);

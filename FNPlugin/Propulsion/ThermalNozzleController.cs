@@ -8,26 +8,10 @@ using System.Text;
 using UnityEngine;
 using TweakScale;
 using FNPlugin.Propulsion;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-    public class ThermalSourceSearchResult
-    {
-        public ThermalSourceSearchResult(IThermalSource source, float cost)
-        {
-            Cost = cost;
-            Source = source;
-        }
-
-        public float Cost { get; private set; }
-        public IThermalSource Source { get; private set; }
-
-        public void IncreaseCost( float cost)
-        {
-            Cost += cost;
-        }
-    }
-
     class ThermalNozzleController : FNResourceSuppliableModule, INoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
 		// Persistent True
@@ -130,15 +114,11 @@ namespace FNPlugin
 		protected bool currentpropellant_is_jet = false;
 		protected double fuel_flow_rate = 0;
 		protected int thrustLimitRatio = 0;
-		//protected double old_thermal_power = 0;
-		//protected double old_isp = 0;
 		protected double current_isp = 0;
 		protected double old_intake = 0;
         protected int partDistance = 0;
-        //protected bool flameFxOn = true;
         
         protected float old_atmospheric_limit;
-        //protected float heatExchangerThrustDivisor;
         protected float maxPressureTresholdAtKerbinSurface;
         protected double currentintakeatm;
 
@@ -288,67 +268,15 @@ namespace FNPlugin
 
         private void FindAttachedThermalSource()
         {
-            MyAttachedReactor = BreathFirstSearchForThermalSource(10, 1);
+            var source = ThermalSourceSearchResult.BreathFirstSearchForThermalSource(part, 10, 1);
+            if (source == null) return;
+
+            MyAttachedReactor = source.Source;
+            partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+            UnityEngine.Debug.Log("[KSPI] - BreathFirstSearchForThermalSource- Found thermal source with distance " + partDistance);
         }
 
-        private IThermalSource BreathFirstSearchForThermalSource(int stackdepth, int parentdepth)
-        {
-            for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
-            {
-                var source = FindThermalSource(part, currentDepth, parentdepth);
-
-                if (source != null)
-                {
-                    partDistance =  (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
-                    UnityEngine.Debug.Log("[KSPI] - BreathFirstSearchForThermalSource- Found thermal source with distance " + partDistance);
-                    return source.Source;
-                }
-            }
-            return null;
-        }
-
-        private ThermalSourceSearchResult FindThermalSource(Part currentpart, int stackdepth, int parentdepth)
-        {
-            if (stackdepth == 0)
-            {
-                var source = currentpart.FindModulesImplementing<IThermalSource>().FirstOrDefault();
-                if (source != null)
-                    return new ThermalSourceSearchResult(source, 0);
-                else
-                    return null;
-            }
-
-            bool containsNonAndrogynous = currentpart.partInfo.title.Contains("Non-androgynous");
-            var containtDockingNode = currentpart.Modules.Contains("ModuleAdaptiveDockingNode");
-
-            int stackDepthCost = containsNonAndrogynous && containtDockingNode ? 0 : 1;
-
-            foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
-            {
-                var source = FindThermalSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth);
-
-                if (source != null)
-                {
-                    source.IncreaseCost(stackDepthCost);
-                    return source;
-                }
-            }
-
-            if (parentdepth > 0)
-            {
-                var source = FindThermalSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1));
-
-                if (source != null)
-                {
-                    source.IncreaseCost(2f);
-                    return source;
-                }
-            }
-
-            return null;
-        }
-
-		public override void OnUpdate() 
+        public override void OnUpdate() 
         {
             // Note: does not seem to be called while in edit mode
             staticPresure = (GameConstants.EarthAthmospherePresureAtSeaLevel * FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";

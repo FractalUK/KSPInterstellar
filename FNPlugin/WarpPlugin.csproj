@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\PartExtensions.cs" />
+    <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\INoozle.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
