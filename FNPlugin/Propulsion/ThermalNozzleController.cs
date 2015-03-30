@@ -212,7 +212,7 @@ namespace FNPlugin
             myAttachedReactor.DetachThermalReciever(id);
         }
 
-		public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             engineType = originalName;
             myAttachedEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
@@ -220,7 +220,7 @@ namespace FNPlugin
             // find attached thermal source
             FindAttachedThermalSource();
 
-            if (state == StartState.Editor) 
+            if (state == StartState.Editor)
             {
                 part.OnEditorAttach += OnEditorAttach;
                 part.OnEditorDetach += OnEditorDetach;
@@ -239,32 +239,32 @@ namespace FNPlugin
             else
                 UpdateRadiusModifier();
 
-			fuel_gauge = part.stackIcon.DisplayInfo();
-			
+            fuel_gauge = part.stackIcon.DisplayInfo();
+
             // if engine isn't already initialised, initialise it
-			if (engineInit == false) 
-				engineInit = true;
+            if (engineInit == false)
+                engineInit = true;
 
             if (myAttachedEngine != null)
                 heatProductionBase = myAttachedEngine.heatProduction;
-			
-			// if we can upgrade, let's do so
-			if (isupgraded && isJet) 
-				upgradePartModule ();
-            else 
+
+            // if we can upgrade, let's do so
+            if (isupgraded && isJet)
+                upgradePartModule();
+            else
             {
                 if (this.HasTechsRequiredToUpgrade() && isJet)
                     hasrequiredupgrade = true;
 
-				// if not, use basic propellants
-				propellants = getPropellants (isJet);
-			}
+                // if not, use basic propellants
+                propellants = getPropellants(isJet);
+            }
 
-			setupPropellants();
+            setupPropellants();
             maxPressureTresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAthmospherePresureAtSeaLevel;
             //heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
-			hasstarted = true;
-		}
+            hasstarted = true;
+        }
 
         private void FindAttachedThermalSource()
         {

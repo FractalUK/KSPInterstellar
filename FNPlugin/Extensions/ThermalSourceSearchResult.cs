@@ -25,11 +25,12 @@ namespace FNPlugin.Extensions
         {
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {
-                var source = ThermalSourceSearchResult.FindThermalSource(currentpart, currentDepth, parentdepth, skipSelfContained);
+                var source = FindThermalSource(currentpart, currentDepth, parentdepth, skipSelfContained);
 
                 if (source != null)
                     return source;
             }
+
             return null;
         }
 
@@ -61,7 +62,7 @@ namespace FNPlugin.Extensions
                 }
             }
 
-            if (parentdepth > 0)
+            if (parentdepth > 0 && currentpart.parent != null)
             {
                 var source = FindThermalSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1), skipSelfContained);
 
