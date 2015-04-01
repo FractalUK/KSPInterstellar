@@ -65,7 +65,6 @@ namespace FNPlugin
         public float ispPropellantMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Soot Factor")]
         public float propellantSootFactor = 1;
-
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
         public float thrustPropellantMultiplier = 1;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
@@ -74,18 +73,14 @@ namespace FNPlugin
         public float heatProductionBase;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Extra Heat Production ")]
         public float heatProductionExtra;
-
         [KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
         public float fuelFlowCooling;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
         public string staticPresure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
         public float pressureTreshold;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmospheric Limit")]
         public float atmospheric_limit;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested")]
         public string requestedReactorPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
@@ -95,14 +90,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Sea")]
         public string surfacePerformance;
 
-
 		//Internal
 		protected float maxISP;
 		protected float minISP;
 		protected float assThermalPower;
 		protected float powerRatio = 0.358f;
-		protected float engineMaxThrust;
-		protected bool isLFO = false;
 
         protected Guid id = Guid.NewGuid();
 		protected ConfigNode[] propellants;
@@ -146,14 +138,13 @@ namespace FNPlugin
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
 		[KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Toggle Propellant", active = true)]
-		public void TogglePropellant() 
+		public void TogglePropellant(int switches = 0) 
         {
 			fuel_mode++;
 			if (fuel_mode >= propellants.Length) 
 				fuel_mode = 0;
-			
-			setupPropellants();
-            //heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
+
+            setupPropellants(switches);
 		}
 
         public void OnRescale(TweakScale.ScalingFactor factor)
@@ -232,7 +223,6 @@ namespace FNPlugin
                     upgradePartModule();
                 }
                 setupPropellants();
-                //heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
                 estimateEditorPerformance();
                 return;
             }
@@ -262,7 +252,6 @@ namespace FNPlugin
 
             setupPropellants();
             maxPressureTresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAthmospherePresureAtSeaLevel;
-            //heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
             hasstarted = true;
         }
 
@@ -336,7 +325,7 @@ namespace FNPlugin
 			}
 		}
 
-		public void setupPropellants() 
+		public void setupPropellants(int switches = 0) 
         {
             ConfigNode chosenpropellant = propellants[fuel_mode];
 			ConfigNode[] assprops = chosenpropellant.GetNodes("PROPELLANT");
@@ -358,7 +347,6 @@ namespace FNPlugin
                 else
                     propellantSootFactor = 0;
 
-				isLFO = bool.Parse(chosenpropellant.GetValue("isLFO"));
                 currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
 
 				Propellant curprop = new Propellant();
@@ -406,17 +394,16 @@ namespace FNPlugin
                 }
 
                 // do the switch if needed
-                if (next_propellant && fuel_mode != 1) // always shows the prefered default fuel
-                    TogglePropellant();
+                if (next_propellant && (switches <= propellants.Length || fuel_mode != 0)) // always shows the first fuel mode when all fuel mods are tested at least once
+                    TogglePropellant(++switches);
             } 
             else 
             {
-                if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && fuel_mode != 1) // Still ignore propellants that don't exist
-                    TogglePropellant();
+                if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && (switches <= propellants.Length || fuel_mode != 0)) // Still ignore propellants that don't exist
+                    TogglePropellant(++switches);
                 
                 estimateEditorPerformance(); // update editor estimates
             }
-
 		}
 
         public void updateIspEngineParams(double athmosphere_isp_efficiency = 1, double max_thrust_in_space = 0) 
@@ -601,10 +588,7 @@ namespace FNPlugin
             {
                 updateIspEngineParams();
                 this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
-
-                //int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Where(prc => prc.isFunctional()).Count();
                 int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Sum(prc => prc.ValidAttachedIntakes);
-                
                 int intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
 
                 double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
