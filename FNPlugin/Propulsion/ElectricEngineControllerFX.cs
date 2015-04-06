@@ -234,6 +234,8 @@ namespace FNPlugin
             updatePropellantBar();
         }
 
+        private float _avrageragedLastActualMaxThrustWithTrottle;
+
         public void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
@@ -259,10 +261,8 @@ namespace FNPlugin
             {
                 int engine_count = Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Count(ee => ee.IsOperational), 1); // max of operational electric engines and 1
                 _electrical_share_f = 1.0f / engine_count;
-                double powerTrustModifier = GetPowerTrustModifier();
-                double total_max_thrust = evaluateMaxThrust();
-                double thrust_per_engine = total_max_thrust / (double)engine_count;
-                power_per_engine = Math.Min(_attached_engine.currentThrottle * thrust_per_engine * _current_propellant.IspMultiplier * modifiedEngineBaseISP / powerTrustModifier * g0, maxPower * _current_propellant.Efficiency);
+                double thrust_per_engine = evaluateMaxThrust() / (double)engine_count;
+                power_per_engine = Math.Min(_attached_engine.currentThrottle * thrust_per_engine * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerTrustModifier() * g0, maxPower * _current_propellant.Efficiency);
                 power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / _current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
             }
                     
@@ -280,18 +280,31 @@ namespace FNPlugin
             double max_thrust_in_space = Current_propellant.Efficiency * GetPowerTrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
             double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAtSeaLevel * part.vessel.atmDensity), 0.0);
 
-            // update engine ISP
-            updateISP(actual_max_thrust / Math.Max(max_thrust_in_space, 0.00001f));
-
             if (_attached_engine.currentThrottle > 0)
             {
                 if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust))
+                {
+                    // update engine ISP
+                    updateISP(actual_max_thrust / Math.Max(max_thrust_in_space, 0.00001f));
+
                     _attached_engine.maxThrust = Mathf.Max((float)actual_max_thrust, 0.00001f);
+                    _avrageragedLastActualMaxThrustWithTrottle = (10 * _avrageragedLastActualMaxThrustWithTrottle + _attached_engine.maxThrust) / 11f;
+                }
                 else
+                {
+                    updateISP(1);
                     _attached_engine.maxThrust = 0.00001f;
+                }
 
                 float fx_ratio = Mathf.Min(_electrical_consumption_f / maxPower, _attached_engine.finalThrust / _attached_engine.maxThrust);
                 part.Effect(Current_propellant.ParticleFXName, fx_ratio);
+                                
+            }
+            else
+            {
+                updateISP(1);
+                _attached_engine.maxThrust = _avrageragedLastActualMaxThrustWithTrottle > 1 ? _avrageragedLastActualMaxThrustWithTrottle : 1;
+                part.Effect(Current_propellant.ParticleFXName, 0);
             }
 
             if (isupgraded)
