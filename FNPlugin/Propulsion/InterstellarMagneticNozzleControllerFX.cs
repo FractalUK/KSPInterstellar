@@ -22,15 +22,15 @@ namespace FNPlugin
         public float powerThrustMultiplier = 1.0f;
 
         // Visible Non Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
         private float _max_reactor_power;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Truster Power", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Truster Power", guiUnits = " MW")]
         private float _max_truster_power;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
         private float _charged_particles_requested;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Particles", guiUnits = " MW")]
         private float _charged_particles_received;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Requested Electric", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Electric", guiUnits = " MW")]
         private float _requestedElectricPower;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Electric", guiUnits = " MW")]
         private float _recievedElectricPower;
@@ -93,9 +93,7 @@ namespace FNPlugin
                 IChargedParticleSource particleSource = FindChargedParticleSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth);
 
                 if (particleSource != null)
-                {
                     return particleSource;
-                }
             }
 
             if (parentdepth > 0)
@@ -109,9 +107,7 @@ namespace FNPlugin
             return null;
         }
 
-		public override void OnUpdate() {
-
-		}
+		//public override void OnUpdate() { }
 
 
                 
