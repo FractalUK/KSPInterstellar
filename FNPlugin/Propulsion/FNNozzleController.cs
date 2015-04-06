@@ -262,7 +262,11 @@ namespace FNPlugin
             {
 				fuelmode = chosenpropellant.GetValue("guiName");
 				ispPropellantMultiplier = float.Parse(chosenpropellant.GetValue("ispMultiplier"));
-				isLFO = bool.Parse(chosenpropellant.GetValue("isLFO"));
+
+                if (chosenpropellant.HasValue("isLFO"))
+                    isLFO = bool.Parse(chosenpropellant.GetValue("isLFO"));
+                else
+                    isLFO = false;
 
                 currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
 
