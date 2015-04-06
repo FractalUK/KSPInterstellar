@@ -61,6 +61,8 @@ namespace FNPlugin
 
         public static Dictionary<string, string> PartTechUpgrades { get; private set; }
 
+        public static Dictionary<string, string> OrsResourceMappings { get; private set; }
+
         private static double _maxAtmosphericAltitudeMult = 1;
         public static double MaxAtmosphericAltitudeMult { get { return _maxAtmosphericAltitudeMult; } }
 
@@ -501,11 +503,23 @@ namespace FNPlugin
                         string[] splitValues = rawstring.Split(',').Select(sValue => sValue.Trim()).ToArray();
 
                         int pairs = splitValues.Length / 2;
-                        int totalValues = pairs * 2;
+                        int totalValues = splitValues.Length / 2 * 2;
                         for (int i = 0; i < totalValues; i += 2)
                             PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
 
                         Debug.Log("[KSP Interstellar] Part Tech Upgrades set to: " + rawstring);
+                    }
+                    if (plugin_settings.HasValue("OrsResourceMappings"))
+                    {
+                        OrsResourceMappings = new Dictionary<string, string>();
+
+                        string rawstring = plugin_settings.GetValue("OrsResourceMappings");
+                        string[] splitValues = rawstring.Split(',').Select(sValue => sValue.Trim()).ToArray();
+
+                        int pairs = splitValues.Length / 2;
+                        int totalValues = pairs * 2;
+                        for (int i = 0; i < totalValues; i += 2)
+                            OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
