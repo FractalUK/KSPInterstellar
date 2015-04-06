@@ -38,8 +38,8 @@ namespace FNPlugin {
         public bool startDisabled;
 
         // Persistent False
-        [KSPField(isPersistant = false)]
-        public float heatTransportationEfficiency = 0.7f;
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        public float heatTransportationEfficiency = 0.8f;
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
         [KSPField(isPersistant = false)]
