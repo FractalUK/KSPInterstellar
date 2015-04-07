@@ -130,7 +130,7 @@ namespace FNPlugin
             }
 
             // verify altitude is not too low
-            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
+            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
                 ScreenMessages.PostScreenMessage("Vessel is too low for resource accumulation", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 return;
