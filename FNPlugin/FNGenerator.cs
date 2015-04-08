@@ -188,7 +188,7 @@ namespace FNPlugin {
 
             FindAttachedThermalSource();
 
-            _totalMaximumPowerAllReactors = part.vessel.FindPartModulesImplementing<IThermalSource>().Sum(t => t.MaximumPower);
+            UpdateMaximumPowerAllReactors();
 
 			print("[KSP Interstellar] Configuring Generator");
 		}
@@ -212,9 +212,14 @@ namespace FNPlugin {
             myAttachedReactor = source.Source;
         }
 
+        private void UpdateMaximumPowerAllReactors()
+        {
+            _totalMaximumPowerAllReactors = part.vessel.FindPartModulesImplementing<IThermalSource>().Where(t => t.IsActive).Sum(t => t.MaximumPower);
+        }
+
 		public override void OnUpdate() 
         {
-            _totalMaximumPowerAllReactors = part.vessel.FindPartModulesImplementing<IThermalSource>().Sum(t => t.MaximumPower);
+            UpdateMaximumPowerAllReactors();
 
 			Events["ActivateGenerator"].active = !IsEnabled;
 			Events["DeactivateGenerator"].active = IsEnabled;
@@ -328,7 +333,7 @@ namespace FNPlugin {
 
                 var totalcapacity = this.getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var spareCapacity = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var targetCapacity = TimeWarp.fixedDeltaTime * 0.01 * _totalMaximumPowerAllReactors;
+                var targetCapacity = _totalMaximumPowerAllReactors * 0.05 + TimeWarp.fixedDeltaTime * 0.01 * _totalMaximumPowerAllReactors;
                 var emptyCapacityShorage = targetCapacity - (totalcapacity - spareCapacity);
                 var powerDemand = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var electrical_power_currently_needed = powerDemand + emptyCapacityShorage;

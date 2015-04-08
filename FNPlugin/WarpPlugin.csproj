@@ -154,7 +154,7 @@
     <Compile Include="Storage\ModuleElementRadioactiveDecay.cs" />
     <Compile Include="ModuleSabreHeating.cs" />
     <Compile Include="PluginHelper.cs" />
-    <Compile Include="Science\RadiationDose.cs" />
+    <Compile Include="Radiation\RadiationDose.cs" />
     <Compile Include="Reactors\ReactorFuel.cs" />
     <Compile Include="Reactors\ReactorFuelMode.cs" />
     <Compile Include="Refinery\SabatierReactor.cs" />
@@ -162,7 +162,7 @@
     <Compile Include="TextureTests.cs" />
     <Compile Include="Refinery\UF4Ammonolysiser.cs" />
     <Compile Include="Toolbar\VABThermalUI.cs" />
-    <Compile Include="Science\VanAllen.cs" />
+    <Compile Include="Radiation\VanAllen.cs" />
     <Compile Include="Propulsion\FNNozzleController.cs" />
     <Compile Include="FNGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -177,7 +177,7 @@
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
     <Compile Include="Reactors\Interfaces\IThermalSource.cs" />
-    <Compile Include="Science\FNModuleRadiation.cs" />
+    <Compile Include="Radiation\FNModuleRadiation.cs" />
     <Compile Include="Refinery\WaterElectroliser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

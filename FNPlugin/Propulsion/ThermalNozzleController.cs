@@ -96,6 +96,8 @@ namespace FNPlugin
         protected float _decompositionEnergy;
 
 		//Internal
+        protected float _fuelToxicity;
+        protected float _savedReputationCost;
 		protected float _maxISP;
         protected float _heatDecompositionFraction;
 		protected float _minISP;
@@ -426,9 +428,11 @@ namespace FNPlugin
             _maxDecompositionTemp = chosenpropellant.HasValue("MaxDecompositionTemp") ? float.Parse(chosenpropellant.GetValue("MaxDecompositionTemp")) : 0;
             _decompositionEnergy = chosenpropellant.HasValue("DecompositionEnergy") ? float.Parse(chosenpropellant.GetValue("DecompositionEnergy")) : 0;
             _baseIspMultiplier = chosenpropellant.HasValue("BaseIspMultiplier") ? float.Parse(chosenpropellant.GetValue("BaseIspMultiplier")) : 0;
+            _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
+
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
 
-            if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0)
+            if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
             else
             {
@@ -440,8 +444,9 @@ namespace FNPlugin
 
         private void UpdateThrustPropellantMultiplier()
         {
-            _heatDecompositionFraction = (MyAttachedReactor.CoreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp);
-            _thrustPropellantMultiplier = (float)Math.Sqrt(Math.Max(0, Math.Min(1, _heatDecompositionFraction)) * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04f + 1;
+            var linearFraction = Math.Max(0, Math.Min(1, (MyAttachedReactor.CoreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp)));
+            _heatDecompositionFraction = (float)Math.Pow(0.36, Math.Pow(3 - linearFraction * 3, 2) / 2);
+            _thrustPropellantMultiplier = (float)Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04f + 1;
             _ispPropellantMultiplier = _baseIspMultiplier * _thrustPropellantMultiplier;
         }
 
@@ -657,11 +662,13 @@ namespace FNPlugin
 
             double max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100.0;
             double engine_thrust = max_thrust_in_space;
+
+            var vesselStaticPresure = FlightGlobals.getStaticPressure(vessel.transform.position);
             
             // update engine thrust/ISP for thermal noozle
             if (!_currentpropellant_is_jet)
             {
-                pressureTreshold = exitArea * (float)GameConstants.EarthAthmospherePresureAtSeaLevel * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
+                pressureTreshold = exitArea * (float)GameConstants.EarthAthmospherePresureAtSeaLevel * (float)vesselStaticPresure;
                 engine_thrust = Math.Max(max_thrust_in_space - pressureTreshold, 0.00001);
                 var thrustAtmosphereRatio = engine_thrust / Math.Max(max_thrust_in_space, 0.000001);
                 var isp_reduction_fraction = thrustAtmosphereRatio * heatExchangerThrustDivisor;
@@ -672,6 +679,8 @@ namespace FNPlugin
             myAttachedEngine.maxThrust = !double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)
                 ? (float)engine_thrust * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f)
                 : 0.000001f;
+
+            
 
             // amount of fuel being used at max throttle with no atmospheric limits
             if (current_isp > 0)
@@ -687,6 +696,20 @@ namespace FNPlugin
 
                 if (atmospheric_limit > 0 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
                     this.fuel_flow_rate = fuel_flow_rate / atmospheric_limit;
+
+                if (_fuelToxicity > 0 && fuel_flow_rate > 0 && vesselStaticPresure > 0.1)
+                {
+                    var fuelflowReputationCost = fuel_flow_rate * _fuelToxicity * Math.Pow(vesselStaticPresure, 3);
+                    _savedReputationCost += (float)fuelflowReputationCost;
+                    if (_savedReputationCost > 1)
+                    {
+                        float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
+
+                        Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
+                        ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                        _savedReputationCost -= flooredReputationCost;
+                    }
+                }
 
                 // calculate fuelFlowCooling
                 fuelFlowCooling = (float)fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);
@@ -723,7 +746,7 @@ namespace FNPlugin
             }
             else
             {
-                if (_decompositionEnergy > 0 && _baseIspMultiplier > 0)
+                if (_decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                     UpdateThrustPropellantMultiplier();
                 else
                     _heatDecompositionFraction = 1;

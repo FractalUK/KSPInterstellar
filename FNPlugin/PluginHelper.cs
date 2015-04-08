@@ -768,8 +768,7 @@ namespace FNPlugin
                         {
                             FNModuleRadiation pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
                             prefab_available_part.Modules.Add(pm);
-                            double rad_hardness = prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5;
-                            pm.rad_hardness = rad_hardness;
+                            pm.rad_hardness = (float)(prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5);
                             AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
                             minfo.moduleName = "Radiation Status";
                             minfo.info = pm.GetInfo();
