@@ -4,17 +4,18 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
-    
+namespace FNPlugin 
+{
     class InterstellarTokamakFusionReator : InterstellarFusionReactor
     {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heating maintance")]
         public string tokomakPower;
 
-        // 
         protected bool fusion_alert = false;
         protected double power_consumed = 0.0;
-        protected float plasma_ratio = 1.0f;
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
+        public float plasma_ratio = 1.0f;
 
         // properties
 
@@ -40,15 +41,16 @@ namespace FNPlugin {
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 fusion_alert = true;
-            } else 
-            {
+            } 
+            else 
                 fusion_alert = false;
-            }
+
             Events["SwapFuelMode"].active = isupgraded;
             tokomakPower = PluginHelper.getFormattedPowerString(power_consumed);
         }
 
-        public override void OnFixedUpdate() {
+        public override void OnFixedUpdate() 
+        {
             base.OnFixedUpdate();
             if (IsEnabled) 
             {
@@ -65,11 +67,13 @@ namespace FNPlugin {
             base.OnStart(state);
         }
 
-        public override string getResourceManagerDisplayName() {
+        public override string getResourceManagerDisplayName() 
+        {
             return TypeName;
         }
 
-        public override int getPowerPriority() {
+        public override int getPowerPriority() 
+        {
             return 1;
         }
 

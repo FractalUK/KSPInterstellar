@@ -21,7 +21,7 @@ namespace FNPlugin {
 		// Persistent False
 		[KSPField(isPersistant = false)]
 		public float pCarnotEff;
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power")]
 		public float _maxThermalPower;
         [KSPField(isPersistant = false)]
         public float _maxChargedPower;
@@ -37,7 +37,7 @@ namespace FNPlugin {
 		public string upgradeTechReq;
 		[KSPField(isPersistant = false)]
 		public float upgradeCost;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Radius")]
         public float radius;
         [KSPField(isPersistant = false)]
         public string altUpgradedName;
@@ -55,6 +55,9 @@ namespace FNPlugin {
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
         public float _totalMaximumPowerAllReactors;
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
+        public float heat_exchanger_thrust_divisor;
 
 		// Internal
 		protected float coldBathTemp = 500;
@@ -303,7 +306,7 @@ namespace FNPlugin {
         {
 			hotBathTemp = myAttachedReactor.CoreTemperature;
 
-            float heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
+            heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
                 ? myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius
                 : radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
             
