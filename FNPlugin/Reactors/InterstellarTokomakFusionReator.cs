@@ -34,9 +34,10 @@ namespace FNPlugin
         public override void OnUpdate() 
         {
             base.OnUpdate();
-            if (getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > 
-                getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && 
-                getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 
+            if (
+                getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) * 1.2 > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)
+                // getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)
+                // && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 
                 && IsEnabled && !fusion_alert) 
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);

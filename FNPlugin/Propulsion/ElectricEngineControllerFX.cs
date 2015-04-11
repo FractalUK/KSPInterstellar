@@ -57,6 +57,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr = "";
 
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Stable Power", guiUnits = " MW")]
+        //public float stable_power_supply;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Available Power", guiUnits = " MW")]
+        //public float availablePower;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "High Priority ", guiUnits = " MW")]
+        //public float highPriorityPower;
+
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         //Config settings settings
@@ -244,27 +251,11 @@ namespace FNPlugin
 
             if (Current_propellant == null || _attached_engine == null) return;
 
-            //updateISP();
-
-            double power_received;
-            double power_per_engine;
-
-            // retrieve power for engine
-            if (PluginHelper.MatchDemandWithSupply)
-            {
-                _electrical_share_f = maxPower / Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.maxPower), maxPower);
-                double availablePower = getResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                power_per_engine = Math.Min(availablePower * _electrical_share_f, maxPower * _propellantIspMultiplierPowerLimitModifier);
-                power_received = consumeFNResource(_attached_engine.currentThrottle * power_per_engine * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-            }
-            else
-            {
-                int engine_count = Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Count(ee => ee.IsOperational), 1); // max of operational electric engines and 1
-                _electrical_share_f = 1.0f / engine_count;
-                double thrust_per_engine = evaluateMaxThrust() / (double)engine_count;
-                power_per_engine = Math.Min(_attached_engine.currentThrottle * thrust_per_engine * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerTrustModifier() * g0, maxPower * _current_propellant.Efficiency);
-                power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / _current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-            }
+            // retrieve power
+            _electrical_share_f = maxPower / Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.maxPower), maxPower);
+            double powerAvailableForEngine = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0) * _electrical_share_f;
+            double power_per_engine = Math.Min(_attached_engine.currentThrottle * evaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerTrustModifier() * g0, maxPower * _current_propellant.Efficiency);
+            double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / _current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     
             // produce waste heat
             double heat_to_produce = power_received * (1.0 - Current_propellant.Efficiency);
@@ -273,8 +264,7 @@ namespace FNPlugin
             // update GUI Values
             _electrical_consumption_f = (float)power_received;
             _heat_production_f = (float)heat_production;
-            // thrust values
-                    
+                     
             // produce trust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
             double max_thrust_in_space = Current_propellant.Efficiency * GetPowerTrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
@@ -369,12 +359,11 @@ namespace FNPlugin
             setupPropellants();
         }
 
-        protected double evaluateMaxThrust()
+        protected double evaluateMaxThrust(double power_supply)
         {
             if (Current_propellant == null) return 0;
 
-            double total_power_output = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-            return Current_propellant.Efficiency * GetPowerTrustModifier() * total_power_output / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
+            return Current_propellant.Efficiency * GetPowerTrustModifier() * power_supply / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
         }
 
         protected void updateISP(double isp_efficiency)
