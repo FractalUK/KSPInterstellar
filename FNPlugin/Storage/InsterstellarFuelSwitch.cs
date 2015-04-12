@@ -87,11 +87,9 @@ namespace FNPlugin.Storage
         {
             Debug.Log("InsterstellarFuelSwitch OnStart loaded persistant selectedTankSetup = " + selectedTankSetup);
             initializeData();
+
             if (selectedTankSetup == -1)
-            {
                 selectedTankSetup = 0;
-                Debug.Log("InsterstellarFuelSwitch OnStart reset selectedTankSetup = 0");
-            }
 
             if (state != StartState.Editor)
             {
@@ -310,7 +308,7 @@ namespace FNPlugin.Storage
                 }
 
                 currentPart.Resources.UpdateList();
-                updateWeight(currentPart, selectedTankSetup);
+                updateWeight(currentPart, selectedTankSetup, calledByPlayer);
                 updateCost();
             }
             else
@@ -345,8 +343,11 @@ namespace FNPlugin.Storage
             //GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship); //crashes game
             return selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count ? (float)tankCostList[selectedTankSetup] : 0f;
         }
-        private void updateWeight(Part currentPart, int newTankSetup)
+        private void updateWeight(Part currentPart, int newTankSetup, bool calledByPlayer = false)
         {
+            // when changed by player
+            if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
+
             if (newTankSetup < weightList.Count)
                 currentPart.mass = (float)(basePartMass + weightList[newTankSetup]);
         }
