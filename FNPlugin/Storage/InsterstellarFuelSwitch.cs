@@ -279,32 +279,21 @@ namespace FNPlugin.Storage
                 for (int i = 0; i < partResources.Length; i++)
                 {
                     var resource = partResources[i];
-
-                    if (calledAtStartup)
-                    {
-                        // only remove resources that are not in our newResources list
-                        if (!newResources.Any(r => r.Equals(resource.resourceName)))
-                        {
-                            Debug.Log("InsterstellarFuelSwitch setupTankInPart calledAtStartup removing resource: " + resource.resourceName);
-                            DestroyImmediate(resource);
-                        }
-                    }
-                    else
+                    // only remove resources that are not in our newResources list
+                    if (!newResources.Any(r => r.Equals(resource.resourceName)))
                     {
                         Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
                         DestroyImmediate(resource);
                     }
+                    else // We don't want to add duplicate resources.
+                        newResourceNodes.RemoveAll(r => r.GetValue("name").Equals(resource.resourceName)); // There must be a more efficient way to do this by pairing the node with the name.
                 }
 
-                if (!calledAtStartup)
+                Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + Print(newResources));
+                foreach (var resoureNode in newResourceNodes)
                 {
                     
-                    Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + Print(newResources));
-
-                    foreach (var resoureNode in newResourceNodes)
-                    {
-                        currentPart.AddResource(resoureNode);
-                    }
+                    currentPart.AddResource(resoureNode);
                 }
 
                 currentPart.Resources.UpdateList();
@@ -353,7 +342,8 @@ namespace FNPlugin.Storage
         }
         public override void OnUpdate()
         {
-            bool showSwitchButtons = availableInFlight && !part.GetComponents<PartResource>().Any(r => r.amount > 0);
+            //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
+            bool showSwitchButtons = availableInFlight && !part.GetComponents<PartResource>().Any(r => r.amount > r.maxAmount / 1000);
 
             Events["nextTankSetupEvent"].guiActive = showSwitchButtons;
             Events["previousTankSetupEvent"].guiActive = showSwitchButtons;
