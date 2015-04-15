@@ -14,7 +14,7 @@ namespace FNPlugin
 		//Persistent False
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiUnits = "m")]
 		public float radius;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiUnits = "t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "t")]
         public float partMass;
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplier = 1.0f;
@@ -24,17 +24,17 @@ namespace FNPlugin
         // Visible Non Persistant
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
         private float _max_reactor_power;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Truster Power", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thruster Power", guiUnits = " MW")]
         private float _max_truster_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
         private float _charged_particles_requested;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Particles", guiUnits = " MW")]
         private float _charged_particles_received;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Electric", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Electricity", guiUnits = " MW")]
         private float _requestedElectricPower;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Electric", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Electricity", guiUnits = " MW")]
         private float _recievedElectricPower;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "MaxTrust", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private float _engineMaxThrust;
 
 		//External
@@ -62,13 +62,13 @@ namespace FNPlugin
             else
                 UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no ModuleEnginesFX found for MagneticNozzle!");
 
-            _attached_reactor = BreathFirstSearchForChargedParticleSource(10, 1);
+            _attached_reactor = BreadthFirstSearchForChargedParticleSource(10, 1);
 
             if (_attached_reactor == null)
                 UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
 		}
 
-        private IChargedParticleSource BreathFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
+        private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
         {
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {
@@ -113,17 +113,14 @@ namespace FNPlugin
                 
 		public void FixedUpdate() 
         {
-            if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_reactor != null && _attached_engine.isOperational)
+            if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null)
             {
                 double exchanger_thrust_divisor = radius > _attached_reactor.getRadius()
                     ? _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius
-                    : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius();
+                    : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
 
                 _max_reactor_power = _attached_reactor.MaximumChargedPower;
                 _max_truster_power = _max_reactor_power * (float)exchanger_thrust_divisor;
-
-                if (_attached_reactor is InterstellarFusionReactor)
-                    _max_truster_power *= 0.9f;
 
                 double currentMeVPerChargedProduct = _attached_reactor.CurrentMeVPerChargedProduct;
                 double joules_per_amu = currentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
@@ -139,10 +136,10 @@ namespace FNPlugin
                 _requestedElectricPower = _charged_particles_received * (0.01f * Math.Max(_attached_reactor_distance, 1));
                 _recievedElectricPower = consumeFNResource(_requestedElectricPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
-                double megajoules_ratio = _recievedElectricPower / _recievedElectricPower;
+                double megajoules_ratio = _recievedElectricPower / _requestedElectricPower;
                 megajoules_ratio = (double.IsNaN(megajoules_ratio) || double.IsInfinity(megajoules_ratio)) ? 0 : megajoules_ratio;
 
-                double atmo_thrust_factor = Math.Min(1.0,Math.Max(1.0 - Math.Pow(vessel.atmDensity,0.2),0));
+                double atmo_thrust_factor = Math.Min(1.0, Math.Max(1.0 - Math.Pow(vessel.atmDensity, 0.2), 0));
 
                 _engineMaxThrust = 0.000000001f;
                 if (_max_truster_power > 0)
@@ -157,6 +154,14 @@ namespace FNPlugin
                 else
                     _attached_engine.maxThrust = 0.000000001f;
 
+                // This whole thing may be inefficient, but it should clear up some confusion for people.
+                if (!_attached_engine.getFlameoutState)
+                {
+                    if (megajoules_ratio < 0.75 && _requestedElectricPower > 0)
+                        _attached_engine.status = "Insufficient Electricity";
+                    else if (atmo_thrust_factor < 0.75)
+                        _attached_engine.status = "High Atmospheric Pressure";
+                }
             } 
             else if (_attached_engine != null)
             {
