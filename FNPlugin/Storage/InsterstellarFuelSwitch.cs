@@ -248,26 +248,21 @@ namespace FNPlugin.Storage
                 Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
                 for (int resourceCount = 0; resourceCount < tankList[tankCount].resources.Count; resourceCount++)
                 {
-                    if (tankList[tankCount].resources[resourceCount].name != "Structural")
-                    {
-                        var resourceName = tankList[tankCount].resources[resourceCount].name;
-                        newResources.Add(resourceName);
+                    if (tankList[tankCount].resources[resourceCount].name == "Structural") continue;
 
-                        ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                        newResourceNode.AddValue("name", resourceName);
-                        newResourceNode.AddValue("maxAmount", tankList[tankCount].resources[resourceCount].maxAmount);
+                    var resourceName = tankList[tankCount].resources[resourceCount].name;
+                    newResources.Add(resourceName);
 
-                        if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
-                            newResourceNode.AddValue("amount", 0.0f);
-                        else
-                            newResourceNode.AddValue("amount", tankList[tankCount].resources[resourceCount].amount);
+                    ConfigNode newResourceNode = new ConfigNode("RESOURCE");
+                    newResourceNode.AddValue("name", resourceName);
+                    newResourceNode.AddValue("maxAmount", tankList[tankCount].resources[resourceCount].maxAmount);
 
-                        newResourceNodes.Add(newResourceNode);
-                    }
+                    if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
+                        newResourceNode.AddValue("amount", 0.0f);
                     else
-                    {
-                        //Debug.Log("Skipping structural fuel type");
-                    }
+                        newResourceNode.AddValue("amount", tankList[tankCount].resources[resourceCount].amount);
+
+                    newResourceNodes.Add(newResourceNode);
                 }
             }
 
