@@ -7,7 +7,8 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin {
     [KSPModule("Electrical Generator")]
-	class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule{
+    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource
+    {
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = true;
@@ -53,7 +54,7 @@ namespace FNPlugin {
 		public string OverallEfficiency;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Combined Power", guiUnits = " MW_e")]
         public float _totalMaximumPowerAllReactors;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
@@ -217,7 +218,8 @@ namespace FNPlugin {
 
         private void UpdateMaximumPowerAllReactors()
         {
-            _totalMaximumPowerAllReactors = part.vessel.FindPartModulesImplementing<IThermalSource>().Where(t => t.IsActive).Sum(t => t.MaximumPower);
+            //_totalMaximumPowerAllReactors = part.vessel.FindPartModulesImplementing<IThermalSource>().Where(t => t.IsActive).Sum(t => t.MaximumPower);
+            _totalMaximumPowerAllReactors = (float)part.vessel.FindPartModulesImplementing<IElectricPowerSource>().Sum(t => t.MaxStableMegaWattPower);
         }
 
 		public override void OnUpdate() 
@@ -302,8 +304,22 @@ namespace FNPlugin {
 
         public IThermalSource getThermalSource() {  return myAttachedReactor;  }
 
+        public double MaxStableMegaWattPower
+        {
+            get
+            {
+                return myAttachedReactor != null && IsEnabled 
+                    ? chargedParticleMode 
+                        ? myAttachedReactor.StableMaximumThermalPower * 0.85 
+                        : myAttachedReactor.StableMaximumThermalPower * pCarnotEff 
+                    : 0;
+            }
+        }
+
 		public void updateGeneratorPower() 
         {
+            if (myAttachedReactor == null) return;
+
 			hotBathTemp = myAttachedReactor.CoreTemperature;
 
             heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
@@ -321,7 +337,8 @@ namespace FNPlugin {
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
 		}
 
-        private double prevousTargetCapacity;
+        private double previousTargetCapacity;
+        private double previousTimeWarp;
 
 		public override void OnFixedUpdate() 
         {
@@ -330,27 +347,50 @@ namespace FNPlugin {
             {
 				updateGeneratorPower ();
 
-                //double currentmegajoulesSpareCapacity = TimeWarp.fixedDeltaTime > 1 || !PluginHelper.MatchDemandWithSupply
-                //    ? getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime
-                //    : getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                if (TimeWarp.fixedDeltaTime != previousTimeWarp)
+                {
+                    var requiredMegawattCapacity = TimeWarp.fixedDeltaTime * MaxStableMegaWattPower;
 
-                var totalcapacity = this.getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    if (megajouleResource != null)
+                        megajouleResource.maxAmount = requiredMegawattCapacity;
+
+                    PartResource wasteheatResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    if (wasteheatResource != null)
+                    {
+                        var previousMaxAmount = wasteheatResource.maxAmount;
+                        
+                        wasteheatResource.maxAmount = TimeWarp.fixedDeltaTime * part.mass * 1000;
+                        this.part.RequestResource(FNResourceManager.FNRESOURCE_WASTEHEAT, previousTimeWarp > TimeWarp.fixedDeltaTime ? previousMaxAmount - wasteheatResource.maxAmount : 0);
+                    }
+
+                    PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
+                    if (electricChargeResource != null)
+                        electricChargeResource.maxAmount = requiredMegawattCapacity; 
+                }
+                previousTimeWarp = TimeWarp.fixedDeltaTime;
+
+                var totalcapacity = getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var spareCapacity = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var targetCapacity = _totalMaximumPowerAllReactors * 0.05 + TimeWarp.fixedDeltaTime * 0.01 * _totalMaximumPowerAllReactors;
+                var targetCapacity = TimeWarp.fixedDeltaTime * _totalMaximumPowerAllReactors;
                 var emptyCapacityShorage = targetCapacity - (totalcapacity - spareCapacity);
                 var powerDemand = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var electrical_power_currently_needed = powerDemand + emptyCapacityShorage;
+
                 if (electrical_power_currently_needed < 0)
                 {
-                    // discard energyBuffer
-                    this.part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, -electrical_power_currently_needed);
                     // still statisfy power demand
                     electrical_power_currently_needed = powerDemand;
                 }
                 else
-                    this.part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, Math.Max(0, targetCapacity - prevousTargetCapacity));
+                {
+                    var shortage = Math.Max(0, targetCapacity - previousTargetCapacity);
+                    if (shortage > 0)
+                        this.part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, -shortage);
+                }
 
-                prevousTargetCapacity = targetCapacity;
+                previousTargetCapacity = targetCapacity;
 
                 double electricdt = 0;
                 double electricdtps = 0;

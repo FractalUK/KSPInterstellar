@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class MicrowavePowerReceiver : FNResourceSuppliableModule, IThermalSource
+    class MicrowavePowerReceiver : FNResourceSuppliableModule, IThermalSource, IElectricPowerSource
     {
         //Persistent True
         [KSPField(isPersistant = true)]
@@ -42,20 +42,21 @@ namespace FNPlugin
         public string connectedrelays;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Network Depth")]
         public string networkDepthString;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Atmospheric Eff", guiFormat = "F5")]
+        public float atmosphericefficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Total Efficiency")]
         public string toteff;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float receiptPower = 100;
 
         //Internal 
-
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
-
 
         // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
         protected float connectedRecieversSum;
+
         public void AttachThermalReciever(Guid key, float radius)
         {
             try
@@ -116,6 +117,8 @@ namespace FNPlugin
         public bool IsSelfContained { get { return false; } }
 
         public float CoreTemperature { get { return PluginHelper.IsRecieverCoreTempTweaked ? 3500 : 1500; } }
+
+        public float StableMaximumThermalPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 
         public float MaximumPower { get { return MaximumThermalPower; } }
 
@@ -187,9 +190,7 @@ namespace FNPlugin
             }
 
             if (animName != null)
-            {
                 anim = part.FindModelAnimators(animName).FirstOrDefault();
-            }
 
             penaltyFreeDistance = Math.Sqrt(1 / ((microwaveAngleTan * microwaveAngleTan) / collectorArea));
 
@@ -198,14 +199,8 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            bool transmitter_on = false;
-            if (has_transmitter)
-            {
-                if (part_transmitter.isActive())
-                {
-                    transmitter_on = true;
-                }
-            }
+            bool transmitter_on = has_transmitter && part_transmitter.isActive();
+
             Events["ActivateReceiver"].active = !receiverIsEnabled && !transmitter_on;
             Events["DisableReceiver"].active = receiverIsEnabled;
             Fields["toteff"].guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
@@ -213,18 +208,13 @@ namespace FNPlugin
             if (receiverIsEnabled)
             {
                 if (powerInput > 1000)
-                {
                     beamedpower = (powerInput / 1000).ToString("0.00") + "MW";
-                }
                 else
-                {
                     beamedpower = powerInput.ToString("0.00") + "KW";
-                }
             }
             else
-            {
                 beamedpower = "Offline.";
-            }
+
             connectedsats = string.Format("{0}/{1}", connectedsatsi, MicrowaveSources.instance.transmitters.Count);
             connectedrelays = string.Format("{0}/{1}", connectedrelaysi, MicrowaveSources.instance.relays.Count);
             networkDepthString = networkDepth.ToString();
@@ -248,8 +238,10 @@ namespace FNPlugin
                     {
                         play_down = false;
                         play_up = true;
+
                         if (anim[animName].normalizedTime == 0.0f)
                             anim[animName].normalizedTime = 1.0f;
+
                         anim[animName].speed = -1f;
                         anim.Blend(animName, 2f);
                     }
@@ -261,7 +253,6 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-
             base.OnFixedUpdate();
             if (receiverIsEnabled)
             {
@@ -270,9 +261,8 @@ namespace FNPlugin
                     receiverIsEnabled = false;
                     deactivate_timer++;
                     if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2)
-                    {
                         ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    }
+
                     return;
                 }
 
@@ -284,10 +274,9 @@ namespace FNPlugin
                     connectedrelaysi = 0;
                     networkDepth = 0;
 
-                    double atmosphericefficiency = Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
+                    atmosphericefficiency = (float)Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
                     efficiency_d = GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                     deactivate_timer = 0;
-
 
                     HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
                     //Transmitters power calculation
@@ -303,10 +292,11 @@ namespace FNPlugin
                         // calculate maximum power receivable from satellite
                         double satPowerCap = transmitter.getAvailablePower() * efficiency_d;
                         double currentPowerFromSat = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllVesssels(transmitter);
-                        double powerAvailableFromSat = (satPowerCap - currentPowerFromSat);
+                        double powerAvailableFromSat = satPowerCap - currentPowerFromSat;
                         double satPower = Math.Min(GetSatPower(transmitter, routeEfficiency), powerAvailableFromSat); // get sat power and make sure we conserve enegy
                         received_power[transmitterVessel] = satPower * atmosphericefficiency;
                         total_power += satPower;
+
                         if (satPower > 0)
                         {
                             activeSatsIncr++;
@@ -321,7 +311,6 @@ namespace FNPlugin
                         }
                     }
 
-
                     connectedsatsi = activeSatsIncr;
                     connectedrelaysi = usedRelays.Count;
 
@@ -331,9 +320,7 @@ namespace FNPlugin
 
                 float animateTemp = (float)powerInputMegajoules / 3000;
                 if (animateTemp > 1)
-                {
                     animateTemp = 1;
-                }
 
                 if (animT != null)
                 {
@@ -351,13 +338,9 @@ namespace FNPlugin
                 {
                     double cur_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
                     if (ThermalPower <= 0)
-                    {
                         ThermalPower = (float)(cur_thermal_power);
-                    }
                     else
-                    {
                         ThermalPower = (float)(cur_thermal_power * GameConstants.microwave_alpha + (1.0f - GameConstants.microwave_alpha) * ThermalPower);
-                    }
                 }
             }
             else
@@ -366,6 +349,11 @@ namespace FNPlugin
 				connectedrelaysi = 0;
                 received_power.Clear();
             }
+        }
+
+        public double MaxStableMegaWattPower 
+        {
+            get { return isThermalReceiver ? 0 : powerInputMegajoules; }
         }
 
         public float getMegajoules()
@@ -381,13 +369,9 @@ namespace FNPlugin
         public virtual float GetCoreTempAtRadiatorTemp(float rad_temp)
         {
             if (isThermalReceiver)
-            {
                 return 1500;
-            }
             else
-            {
                 return float.MaxValue;
-            }
         }
 
         public float getThermalPower()
@@ -438,9 +422,7 @@ namespace FNPlugin
         public void enableIfPossible()
         {
             if (!receiverIsEnabled)
-            {
                 receiverIsEnabled = true;
-            }
         }
 
         public override string GetInfo()
@@ -451,9 +433,8 @@ namespace FNPlugin
         public double getPowerFromSatellite(VesselMicrowavePersistence vmp)
         {
             if (received_power.ContainsKey(vmp.getVessel()) && receiverIsEnabled)
-            {
                 return received_power[vmp.getVessel()];
-            }
+
             return 0;
         }
 
@@ -463,16 +444,18 @@ namespace FNPlugin
             Vector3d b = PluginHelper.getVesselPos(vess);
             if (Vector3d.Distance(a, b) < 2500.0)           // if both vessels are active
                 return true;
+
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
             {
                 Vector3d refminusa = referenceBody.position - a;
                 Vector3d bminusa = b - a;
+
                 if (Vector3d.Dot(refminusa, bminusa) > 0 && (bminusa.magnitude > refminusa.magnitude - referenceBody.Radius))
                 {
                     Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
                     Vector3d tang_knot = referenceBody.position - tang;
-                    Vector3d intersection_vector = (a - tang_knot).normalized *
-                        Math.Sqrt(referenceBody.Radius * referenceBody.Radius - tang.sqrMagnitude);
+                    Vector3d intersection_vector = (a - tang_knot).normalized * Math.Sqrt(referenceBody.Radius * referenceBody.Radius - tang.sqrMagnitude);
+
                     if (intersection_vector.sqrMagnitude > (b - tang_knot).sqrMagnitude)
                         return false;
                 }
@@ -482,7 +465,6 @@ namespace FNPlugin
 
         public static double getEnumeratedPowerFromSatelliteForAllVesssels(VesselMicrowavePersistence vmp)
         {
-
             double enumerated_power = 0;
             foreach (Vessel vess in FlightGlobals.Vessels)
             {
@@ -518,9 +500,8 @@ namespace FNPlugin
             double powerdissip = 1;
 
             if (distance > penaltyFreeDistance)//if distance is <= penaltyFreeDistance then powerdissip will always be 1
-            {
                 powerdissip = (microwaveAngleTan * distance * microwaveAngleTan * distance) / collectorArea;//dissip is always > 1 here
-            }
+
             return facingFactor / powerdissip;
         }
 
@@ -551,7 +532,6 @@ namespace FNPlugin
         /// <param name="maxHops">Maximum number of relays which can be used for connection to transmitter</param>
         protected IDictionary<VesselMicrowavePersistence, KeyValuePair<double, IEnumerable<VesselRelayPersistence>>> GetConnectedTransmitters(int maxHops = 25)
         {
-
             //these two dictionaries store transmitters and relays and best currently known route to them which is replaced if better one is found. 
 
             var transmitterRouteDictionary = new Dictionary<VesselMicrowavePersistence, MicrowaveRoute>();
@@ -561,26 +541,25 @@ namespace FNPlugin
 
 
             foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.transmitters.Values)
-            { //first check for direct connection from current vessel to transmitters, will always be optimal
-                if (transmitter.getAvailablePower() > 0)
-                { //ignore if no power or transmitter is on the same vessel
-                    if (!isInlineReceiver || transmitter.getVessel() != vessel)
-                    {
-                        if (lineOfSightTo(transmitter.getVessel()))
-                        {
-                            double distance = ComputeDistance(vessel, transmitter.getVessel());
-                            double facingFactor = ComputeFacingFactor(transmitter.getVessel());
-                            double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
-                            transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiency, distance, facingFactor); //store in dictionary that optimal route to this transmitter is direct connection, can be replaced if better route is found
-                        }
-                        transmittersToCheck.Add(transmitter);
-                    }
+            {
+                //first check for direct connection from current vessel to transmitters, will always be optimal
+                if (transmitter.getAvailablePower() <= 0) continue;
+
+                //ignore if no power or transmitter is on the same vessel
+                if (isInlineReceiver && transmitter.getVessel() == vessel) continue;
+
+                if (lineOfSightTo(transmitter.getVessel()))
+                {
+                    double distance = ComputeDistance(vessel, transmitter.getVessel());
+                    double facingFactor = ComputeFacingFactor(transmitter.getVessel());
+                    double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
+                    transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiency, distance, facingFactor); //store in dictionary that optimal route to this transmitter is direct connection, can be replaced if better route is found
                 }
+                transmittersToCheck.Add(transmitter);
             }
 
             //this algorithm processes relays in groups in which elements of the first group must be visible from receiver, 
             //elements from the second group must be visible by at least one element from previous group and so on...
-
 
             var relaysToCheck = new List<VesselRelayPersistence>();//relays which we have to check - all active relays will be here
             var currentRelayGroup = new List<KeyValuePair<VesselRelayPersistence, int>>();//relays which are in line of sight, and we have not yet checked what they can see. Their index in relaysToCheck is also stored
@@ -588,25 +567,21 @@ namespace FNPlugin
             int relayIndex = 0;
             foreach (VesselRelayPersistence relay in MicrowaveSources.instance.relays.Values)
             {
-                if (relay.isActive())
+                if (!relay.isActive()) continue;
+
+                if (lineOfSightTo(relay.getVessel()))
                 {
-                    if (lineOfSightTo(relay.getVessel()))
-                    {
-                        double distance = ComputeDistance(vessel, relay.getVessel());
-                        double facingFactor = ComputeFacingFactor(relay.getVessel());
-                        double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
-                        relayRouteDictionary[relay] = new MicrowaveRoute(efficiency, distance, facingFactor);//store in dictionary that optimal route to this relay is direct connection, can be replaced if better route is found
-                        currentRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(relay, relayIndex));
-                    }
-                    relaysToCheck.Add(relay);
-                    relayIndex++;
+                    double distance = ComputeDistance(vessel, relay.getVessel());
+                    double facingFactor = ComputeFacingFactor(relay.getVessel());
+                    double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
+                    relayRouteDictionary[relay] = new MicrowaveRoute(efficiency, distance, facingFactor);//store in dictionary that optimal route to this relay is direct connection, can be replaced if better route is found
+                    currentRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(relay, relayIndex));
                 }
+                relaysToCheck.Add(relay);
+                relayIndex++;
             }
 
-
-
             int hops = 0; //number of hops between relays
-
 
             //pre-compute distances and visibility thus limiting number of checks to (Nr^2)/2 + NrNt +Nr + Nt
             if (hops < maxHops && transmittersToCheck.Any())
@@ -625,9 +600,7 @@ namespace FNPlugin
                     }
                     for (int t = 0; t < transmittersToCheck.Count; t++)
                     {
-                        relayToTransmitterDistances[i, t] = ComputeVisibilityAndDistance(relay,
-                                                                                         transmittersToCheck[t].
-                                                                                             getVessel());
+                        relayToTransmitterDistances[i, t] = ComputeVisibilityAndDistance(relay, transmittersToCheck[t].getVessel());
                     }
                 }
 
@@ -645,29 +618,28 @@ namespace FNPlugin
 
                         for (int t = 0; t < transmittersToCheck.Count; t++)//check if this relay can connect to transmitters
                         {
-                            var transmitter = transmittersToCheck[t];
                             double transmitterDistance = relayToTransmitterDistances[relayEntry.Value, t];
-                            if (transmitterDistance > 0)//it's >0 if it can see
-                            {
-                                double newDistance = relayRoute.Distance + transmitterDistance;// total distance from receiver by this relay to transmitter
-                                double efficiencyByThisRelay = ComputeTransmissionEfficiency(newDistance, relayRouteFacingFactor);//efficiency
-                                MicrowaveRoute currentOptimalRoute;
 
-                                //this will return true if there is already a route to this transmitter
-                                if (transmitterRouteDictionary.TryGetValue(transmitter, out currentOptimalRoute))
-                                {
-                                    if (currentOptimalRoute.Efficiency < efficiencyByThisRelay)
-                                        //if route using this relay is better then replace the old route
-                                        transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay, newDistance, relayRouteFacingFactor, relay);
-                                }
-                                else
-                                {
-                                    //there is no other route to this transmitter yet known so algorithm puts this one as optimal
-                                    transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay,
-                                                                                                 newDistance,
-                                                                                                 relayRouteFacingFactor,
-                                                                                                 relay);
-                                }
+                            //it's >0 if it can see
+                            if (transmitterDistance <= 0) continue;
+
+                            double newDistance = relayRoute.Distance + transmitterDistance;// total distance from receiver by this relay to transmitter
+                            double efficiencyByThisRelay = ComputeTransmissionEfficiency(newDistance, relayRouteFacingFactor);//efficiency
+                            MicrowaveRoute currentOptimalRoute;
+
+                            var transmitter = transmittersToCheck[t];
+
+                            //this will return true if there is already a route to this transmitter
+                            if (transmitterRouteDictionary.TryGetValue(transmitter, out currentOptimalRoute))
+                            {
+                                if (currentOptimalRoute.Efficiency < efficiencyByThisRelay)
+                                    //if route using this relay is better then replace the old route
+                                    transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay, newDistance, relayRouteFacingFactor, relay);
+                            }
+                            else
+                            {
+                                //there is no other route to this transmitter yet known so algorithm puts this one as optimal
+                                transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay,newDistance,relayRouteFacingFactor,relay);
                             }
                         }
 
@@ -681,8 +653,7 @@ namespace FNPlugin
                             if (distanceToNextRelay > 0) //any relay which is in LOS of this relay
                             {
                                 double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
-                                double efficiencyByThisRelay =
-                                    ComputeTransmissionEfficiency(relayToNextRelayDistance, relayRouteFacingFactor);
+                                double efficiencyByThisRelay = ComputeTransmissionEfficiency(relayToNextRelayDistance, relayRouteFacingFactor);
 
                                 MicrowaveRoute currentOptimalPredecessor;
 
@@ -692,10 +663,7 @@ namespace FNPlugin
                                     if (currentOptimalPredecessor.Efficiency < efficiencyByThisRelay)
                                         //if route using this relay is better
 
-                                        relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay,
-                                                                                             relayToNextRelayDistance,
-                                                                                             relayRoute.FacingFactor,
-                                                                                             relay);
+                                        relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay, relayToNextRelayDistance, relayRoute.FacingFactor, relay);
                                     //we put it in dictionary as optimal
 
                                 }

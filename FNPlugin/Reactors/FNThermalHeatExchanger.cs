@@ -76,6 +76,8 @@ namespace FNPlugin  {
 
         public float CoreTemperature { get { return 1500; } }
 
+        public float StableMaximumThermalPower { get { return MaximumThermalPower; } }
+
         public float MaximumPower { get { return MaximumThermalPower; } }
 
         public float MaximumThermalPower { get { return _thermalpower; } }

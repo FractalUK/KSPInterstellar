@@ -16,6 +16,8 @@ namespace FNPlugin
 
     public interface IThermalSource : IThermalReciever
     {
+        float StableMaximumThermalPower { get; }
+
         float MaximumPower { get; }
 
         float MinimumPower { get; }

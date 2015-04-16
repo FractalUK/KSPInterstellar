@@ -224,8 +224,7 @@ namespace FNPlugin {
             get 
             {
                 float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                var result = isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput;
-                return result * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
+                return RawPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
             } 
         }
 
@@ -255,6 +254,11 @@ namespace FNPlugin {
         public bool IsUpgradeable { get {return upgradedName != ""; } }
 
         public virtual float MaximumPower { get { return MaximumThermalPower + MaximumChargedPower; } }
+
+        public virtual float StableMaximumThermalPower { get { return IsEnabled ? RawPowerOutput : 0; } }
+
+        public virtual float RawPowerOutput { get { return isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput; } }
+
 
         [KSPEvent(guiActive = true, guiName = "Activate Reactor", active = false)]
         public void ActivateReactor() 
