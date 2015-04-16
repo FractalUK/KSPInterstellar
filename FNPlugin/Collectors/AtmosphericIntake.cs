@@ -33,7 +33,7 @@ namespace FNPlugin  {
                 double air = airspeed * airdensity * area / resourcedensity * TimeWarp.fixedDeltaTime;
                 airf = (float)(1000.0 * air / TimeWarp.fixedDeltaTime * resourcedensity);
 
-                air = _intake_atm.amount = Math.Min(air / TimeWarp.fixedDeltaTime, _intake_atm.maxAmount);
+                air = _intake_atm.amount = Math.Min(air, _intake_atm.maxAmount - _intake_atm.amount);
                 part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, -air);
             }
         }

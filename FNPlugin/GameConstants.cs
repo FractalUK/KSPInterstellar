@@ -20,8 +20,8 @@ namespace FNPlugin {
         public const double waterElectrolysisEnergyPerTon = 18159;
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
-        public const double EarthAthmospherePresureAtSeaLevel = 101.325;
-        public const double KerbinAthmosphereDensityAsSeaLevel = 1.203016;
+        public const double EarthAtmospherePressureAtSeaLevel = 101.325;
+        public const double KerbinAtmosphereDensityAtSeaLevel = 1.203016;
 
         public const double electrolysisMassRatio = 7.936429;
         public const double aluminiumElectrolysisMassRatio = 1.5;
@@ -81,10 +81,10 @@ namespace FNPlugin {
         public const double STANDARD_GRAVITY = 9.80665;
 
         public const double dilution_factor = 15000.0;
-        public const double LfoFuelTrustModifier = 2.2222;
+        public const double LfoFuelThrustModifier = 2.2222;
         public const double IspCoreTemperatureMultiplier = 22.371670613;
-        public const double BaseTrustPowerMultiplier = 2000;
-        public const double HighCoreTempTrustMultiplier = 1600;
+        public const double BaseThrustPowerMultiplier = 2000;
+        public const double HighCoreTempThrustMultiplier = 1600;
 
         public const float BaseMaxPowerDrawForExoticMatter = 1000f;
         public const float MaxThermalNozzleIsp = 2997.13f;

@@ -48,7 +48,7 @@ namespace FNPlugin
 
         protected float NozzlePowerThrustMultiplier
         {
-            get { return powerTrustMultiplier * powerThrustMultiplier; }
+            get { return powerThrustMultiplier * powerThrustMultiplier; }
         }
 
 		public override void OnStart(PartModule.StartState state) 
@@ -145,8 +145,8 @@ namespace FNPlugin
                 if (_max_truster_power > 0)
                 {
                     float power_ratio = (float)(_charged_particles_received / _max_truster_power);
-                    double powerTrustModifier = GameConstants.BaseTrustPowerMultiplier * NozzlePowerThrustMultiplier;
-                    _engineMaxThrust = (float)Math.Max(powerTrustModifier * _charged_particles_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant / _attached_engine.currentThrottle, 0.000000001);
+                    double powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * NozzlePowerThrustMultiplier;
+                    _engineMaxThrust = (float)Math.Max(powerThrustModifier * _charged_particles_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant / _attached_engine.currentThrottle, 0.000000001);
                 }
 
                 if (!double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust))

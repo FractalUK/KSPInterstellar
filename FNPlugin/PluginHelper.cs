@@ -75,29 +75,29 @@ namespace FNPlugin
 		private static double _ispCoreTempMult = GameConstants.IspCoreTemperatureMultiplier;
         public static double IspCoreTempMult { get { return _ispCoreTempMult; } }
 
-		private static double _lowCoreTempBaseTrust = 0;
-        public static double LowCoreTempBaseTrust { get { return _lowCoreTempBaseTrust; } }
+		private static double _lowCoreTempBaseThrust = 0;
+        public static double LowCoreTempBaseThrust { get { return _lowCoreTempBaseThrust; } }
 
-		private static double _highCoreTempTrustMult = GameConstants.HighCoreTempTrustMultiplier;
-        public static double HighCoreTempTrustMult { get { return _highCoreTempTrustMult; } }
+		private static double _highCoreTempThrustMult = GameConstants.HighCoreTempThrustMultiplier;
+        public static double HighCoreTempThrustMult { get { return _highCoreTempThrustMult; } }
 
-		private static double _trustCoreTempThreshold = 0;
-        public static double TrustCoreTempThreshold { get { return _trustCoreTempThreshold; } }
+		private static double _thrustCoreTempThreshold = 0;
+        public static double ThrustCoreTempThreshold { get { return _thrustCoreTempThreshold; } }
 
-		private static double _globalThermalNozzlePowerMaxTrustMult = 1;
-        public static double GlobalThermalNozzlePowerMaxTrustMult { get { return _globalThermalNozzlePowerMaxTrustMult; } }
+		private static double _globalThermalNozzlePowerMaxThrustMult = 1;
+        public static double GlobalThermalNozzlePowerMaxThrustMult { get { return _globalThermalNozzlePowerMaxThrustMult; } }
 
-		private static double _globalMagneticNozzlePowerMaxTrustMult = 1;
-        public static double GlobalMagneticNozzlePowerMaxTrustMult { get { return _globalMagneticNozzlePowerMaxTrustMult; } }
+		private static double _globalMagneticNozzlePowerMaxThrustMult = 1;
+        public static double GlobalMagneticNozzlePowerMaxThrustMult { get { return _globalMagneticNozzlePowerMaxThrustMult; } }
 
-		private static double _globalElectricEnginePowerMaxTrustMult = 1;
-        public static double GlobalElectricEnginePowerMaxTrustMult { get { return _globalElectricEnginePowerMaxTrustMult; } }
+		private static double _globalElectricEnginePowerMaxThrustMult = 1;
+        public static double GlobalElectricEnginePowerMaxThrustMult { get { return _globalElectricEnginePowerMaxThrustMult; } }
 
 		private static float _maxPowerDrawForExoticMatterMult = 1;
         public static float MaxPowerDrawForExoticMatterMult { get { return _maxPowerDrawForExoticMatterMult; } }
 
-		private static double _lfoFuelTrustModifier = GameConstants.LfoFuelTrustModifier;
-        public static double LfoFuelTrustModifier { get { return _lfoFuelTrustModifier; } }
+		private static double _lfoFuelThrustModifier = GameConstants.LfoFuelThrustModifier;
+        public static double LfoFuelThrustModifier { get { return _lfoFuelThrustModifier; } }
 
         private static double _electricEngineIspMult = 1;
         public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }
@@ -105,8 +105,8 @@ namespace FNPlugin
         private static float _electricEnginePowerPropellantIspMultLimiter = 1;
         public static float ElectricEnginePowerPropellantIspMultLimiter { get { return _electricEnginePowerPropellantIspMultLimiter; } }
 
-        private static float _electricEngineAtmosphericDensityTrustLimiter = 0;
-        public static float ElectricEngineAtmosphericDensityTrustLimiter { get { return _electricEngineAtmosphericDensityTrustLimiter; } }
+        private static float _electricEngineAtmosphericDensityThrustLimiter = 0;
+        public static float ElectricEngineAtmosphericDensityThrustLimiter { get { return _electricEngineAtmosphericDensityThrustLimiter; } }
 
         //------------------------------------------------------------------------------------------
 
@@ -578,23 +578,23 @@ namespace FNPlugin
 
                     if (plugin_settings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
                     {
-                        PluginHelper._globalThermalNozzlePowerMaxTrustMult = double.Parse(plugin_settings.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Global Thermal Power Maximum Trust Multiplier set to: " + PluginHelper.GlobalThermalNozzlePowerMaxTrustMult.ToString("0.0"));
+                        PluginHelper._globalThermalNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
+                        Debug.Log("[KSP Interstellar] Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("GlobalMagneticNozzlePowerMaxTrustMult"))
                     {
-                        PluginHelper._globalMagneticNozzlePowerMaxTrustMult = double.Parse(plugin_settings.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Global Magnetic Nozzle Power Maximum Trust Multiplier set to: " + PluginHelper.GlobalMagneticNozzlePowerMaxTrustMult.ToString("0.0"));
+                        PluginHelper._globalMagneticNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
+                        Debug.Log("[KSP Interstellar] Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("GlobalElectricEnginePowerMaxTrustMult"))
                     {
-                        PluginHelper._globalElectricEnginePowerMaxTrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Global Electric Engine Power Maximum Trust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxTrustMult.ToString("0.0"));
+                        PluginHelper._globalElectricEnginePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
+                        Debug.Log("[KSP Interstellar] Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("LfoFuelTrustModifier"))
                     {
-                        PluginHelper._lfoFuelTrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
-                        Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Trust Multiplier set to: " + PluginHelper.LfoFuelTrustModifier.ToString("0.0"));
+                        PluginHelper._lfoFuelThrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
+                        Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Thrust Multiplier set to: " + PluginHelper.LfoFuelThrustModifier.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
                     {
@@ -604,18 +604,18 @@ namespace FNPlugin
 
                     if (plugin_settings.HasValue("TrustCoreTempThreshold"))
                     {
-                        PluginHelper._trustCoreTempThreshold = double.Parse(plugin_settings.GetValue("TrustCoreTempThreshold"));
-                        Debug.Log("[KSP Interstellar] Trust core temperature threshold set to: " + PluginHelper.TrustCoreTempThreshold.ToString("0.0"));
+                        PluginHelper._thrustCoreTempThreshold = double.Parse(plugin_settings.GetValue("TrustCoreTempThreshold"));
+                        Debug.Log("[KSP Interstellar] Thrust core temperature threshold set to: " + PluginHelper.ThrustCoreTempThreshold.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("LowCoreTempBaseTrust"))
                     {
-                        PluginHelper._lowCoreTempBaseTrust = double.Parse(plugin_settings.GetValue("LowCoreTempBaseTrust"));
-                        Debug.Log("[KSP Interstellar] Low core temperature base trust modifier set to: " + PluginHelper.LowCoreTempBaseTrust.ToString("0.0"));
+                        PluginHelper._lowCoreTempBaseThrust = double.Parse(plugin_settings.GetValue("LowCoreTempBaseTrust"));
+                        Debug.Log("[KSP Interstellar] Low core temperature base thrust modifier set to: " + PluginHelper.LowCoreTempBaseThrust.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("HighCoreTempTrustMult"))
                     {
-                        PluginHelper._highCoreTempTrustMult = double.Parse(plugin_settings.GetValue("HighCoreTempTrustMult"));
-                        Debug.Log("[KSP Interstellar] High core temperature trust divider set to: " + PluginHelper.HighCoreTempTrustMult.ToString("0.0"));
+                        PluginHelper._highCoreTempThrustMult = double.Parse(plugin_settings.GetValue("HighCoreTempTrustMult"));
+                        Debug.Log("[KSP Interstellar] High core temperature thrust divider set to: " + PluginHelper.HighCoreTempThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("BasePowerConsumption"))
                     {
@@ -644,8 +644,8 @@ namespace FNPlugin
                     }
                     if (plugin_settings.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
                     {
-                        PluginHelper._electricEngineAtmosphericDensityTrustLimiter = float.Parse(plugin_settings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
-                        Debug.Log("[KSP Interstellar] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityTrustLimiter.ToString("0.0"));
+                        PluginHelper._electricEngineAtmosphericDensityThrustLimiter = float.Parse(plugin_settings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
+                        Debug.Log("[KSP Interstellar] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("MaxAtmosphericAltitudeMult"))
@@ -697,7 +697,7 @@ namespace FNPlugin
                         {
                             var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
                             prefab_available_part.Modules.Add(pm);
-                            pm.area = intake.area * intake.unitScalar * intake.maxIntakeSpeed / 20;
+                            pm.area = intake.area * intake.unitScalar * intake.maxIntakeSpeed;
 
                             PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 

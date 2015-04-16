@@ -22,7 +22,7 @@ namespace FNPlugin
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]
         public void SwapFuelMode()
         {
-            if (part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount <= 0.01)
+            if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount <= 0.01)
             {
                 defuelCurrentFuel();
                 if (isCurrentFuelDepleted())
@@ -88,7 +88,7 @@ namespace FNPlugin
             {
                 try
                 {
-                    if (part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                    if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
                     {
                         double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
                         double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
