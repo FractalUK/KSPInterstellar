@@ -426,7 +426,7 @@ namespace FNPlugin
                 atmospherecurve.Add(0, maxISP, 0, 0);
                 atmospherecurve.Add(1, minISP, 0, 0);
 
-                thrust = (float)(myAttachedReactor.MaximumPower * GetPowerTrustModifier() * GetHeatTrustModifier() / PluginHelper.GravityConstant / maxISP);
+                thrust = (float)(myAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / maxISP);
                 myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             } 
@@ -451,7 +451,7 @@ namespace FNPlugin
             // note: does not seem to be called in edit mode
 
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && myAttachedReactor != null)
-                GenerateTrustFromReactorHeat();
+                GenerateThrustFromReactorHeat();
             else
             {
                 fuelFlowCooling = 0;
@@ -483,7 +483,7 @@ namespace FNPlugin
 			static_updating2 = true;
 		}
 
-        private void GenerateTrustFromReactorHeat()
+        private void GenerateThrustFromReactorHeat()
         {
             if (!myAttachedReactor.IsActive)
                 myAttachedReactor.enableIfPossible();
@@ -536,7 +536,7 @@ namespace FNPlugin
                 double thrust_limit = myAttachedEngine.thrustPercentage / 100.0;
                 
                 //engineMaxThrust = Math.Max(thrust_limit * 2000.0 * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * (this.current_isp / maxISP) / myAttachedEngine.currentThrottle, 0.01);
-                engineMaxThrust = Math.Max(thrust_limit * GetPowerTrustModifier() * GetHeatTrustModifier() * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * ispRatio / myAttachedEngine.currentThrottle, 0.01);
+                engineMaxThrust = Math.Max(thrust_limit * GetPowerThrustModifier() * GetHeatThrustModifier() * thermal_power_received / maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * ispRatio / myAttachedEngine.currentThrottle, 0.01);
             }
 
             //print ("B: " + engineMaxThrust);
@@ -550,7 +550,7 @@ namespace FNPlugin
             if (!double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust))
             {
                 if (isLFO)
-                    myAttachedEngine.maxThrust = (float)(PluginHelper.LfoFuelTrustModifier * engine_thrust);
+                    myAttachedEngine.maxThrust = (float)(PluginHelper.LfoFuelThrustModifier * engine_thrust);
                 else
                     myAttachedEngine.maxThrust = (float)engine_thrust;
             }
@@ -729,21 +729,21 @@ namespace FNPlugin
             return propellantlist;
         }
 
-        private double GetHeatTrustModifier()
+        private double GetHeatThrustModifier()
         {
-            double coretempthreshold = PluginHelper.TrustCoreTempThreshold;
-            double lowcoretempbase = PluginHelper.LowCoreTempBaseTrust;
+            double coretempthreshold = PluginHelper.ThrustCoreTempThreshold;
+            double lowcoretempbase = PluginHelper.LowCoreTempBaseThrust;
 
             return coretempthreshold <= 0 
                 ? 1.0 
                 : myAttachedReactor.CoreTemperature < coretempthreshold
                     ? (myAttachedReactor.CoreTemperature + lowcoretempbase) / (coretempthreshold + lowcoretempbase)
-                    : 1.0 + PluginHelper.HighCoreTempTrustMult * Math.Max(Math.Log10(myAttachedReactor.CoreTemperature / coretempthreshold), 0);
+                    : 1.0 + PluginHelper.HighCoreTempThrustMult * Math.Max(Math.Log10(myAttachedReactor.CoreTemperature / coretempthreshold), 0);
         }
 
-        private double GetPowerTrustModifier()
+        private double GetPowerThrustModifier()
         {
-            return GameConstants.BaseTrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxTrustMult * powerTrustMultiplier;
+            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * powerTrustMultiplier;
         }
 
         //private void UpdateRadiusModifier()

@@ -254,7 +254,7 @@ namespace FNPlugin
             // retrieve power
             _electrical_share_f = maxPower / Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.maxPower), maxPower);
             double powerAvailableForEngine = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0) * _electrical_share_f;
-            double power_per_engine = Math.Min(_attached_engine.currentThrottle * evaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerTrustModifier() * g0, maxPower * _current_propellant.Efficiency);
+            double power_per_engine = Math.Min(_attached_engine.currentThrottle * evaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerThrustModifier() * g0, maxPower * _current_propellant.Efficiency);
             double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / _current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     
             // produce waste heat
@@ -265,10 +265,10 @@ namespace FNPlugin
             _electrical_consumption_f = (float)power_received;
             _heat_production_f = (float)heat_production;
                      
-            // produce trust
+            // produce thrust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
-            double max_thrust_in_space = Current_propellant.Efficiency * GetPowerTrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
-            double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAthmospherePresureAtSeaLevel * part.vessel.atmDensity), 0.0);
+            double max_thrust_in_space = Current_propellant.Efficiency * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
+            double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel * part.vessel.atmDensity), 0.0);
 
             if (_attached_engine.currentThrottle > 0)
             {
@@ -330,7 +330,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            double powerTrustModifier = GetPowerTrustModifier();
+            double powerThrustModifier = GetPowerThrustModifier();
             List<ElectricEnginePropellant> props = getPropellantsEngineType();
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
             double thrust_per_mw = (2e6 * powerTrustMultiplier) / g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
@@ -363,7 +363,7 @@ namespace FNPlugin
         {
             if (Current_propellant == null) return 0;
 
-            return Current_propellant.Efficiency * GetPowerTrustModifier() * power_supply / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
+            return Current_propellant.Efficiency * GetPowerThrustModifier() * power_supply / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
         }
 
         protected void updateISP(double isp_efficiency)
@@ -373,14 +373,14 @@ namespace FNPlugin
             _attached_engine.atmosphereCurve = newISP;
         }
 
-        private double GetPowerTrustModifier()
+        private double GetPowerThrustModifier()
         {
-            return GameConstants.BaseTrustPowerMultiplier * PluginHelper.GlobalElectricEnginePowerMaxTrustMult * powerTrustMultiplier;
+            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalElectricEnginePowerMaxThrustMult * powerTrustMultiplier;
         }
 
         private double GetAtmosphericDensityModifier()
         {
-            return Math.Max(1.0 - (part.vessel.atmDensity * PluginHelper.ElectricEngineAtmosphericDensityTrustLimiter), 0.0);
+            return Math.Max(1.0 - (part.vessel.atmDensity * PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter), 0.0);
         }
 
         protected void updatePropellantBar()

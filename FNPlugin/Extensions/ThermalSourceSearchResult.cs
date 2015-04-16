@@ -21,7 +21,7 @@ namespace FNPlugin.Extensions
             Cost += cost;
         }
 
-        public static ThermalSourceSearchResult BreathFirstSearchForThermalSource(Part currentpart, int stackdepth, int parentdepth, bool skipSelfContained = false)
+        public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, int stackdepth, int parentdepth, bool skipSelfContained = false)
         {
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {

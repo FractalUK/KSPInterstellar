@@ -205,7 +205,7 @@ namespace FNPlugin {
             if (myAttachedReactor != null) return;
 
             // otherwise look for other non selfcontained thermal sources
-            var source = ThermalSourceSearchResult.BreathFirstSearchForThermalSource(part, 3, 0, true);
+            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 3, 0, true);
             if (source == null) return;
             
             // verify cost is not higher than 1
