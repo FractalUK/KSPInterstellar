@@ -65,6 +65,10 @@ namespace FNPlugin.Storage
         public float addedCost = 0f;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass")]
         public float dryMassInfo = 0f;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Volume Multiplier")]
+        public float volumeMultiplier = 1f;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass Multiplier")]
+        public float massMultiplier = 1f;
 
         // Persistants
         [KSPField(isPersistant = true)]
@@ -106,21 +110,16 @@ namespace FNPlugin.Storage
         }
         public override void OnAwake()
         {
-            //Debug.Log("FS AWAKE "+initialized+" "+configLoaded+" "+resourceAmounts);
             if (configLoaded)
                 initializeData();
-
-            //Debug.Log("FS AWAKE DONE " + (configLoaded ? tankList.Count.ToString() : "NO CONFIG"));
         }
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-            //Debug.Log("FS LOAD " + initialized + " " + resourceAmounts+configLoaded);
             if (!configLoaded)
                 initializeData();
 
             configLoaded = true;
-            //Debug.Log("FS LOAD DONE " + tankList.Count);
         }
 
         public static List<double> parseDoubles(string stringOfDoubles)
@@ -255,12 +254,12 @@ namespace FNPlugin.Storage
 
                     ConfigNode newResourceNode = new ConfigNode("RESOURCE");
                     newResourceNode.AddValue("name", resourceName);
-                    newResourceNode.AddValue("maxAmount", tankList[tankCount].resources[resourceCount].maxAmount);
+                    newResourceNode.AddValue("maxAmount", tankList[tankCount].resources[resourceCount].maxAmount * volumeMultiplier);
 
                     if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
                         newResourceNode.AddValue("amount", 0.0f);
                     else
-                        newResourceNode.AddValue("amount", tankList[tankCount].resources[resourceCount].amount);
+                        newResourceNode.AddValue("amount", tankList[tankCount].resources[resourceCount].amount * volumeMultiplier);
 
                     newResourceNodes.Add(newResourceNode);
                 }
@@ -333,7 +332,7 @@ namespace FNPlugin.Storage
             if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
 
             if (newTankSetup < weightList.Count)
-                currentPart.mass = (float)(basePartMass + weightList[newTankSetup]);
+                currentPart.mass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
         }
         public override void OnUpdate()
         {
