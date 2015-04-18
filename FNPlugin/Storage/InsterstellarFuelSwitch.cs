@@ -65,9 +65,9 @@ namespace FNPlugin.Storage
         public float addedCost = 0f;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass")]
         public float dryMassInfo = 0f;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Volume Multiplier")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
         public float volumeMultiplier = 1f;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass Multiplier")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
         public float massMultiplier = 1f;
 
         // Persistants
@@ -273,19 +273,23 @@ namespace FNPlugin.Storage
                 for (int i = 0; i < partResources.Length; i++)
                 {
                     var resource = partResources[i];
-                    
+                    var resourcename = resource.resourceName;
+
                     if (!newResources.Any(r => r.Equals(resource.resourceName)))
                     {
-                        Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
+                        Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resourcename);
                         DestroyImmediate(resource);
                     }
                     else
                     {
-                        // TODO: Find a more efficient way than all these string operations.
-                        ConfigNode nr = newResourceNodes.Find(r => r.GetValue("name").Equals(resource.resourceName));
-                        nr.SetValue("amount", Math.Min(resource.amount, double.Parse(nr.GetValue("maxAmount"))).ToString());
+                        if (HighLogic.LoadedSceneIsFlight)
+                        {
+                            // TODO: Find a more efficient way than all these string operations.
+                            ConfigNode nr = newResourceNodes.Find(r => r.GetValue("name").Equals(resourcename));
+                            nr.SetValue("amount", Math.Min(resource.amount, double.Parse(nr.GetValue("maxAmount"))).ToString());
+                        }
 
-                        Debug.Log("InsterstellarFuelSwitch setupTankInPart replacing resource: " + resource.resourceName);
+                        Debug.Log("InsterstellarFuelSwitch setupTankInPart replacing resource: " + resourcename);
                         DestroyImmediate(resource);
                     }
                 }

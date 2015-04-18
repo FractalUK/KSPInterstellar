@@ -149,15 +149,25 @@ namespace FNPlugin
 
         private int switches = 0;
 
-		[KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Toggle Propellant", active = true)]
-		public void TogglePropellant() 
+		[KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next Propellant", active = true)]
+		public void NextPropellant() 
         {
 			fuel_mode++;
 			if (fuel_mode >= propellants.Length) 
 				fuel_mode = 0;
 
-            setupPropellants();
+            setupPropellants(true);
 		}
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous Propellant", active = true)]
+        public void PreviousPropellant()
+        {
+            fuel_mode--;
+            if (fuel_mode < 0)
+                fuel_mode = propellants.Length - 1;
+
+            setupPropellants(false);
+        }
 
         public void OnRescale(TweakScale.ScalingFactor factor)
         {
@@ -169,13 +179,17 @@ namespace FNPlugin
             UpdateRadiusModifier();
         }
         
-		[KSPAction("Toggle Propellant")]
+		[KSPAction("Next Propellant")]
 		public void TogglePropellantAction(KSPActionParam param) 
         {
-			TogglePropellant();
-            // update simulation
-            UpdateRadiusModifier();
+			NextPropellant();
 		}
+
+        [KSPAction("Previous Propellant")]
+        public void PreviousPropellant(KSPActionParam param)
+        {
+            NextPropellant();
+        }
 
 		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
 		public void RetrofitEngine() 
@@ -340,10 +354,10 @@ namespace FNPlugin
         public override void OnActive()
         {
             base.OnActive();
-            setupPropellants(true);
+            setupPropellants(true, true);
         }
 
-		public void setupPropellants(bool notifySwitching = false)
+		public void setupPropellants(bool forward = true,  bool notifySwitching = false)
         {
             ConfigNode chosenpropellant = propellants[fuel_mode];
             UpdatePropellantModeBehavior(chosenpropellant);
@@ -403,7 +417,11 @@ namespace FNPlugin
                     ++switches;
                     if (notifySwitching)
                         ScreenMessages.PostScreenMessage("Switching Propellant", 5.0f, ScreenMessageStyle.LOWER_CENTER);
-                    TogglePropellant();
+
+                    if (forward)
+                        NextPropellant();
+                    else
+                        PreviousPropellant();
                 }
             }
             else
@@ -412,7 +430,10 @@ namespace FNPlugin
                 if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && (switches <= propellants.Length || fuel_mode != 0))
                 {
                     ++switches;
-                    TogglePropellant();
+                    if (forward)
+                        NextPropellant();
+                    else
+                        PreviousPropellant();
                 }
 
                 estimateEditorPerformance(); // update editor estimates

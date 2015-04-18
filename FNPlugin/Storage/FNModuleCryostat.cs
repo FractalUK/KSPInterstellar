@@ -17,6 +17,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string resourceGUIName;
         [KSPField(isPersistant = false)]
+        public float resourceRatioExp = 0.5f;
+        [KSPField(isPersistant = false)]
         public float boilOffRate;
         [KSPField(isPersistant = false)]
         public float powerReqKW;
@@ -25,9 +27,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float boilOffMultiplier;
         [KSPField(isPersistant = false)]
+        public float boilOffBase = 10000;
+        [KSPField(isPersistant = false)]
         public float boilOffAddition;
         [KSPField(isPersistant = false)]
         public float boilOffTemp = 20.271f;
+        [KSPField(isPersistant = false)]
+        public float convectionMod = 1;
 
         [KSPField(isPersistant = false)]
         public int maxStoreAmount = 0;
@@ -50,6 +56,8 @@ namespace FNPlugin
         public string powerStatusStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Boiloff")]
         public string boiloffStr;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Environment Factor")]
+        public float environmentFactor;
 
         public float boiloff;
 
@@ -86,21 +94,29 @@ namespace FNPlugin
 
             if (cryostat_resource != null)
             {
-                Events["Activate"].active = isDisabled && powerReqKW > 0;
-                Events["Deactivate"].active = !isDisabled && powerReqKW > 0;
-                Fields["powerStatusStr"].guiActive = powerReqKW > 0;
+                bool coolingIsRelevant = powerReqKW > 0 && cryostat_resource.amount > 0;
+
+                Events["Activate"].active = isDisabled && coolingIsRelevant;
+                Events["Deactivate"].active = !isDisabled && coolingIsRelevant;
+                Fields["powerStatusStr"].guiActive = coolingIsRelevant;
                 Fields["boiloffStr"].guiActive = boiloff > 0;
+
+                var atmosphereModifier = convectionMod == -1 ?  0 : convectionMod + FlightGlobals.getStaticPressure(vessel.transform.position) / (convectionMod + 1);
+                var temperatureModifier = Math.Max(0, part.temperature + 273.15 - boilOffTemp) / 273.15;
+                environmentFactor = (float)(atmosphereModifier * temperatureModifier);
 
                 if (powerReqKW > 0)
                 {
-                    var resourceRatio = cryostat_resource.amount / cryostat_resource.maxAmount;
+                    var resourceRatio = Math.Pow(cryostat_resource.amount / cryostat_resource.maxAmount, resourceRatioExp);
 
                     currentPowerReq = fullPowerReqKW > powerReqKW
                         ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
                         : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
 
+                    currentPowerReq *= environmentFactor;
+
                     powerStatusStr = powerReqKW < 1.0e+3
-                        ? recievedPowerKW.ToString("0.000") + " KW / " + currentPowerReq.ToString("0.000") + " KW"
+                        ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
                         : powerReqKW < 1.0e+6
                             ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
                             : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
@@ -117,40 +133,38 @@ namespace FNPlugin
             }
         }
 
-        public override void OnFixedUpdate() 
+        public override void OnFixedUpdate()
         {
-            if (cryostat_resource != null && cryostat_resource.amount > 0.0)
+            if (cryostat_resource == null || cryostat_resource.amount <= 0.0)
             {
-                if (!isDisabled && currentPowerReq > 0)
-                {
-                    var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
+                boiloff = 0;
+                return;
+            }
 
-                    double fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000.0, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0;
+            if (!isDisabled && currentPowerReq > 0)
+            {
+                var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
 
-                    if (powerReqKW < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
-                        fixedRecievedChargeKW += ORSHelper.fixedRequestResource(part, "ElectricCharge", fixedPowerReqKW - fixedRecievedChargeKW);
+                double fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000.0, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0;
 
-                    recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
-                }
-                else
-                    recievedPowerKW = 0;
+                if (powerReqKW < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
+                    fixedRecievedChargeKW += ORSHelper.fixedRequestResource(part, "ElectricCharge", fixedPowerReqKW - fixedRecievedChargeKW);
 
-                var boiloffReducuction = recievedPowerKW >= currentPowerReq
-                        ? boilOffRate
-                        : (boilOffRate + (boilOffAddition * (1 - recievedPowerKW / currentPowerReq)));
-
-                var atmosphereModifier = 1 + FlightGlobals.getStaticPressure(vessel.transform.position) / 2;
-                var temeratureModifier = Math.Max(0, part.temperature + 273.15 - boilOffTemp) / 273.15;
-
-                boiloff = boiloffReducuction <= 0 ? 0 :
-                    (float)(temeratureModifier * atmosphereModifier * boiloffReducuction * boilOffMultiplier * cryostat_resource.maxAmount);
-
-                boiloffStr = boiloff.ToString("0.00") + " L/s " + cryostat_resource.resourceName;
-
-                cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
+                recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
             }
             else
-                boiloff = 0;
+                recievedPowerKW = 0;
+
+            var boiloffReducuction = recievedPowerKW >= currentPowerReq
+                    ? boilOffRate
+                    : (boilOffRate + (boilOffAddition * (1 - recievedPowerKW / currentPowerReq)));
+
+            boiloff = boiloffReducuction <= 0 ? 0 :
+                (float)(environmentFactor * boiloffReducuction * boilOffMultiplier * boilOffBase);
+
+            boiloffStr = boiloff.ToString("0.00") + " L/s " + cryostat_resource.resourceName;
+
+            cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
         }
 
         public override string getResourceManagerDisplayName() 
