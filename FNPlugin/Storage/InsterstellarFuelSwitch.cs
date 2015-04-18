@@ -273,14 +273,21 @@ namespace FNPlugin.Storage
                 for (int i = 0; i < partResources.Length; i++)
                 {
                     var resource = partResources[i];
-                    // only remove resources that are not in our newResources list
+                    
                     if (!newResources.Any(r => r.Equals(resource.resourceName)))
                     {
                         Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
                         DestroyImmediate(resource);
                     }
-                    else // We don't want to add duplicate resources.
-                        newResourceNodes.RemoveAll(r => r.GetValue("name").Equals(resource.resourceName)); // There must be a more efficient way to do this by pairing the node with the name.
+                    else
+                    {
+                        // TODO: Find a more efficient way than all these string operations.
+                        ConfigNode nr = newResourceNodes.Find(r => r.GetValue("name").Equals(resource.resourceName));
+                        nr.SetValue("amount", Math.Min(resource.amount, double.Parse(nr.GetValue("maxAmount"))).ToString());
+
+                        Debug.Log("InsterstellarFuelSwitch setupTankInPart replacing resource: " + resource.resourceName);
+                        DestroyImmediate(resource);
+                    }
                 }
 
                 Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + Print(newResources));
@@ -321,7 +328,7 @@ namespace FNPlugin.Storage
             return true;
         }
 
-        private float updateCost()
+        private float updateCost() // Does this even do anything?
         {
             //GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship); //crashes game
             return selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count ? (float)tankCostList[selectedTankSetup] : 0f;

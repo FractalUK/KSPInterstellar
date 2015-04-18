@@ -31,12 +31,16 @@ namespace FNPlugin {
             if (state == StartState.Editor) {
                 return;
             }
-            decay_resource = part.Resources[resourceName];
+            if (part.Resources.Contains(resourceName))
+                decay_resource = part.Resources[resourceName];
+            else
+                decay_resource = null;
+
             double time_diff = lastActiveTime - Planetarium.GetUniversalTime();
             if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
                 density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
             }
-            if(time_diff > 0) {
+            if(decay_resource != null && time_diff > 0) {
                 double n_0 = decay_resource.amount;
                 decay_resource.amount = n_0 * Math.Exp(-decayConstant * time_diff);
                 double n_change = n_0 - decay_resource.amount;
@@ -47,6 +51,14 @@ namespace FNPlugin {
         }
 
         public void FixedUpdate() {
+            if (part.Resources.Contains(resourceName))
+                decay_resource = part.Resources[resourceName];
+            else
+            {
+                decay_resource = null;
+                return;
+            }
+
             if (HighLogic.LoadedSceneIsFlight)
             {
                 double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
