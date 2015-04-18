@@ -5,37 +5,49 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace FNPlugin  {
-    class AtmosphericIntake : PartModule {
+    class AtmosphericIntake : PartModule
+    {
+        protected Vector3 _intake_direction;
+        protected PartResourceDefinition _resource;
+
+        [KSPField(guiName = "Atm Flow", guiUnits = "U", guiFormat = "F2", isPersistant = false, guiActive = false)]
+        public float airFlow;
+        [KSPField(guiName = "Atm Speed", guiUnits = "M/s", guiFormat = "F2", isPersistant = false, guiActive = false)]
+        public float airSpeed;
+        [KSPField(isPersistant = false)]
+        public float aoaThreshold = 0.1f;
         [KSPField(isPersistant = false)]
         public float area;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Intake Atmosphere")]
-        public string intakeval;
-        protected float airf;
+        [KSPField(isPersistant = false)]
+        public string intakeTransformName;
+        [KSPField(isPersistant = false)]
+        public float maxIntakeSpeed = 100;
+        [KSPField(isPersistant = false)]
+        public float unitScalar = 0.2f;
 
-		protected PartResource _intake_atm = null;
-
-        public override void OnStart(PartModule.StartState state) {
-            _intake_atm = part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere) ? part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere] : null;
+        public override void OnStart(PartModule.StartState state)
+        {
+            Transform intakeTransform = part.FindModelTransform(intakeTransformName);
+            _intake_direction = intakeTransform != null ? intakeTransform.forward.normalized : Vector3.forward;
+            _resource = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
         }
 
-        public override void OnUpdate() {
-            intakeval = airf.ToString("0.00") + " kg";
+        public void FixedUpdate()
+        {
+            if (vessel == null)
+                return;
+
+            airSpeed = (float)vessel.srf_velocity.magnitude + maxIntakeSpeed;
+
+            float intakeAngle = Mathf.Clamp(Vector3.Dot((Vector3)vessel.srf_velocity.normalized, _intake_direction), 0, 1);
+            float intakeExposure = (intakeAngle > aoaThreshold ? intakeAngle * (airSpeed * unitScalar + maxIntakeSpeed) : maxIntakeSpeed) * area * unitScalar;
+            airFlow = ((float)vessel.atmDensity) * intakeExposure / _resource.density;
+            float airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
+            part.ImprovedRequestResource(_resource.name, -airThisUpdate);
         }
 
-        public void FixedUpdate() {
-            if (HighLogic.LoadedSceneIsFlight && _intake_atm != null)
-            {
-                double resourcedensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere).density;
-                double airdensity = part.vessel.atmDensity / 1000;
-                double airspeed = part.vessel.srf_velocity.magnitude + 100.0;
-                double air = airspeed * airdensity * area / resourcedensity * TimeWarp.fixedDeltaTime;
-                airf = (float)(1000.0 * air / TimeWarp.fixedDeltaTime * resourcedensity);
-
-                air = _intake_atm.amount = Math.Min(air, _intake_atm.maxAmount - _intake_atm.amount);
-                part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, -air);
-            }
-        }
     }
 }

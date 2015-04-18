@@ -727,26 +727,22 @@ namespace FNPlugin
             {
                 updateIspEngineParams();
                 this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
+                int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Sum(prc => prc.ValidAttachedIntakes);
+                int intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
 
-                if (FlightGlobals.getStaticPressure(vessel.transform.position) > 0.00001) // No need to worry about intake temperature in space.
+                double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
+                if (double.IsNaN(proportion) || double.IsInfinity(proportion))
+                    proportion = 1;
+
+                float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+                if (temp > part.maxTemp - 10.0f)
                 {
-                    int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Sum(prc => prc.ValidAttachedIntakes);
-                    int intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
-
-                    double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
-                    if (double.IsNaN(proportion) || double.IsInfinity(proportion))
-                        proportion = 1;
-
-                    float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
-                    if (temp > part.maxTemp - 10.0f)
-                    {
-                        ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                        myAttachedEngine.Shutdown();
-                        part.temperature = 1;
-                    }
-                    else
-                        part.temperature = temp;
+                    ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    myAttachedEngine.Shutdown();
+                    part.temperature = 1;
                 }
+                else
+                    part.temperature = temp;
             }
             else
             {
