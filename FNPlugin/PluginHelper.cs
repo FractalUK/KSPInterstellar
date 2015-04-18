@@ -697,7 +697,11 @@ namespace FNPlugin
                         {
                             var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
                             prefab_available_part.Modules.Add(pm);
-                            pm.area = intake.area * intake.unitScalar * intake.maxIntakeSpeed;
+                            pm.area = intake.area;
+                            pm.aoaThreshold = intake.aoaThreshold;
+                            pm.intakeTransformName = intake.intakeTransformName;
+                            pm.maxIntakeSpeed = intake.maxIntakeSpeed;
+                            pm.unitScalar = intake.unitScalar;
 
                             PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
