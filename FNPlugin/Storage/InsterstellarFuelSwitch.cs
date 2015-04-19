@@ -239,11 +239,11 @@ namespace FNPlugin.Storage
         {
             // create new ResourceNode
             List<string> newResources = new List<string>();
-            List<ConfigNode> newResourceNodes = new List<ConfigNode>(); 
-            for (int tankCount = 0; tankCount < tankList.Count; tankCount++)
-            {
-                if (selectedTankSetup != tankCount) continue;
+            List<ConfigNode> newResourceNodes = new List<ConfigNode>();
 
+            int tankCount = selectedTankSetup;
+            if(tankCount >= 0 && tankCount < tankList.Count) // Why was this ever a for loop?
+            {
                 Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
                 for (int resourceCount = 0; resourceCount < tankList[tankCount].resources.Count; resourceCount++)
                 {
@@ -253,10 +253,23 @@ namespace FNPlugin.Storage
                     newResources.Add(resourceName);
 
                     ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                    newResourceNode.AddValue("name", resourceName);
-                    newResourceNode.AddValue("maxAmount", tankList[tankCount].resources[resourceCount].maxAmount * volumeMultiplier);
+                    double maxAmount = tankList[tankCount].resources[resourceCount].maxAmount * volumeMultiplier;
 
-                    if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
+                    newResourceNode.AddValue("name", resourceName);
+                    newResourceNode.AddValue("maxAmount", maxAmount);
+
+                    PartResource existingResource = null;
+                    if (HighLogic.LoadedSceneIsFlight)
+                        foreach(PartResource pr in part.Resources)
+                            if(pr.name.Equals(resourceName))
+                            {
+                                existingResource = pr;
+                                break;
+                            }
+
+                    if(existingResource != null)
+                        newResourceNode.AddValue("amount", Math.Min(existingResource.amount, maxAmount));
+                    else if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
                         newResourceNode.AddValue("amount", 0.0f);
                     else
                         newResourceNode.AddValue("amount", tankList[tankCount].resources[resourceCount].amount * volumeMultiplier);
@@ -274,41 +287,23 @@ namespace FNPlugin.Storage
                 {
                     var resource = partResources[i];
                     var resourcename = resource.resourceName;
-
-                    if (!newResources.Any(r => r.Equals(resource.resourceName)))
-                    {
-                        Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resourcename);
-                        DestroyImmediate(resource);
-                    }
-                    else
-                    {
-                        if (HighLogic.LoadedSceneIsFlight)
-                        {
-                            // TODO: Find a more efficient way than all these string operations.
-                            ConfigNode nr = newResourceNodes.Find(r => r.GetValue("name").Equals(resourcename));
-                            nr.SetValue("amount", Math.Min(resource.amount, double.Parse(nr.GetValue("maxAmount"))).ToString());
-                        }
-
-                        Debug.Log("InsterstellarFuelSwitch setupTankInPart replacing resource: " + resourcename);
-                        DestroyImmediate(resource);
-                    }
+                    Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resourcename);
+                    DestroyImmediate(resource);
                 }
 
                 Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + Print(newResources));
-                foreach (var resoureNode in newResourceNodes)
+                foreach (var resourceNode in newResourceNodes)
                 {
-                    
-                    currentPart.AddResource(resoureNode);
+                    currentPart.AddResource(resourceNode);
                 }
-
-                currentPart.Resources.UpdateList();
-                updateWeight(currentPart, selectedTankSetup, calledByPlayer);
-                updateCost();
             }
             else
                 Debug.Log("InsterstellarFuelSwitch setupTankInPart keeps existing resources unchanged");
-              
-             //*/
+
+            // This also needs to be done when going from a setup with resources to a setup with no resources.
+            currentPart.Resources.UpdateList();
+            updateWeight(currentPart, selectedTankSetup, calledByPlayer);
+            updateCost();
         }
 
         public static string Print( IList<string> list)
