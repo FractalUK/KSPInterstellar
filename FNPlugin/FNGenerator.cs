@@ -192,9 +192,11 @@ namespace FNPlugin {
 
             FindAttachedThermalSource();
 
+            UpdateHeatExchangedThrustDivisor();
+
             UpdateMaximumPowerAllReactors();
 
-			print("[KSP Interstellar] Configuring Generator");
+            print("[KSP Interstellar] Configuring Generator");
 		}
 
         private void FindAttachedThermalSource()
@@ -316,18 +318,29 @@ namespace FNPlugin {
             }
         }
 
+        private void UpdateHeatExchangedThrustDivisor()
+        {
+            if (myAttachedReactor == null) return;
+
+            if (myAttachedReactor.getRadius() <= 0 || radius <= 0)
+            {
+                heat_exchanger_thrust_divisor = 1;
+                return;
+            }
+
+            heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
+                ? myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius
+                : radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
+        }
+
 		public void updateGeneratorPower() 
         {
             if (myAttachedReactor == null) return;
 
 			hotBathTemp = myAttachedReactor.CoreTemperature;
 
-            heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
-                ? myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius
-                : radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
-            
-            if (myAttachedReactor.getRadius() <= 0 || radius <= 0) 
-                heat_exchanger_thrust_divisor = 1;
+            if (HighLogic.LoadedSceneIsEditor)
+                UpdateHeatExchangedThrustDivisor();
 
             _maxThermalPower = myAttachedReactor.MaximumPower * heat_exchanger_thrust_divisor;
 
