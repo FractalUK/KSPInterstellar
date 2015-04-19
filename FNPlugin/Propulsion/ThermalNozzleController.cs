@@ -111,6 +111,7 @@ namespace FNPlugin
 		protected VInfoBox fuel_gauge;
 		protected bool hasrequiredupgrade = false;
 		protected bool hasstarted = false;
+        protected bool hasSetupPropellant = false;
 		protected ModuleEngines myAttachedEngine;
 		
 		protected bool _currentpropellant_is_jet = false;
@@ -188,7 +189,7 @@ namespace FNPlugin
         [KSPAction("Previous Propellant")]
         public void PreviousPropellant(KSPActionParam param)
         {
-            NextPropellant();
+            PreviousPropellant();
         }
 
 		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
@@ -276,7 +277,6 @@ namespace FNPlugin
                 propellants = getPropellants(isJet);
             }
 
-            setupPropellants();
             maxPressureThresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel;
             hasstarted = true;
         }
@@ -293,6 +293,13 @@ namespace FNPlugin
 
         public override void OnUpdate() 
         {
+            // setup propellant after startup to allow InterstellarFuelSwitch to configure the propellant
+            if (!hasSetupPropellant)
+            {
+                hasSetupPropellant = true;
+                setupPropellants(true, true);
+            }
+
             // Note: does not seem to be called while in edit mode
             staticPresure = (GameConstants.EarthAtmospherePressureAtSeaLevel * FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
             pressureTreshold = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
@@ -403,12 +410,18 @@ namespace FNPlugin
             { // you can have any fuel you want in the editor but not in flight
                 // should we switch to another propellant because we have none of this one?
                 bool next_propellant = false;
+
+                string missingResources = String.Empty;
                 foreach (Propellant curEngine_propellant in myAttachedEngine.propellants)
                 {
                     var partresources = part.GetConnectedResources(curEngine_propellant.name);
 
                     if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
+                    {
+                        if (notifySwitching)
+                            missingResources += curEngine_propellant.name + " ";
                         next_propellant = true;
+                    }
                 }
 
                 // do the switch if needed
@@ -416,7 +429,7 @@ namespace FNPlugin
                 {// always shows the first fuel mode when all fuel mods are tested at least once
                     ++switches;
                     if (notifySwitching)
-                        ScreenMessages.PostScreenMessage("Switching Propellant", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                        ScreenMessages.PostScreenMessage("Switching Propellant, missing resource " + missingResources, 5.0f, ScreenMessageStyle.LOWER_CENTER);
 
                     if (forward)
                         NextPropellant();
