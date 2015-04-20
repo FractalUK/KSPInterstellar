@@ -702,6 +702,8 @@ namespace FNPlugin
                             pm.intakeTransformName = intake.intakeTransformName;
                             pm.maxIntakeSpeed = intake.maxIntakeSpeed;
                             pm.unitScalar = intake.unitScalar;
+                            pm.useIntakeCompensation = intake.useIntakeCompensation;
+                            pm.storesResource = intake.storesResource;
 
                             PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
