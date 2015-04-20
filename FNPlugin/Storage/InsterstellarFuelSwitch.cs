@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Reflection;
 using UnityEngine;
 
 namespace FNPlugin.Storage
@@ -90,7 +89,7 @@ namespace FNPlugin.Storage
         public override void OnStart(PartModule.StartState state)
         {
             Debug.Log("InsterstellarFuelSwitch OnStart loaded persistant selectedTankSetup = " + selectedTankSetup);
-            initializeData();
+            InitializeData();
 
             if (selectedTankSetup == -1)
                 selectedTankSetup = 0;
@@ -99,78 +98,78 @@ namespace FNPlugin.Storage
             {
                 Debug.Log("InsterstellarFuelSwitch OnStart started outside editor");
 
-                assignResourcesToPart(false, gameLoaded);
+                AssignResourcesToPart(false, gameLoaded);
                 gameLoaded = true;
             }
             else
             {
                 Debug.Log("InsterstellarFuelSwitch OnStart started inside editor");
-                assignResourcesToPart(false, false);
+                AssignResourcesToPart(false, false);
             }
         }
         public override void OnAwake()
         {
             if (configLoaded)
-                initializeData();
+                InitializeData();
         }
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
             if (!configLoaded)
-                initializeData();
+                InitializeData();
 
             configLoaded = true;
         }
 
-        public static List<double> parseDoubles(string stringOfDoubles)
+        public static List<double> ParseDoubles(string stringOfDoubles)
         {
-            System.Collections.Generic.List<double> list = new System.Collections.Generic.List<double>();
+            var list = new List<double>();
             string[] array = stringOfDoubles.Trim().Split(';');
-            for (int i = 0; i < array.Length; i++)
+            foreach (var arrayItem in array)
             {
-                double item = 0f;
-                if (double.TryParse(array[i].Trim(), out item))
-                    list.Add(item);
-                else
-                    Debug.Log("InsterstellarFuelSwitch parseDoubles: invalid float: [len:" + array[i].Length + "] '" + array[i] + "']");
+	            double item = 0f;
+				if (double.TryParse(arrayItem.Trim(), out item))
+		            list.Add(item);
+	            else
+					Debug.Log("InsterstellarFuelSwitch parseDoubles: invalid float: [len:" + arrayItem.Length + "] '" + arrayItem + "']");
             }
             return list;
         }
-        private void initializeData()
+
+        private void InitializeData()
         {
-            if (!initialized)
-            {
-                setupTankList(false);
-                weightList = parseDoubles(tankMass);
-                tankCostList = parseDoubles(tankCost);
+	        if (initialized) return;
 
-                if (HighLogic.LoadedSceneIsFlight) 
-                    hasLaunched = true;
+	        SetupTankList(false);
+	        weightList = ParseDoubles(tankMass);
+	        tankCostList = ParseDoubles(tankCost);
 
-                if (hasGUI)
-                {
-                    Events["nextTankSetupEvent"].guiActive = availableInFlight;
-                    Events["nextTankSetupEvent"].guiActiveEditor = availableInEditor;
-                    Events["previousTankSetupEvent"].guiActive = availableInFlight;
-                    Events["previousTankSetupEvent"].guiActiveEditor = availableInEditor;
-                }
-                else
-                {
-                    Events["nextTankSetupEvent"].guiActive = false;
-                    Events["nextTankSetupEvent"].guiActiveEditor = false;
-                    Events["previousTankSetupEvent"].guiActive = false;
-                    Events["previousTankSetupEvent"].guiActiveEditor = false;
-                }
+	        if (HighLogic.LoadedSceneIsFlight) 
+		        hasLaunched = true;
 
-                if (HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
-                    Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
+	        if (hasGUI)
+	        {
+		        Events["nextTankSetupEvent"].guiActive = availableInFlight;
+		        Events["nextTankSetupEvent"].guiActiveEditor = availableInEditor;
+		        Events["previousTankSetupEvent"].guiActive = availableInFlight;
+		        Events["previousTankSetupEvent"].guiActiveEditor = availableInEditor;
+	        }
+	        else
+	        {
+		        Events["nextTankSetupEvent"].guiActive = false;
+		        Events["nextTankSetupEvent"].guiActiveEditor = false;
+		        Events["previousTankSetupEvent"].guiActive = false;
+		        Events["previousTankSetupEvent"].guiActiveEditor = false;
+	        }
 
-                initialized = true;
-            }
+	        if (HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+		        Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
+
+	        initialized = true;
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next tank setup")]
-        public void nextTankSetupEvent()
+        public void NextTankSetupEvent()
         {
             selectedTankSetup++;
             Debug.Log("InsterstellarFuelSwitch nextTankSetupEvent selectedTankSetup++ = " + selectedTankSetup);
@@ -181,11 +180,11 @@ namespace FNPlugin.Storage
                 Debug.Log("InsterstellarFuelSwitch nextTankSetupEvent selectedTankSetup = 0 ");
             }
 
-            assignResourcesToPart(true);
+            AssignResourcesToPart(true);
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous tank setup")]
-        public void previousTankSetupEvent()
+        public void PreviousTankSetupEvent()
         {
             selectedTankSetup--;
             Debug.Log("InsterstellarFuelSwitch previousTankSetupEvent selectedTankSetup-- = " + selectedTankSetup);
@@ -196,34 +195,32 @@ namespace FNPlugin.Storage
                 Debug.Log("InsterstellarFuelSwitch previousTankSetupEvent tankList.Count - 1 = " + selectedTankSetup);
             }
 
-            assignResourcesToPart(true);
+            AssignResourcesToPart(true);
         }
-        public void selectTankSetup(int i, bool calledByPlayer)
+        public void SelectTankSetup(int i, bool calledByPlayer)
         {
-            initializeData();
-            if (selectedTankSetup != i)
-            {
-                selectedTankSetup = i;
-                Debug.Log("InsterstellarFuelSwitch selectTankSetup selectedTankSetup = i = " + selectedTankSetup);
-                assignResourcesToPart(calledByPlayer);
-            }
+            InitializeData();
+	        if (selectedTankSetup == i) return;
+
+	        selectedTankSetup = i;
+	        Debug.Log("InsterstellarFuelSwitch selectTankSetup selectedTankSetup = i = " + selectedTankSetup);
+	        AssignResourcesToPart(calledByPlayer);
         }
 
-        private void assignResourcesToPart(bool calledByPlayer, bool calledAtStartup = false)
+        private void AssignResourcesToPart(bool calledByPlayer, bool calledAtStartup = false)
         {
             // destroying a resource messes up the gui in editor, but not in flight.
-            setupTankInPart(part, calledByPlayer, calledAtStartup);
+            SetupTankInPart(part, calledByPlayer, calledAtStartup);
             if (HighLogic.LoadedSceneIsEditor)
             {
-                for (int s = 0; s < part.symmetryCounterparts.Count; s++)
+                foreach (Part conterPart in part.symmetryCounterparts)
                 {
-                    setupTankInPart(part.symmetryCounterparts[s], calledByPlayer);
-                    InsterstellarFuelSwitch symSwitch = part.symmetryCounterparts[s].GetComponent<InsterstellarFuelSwitch>();
-                    if (symSwitch != null)
-                    {
-                        symSwitch.selectedTankSetup = selectedTankSetup;
-                        Debug.Log("InsterstellarFuelSwitch assignResourcesToPart symSwitch.selectedTankSetup = selectedTankSetup = " + selectedTankSetup);
-                    }
+	                SetupTankInPart(conterPart, calledByPlayer);
+	                var symSwitch = conterPart.GetComponent<InsterstellarFuelSwitch>();
+	                if (symSwitch == null) continue;
+
+	                symSwitch.selectedTankSetup = selectedTankSetup;
+	                Debug.Log("InsterstellarFuelSwitch assignResourcesToPart symSwitch.selectedTankSetup = selectedTankSetup = " + selectedTankSetup);
                 }
             }
             //Debug.Log("refreshing UI");
@@ -235,60 +232,64 @@ namespace FNPlugin.Storage
             else
                 Debug.Log("InsterstellarFuelSwitch assignResourcesToPart - no UI to refresh");
         }
-        private void setupTankInPart(Part currentPart, bool calledByPlayer, bool calledAtStartup = false)
+
+        private void SetupTankInPart(Part currentPart, bool calledByPlayer, bool calledAtStartup = false)
         {
             // create new ResourceNode
-            List<string> newResources = new List<string>();
-            List<ConfigNode> newResourceNodes = new List<ConfigNode>();
+            var newResources = new List<string>();
+            var newResourceNodes = new List<ConfigNode>();
 
-            int tankCount = selectedTankSetup;
+            var tankCount = selectedTankSetup;
             if(tankCount >= 0 && tankCount < tankList.Count) // Why was this ever a for loop?
             {
-                Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
-                for (int resourceCount = 0; resourceCount < tankList[tankCount].resources.Count; resourceCount++)
-                {
-                    if (tankList[tankCount].resources[resourceCount].name == "Structural") continue;
+	            Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
+	            foreach (var tankSresource in tankList[tankCount].resources)
+	            {
+		            if (tankSresource.name == "Structural") continue;
 
-                    var resourceName = tankList[tankCount].resources[resourceCount].name;
-                    newResources.Add(resourceName);
+		            var resourceName = tankSresource.name;
+		            newResources.Add(resourceName);
 
-                    ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                    double maxAmount = tankList[tankCount].resources[resourceCount].maxAmount * volumeMultiplier;
+		            var newResourceNode = new ConfigNode("RESOURCE");
+		            var maxAmount = tankSresource.maxAmount * volumeMultiplier;
 
-                    newResourceNode.AddValue("name", resourceName);
-                    newResourceNode.AddValue("maxAmount", maxAmount);
+		            newResourceNode.AddValue("name", resourceName);
+		            newResourceNode.AddValue("maxAmount", maxAmount);
 
-                    PartResource existingResource = null;
-                    if (HighLogic.LoadedSceneIsFlight)
-                        foreach(PartResource pr in part.Resources)
-                            if(pr.name.Equals(resourceName))
-                            {
-                                existingResource = pr;
-                                break;
-                            }
+		            PartResource existingResource = null;
+		            if (HighLogic.LoadedSceneIsFlight)
+		            {
+			            foreach (PartResource pr in part.Resources)
+			            {
+				            if (pr.name.Equals(resourceName))
+				            {
+					            existingResource = pr;
+					            break;
+				            }
+			            }
+		            }
 
-                    if(existingResource != null)
-                        newResourceNode.AddValue("amount", Math.Min(existingResource.amount, maxAmount));
-                    else if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
-                        newResourceNode.AddValue("amount", 0.0f);
-                    else
-                        newResourceNode.AddValue("amount", tankList[tankCount].resources[resourceCount].amount * volumeMultiplier);
+		            if(existingResource != null)
+			            newResourceNode.AddValue("amount", Math.Min(existingResource.amount, maxAmount));
+		            else if (calledByPlayer && !HighLogic.LoadedSceneIsEditor)
+			            newResourceNode.AddValue("amount", 0.0f);
+		            else
+			            newResourceNode.AddValue("amount", tankSresource.amount * volumeMultiplier);
 
-                    newResourceNodes.Add(newResourceNode);
-                }
+		            newResourceNodes.Add(newResourceNode);
+	            }
             }
 
-            // verify we need to update
+	        // verify we need to update
             if (newResourceNodes.Count > 0) 
             {
                 currentPart.Resources.list.Clear();
-                PartResource[] partResources = currentPart.GetComponents<PartResource>();
-                for (int i = 0; i < partResources.Length; i++)
+                var partResources = currentPart.GetComponents<PartResource>();
+                foreach (var resource in partResources)
                 {
-                    var resource = partResources[i];
-                    var resourcename = resource.resourceName;
-                    Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resourcename);
-                    DestroyImmediate(resource);
+	                var resourcename = resource.resourceName;
+	                Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resourcename);
+	                DestroyImmediate(resource);
                 }
 
                 Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + Print(newResources));
@@ -302,11 +303,11 @@ namespace FNPlugin.Storage
 
             // This also needs to be done when going from a setup with resources to a setup with no resources.
             currentPart.Resources.UpdateList();
-            updateWeight(currentPart, selectedTankSetup, calledByPlayer);
-            updateCost();
+            UpdateWeight(currentPart, selectedTankSetup, calledByPlayer);
+            UpdateCost();
         }
 
-        public static string Print( IList<string> list)
+        public static string Print(IEnumerable<string> list)
         {
             string result = "";
             foreach(var item in list)
@@ -327,12 +328,13 @@ namespace FNPlugin.Storage
             return true;
         }
 
-        private float updateCost() // Does this even do anything?
+        private float UpdateCost() // Does this even do anything?
         {
             //GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship); //crashes game
             return selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count ? (float)tankCostList[selectedTankSetup] : 0f;
         }
-        private void updateWeight(Part currentPart, int newTankSetup, bool calledByPlayer = false)
+
+        private void UpdateWeight(Part currentPart, int newTankSetup, bool calledByPlayer = false)
         {
             // when changed by player
             if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
@@ -340,46 +342,48 @@ namespace FNPlugin.Storage
             if (newTankSetup < weightList.Count)
                 currentPart.mass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
         }
+
         public override void OnUpdate()
         {
             //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-            bool showSwitchButtons = availableInFlight && !part.GetComponents<PartResource>().Any(r => r.amount > r.maxAmount / 1000);
+            var showSwitchButtons = availableInFlight && !part.GetComponents<PartResource>().Any(r => r.amount > r.maxAmount / 1000);
 
             Events["nextTankSetupEvent"].guiActive = showSwitchButtons;
             Events["previousTankSetupEvent"].guiActive = showSwitchButtons;
         }
+
         public void Update()
         {
             if (HighLogic.LoadedSceneIsEditor)
                 dryMassInfo = part.mass;
         }
-        private void setupTankList(bool calledByPlayer)
+
+        private void SetupTankList(bool calledByPlayer)
         {
             tankList = new List<FSmodularTank>();
             weightList = new List<double>();
             tankCostList = new List<double>();
 
             // First find the amounts each tank type is filled with
-            List<List<double>> resourceList = new List<List<double>>();
-            List<List<double>> initialResourceList = new List<List<double>>();
-            string[] resourceTankArray = resourceAmounts.Split(';');
-            string[] initialResourceTankArray = initialResourceAmounts.Split(';');
+            var resourceList = new List<List<double>>();
+            var initialResourceList = new List<List<double>>();
+            var resourceTankArray = resourceAmounts.Split(';');
+            var initialResourceTankArray = initialResourceAmounts.Split(';');
 
             if (initialResourceAmounts.Equals("") || initialResourceTankArray.Length != resourceTankArray.Length)
                 initialResourceTankArray = resourceTankArray;
 
-            //Debug.Log("FSDEBUGRES: " + resourceTankArray.Length+" "+resourceAmounts);
-            for (int tankCount = 0; tankCount < resourceTankArray.Length; tankCount++)
+            for (var tankCount = 0; tankCount < resourceTankArray.Length; tankCount++)
             {
                 resourceList.Add(new List<double>());
                 initialResourceList.Add(new List<double>());
-                string[] resourceAmountArray = resourceTankArray[tankCount].Trim().Split(',');
-                string[] initialResourceAmountArray = initialResourceTankArray[tankCount].Trim().Split(',');
+                var resourceAmountArray = resourceTankArray[tankCount].Trim().Split(',');
+                var initialResourceAmountArray = initialResourceTankArray[tankCount].Trim().Split(',');
 
                 if (initialResourceAmounts.Equals("") || initialResourceAmountArray.Length != resourceAmountArray.Length)
                     initialResourceAmountArray = resourceAmountArray;
 
-                for (int amountCount = 0; amountCount < resourceAmountArray.Length; amountCount++)
+                for (var amountCount = 0; amountCount < resourceAmountArray.Length; amountCount++)
                 {
                     try
                     {
@@ -394,15 +398,15 @@ namespace FNPlugin.Storage
             }
 
             // Then find the kinds of resources each tank holds, and fill them with the amounts found previously, or the amount hey held last (values kept in save persistence/craft)
-            string[] tankArray = resourceNames.Split(';');
-            for (int tankCount = 0; tankCount < tankArray.Length; tankCount++)
+            var tankArray = resourceNames.Split(';');
+            for (var tankCount = 0; tankCount < tankArray.Length; tankCount++)
             {
-                FSmodularTank newTank = new FSmodularTank();
+                var newTank = new FSmodularTank();
                 tankList.Add(newTank);
-                string[] resourceNameArray = tankArray[tankCount].Split(',');
+                var resourceNameArray = tankArray[tankCount].Split(',');
                 for (int nameCount = 0; nameCount < resourceNameArray.Length; nameCount++)
                 {
-                    FSresource newResource = new FSresource(resourceNameArray[nameCount].Trim(' '));
+                    var newResource = new FSresource(resourceNameArray[nameCount].Trim(' '));
                     if (resourceList[tankCount] != null)
                     {
                         if (nameCount < resourceList[tankCount].Count)
@@ -418,49 +422,49 @@ namespace FNPlugin.Storage
 
         public float GetModuleCost()
         {
-            return updateCost();
+            return UpdateCost();
         }
 
         public float GetModuleCost(float modifier)
         {
-            return updateCost();
+            return UpdateCost();
         }
 
-        public static List<string> parseNames(string names)
+		public static List<string> ParseNames(string names)
         {
-            return parseNames(names, false, true, string.Empty);
+            return ParseNames(names, false, true, string.Empty);
         }
 
-        public static List<string> parseNames(string names, bool replaceBackslashErrors)
+        public static List<string> ParseNames(string names, bool replaceBackslashErrors)
         {
-            return parseNames(names, replaceBackslashErrors, true, string.Empty);
+            return ParseNames(names, replaceBackslashErrors, true, string.Empty);
         }
 
-        public static List<string> parseNames(string names, bool replaceBackslashErrors, bool trimWhiteSpace, string prefix)
+        public static List<string> ParseNames(string names, bool replaceBackslashErrors, bool trimWhiteSpace, string prefix)
         {
-            List<string> source = names.Split(';').ToList<string>();
-            for (int i = source.Count - 1; i >= 0; i--)
+            var source = names.Split(';').ToList<string>();
+            for (var i = source.Count - 1; i >= 0; i--)
             {
                 if (source[i] == string.Empty)
                     source.RemoveAt(i);
             }
             if (trimWhiteSpace)
             {
-                for (int i = 0; i < source.Count; i++)
+                for (var i = 0; i < source.Count; i++)
                 {
                     source[i] = source[i].Trim(' ');
                 }
             }
             if (prefix != string.Empty)
             {
-                for (int i = 0; i < source.Count; i++)
+                for (var i = 0; i < source.Count; i++)
                 {
                     source[i] = prefix + source[i];
                 }
             }
             if (replaceBackslashErrors)
             {
-                for (int i = 0; i < source.Count; i++)
+                for (var i = 0; i < source.Count; i++)
                 {
                     source[i] = source[i].Replace('\\', '/');
                 }
@@ -472,14 +476,14 @@ namespace FNPlugin.Storage
         {
             if (showInfo)
             {
-                List<string> resourceList = parseNames(resourceNames);
-                StringBuilder info = new StringBuilder();
+                var resourceList = ParseNames(resourceNames);
+                var info = new StringBuilder();
                 info.AppendLine("Fuel tank setups available:");
-                for (int i = 0; i < resourceList.Count; i++)
+                foreach (var t in resourceList)
                 {
-                    info.AppendLine(resourceList[i].Replace(",", ", "));
+	                info.AppendLine(t.Replace(",", ", "));
                 }
-                return info.ToString();
+	            return info.ToString();
             }
             else
                 return string.Empty;
