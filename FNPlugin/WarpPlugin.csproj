@@ -90,6 +90,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ParseTools.cs" />
     <Compile Include="Extensions\PartExtensions.cs" />
     <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
     <Compile Include="Microwave\IElectricPowerSource.cs" />
