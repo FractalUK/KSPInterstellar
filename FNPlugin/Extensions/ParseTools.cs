@@ -10,7 +10,7 @@ namespace FNPlugin.Extensions
 		public static List<double> ParseDoubles(string stringOfDoubles)
 		{
 			var list = new List<double>();
-			string[] array = stringOfDoubles.Trim().Split(';');
+			var array = stringOfDoubles.Trim().Split(';');
 			foreach (var arrayItem in array)
 			{
 				double item = 0f;

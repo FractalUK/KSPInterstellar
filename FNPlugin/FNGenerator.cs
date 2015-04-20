@@ -80,7 +80,8 @@ namespace FNPlugin {
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
 		[KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
-		public void ActivateGenerator() {
+		public void ActivateGenerator() 
+        {
 			IsEnabled = true;
 		}
 
@@ -142,7 +143,8 @@ namespace FNPlugin {
 
 		public override void OnStart(PartModule.StartState state) 
         {
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
+            previousTimeWarp = TimeWarp.fixedDeltaTime - 0.00000001;
+            String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
             generatorType = originalName;
@@ -360,20 +362,28 @@ namespace FNPlugin {
             {
 				updateGeneratorPower ();
 
-                if (TimeWarp.fixedDeltaTime != previousTimeWarp)
+                bool isChangingTimeWarp = TimeWarp.fixedDeltaTime != previousTimeWarp;
+                if (isChangingTimeWarp)
                 {
                     var requiredMegawattCapacity = TimeWarp.fixedDeltaTime * MaxStableMegaWattPower;
+                    var previousMegawattCapacity = previousTimeWarp * MaxStableMegaWattPower;
 
                     PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                     if (megajouleResource != null)
+                    {
+                        var oldRatio = megajouleResource.amount / megajouleResource.maxAmount;
+
                         megajouleResource.maxAmount = requiredMegawattCapacity;
+                        megajouleResource.amount =  requiredMegawattCapacity > previousMegawattCapacity 
+                            ? Math.Max(0, Math.Min(requiredMegawattCapacity, megajouleResource.amount + requiredMegawattCapacity - previousMegawattCapacity))
+                            : Math.Max(0, Math.Min(requiredMegawattCapacity, oldRatio * megajouleResource.maxAmount)); 
+                    }
 
                     PartResource wasteheatResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
                     if (wasteheatResource != null)
                     {
                         var previousMaxAmount = wasteheatResource.maxAmount;
-                        
                         wasteheatResource.maxAmount = TimeWarp.fixedDeltaTime * part.mass * 1000;
                         this.part.RequestResource(FNResourceManager.FNRESOURCE_WASTEHEAT, previousTimeWarp > TimeWarp.fixedDeltaTime ? previousMaxAmount - wasteheatResource.maxAmount : 0);
                     }
@@ -384,26 +394,8 @@ namespace FNPlugin {
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
 
-                var totalcapacity = getTotalResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var spareCapacity = getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var targetCapacity = TimeWarp.fixedDeltaTime * _totalMaximumPowerAllReactors;
-                var emptyCapacityShorage = targetCapacity - (totalcapacity - spareCapacity);
-                var powerDemand = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var electrical_power_currently_needed = powerDemand + emptyCapacityShorage;
-
-                if (electrical_power_currently_needed < 0)
-                {
-                    // still statisfy power demand
-                    electrical_power_currently_needed = powerDemand;
-                }
-                else
-                {
-                    var shortage = Math.Max(0, targetCapacity - previousTargetCapacity);
-                    if (shortage > 0)
-                        this.part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, -shortage);
-                }
-
-                previousTargetCapacity = targetCapacity;
+                var electrical_power_currently_needed = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) 
+                    + getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 double electricdt = 0;
                 double electricdtps = 0;
