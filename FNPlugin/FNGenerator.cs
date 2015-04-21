@@ -5,7 +5,10 @@ using System.Text;
 using UnityEngine;
 using FNPlugin.Extensions;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
+    enum PowerStates { powerChange, powerOnline, powerDown, powerOffline };
+
     [KSPModule("Electrical Generator")]
     class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource
     {
@@ -77,6 +80,8 @@ namespace FNPlugin {
         protected long update_count = 0;
         protected int partDistance;
 
+        private PowerStates _powerState;
+
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
 		[KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
@@ -143,7 +148,7 @@ namespace FNPlugin {
 
 		public override void OnStart(PartModule.StartState state) 
         {
-            previousTimeWarp = TimeWarp.fixedDeltaTime - 0.00000001;
+            previousTimeWarp = TimeWarp.fixedDeltaTime;
             String[] resources_to_supply = {FNResourceManager.FNRESOURCE_MEGAJOULES,FNResourceManager.FNRESOURCE_WASTEHEAT};
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
@@ -275,7 +280,7 @@ namespace FNPlugin {
 				if (update_count - last_draw_update > 10) 
                 {
                     OutputPower = getPowerFormatString(outputPowerReport) + "_e";
-					OverallEfficiency = percentOutputPower.ToString ("0.000") + "%";
+					OverallEfficiency = percentOutputPower.ToString ("0.00") + "%";
 
                     MaxPowerStr = (_totalEff >= 0) 
                         ? !chargedParticleMode
@@ -350,9 +355,12 @@ namespace FNPlugin {
                 ? (myAttachedReactor as IChargedParticleSource).MaximumChargedPower * heat_exchanger_thrust_divisor : 0;
             
 			coldBathTemp = (float) FNRadiator.getAverageRadiatorTemperatureForVessel (vessel);
+
+
 		}
 
-        private double previousTargetCapacity;
+        private double _previousMaxStableMegaWattPower;
+
         private double previousTimeWarp;
 
 		public override void OnFixedUpdate() 
@@ -360,13 +368,20 @@ namespace FNPlugin {
 			base.OnFixedUpdate ();
 			if (IsEnabled && myAttachedReactor != null && FNRadiator.hasRadiatorsForVessel (vessel)) 
             {
-				updateGeneratorPower ();
+				updateGeneratorPower();
 
-                bool isChangingTimeWarp = TimeWarp.fixedDeltaTime != previousTimeWarp;
-                if (isChangingTimeWarp)
+                // check if MaxStableMegaWattPower is changed
+                var maxStableMegaWattPower = MaxStableMegaWattPower;
+                if (maxStableMegaWattPower != _previousMaxStableMegaWattPower)
+                    _powerState = PowerStates.powerChange;
+                _previousMaxStableMegaWattPower = maxStableMegaWattPower;
+
+                if (maxStableMegaWattPower > 0 && (TimeWarp.fixedDeltaTime != previousTimeWarp || _powerState != PowerStates.powerOnline))
                 {
-                    var requiredMegawattCapacity = TimeWarp.fixedDeltaTime * MaxStableMegaWattPower;
-                    var previousMegawattCapacity = previousTimeWarp * MaxStableMegaWattPower;
+                    _powerState = PowerStates.powerOnline;
+
+                    var requiredMegawattCapacity = Math.Max(1, TimeWarp.fixedDeltaTime * maxStableMegaWattPower);
+                    var previousMegawattCapacity = Math.Max(1, previousTimeWarp * maxStableMegaWattPower);
 
                     PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
 
@@ -375,9 +390,11 @@ namespace FNPlugin {
                         var oldRatio = megajouleResource.amount / megajouleResource.maxAmount;
 
                         megajouleResource.maxAmount = requiredMegawattCapacity;
-                        megajouleResource.amount =  requiredMegawattCapacity > previousMegawattCapacity 
-                            ? Math.Max(0, Math.Min(requiredMegawattCapacity, megajouleResource.amount + requiredMegawattCapacity - previousMegawattCapacity))
-                            : Math.Max(0, Math.Min(requiredMegawattCapacity, oldRatio * megajouleResource.maxAmount)); 
+                        
+                        if (maxStableMegaWattPower > 0)
+                        megajouleResource.amount = requiredMegawattCapacity > previousMegawattCapacity
+                                ? Math.Max(0, Math.Min(requiredMegawattCapacity, megajouleResource.amount + requiredMegawattCapacity - previousMegawattCapacity))
+                                : Math.Max(0, Math.Min(requiredMegawattCapacity, oldRatio * requiredMegawattCapacity));
                     }
 
                     PartResource wasteheatResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -390,9 +407,25 @@ namespace FNPlugin {
 
                     PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
                     if (electricChargeResource != null)
-                        electricChargeResource.maxAmount = requiredMegawattCapacity; 
+                    {
+                        if (maxStableMegaWattPower <= 0)
+                            
+                        electricChargeResource.maxAmount = requiredMegawattCapacity;
+                        electricChargeResource.amount = maxStableMegaWattPower <= 0 ? 0 : Math.Min(electricChargeResource.maxAmount, electricChargeResource.amount);
+                    }
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
+
+                // don't produce any power when our reactor has stopped
+                if (maxStableMegaWattPower <= 0)
+                {
+                    PowerDown();
+                    return;
+                }
+                else
+                {
+                    powerDownFraction = 1;
+                }
 
                 var electrical_power_currently_needed = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) 
                     + getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
@@ -437,24 +470,59 @@ namespace FNPlugin {
 			} 
             else 
             {
-				if (IsEnabled && !vessel.packed) 
+                previousTimeWarp = TimeWarp.fixedDeltaTime;
+                if (IsEnabled && !vessel.packed)
                 {
-					if (!FNRadiator.hasRadiatorsForVessel (vessel)) 
+                    if (!FNRadiator.hasRadiatorsForVessel(vessel))
                     {
-						IsEnabled = false;
-						Debug.Log ("[WarpPlugin] Generator Shutdown: No radiators available!");
-						ScreenMessages.PostScreenMessage ("Generator Shutdown: No radiators available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-					}
+                        IsEnabled = false;
+                        Debug.Log("[WarpPlugin] Generator Shutdown: No radiators available!");
+                        ScreenMessages.PostScreenMessage("Generator Shutdown: No radiators available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        PowerDown();
+                    }
 
-					if (myAttachedReactor == null) 
+                    if (myAttachedReactor == null)
                     {
-						IsEnabled = false;
-						Debug.Log ("[WarpPlugin] Generator Shutdown: No reactor available!");
-						ScreenMessages.PostScreenMessage ("Generator Shutdown: No reactor available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-					}
-				}
+                        IsEnabled = false;
+                        Debug.Log("[WarpPlugin] Generator Shutdown: No reactor available!");
+                        ScreenMessages.PostScreenMessage("Generator Shutdown: No reactor available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        PowerDown();
+                    }
+                }
+                else
+                {
+                    PowerDown();
+                }
 			}
+            
 		}
+
+        private double powerDownFraction;
+
+        private void PowerDown()
+        {
+            if (_powerState != PowerStates.powerOffline)
+            {
+                if (powerDownFraction <= 0)
+                    _powerState = PowerStates.powerOffline;
+                else
+                    powerDownFraction -= 0.01;
+
+                PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
+                if (megajouleResource != null)
+                {
+                    megajouleResource.maxAmount = Math.Max(1, megajouleResource.maxAmount * powerDownFraction);
+                    megajouleResource.amount = Math.Min(megajouleResource.maxAmount, megajouleResource.amount);
+                }
+
+                PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
+                if (electricChargeResource != null)
+                {
+                    electricChargeResource.maxAmount = Math.Max(1, electricChargeResource.maxAmount * powerDownFraction);
+                    electricChargeResource.amount = Math.Min(electricChargeResource.maxAmount, electricChargeResource.amount);
+                }
+            }
+        }
 
 		public override string GetInfo() 
         {
