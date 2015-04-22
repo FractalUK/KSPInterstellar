@@ -88,10 +88,10 @@ namespace FNPlugin.Refinery
                 _status = "Electrolysing";
             } else if (_hydrogen_production_rate > 0)
             {
-                _status = "Electrolysing: Insufficient Oxygen Storage";
+                _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.Oxygen + " Storage";
             } else if (_oxygen_production_rate > 0)
             {
-                _status = "Electrolysing: Insufficient Hydrogen Storage";
+                _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.Hydrogen + " Storage";
             } else if (CurrentPower <= 0.01 * PowerRequirements)
             {
                 _status = "Insufficient Power";
