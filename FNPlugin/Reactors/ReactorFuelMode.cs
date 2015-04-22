@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 
-namespace FNPlugin {
-    class ReactorFuelMode {
+namespace FNPlugin 
+{
+    class ReactorFuelMode 
+	{
         protected int _reactor_type;
         protected string _mode_gui_name;
         protected List<ReactorFuel> _fuels;

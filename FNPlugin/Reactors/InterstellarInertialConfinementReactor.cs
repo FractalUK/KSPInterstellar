@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
@@ -42,14 +40,23 @@ namespace FNPlugin {
             {
                 float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
                 float laser_power_4 = Mathf.Pow(plasma_ratio, 4.0f);
-                return isupgraded ? upgradedPowerOutput != 0 ? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio : laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio : laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio; 
+                return isupgraded 
+					? upgradedPowerOutput != 0 
+						? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio 
+						: laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio 
+					: laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio; 
             } 
         }
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "HeatingPowerRequirements")]
-        public float LaserPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }
+	    [KSPField(isPersistant = false, guiActive = true, guiName = "HeatingPowerRequirements")]
+	    public float LaserPowerRequirements
+	    {
+		    get { return current_fuel_mode == null 
+				? powerRequirements 
+				: (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); }
+	    }
 
         [KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
         public void SwapFuelMode() 
@@ -84,12 +91,13 @@ namespace FNPlugin {
         public override void OnFixedUpdate() 
         {
             base.OnFixedUpdate();
-            if (IsEnabled)
-            {
-                power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                if (power_consumed < LaserPowerRequirements)  power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
-                plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
-            } 
+
+	        if (!IsEnabled) return;
+
+	        power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+	        if (power_consumed < LaserPowerRequirements)  
+				power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
+	        plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
         }
 
         public override string getResourceManagerDisplayName() {

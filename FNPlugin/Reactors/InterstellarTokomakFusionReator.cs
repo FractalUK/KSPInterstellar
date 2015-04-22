@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin 
@@ -27,9 +24,14 @@ namespace FNPlugin
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
-        public float HeatingPowerRequirements { get { return current_fuel_mode == null ? powerRequirements : (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); } }
-
-
+        public float HeatingPowerRequirements 
+		{ 
+			get { 
+				return current_fuel_mode == null 
+					? powerRequirements 
+					: (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); 
+			} 
+		}
 
         public override void OnUpdate() 
         {
