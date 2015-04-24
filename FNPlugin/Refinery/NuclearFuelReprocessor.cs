@@ -37,11 +37,11 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
         }
 
-        public void UpdateFrame(double rate_multiplier) 
+        public void UpdateFrame(double rateMultiplier) 
         {
-            _current_power = PowerRequirements * rate_multiplier;
+            _current_power = PowerRequirements * rateMultiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
-            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / GameConstants.EARH_DAY_SECONDS * rate_multiplier;
+            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / GameConstants.EARH_DAY_SECONDS * rateMultiplier;
             double enum_actinides_change = 0;
             foreach (INuclearFuelReprocessable nuclear_reactor in nuclear_reactors)
             {

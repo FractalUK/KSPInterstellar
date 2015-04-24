@@ -44,9 +44,9 @@ namespace FNPlugin.Refinery
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
-        public void UpdateFrame(double rate_multiplier)
+        public void UpdateFrame(double rateMultiplier)
         {
-            _current_power = PowerRequirements * rate_multiplier;
+            _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
             _water_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Water, _current_rate * TimeWarp.fixedDeltaTime / _water_density) / TimeWarp.fixedDeltaTime * _water_density;
             double h_rate_temp = _water_consumption_rate / (1 + GameConstants.electrolysisMassRatio);

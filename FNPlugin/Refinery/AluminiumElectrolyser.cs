@@ -45,9 +45,9 @@ namespace FNPlugin.Refinery
             _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
         }
 
-        public void UpdateFrame(double rate_multiplier)
+        public void UpdateFrame(double rateMultiplier)
         {
-            _current_power = PowerRequirements * rate_multiplier;
+            _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
             _alumina_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * TimeWarp.fixedDeltaTime / _alumina_density) / TimeWarp.fixedDeltaTime * _alumina_density;
             _aluminium_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * TimeWarp.fixedDeltaTime / _aluminium_density) * _aluminium_density / TimeWarp.fixedDeltaTime;

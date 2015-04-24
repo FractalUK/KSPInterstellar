@@ -49,9 +49,9 @@ namespace FNPlugin.Refinery
             _hydrazine_density = PartResourceLibrary.Instance.GetDefinition("MonoPropellant").density;
         }
 
-        public void UpdateFrame(double rate_multiplier)
+        public void UpdateFrame(double rateMultiplier)
         {
-            _current_power = PowerRequirements * rate_multiplier;
+            _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
             _ammonia_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, 0.5 * _current_rate * (1 - GameConstants.pechineyUgineKuhlmannMassRatio) * TimeWarp.fixedDeltaTime / _ammonia_density) * _ammonia_density / TimeWarp.fixedDeltaTime;
             _hydrogen_peroxide_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide, 0.5 * _current_rate * GameConstants.pechineyUgineKuhlmannMassRatio * TimeWarp.fixedDeltaTime / _hydrogen_peroxide_density) * _hydrogen_peroxide_density / TimeWarp.fixedDeltaTime;

@@ -17,7 +17,7 @@ namespace FNPlugin.Refinery
 
         String Status { get; }
 
-        void UpdateFrame(double power_ratio);
+        void UpdateFrame(double rateMultiplier);
 
         void UpdateGUI();
     }

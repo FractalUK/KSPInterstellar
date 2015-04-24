@@ -46,9 +46,9 @@ namespace FNPlugin.Refinery
             _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rate_multiplier)
+        public void UpdateFrame(double rateMultiplier)
         {
-            _current_power = PowerRequirements * rate_multiplier;
+            _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / GameConstants.baseUraniumAmmonolysisRate;
             double uf4persec = _current_rate * 1.24597 / _uranium_tetraflouride_density;
             double ammoniapersec = _current_rate * 0.901 / _ammonia_density;

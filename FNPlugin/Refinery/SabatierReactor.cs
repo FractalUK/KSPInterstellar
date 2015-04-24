@@ -46,9 +46,9 @@ namespace FNPlugin.Refinery
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
-        public void UpdateFrame(double rate_multiplier)
+        public void UpdateFrame(double rateMultiplier)
         {
-            _current_power = PowerRequirements * rate_multiplier;
+            _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon * _vessel.atmDensity;
 
             double h_rate_temp = _current_rate / (1 + GameConstants.electrolysisMassRatio);
