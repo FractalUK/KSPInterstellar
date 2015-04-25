@@ -267,7 +267,7 @@ namespace FNPlugin
                      
             // produce thrust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
-            double max_thrust_in_space = Current_propellant.Efficiency * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
+            double max_thrust_in_space = (type == 2 ? 0.78 : Current_propellant.Efficiency) * Current_propellant.ThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
             double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel * part.vessel.atmDensity), 0.0);
 
             if (_attached_engine.currentThrottle > 0)
@@ -338,7 +338,7 @@ namespace FNPlugin
             {
                 double ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (float)prop.IspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
                 double ispProp = modifiedEngineBaseISP * ispPropellantModifier;
-                double thrustProp = thrust_per_mw / ispPropellantModifier * prop.Efficiency;
+                double thrustProp = thrust_per_mw / ispPropellantModifier * (type == 2 ? 0.87 : prop.Efficiency) * prop.ThrustMultiplier;
                 return_str = return_str + "---" + prop.PropellantGUIName + "---\nThrust: " + thrustProp.ToString("0.000") + " kN per MW\nEfficiency: " + (prop.Efficiency * 100.0).ToString("0.00") + "%\nISP: " + ispProp.ToString("0.00") + "s\n";
             });
             return return_str;
@@ -369,7 +369,7 @@ namespace FNPlugin
         protected void updateISP(double isp_efficiency)
         {
             FloatCurve newISP = new FloatCurve();
-            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier));
+            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * Current_propellant.ThrustMultiplier));
             _attached_engine.atmosphereCurve = newISP;
         }
 

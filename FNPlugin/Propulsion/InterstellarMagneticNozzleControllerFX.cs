@@ -122,8 +122,7 @@ namespace FNPlugin
                 _max_reactor_power = _attached_reactor.MaximumChargedPower;
                 _max_truster_power = _max_reactor_power * (float)exchanger_thrust_divisor;
 
-                double currentMeVPerChargedProduct = _attached_reactor.CurrentMeVPerChargedProduct;
-                double joules_per_amu = currentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
+                double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
                 double current_isp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
 
                 FloatCurve new_isp = new FloatCurve();

@@ -16,7 +16,7 @@ namespace FNPlugin
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
-        public virtual bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
         [KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
         public void SwapFuelMode()

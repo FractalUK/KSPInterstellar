@@ -100,7 +100,7 @@ namespace FNPlugin {
         public string currentTPwr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Charged Power")]
         public string currentCPwr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Fuel")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
         public string fuelModeStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Connections")]
         public string connectedRecieversStr = String.Empty;
@@ -433,11 +433,14 @@ namespace FNPlugin {
                         if (ongoing_thermal_power_f > 0) currentTPwr = PluginHelper.getFormattedPowerString(ongoing_thermal_power_f) + "_th";
                         if (ongoing_charged_power_f > 0) currentCPwr = PluginHelper.getFormattedPowerString(ongoing_charged_power_f) + "_cp";
                         statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
-                    } else if (current_fuel_mode != null)
+                    } 
+                    else if (current_fuel_mode != null)
                     {
                         statusStr = current_fuel_mode.ReactorFuels.FirstOrDefault(fuel => getFuelAvailability(fuel) <= 0).FuelName + " Deprived";
                     }
-                } else {
+                } 
+                else 
+                {
                     if (powerPcnt > 0) statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
                     else statusStr = "Offline";
                 }
@@ -452,7 +455,8 @@ namespace FNPlugin {
         {
             decay_ongoing = false;
             base.OnFixedUpdate();
-            if (IsEnabled && MaximumPower > 0) {
+            if (IsEnabled && MaximumPower > 0) 
+            {
                 if (reactorIsOverheating()) {
                     if(FlightGlobals.ActiveVessel == vessel) ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     IsEnabled = false;
@@ -484,8 +488,13 @@ namespace FNPlugin {
 
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
                 {
-                    consumeReactorFuel(fuel, total_power_received * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
+                    var fuel_request= total_power_received * fuel.FuelUsePerMJ * fuelUsePerMJMult;
+                    var fuel_recieved = consumeReactorFuel(fuel, fuel_request); // consume fuel
+
+                    if (current_fuel_mode.OutputResourceName != null && current_fuel_mode.OutputResourceFraction > 0)
+                        part.ImprovedRequestResource(current_fuel_mode.OutputResourceName, -fuel_recieved * current_fuel_mode.OutputResourceFraction / FuelEfficiency);
                 }
+
                  
                 ongoing_total_power_f = ongoing_charged_power_f + ongoing_thermal_power_f;
                 // Waste Heat
@@ -504,7 +513,7 @@ namespace FNPlugin {
                     double lt_density_ratio = lithium_def.density / tritium_def.density;
                     tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, 
                         -lith_used*3.0/7.0*lt_density_ratio) / TimeWarp.fixedDeltaTime);
-                    if (tritium_produced_f <= 0) breedtritium = false;
+                    //if (tritium_produced_f <= 0) breedtritium = false;
                 }
 
                 if(Planetarium.GetUniversalTime() != 0)
@@ -622,6 +631,7 @@ namespace FNPlugin {
             {
                 consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
             }
+
             if (breedtritium) 
             {
                 tritium_rate = MaximumPower / 1000.0 / GameConstants.tritiumBreedRate;
@@ -738,8 +748,11 @@ namespace FNPlugin {
             }
             if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null) 
             {
-                if (!current_fuel_mode.Aneutronic && breedtritium)
+                if (IsNeutronRich && breedtritium)
                     PrintToGUILayout("Tritium Breed Rate", (tritium_produced_f * GameConstants.EARH_DAY_SECONDS).ToString("0.000") + " l/day", bold_label);
+                else
+                    PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
+                    
 
                 PrintToGUILayout("Fuel Mode", fuelModeStr, bold_label);
 
