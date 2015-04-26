@@ -174,7 +174,7 @@ namespace FNPlugin
             if (resourceDisplayName != null) 
                 currentresourceStr = resourceDisplayName + "(" + resourcePercentage + "%)";
             
-            resflow = resflowf.ToString("0.000000000");
+            UpdateResourceFlow();
         }
 
         public override void OnFixedUpdate() 
@@ -271,6 +271,12 @@ namespace FNPlugin
             //resflowf = (float)part.RequestResource(atmospheric_resource_name, -scoopedAtm * powerpcnt * TimeWarp.fixedDeltaTime);
             resflowf = (float)ORSHelper.fixedRequestResource(part, resourceStoragename, -resourceChange);
             resflowf = -resflowf / TimeWarp.fixedDeltaTime;
+            UpdateResourceFlow();
+        }
+
+        private void UpdateResourceFlow()
+        {
+            resflow = resflowf.ToString("0.0000000");
         }
 
         public override string getResourceManagerDisplayName() 
