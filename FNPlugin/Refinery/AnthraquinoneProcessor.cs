@@ -12,7 +12,7 @@ namespace FNPlugin.Refinery
     class AnthraquinoneProcessor : IRefineryActivity
     {
         protected Part _part;
-        //protected Vessel _vessel;
+        protected Vessel _vessel;
         protected String _status = "";
         protected double _current_rate;
         //protected double _water_density;
@@ -36,7 +36,14 @@ namespace FNPlugin.Refinery
 
         public double CurrentPower { get { return _current_power; } }
 
-        public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).Any(rs => rs.amount > 0); } }
+        public bool HasActivityRequirements 
+        { 
+            get 
+            {
+                return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) &&
+                    _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Oxygen).Any(rs => rs.amount > 0); 
+            } 
+        }
 
         public double PowerRequirements { get { return PluginHelper.BaseAnthraquiononePowerConsumption; } }
 
@@ -45,7 +52,7 @@ namespace FNPlugin.Refinery
         public AnthraquinoneProcessor(Part part) 
         {
             _part = part;
-            //_vessel = part.vessel;
+            _vessel = part.vessel;
             //_water_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
 			_hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
 			_oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
