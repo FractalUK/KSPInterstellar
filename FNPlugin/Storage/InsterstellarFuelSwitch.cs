@@ -232,7 +232,7 @@ namespace FNPlugin.Storage
             // parse configured amounts
             if (configuredAmounts.Length > 0)
             {
-                // empty configuration is switched by user
+                // empty configuration if switched by user
                 if (calledByPlayer)
                 {
                     configuredAmounts = String.Empty;
@@ -278,16 +278,14 @@ namespace FNPlugin.Storage
                     newResourceNode.AddValue("maxAmount", maxAmount);
 
                     PartResource existingResource = null;
-                    //if (!HighLogic.LoadedSceneIsEditor)
+
+                    foreach (PartResource partResource in part.Resources)
                     {
-                        foreach (PartResource partResource in part.Resources)
+                        if (partResource.resourceName.Equals(resourceName))
                         {
-                            if (partResource.resourceName.Equals(resourceName))
-                            {
-                                Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existing resource found!");
-                                existingResource = partResource;
-                                break;
-                            }
+                            Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existing resource found!");
+                            existingResource = partResource;
+                            break;
                         }
                     }
 
@@ -355,7 +353,11 @@ namespace FNPlugin.Storage
             if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
 
             if (newTankSetup < weightList.Count)
-                currentPart.mass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
+            {
+                var newMass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
+                Debug.Log("InsterstellarFuelSwitch: UpdateWeight to " + basePartMass + " + " + weightList[newTankSetup].ToString() + " * " + massMultiplier);
+                currentPart.mass = Math.Max(basePartMass, newMass);
+            }
         }
         public override void OnUpdate()
         {

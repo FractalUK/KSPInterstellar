@@ -24,6 +24,8 @@ namespace FNPlugin
         public float leathalDistance = 2000f;
         [KSPField(isPersistant = false)]
         public float killDivider = 50f;
+        [KSPField(isPersistant = false)]
+        public float fusionWasteHeat = 2500;
 
 		protected bool radhazard = false;
 
@@ -164,9 +166,9 @@ namespace FNPlugin
 
 			if (throttle > 0) 
             {
-                double power = consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                double recievedPower = consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 // Lasers produce Wasteheat
-                supplyFNResource(power * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deut_rate / throttle / throttle);
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_lith_rate / throttle / throttle);
@@ -176,10 +178,13 @@ namespace FNPlugin
                 newISP.Add(0, (float)(minISP / throttle));
                 curEngineT.atmosphereCurve = newISP;
 
-                if (power >= powerRequirement * TimeWarp.fixedDeltaTime)
-                    curEngineT.maxThrust = maxThrust;
-                else 
-                    curEngineT.maxThrust = 0.0001f;
+                var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime) ;
+                var fusionRatio = plasma_ratio >= 1 ? 1 : Mathf.Pow((float)plasma_ratio, 4.0f);
+
+                curEngineT.maxThrust = fusionRatio * maxThrust;
+
+                // The Aborb wasteheat from Fusion
+                supplyFNResource(fusionWasteHeat * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 			}
 		}
 
