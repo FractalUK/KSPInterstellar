@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FNPlugin {
-    public enum ElectricEngineType {
+namespace FNPlugin 
+{
+    public enum ElectricEngineType 
+    {
         PLASMA = 1,
         ARCJET = 2,
         ION = 4,
         VACUUMTHRUSTER = 8
     }
 
-    public class ElectricEnginePropellant {
-        
-
+    public class ElectricEnginePropellant 
+    {
         protected int prop_type;
         protected double efficiency;
         protected double ispMultiplier;
@@ -31,9 +32,7 @@ namespace FNPlugin {
 
         public double ThrustMultiplier { get { return thrustMultiplier; } }
 
-        public Propellant Propellant { 
-            get { return propellant; } 
-        }
+        public Propellant Propellant {  get { return propellant; } }
 
         public String PropellantName { get { return propellantname; } }
 
@@ -41,7 +40,8 @@ namespace FNPlugin {
 
         public String ParticleFXName { get { return effectname; } }
 
-        public ElectricEnginePropellant(ConfigNode node) {
+        public ElectricEnginePropellant(ConfigNode node) 
+        {
             propellantname = node.GetValue("name");
             propellantguiname = node.GetValue("guiName");
             ispMultiplier = Convert.ToDouble(node.GetValue("ispMultiplier"));

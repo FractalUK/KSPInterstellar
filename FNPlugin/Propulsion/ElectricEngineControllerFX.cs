@@ -227,7 +227,7 @@ namespace FNPlugin
                 electricalPowerShareStr = (100.0 * _electrical_share_f).ToString("0.00") + "%";
                 electricalPowerConsumptionStr = _electrical_consumption_f.ToString("0.000") + " MW";
                 heatProductionStr = _heat_production_f.ToString("0.000") + " MW";
-                efficiencyStr = Current_propellant != null ? (Current_propellant.Efficiency * 100.0).ToString("0.00") + "%" : "";
+                efficiencyStr = Current_propellant != null ? (CurrentPropellantEfficiency * 100.0).ToString("0.00") + "%" : "";
             } 
             else
             {
@@ -254,11 +254,11 @@ namespace FNPlugin
             // retrieve power
             _electrical_share_f = maxPower / Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.maxPower), maxPower);
             double powerAvailableForEngine = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0) * _electrical_share_f;
-            double power_per_engine = Math.Min(_attached_engine.currentThrottle * evaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerThrustModifier() * g0, maxPower * _current_propellant.Efficiency);
-            double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / _current_propellant.Efficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            double power_per_engine = Math.Min(_attached_engine.currentThrottle * evaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerThrustModifier() * g0, maxPower * CurrentPropellantEfficiency);
+            double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / CurrentPropellantEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     
             // produce waste heat
-            double heat_to_produce = power_received * (1.0 - Current_propellant.Efficiency);
+            double heat_to_produce = power_received * (1.0 - CurrentPropellantEfficiency);
             double heat_production = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
                     
             // update GUI Values
@@ -267,7 +267,7 @@ namespace FNPlugin
                      
             // produce thrust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
-            double max_thrust_in_space = (type == 2 ? 0.78 : Current_propellant.Efficiency) * Current_propellant.ThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
+            double max_thrust_in_space = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
             double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel * part.vessel.atmDensity), 0.0);
 
             if (_attached_engine.currentThrottle > 0)
@@ -328,6 +328,10 @@ namespace FNPlugin
             }
         }
 
+        protected double CurrentPropellantThrustMultiplier {  get {  return type == (int)ElectricEngineType.ARCJET ? Current_propellant.ThrustMultiplier : 1; } }
+        protected double CurrentPropellantEfficiency { get { return type == (int)ElectricEngineType.ARCJET ? 0.87 : Current_propellant.Efficiency; } }
+       
+
         public override string GetInfo()
         {
             double powerThrustModifier = GetPowerThrustModifier();
@@ -338,8 +342,9 @@ namespace FNPlugin
             {
                 double ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (float)prop.IspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
                 double ispProp = modifiedEngineBaseISP * ispPropellantModifier;
-                double thrustProp = thrust_per_mw / ispPropellantModifier * (type == 2 ? 0.87 : prop.Efficiency) * prop.ThrustMultiplier;
-                return_str = return_str + "---" + prop.PropellantGUIName + "---\nThrust: " + thrustProp.ToString("0.000") + " kN per MW\nEfficiency: " + (prop.Efficiency * 100.0).ToString("0.00") + "%\nISP: " + ispProp.ToString("0.00") + "s\n";
+                double efficiency = type == (int)ElectricEngineType.ARCJET ? 0.87 : prop.Efficiency;
+                double thrustProp = thrust_per_mw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET ? prop.ThrustMultiplier : 1);
+                return_str = return_str + "---" + prop.PropellantGUIName + "---\nThrust: " + thrustProp.ToString("0.000") + " kN per MW\nEfficiency: " + (efficiency * 100.0).ToString("0.00") + "%\nISP: " + ispProp.ToString("0.00") + "s\n";
             });
             return return_str;
         }
@@ -363,13 +368,13 @@ namespace FNPlugin
         {
             if (Current_propellant == null) return 0;
 
-            return Current_propellant.Efficiency * GetPowerThrustModifier() * power_supply / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
+            return CurrentPropellantEfficiency * GetPowerThrustModifier() * power_supply / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
         }
 
         protected void updateISP(double isp_efficiency)
         {
             FloatCurve newISP = new FloatCurve();
-            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * Current_propellant.ThrustMultiplier));
+            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier));
             _attached_engine.atmosphereCurve = newISP;
         }
 
