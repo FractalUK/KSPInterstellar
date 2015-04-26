@@ -39,18 +39,18 @@ namespace FNPlugin.Refinery
             System.Random rnd = new System.Random();
             _window_ID = rnd.Next(int.MaxValue);
 
-            _refinery_activities = new List<IRefineryActivity>();
-            _refinery_activities.Add(new NuclearFuelReprocessor(this.part));
-            _refinery_activities.Add(new AluminiumElectrolyser(this.part));
-            _refinery_activities.Add(new SabatierReactor(this.part));
-            _refinery_activities.Add(new WaterElectroliser(this.part));
-            _refinery_activities.Add(new AnthraquinoneProcessor(this.part));
-            _refinery_activities.Add(new MonopropellantProducer(this.part));
-            _refinery_activities.Add(new UF4Ammonolysiser(this.part));
-            _refinery_activities.Add(new HaberProcess(this.part));
-            _refinery_activities.Add(new AmmoniaElectrolyzer(this.part));
+            var unsortedList =  new List<IRefineryActivity>();
+            unsortedList.Add(new AnthraquinoneProcessor(this.part));
+            unsortedList.Add(new NuclearFuelReprocessor(this.part));
+            unsortedList.Add(new AluminiumElectrolyser(this.part));
+            unsortedList.Add(new SabatierReactor(this.part));
+            unsortedList.Add(new WaterElectroliser(this.part));
+            unsortedList.Add(new MonopropellantProducer(this.part));
+            unsortedList.Add(new UF4Ammonolysiser(this.part));
+            unsortedList.Add(new HaberProcess(this.part));
+            unsortedList.Add(new AmmoniaElectrolyzer(this.part));
 
-            _refinery_activities.OrderBy(a => a.ActivityName);
+            _refinery_activities = unsortedList.OrderBy(a => a.ActivityName).ToList();
 
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
