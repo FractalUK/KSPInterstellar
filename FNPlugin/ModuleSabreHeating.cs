@@ -52,7 +52,8 @@ namespace FNPlugin {
 
                     if (rapier_engine != null)
                     {
-                        if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelocityCurve)
+                        //if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelocityCurve)
+                        if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelCurve)
                         {
                             float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
                             if (temp >= (part.maxTemp - 10.0f))
@@ -71,7 +72,8 @@ namespace FNPlugin {
 
                     if (rapier_engine2 != null)
                     {
-                        if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelocityCurve)
+                        //if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelocityCurve)
+                        if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelCurve)
                         {
                             float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
                             if (temp >= (part.maxTemp - 10.0f))

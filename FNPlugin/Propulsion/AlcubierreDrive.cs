@@ -175,7 +175,8 @@ namespace FNPlugin
                 isDeactivatingWarpDrive = false;
             }
 
-            float atmosphere_height = this.vessel.mainBody.maxAtmosphereAltitude;
+            //float atmosphere_height = this.vessel.mainBody.maxAtmosphereAltitude;
+            float atmosphere_height = (float)this.vessel.mainBody.atmosphereDepth;
             if (this.vessel.altitude <= atmosphere_height && vessel.mainBody.flightGlobalsIndex != 0) {
 				ScreenMessages.PostScreenMessage("Cannot deactivate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;

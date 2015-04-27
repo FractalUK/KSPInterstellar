@@ -50,21 +50,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.25' " Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="OpenResourceSystem_1_4_3, Version=1.4.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\OpenResourceSystem\Plugins\OpenResourceSystem_1_4_3.dll</HintPath>
-      <Aliases>ORSv1_4_3</Aliases>
-    </Reference>
+    <Reference Include="Microsoft.QualityTools.Testing.Fakes, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Scale_Redist, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\TweakScale\plugins\Scale_Redist.dll</HintPath>
@@ -78,15 +67,8 @@
     <Reference Include="Toolbar">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\000_Toolbar\Toolbar.dll</HintPath>
     </Reference>
-    <Reference Condition=" ('$(Configuration)' == 'Release KSP 0.90') Or ('$(Configuration)' == 'Debug KSP 0.90') " Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="UnityEngine">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Condition=" '$(Configuration)' == 'Release KSP 0.25' " Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Games\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -191,7 +173,14 @@
   </Target>
   -->
   <ItemGroup>
+    <Fakes Include="Fakes\UnityEngine.fakes" />
     <None Include="License.md" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\OpenResourceSystem\OpenResourceSystem.csproj">
+      <Project>{bca16e74-23e5-4327-9d24-b908a8ce3836}</Project>
+      <Name>OpenResourceSystem</Name>
+      <Aliases>ORSv1_4_3</Aliases>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

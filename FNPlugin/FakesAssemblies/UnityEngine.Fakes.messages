@@ -1,0 +1,703 @@
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WrapperlessIcall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AttributeHelperEngine: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CanConvertToFlashAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MarshallOnlyFirstField: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ClassLibraryInitializer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SetupCoroutine: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CppIncludeAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CppDefineAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CppBodyAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CppInvokeAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CppPropertyBodyAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CppPropertyAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WritableAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FilterMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextureWrapMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NPOTSupport: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextureFormat: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CubemapFace: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderTextureFormat: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderTextureReadWrite: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rendering.BlendMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rendering.BlendOp: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rendering.CompareFunction: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rendering.CullMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rendering.ColorWriteMask: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rendering.StencilOp: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIStateObjects: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SendMouseEvents: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Social: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SocialPlatforms.ActivePlatform: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SocialPlatforms.UserState: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SocialPlatforms.UserScope: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SocialPlatforms.TimeScope: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SocialPlatforms.Range: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RangeAttribute: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MultilineAttribute: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextAreaAttribute: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ScrollWaitDefinitions: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Security: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Types: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SliderState: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SliderHandler: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SystemClock: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextGenerationSettings: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextGenerator: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.PersistentListenerMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.ArgumentCache: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.BaseInvokableCall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.InvokableCall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.InvokableCall`1: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.InvokableCall`2: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.InvokableCall`3: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.InvokableCall`4: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.CachedInvokableCall`1: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEventCallState: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.PersistentCall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.PersistentCallGroup: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.InvokableCallList: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEventBase: method UnityEngine.Events.BaseInvokableCall UnityEngine.Events.UnityEventBase.GetDelegate(System.Object target, System.Reflection.MethodInfo theFunction) unstubbable: method is abstract and could not be stubbed, method signature type is non-visible to exported or assembly(UnityEngine.Fakes) or subtype(UnityEventBase in assembly UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEvent: method UnityEngine.Events.BaseInvokableCall UnityEngine.Events.UnityEventBase.GetDelegate(System.Object target, System.Reflection.MethodInfo theFunction) unstubbable: method is abstract and could not be stubbed, method signature type is non-visible to exported or assembly(UnityEngine.Fakes) or subtype(UnityEvent in assembly UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEvent`1: method UnityEngine.Events.BaseInvokableCall UnityEngine.Events.UnityEventBase.GetDelegate(System.Object target, System.Reflection.MethodInfo theFunction) unstubbable: method is abstract and could not be stubbed, method signature type is non-visible to exported or assembly(UnityEngine.Fakes) or subtype(UnityEvent`1 in assembly UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEvent`2: method UnityEngine.Events.BaseInvokableCall UnityEngine.Events.UnityEventBase.GetDelegate(System.Object target, System.Reflection.MethodInfo theFunction) unstubbable: method is abstract and could not be stubbed, method signature type is non-visible to exported or assembly(UnityEngine.Fakes) or subtype(UnityEvent`2 in assembly UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEvent`3: method UnityEngine.Events.BaseInvokableCall UnityEngine.Events.UnityEventBase.GetDelegate(System.Object target, System.Reflection.MethodInfo theFunction) unstubbable: method is abstract and could not be stubbed, method signature type is non-visible to exported or assembly(UnityEngine.Fakes) or subtype(UnityEvent`3 in assembly UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityEvent`4: method UnityEngine.Events.BaseInvokableCall UnityEngine.Events.UnityEventBase.GetDelegate(System.Object target, System.Reflection.MethodInfo theFunction) unstubbable: method is abstract and could not be stubbed, method signature type is non-visible to exported or assembly(UnityEngine.Fakes) or subtype(UnityEvent`4 in assembly UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UserAuthorizationDialog: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WWW: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Serialization.ListSerializationSurrogate: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Serialization.DictionarySerializationSurrogate`2: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.InternalStaticBatchingUtility: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MeshSubsetCombineUtility: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngineInternal.TypeInferenceRules: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AssetBundleCreateRequest: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AssetBundleRequest: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AssetBundle: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ReferenceData: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HideFlags: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SendMessageOptions: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PrimitiveType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Space: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LayerMask: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RuntimePlatform: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SystemLanguage: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LogType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DeviceType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SystemInfo: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WaitForSeconds: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WaitForFixedUpdate: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WaitForEndOfFrame: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Coroutine: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DisallowMultipleComponent: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RequireComponent: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AddComponentMenu: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ContextMenu: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ExecuteInEditMode: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HideInInspector: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ResourceRequest: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Resources: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ThreadPriority: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Profiler: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngineInternal.Reproduction: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CrashReport: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CursorMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Cursor: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightRenderMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightShadows: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.OcclusionArea: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.OcclusionPortal: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FogMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderSettings: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.QualityLevel: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ShadowProjection: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.QualitySettings: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CameraClearFlags: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DepthTextureMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TexGenMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnisotropicFiltering: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.BlendWeights: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MeshFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CombineInstance: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MeshTopology: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Mesh: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.BoneWeight: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SkinQuality: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Flare: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LensFlare: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Projector: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Skybox: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextMesh: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Particle: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.InternalEmitParticleArguments: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleEmitter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleAnimator: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TrailRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleRenderMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LineRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MaterialPropertyBlock: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderBuffer: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.InternalDrawTextureArguments: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Internal_DrawMeshTRArguments: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Internal_DrawMeshMatrixArguments: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Graphics: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Resolution: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightmapData: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightmapsMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ColorSpace: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightProbes: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightmapSettings: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GeometryUtility: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ScreenOrientation: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Screen: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SleepTimeout: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GL: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MeshRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.StaticBatchingUtility: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ImageEffectTransformsToLDR: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ImageEffectOpaque: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Texture2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Cubemap: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Texture3D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SparseTexture: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderTexture: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUITexture: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextAlignment: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextAnchor: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HorizontalWrapMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.VerticalWrapMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIText: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CharacterInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Font: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UICharInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UILineInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUILayer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LOD: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LODGroup: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GradientColorKey: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GradientAlphaKey: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Gradient: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ScaleMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUILayout: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUILayoutEntry: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUILayoutGroup: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIScrollGroup: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIAspectSizer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIGridSizer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIWordWrapSizer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUILayoutOption: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ExitGUIException: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FocusType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIClip: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PlatformSelection: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUISettings: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUISkin: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIContent: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIStyleState: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RectOffset: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FontStyle: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Internal_DrawArguments: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Internal_DrawWithTextSelectionArguments: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ImagePosition: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GUIStyle: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TextClipping: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TouchScreenKeyboardType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TouchScreenKeyboard: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Event: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.KeyCode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.EventType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.EventModifiers: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Gizmos: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LightProbeGroup: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Vector2: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Vector3: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Color: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Color32: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Quaternion: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rect: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Matrix4x4: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Bounds: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Vector4: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Ray: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Ray2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Plane: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Mathf: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RPCMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ConnectionTesterStatus: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkConnectionError: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkDisconnection: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MasterServerEvent: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkStateSynchronization: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkPeerType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkLogLevel: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkPlayer: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkViewID: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Ping: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkView: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Network: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.BitStream: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RPC: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HostData: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MasterServer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkMessageInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleSystemRenderMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleSystemSimulationSpace: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleSystem: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ParticleSystemRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RuntimeUndo: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SerializePrivateVariables: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SerializeField: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Shader: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralProcessorUsage: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralCacheSize: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralLoadingBehavior: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralPropertyType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralOutputType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralPropertyDescription: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralMaterial: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ProceduralTexture: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpriteAlignment: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpritePackingMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpritePackingRotation: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpriteMeshType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Sprite: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpriteRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Sprites.DataUtility: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WWWForm: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WWWTranscoder: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CacheIndex: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Caching: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UnityLogWriter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UnityString: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WeakListenerBindings: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NetworkReachability: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Application: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UserAuthorization: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderingPath: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TransparencySortMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Camera: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ComputeShader: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ComputeBufferType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ComputeBuffer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Debug: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Display: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Flash.ActionScript: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Flash.FlashPlayer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NotConvertedAttribute: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NotFlashValidatedAttribute: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NotRenamedAttribute: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TouchPhase: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.IMECompositionMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Touch: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DeviceOrientation: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AccelerationEvent: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Gyroscope: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LocationInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LocationServiceStatus: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LocationService: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Compass: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Input: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Light: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.GameObject: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Time: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Random: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PlayerPrefsException: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PlayerPrefs: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ForceMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RigidbodyConstraints: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rigidbody: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RigidbodyInterpolation: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointMotor: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointSpring: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointLimits: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HingeJoint: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpringJoint: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FixedJoint: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SoftJointLimit: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointDriveMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointProjectionMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointDrive: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CharacterJoint: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ConfigurableJointMotion: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RotationDriveMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ConfigurableJoint: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ConstantForce: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CollisionDetectionMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.BoxCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SphereCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MeshCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CapsuleCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RaycastCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WheelFrictionCurve: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WheelHit: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WheelCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RaycastHit: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PhysicMaterialCombine: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PhysicMaterial: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ContactPoint: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CollisionFlags: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ControllerColliderHit: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CharacterController: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.InteractiveCloth: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ClothSkinningCoefficient: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SkinnedCloth: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ClothRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TerrainCollider: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RaycastHit2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RigidbodyInterpolation2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RigidbodySleepMode2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CollisionDetectionMode2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ForceMode2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ColliderErrorState2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Rigidbody2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CircleCollider2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.BoxCollider2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.EdgeCollider2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PolygonCollider2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ContactPoint2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointLimitState2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointAngleLimits2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointTranslationLimits2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointMotor2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.JointSuspension2D: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SpringJoint2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DistanceJoint2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HingeJoint2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SliderJoint2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WheelJoint2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PhysicsMaterial2D: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ObstacleAvoidanceType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMeshAgent: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.OffMeshLinkType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.OffMeshLinkData: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMeshHit: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMeshTriangulation: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMesh: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.OffMeshLink: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMeshPathStatus: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMeshPath: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.NavMeshObstacle: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioSpeakerMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioSettings: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioClip: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioVelocityUpdateMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioListener: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FFTWindow: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioRolloffMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioSource: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioReverbPreset: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioReverbZone: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioLowPassFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioHighPassFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioDistortionFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioEchoFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioChorusFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AudioReverbFilter: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Microphone: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MovieTexture: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WebCamFlags: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WebCamDevice: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WebCamTexture: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationClipPair: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimatorOverrideController: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WrapMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationEvent: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationClip: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Keyframe: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationCurve: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.PlayMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.QueueMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationBlendMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationPlayMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationCullingType: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Animation: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationState: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AvatarTarget: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AvatarIKGoal: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimationInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimatorCullingMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimatorUpdateMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimatorStateInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimatorTransitionInfo: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.MatchTargetWeightMask: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Animator: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AnimatorUtility: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SkeletonBone: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanLimit: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanBone: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanDescription: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.AvatarBuilder: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.BodyDoF: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HeadDoF: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.LegDoF: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.ArmDoF: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.FingerDoF: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DoF: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanBodyBones: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanBodyPart: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanParameter: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Avatar: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.HumanTrait: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TreePrototype: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DetailRenderMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DetailPrototype: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.SplatPrototype: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TreeInstance: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TerrainData: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TerrainChangedFlags: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.TerrainRenderFlags: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Terrain: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Tree: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WindZoneMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.WindZone: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DrivenTransformProperties: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.DrivenRectTransformTracker: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RectTransform: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RectTransformUtility: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.RenderMode: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Canvas: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CanvasGroup: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.UIVertex: type is a value type.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.CanvasRenderer: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityAction: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityAction`1: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityAction`2: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityAction`3: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngine.Events.UnityAction`4: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngineInternal.FastCallExceptionHandler: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate stub for UnityEngineInternal.GetMethodDelegate: type is sealed.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WrapperlessIcall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AttributeHelperEngine: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CanConvertToFlashAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.MarshallOnlyFirstField: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ClassLibraryInitializer: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SetupCoroutine: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CppIncludeAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CppDefineAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CppBodyAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CppInvokeAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CppPropertyBodyAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CppPropertyAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WritableAttribute: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.FilterMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextureWrapMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NPOTSupport: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextureFormat: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CubemapFace: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RenderTextureFormat: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RenderTextureReadWrite: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Rendering.BlendMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Rendering.BlendOp: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Rendering.CompareFunction: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Rendering.CullMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Rendering.ColorWriteMask: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Rendering.StencilOp: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUIStateObjects: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SendMouseEvents: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.ActivePlatform: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.ISocialPlatform: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.ILocalUser: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.UserState: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.IUserProfile: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.IAchievement: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.IAchievementDescription: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.IScore: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.UserScope: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.TimeScope: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SocialPlatforms.ILeaderboard: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ScrollWaitDefinitions: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SliderState: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SliderHandler: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SystemClock: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextEditor+CharacterType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextEditor+DblClickSnapping: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextEditor+TextEditOp: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.PersistentListenerMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.ArgumentCache: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.BaseInvokableCall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.InvokableCall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.InvokableCall`1: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.InvokableCall`2: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.InvokableCall`3: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.InvokableCall`4: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.CachedInvokableCall`1: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.UnityEventCallState: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.PersistentCall: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.PersistentCallGroup: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.InvokableCallList: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.UserAuthorizationDialog: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Serialization.ListSerializationSurrogate: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Serialization.DictionarySerializationSurrogate`2: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.InternalStaticBatchingUtility: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.MeshSubsetCombineUtility: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngineInternal.TypeInferenceRules: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ReferenceData: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.HideFlags: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SendMessageOptions: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.PrimitiveType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Space: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RuntimePlatform: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SystemLanguage: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LogType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.DeviceType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ThreadPriority: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CursorMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LightType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LightRenderMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LightShadows: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.FogMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.QualityLevel: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ShadowProjection: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CameraClearFlags: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.DepthTextureMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TexGenMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AnisotropicFiltering: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.BlendWeights: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.MeshTopology: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SkinQuality: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.InternalEmitParticleArguments: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ParticleRenderMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.InternalDrawTextureArguments: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Internal_DrawMeshTRArguments: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Internal_DrawMeshMatrixArguments: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LightmapsMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ColorSpace: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ScreenOrientation: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextAlignment: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextAnchor: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.HorizontalWrapMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.VerticalWrapMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Font+FontTextureRebuildCallback: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ScaleMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUI+ScrollViewState: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUI+WindowFunction: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUILayout+LayoutedWindow: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUILayoutUtility+LayoutCache: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUILayoutEntry: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUILayoutGroup: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUIScrollGroup: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUIAspectSizer: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUIGridSizer: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUIWordWrapSizer: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUILayoutOption+Type: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.FocusType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUIClip: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.PlatformSelection: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.GUISkin+SkinChangedDelegate: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.FontStyle: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Internal_DrawArguments: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Internal_DrawWithTextSelectionArguments: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ImagePosition: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TextClipping: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TouchScreenKeyboardType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.KeyCode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.EventType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.EventModifiers: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RPCMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ConnectionTesterStatus: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NetworkConnectionError: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NetworkDisconnection: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.MasterServerEvent: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NetworkStateSynchronization: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NetworkPeerType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NetworkLogLevel: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ParticleSystemRenderMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ParticleSystemSimulationSpace: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RuntimeUndo: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SerializePrivateVariables: type is obsolete.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ISerializationCallbackReceiver: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ProceduralProcessorUsage: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ProceduralCacheSize: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ProceduralLoadingBehavior: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ProceduralPropertyType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ProceduralOutputType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SpriteAlignment: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SpritePackingMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SpritePackingRotation: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.SpriteMeshType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WWWTranscoder: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CacheIndex: type is obsolete.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.UnityLogWriter: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.UnityString: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WeakListenerBindings: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NetworkReachability: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Application+LogCallback: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.UserAuthorization: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RenderingPath: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TransparencySortMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ComputeBufferType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Display+DisplaysUpdatedDelegate: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TouchPhase: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.IMECompositionMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.DeviceOrientation: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LocationServiceStatus: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Transform+Enumerator: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ForceMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RigidbodyConstraints: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RigidbodyInterpolation: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.JointDriveMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.JointProjectionMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ConfigurableJointMotion: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RotationDriveMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CollisionDetectionMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RaycastCollider: type is obsolete.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.PhysicMaterialCombine: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CollisionFlags: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RigidbodyInterpolation2D: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RigidbodySleepMode2D: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.CollisionDetectionMode2D: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ForceMode2D: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ColliderErrorState2D: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.JointLimitState2D: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ObstacleAvoidanceType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.OffMeshLinkType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.NavMeshPathStatus: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioSpeakerMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioClip+PCMReaderCallback: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioClip+PCMSetPositionCallback: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioVelocityUpdateMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.FFTWindow: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioRolloffMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AudioReverbPreset: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WebCamFlags: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WrapMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.PlayMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.QueueMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AnimationBlendMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AnimationPlayMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AnimationCullingType: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Animation+Enumerator: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AvatarTarget: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AvatarIKGoal: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AnimatorCullingMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.AnimatorUpdateMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.BodyDoF: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.HeadDoF: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.LegDoF: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ArmDoF: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.FingerDoF: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.DoF: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.HumanBodyBones: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.HumanBodyPart: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.HumanParameter: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.DetailRenderMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TerrainChangedFlags: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.TerrainRenderFlags: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WindZoneMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.WindZone: type is not visible to exported or assembly(UnityEngine.Fakes).
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.DrivenTransformProperties: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RectTransform+Axis: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RectTransform+Edge: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RectTransform+ReapplyDrivenProperties: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.RenderMode: type is an enum.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Canvas+WillRenderCanvases: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.ICanvasRaycastFilter: type is an interface.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.UnityAction: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.UnityAction`1: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.UnityAction`2: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.UnityAction`3: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngine.Events.UnityAction`4: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngineInternal.FastCallExceptionHandler: type is a delegate.
+E:\GitHub\KSPInterstellar\FNPlugin\Fakes\UnityEngine.fakes : warning : Cannot generate shim for UnityEngineInternal.GetMethodDelegate: type is a delegate.
