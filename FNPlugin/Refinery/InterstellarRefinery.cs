@@ -65,8 +65,8 @@ namespace FNPlugin.Refinery
         {
             if (HighLogic.LoadedSceneIsFlight && refinery_is_enabled && _current_activity != null)
             {
-                var fixedConsumedPower = consumeFNResource(powerReqMult * _current_activity.PowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var power_ratio = fixedConsumedPower / TimeWarp.fixedDeltaTime / _current_activity.PowerRequirements / powerReqMult;
+                var fixedConsumedPowerMW = consumeFNResource(powerReqMult * _current_activity.PowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var power_ratio = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime / _current_activity.PowerRequirements / powerReqMult;
                 _current_activity.UpdateFrame(power_ratio);
             }
         }

@@ -263,36 +263,41 @@ namespace FNPlugin {
         [KSPEvent(guiActive = true, guiName = "Activate Reactor", active = false)]
         public void ActivateReactor() 
         {
-            if (IsNuclear) { return; }
+            if (IsNuclear) return;
+
             IsEnabled = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Reactor", active = true)]
         public void DeactivateReactor()
         {
-            if (IsNuclear) { return; }
+            if (IsNuclear) return;
+
             IsEnabled = false;
         }
 
         [KSPEvent(guiActive = true, guiName = "Enable Tritium Breeding", active = false)]
         public void BreedTritium() 
         {
-            if (!IsNeutronRich) { return; }
+            if (!IsNeutronRich) return;
+
             breedtritium = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Tritium Breeding", active = true)]
         public void StopBreedTritium() 
         {
-            if (!IsNeutronRich) { return; }
+            if (!IsNeutronRich) return;
+
             breedtritium = false;
         }
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitReactor() 
         {
-            if (ResearchAndDevelopment.Instance == null) { return; }
-            if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
+            if (ResearchAndDevelopment.Instance == null) return; 
+            if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
+
             upgradePartModule();
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
@@ -383,7 +388,8 @@ namespace FNPlugin {
                 return;
             }
 
-            if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative()) hasrequiredupgrade = true;
+            if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative()) 
+                hasrequiredupgrade = true;
 
             if (!reactorInit && startDisabled) 
             {
@@ -391,11 +397,13 @@ namespace FNPlugin {
                 IsEnabled = false;
                 startDisabled = false;
                 reactorInit = true;
-            } else if (!reactorInit) 
+            } 
+            else if (!reactorInit) 
             {
                 IsEnabled = true;
                 reactorInit = true;
             }
+
             print("[KSP Interstellar] Reactor Persistent Resource Update");
             if (IsEnabled && last_active_time > 0) 
                 doPersistentResourceUpdate();
@@ -435,14 +443,14 @@ namespace FNPlugin {
                         statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
                     } 
                     else if (current_fuel_mode != null)
-                    {
                         statusStr = current_fuel_mode.ReactorFuels.FirstOrDefault(fuel => getFuelAvailability(fuel) <= 0).FuelName + " Deprived";
-                    }
                 } 
                 else 
                 {
-                    if (powerPcnt > 0) statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
-                    else statusStr = "Offline";
+                    if (powerPcnt > 0) 
+                        statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
+                    else 
+                        statusStr = "Offline";
                 }
 
                 last_draw_update = update_count;
@@ -457,8 +465,11 @@ namespace FNPlugin {
             base.OnFixedUpdate();
             if (IsEnabled && MaximumPower > 0) 
             {
-                if (reactorIsOverheating()) {
-                    if(FlightGlobals.ActiveVessel == vessel) ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                if (reactorIsOverheating()) 
+                {
+                    if(FlightGlobals.ActiveVessel == vessel) 
+                        ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency reactor shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+
                     IsEnabled = false;
                     return;
                 }
@@ -517,10 +528,7 @@ namespace FNPlugin {
                 }
 
                 if(Planetarium.GetUniversalTime() != 0)
-                {
                     last_active_time = (float)(Planetarium.GetUniversalTime());
-                }
-
             }
             else if (MaximumPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * GameConstants.EARH_DAY_SECONDS && IsNuclear)
             {
@@ -534,9 +542,10 @@ namespace FNPlugin {
                 supplyFNResource(thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 powerPcnt = 100.0 * total_power_ratio;
                 decay_ongoing = true;
-            } else {
+            } 
+            else 
                 powerPcnt = 0;
-            }
+            
         }
 
         public virtual float GetCoreTempAtRadiatorTemp(float rad_temp)
@@ -548,7 +557,6 @@ namespace FNPlugin {
         {
             return MaximumPower;
         }
-                
 
         public float getRadius()
         {
@@ -562,7 +570,8 @@ namespace FNPlugin {
 
         public void enableIfPossible()
         {
-            if (!IsNuclear && !IsEnabled) IsEnabled = true;
+            if (!IsNuclear && !IsEnabled) 
+                IsEnabled = true;
         }
 
         public bool isVolatileSource() 
@@ -653,11 +662,12 @@ namespace FNPlugin {
             if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && canShutdown) 
             {
                 deactivate_timer++;
-                if (deactivate_timer > 3) return true;
-            } else 
-            {
+                if (deactivate_timer > 3) 
+                    return true;
+            } 
+            else 
                 deactivate_timer = 0;
-            }
+
             return false;
         }
 
@@ -726,8 +736,8 @@ namespace FNPlugin {
 
             if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x")) 
                 render_window = false;
-            GUILayout.BeginVertical();
 
+            GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
             GUILayout.Label(TypeName, bold_label, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
@@ -752,7 +762,6 @@ namespace FNPlugin {
                     PrintToGUILayout("Tritium Breed Rate", (tritium_produced_f * GameConstants.EARH_DAY_SECONDS).ToString("0.000") + " l/day", bold_label);
                 else
                     PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
-                    
 
                 PrintToGUILayout("Fuel Mode", fuelModeStr, bold_label);
 
