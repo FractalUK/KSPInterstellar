@@ -21,8 +21,10 @@ namespace FNPlugin
         public float last_power_percentage ;
 
         // part proterties
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
         public float scoopair = 0;
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        public float powerReqMult = 1;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Density")]
@@ -39,7 +41,6 @@ namespace FNPlugin
         public string recievedPower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Trace Atmosphere")]
         public string densityFractionOfUpperAthmosphere;
-
 
         
         // internals
@@ -205,22 +206,17 @@ namespace FNPlugin
             
             if (PluginHelper.OrsResourceMappings == null || !PluginHelper.OrsResourceMappings.TryGetValue(ors_atmospheric_resource_name, out resourceStoragename))
                 resourceStoragename = ors_atmospheric_resource_name;
-            else
-            {
-                // if resource name does not exits, use ors atmospheric resource name
-                if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(resourceStoragename))
-                    resourceStoragename = ors_atmospheric_resource_name;
-            }
+            else if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(resourceStoragename))
+                resourceStoragename = ors_atmospheric_resource_name;
 
             //double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
             double resourcedensity = PartResourceLibrary.Instance.GetDefinition(resourceStoragename).density;
-
 
             var maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
             
             double upperAtmospherFraction = Math.Max(0, (vessel.altitude - maxAltitudeAtmosphere) / Math.Max(0.000001, maxAltitudeAtmosphere * PluginHelper.MaxAtmosphericAltitudeMult - maxAltitudeAtmosphere));
             double upperatmosphereDensity = 1 - upperAtmospherFraction;
-            densityFractionOfUpperAthmosphere = (upperatmosphereDensity * 100.0).ToString("0.000") + "%";
+            
             double airDensity = part.vessel.atmDensity + (PluginHelper.MinAtmosphericAirDensity * upperatmosphereDensity);
             atmosphericDensity = airDensity.ToString("0.00000000");
 
@@ -235,14 +231,8 @@ namespace FNPlugin
             else if (resourceDisplayName == "Helium")
                 rescourceFraction += heliumTax;
 
+            densityFractionOfUpperAthmosphere = (upperatmosphereDensity * 100.0).ToString("0.000") + "%";
             rescourcePercentage = (float)rescourceFraction * 100f;
-
-            
-            double powerrequirements = (scoopair / 0.15f) * 6f * (float)PluginHelper.PowerConsumptionMultiplier;
-                
-            double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
-            double air = airspeed * (airDensity / 1000) * scoopair / resourcedensity;
-
             if (rescourceFraction <= 0 || vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
                 resflowf = 0.0f;
@@ -251,14 +241,38 @@ namespace FNPlugin
                 rescourcePercentage = 0;
                 return;
             }
-            
+
+            double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
+            double air = airspeed * (airDensity / 1000) * scoopair / resourcedensity;
             double scoopedAtm = (float)(air * rescourceFraction);
+            double powerrequirementsMW = (scoopair / 0.15f) * 6f * (float)PluginHelper.PowerConsumptionMultiplier * powerReqMult;
 
-            // calculate avialble power
-            float powerreceived = Math.Max(consumeFNResource(powerrequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
-            last_power_percentage = offlineCollecting ? last_power_percentage : (float)(powerreceived / powerrequirements / TimeWarp.fixedDeltaTime);
+            if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
+            {
+                // calculate available power
+                float powerreceivedMW = Math.Max(consumeFNResource(powerrequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
-            recievedPower = (last_power_percentage * powerrequirements).ToString("0.0") + " MW / " + powerrequirements.ToString("0.0") + " MW";
+                float normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
+
+                // if power requirement sufficiently low, retreive power from KW source
+                if (powerrequirementsMW < 2 && normalisedRevievedPowerMW <= powerrequirementsMW)
+                {
+                    var requiredKW = (float)(powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
+                    var recievedKW = ORSHelper.fixedRequestResource(part, "ElectricCharge", requiredKW * TimeWarp.fixedDeltaTime);
+                    powerreceivedMW += (recievedKW / 1000);
+                }
+
+                last_power_percentage = offlineCollecting ? last_power_percentage : (float)(powerreceivedMW / powerrequirementsMW / TimeWarp.fixedDeltaTime);
+            }
+            else
+            {
+                last_power_percentage = 0;
+                powerrequirementsMW = 0;
+            }
+
+            recievedPower = powerrequirementsMW < 2 
+                ? (last_power_percentage * powerrequirementsMW * 1000).ToString("0.0") + " KW / " + (powerrequirementsMW * 1000).ToString("0.0") + " KW"
+                : (last_power_percentage * powerrequirementsMW).ToString("0.0") + " MW / " + powerrequirementsMW.ToString("0.0") + " MW";
 
             double resourceChange = scoopedAtm * last_power_percentage * deltaTimeInSeconds;
 
