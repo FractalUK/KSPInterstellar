@@ -78,7 +78,7 @@ namespace FNPlugin.Storage
         public float volumeMultiplier = 1f;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
         public float massMultiplier = 1f;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive=false, guiName = "Amounts")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Amounts")]
         public string configuredAmounts = "";
 
         // Persistants
@@ -135,35 +135,34 @@ namespace FNPlugin.Storage
 
         private void InitializeData()
         {
-            if (!initialized)
+            if (initialized) return;
+
+            SetupTankList(false);
+            weightList = ParseTools.ParseDoubles(tankMass);
+            tankCostList = ParseTools.ParseDoubles(tankCost);
+
+            if (HighLogic.LoadedSceneIsFlight)
+                hasLaunched = true;
+
+            if (hasGUI)
             {
-                SetupTankList(false);
-                weightList = ParseTools.ParseDoubles(tankMass);
-                tankCostList = ParseTools.ParseDoubles(tankCost);
-
-                if (HighLogic.LoadedSceneIsFlight) 
-                    hasLaunched = true;
-
-                if (hasGUI)
-                {
-                    Events["nextTankSetupEvent"].guiActive = availableInFlight;
-                    Events["nextTankSetupEvent"].guiActiveEditor = availableInEditor;
-                    Events["previousTankSetupEvent"].guiActive = availableInFlight;
-                    Events["previousTankSetupEvent"].guiActiveEditor = availableInEditor;
-                }
-                else
-                {
-                    Events["nextTankSetupEvent"].guiActive = false;
-                    Events["nextTankSetupEvent"].guiActiveEditor = false;
-                    Events["previousTankSetupEvent"].guiActive = false;
-                    Events["previousTankSetupEvent"].guiActiveEditor = false;
-                }
-
-                if (HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
-                    Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
-
-                initialized = true;
+                Events["nextTankSetupEvent"].guiActive = availableInFlight;
+                Events["nextTankSetupEvent"].guiActiveEditor = availableInEditor;
+                Events["previousTankSetupEvent"].guiActive = availableInFlight;
+                Events["previousTankSetupEvent"].guiActiveEditor = availableInEditor;
             }
+            else
+            {
+                Events["nextTankSetupEvent"].guiActive = false;
+                Events["nextTankSetupEvent"].guiActiveEditor = false;
+                Events["previousTankSetupEvent"].guiActive = false;
+                Events["previousTankSetupEvent"].guiActiveEditor = false;
+            }
+
+            if (HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+                Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
+
+            initialized = true;
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next tank setup")]
@@ -279,13 +278,16 @@ namespace FNPlugin.Storage
 
                     PartResource existingResource = null;
 
-                    foreach (PartResource partResource in part.Resources)
+                    if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
                     {
-                        if (partResource.resourceName.Equals(resourceName))
+                        foreach (PartResource partResource in part.Resources)
                         {
-                            Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existing resource found!");
-                            existingResource = partResource;
-                            break;
+                            if (partResource.resourceName.Equals(resourceName))
+                            {
+                                Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existing resource found!");
+                                existingResource = partResource;
+                                break;
+                            }
                         }
                     }
 
