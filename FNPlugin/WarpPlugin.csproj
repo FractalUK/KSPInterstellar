@@ -173,7 +173,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Fakes Include="Fakes\UnityEngine.fakes" />
     <None Include="License.md" />
   </ItemGroup>
   <ItemGroup>
