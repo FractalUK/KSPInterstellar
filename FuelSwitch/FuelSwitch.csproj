@@ -45,7 +45,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InterstellarDebugMessages.cs" />
     <Compile Include="InsterstellarFuelSwitch.cs" />
+    <Compile Include="InterstellarMeshSwitch.cs" />
+    <Compile Include="InterstellarNodeLoader.cs" />
+    <Compile Include="InterstellarTextureSwitch.cs" />
     <Compile Include="ParseTools.cs" />
     <Compile Include="PartExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

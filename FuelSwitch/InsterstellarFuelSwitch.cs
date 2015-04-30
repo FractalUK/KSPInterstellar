@@ -9,7 +9,6 @@ namespace InterstellarFuelSwitch
 {
     public class FSresource
     {
-        //public PartResource resource;
         public string name;
         public int ID;
         public float ratio;
@@ -118,6 +117,17 @@ namespace InterstellarFuelSwitch
                 AssignResourcesToPart(false, false);
             }
         }
+
+        public void SelectTankSetup(int i, bool calledByPlayer)
+        {
+            InitializeData();
+            if (selectedTankSetup != i)
+            {
+                selectedTankSetup = i;
+                AssignResourcesToPart(calledByPlayer);
+            }
+        }
+
         public override void OnAwake()
         {
             if (configLoaded)

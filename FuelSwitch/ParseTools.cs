@@ -22,6 +22,21 @@ namespace InterstellarFuelSwitch
 			return list;
 		}
 
+        public static List<int> ParseIntegers(string stringOfInts)
+        {
+            List<int> newIntList = new List<int>();
+            string[] valueArray = stringOfInts.Split(';');
+            for (int i = 0; i < valueArray.Length; i++)
+            {
+                int newValue = 0;
+                if (int.TryParse(valueArray[i], out newValue))
+                    newIntList.Add(newValue);
+                else
+                    Debug.Log("invalid integer: " + valueArray[i]);
+            }
+            return newIntList;
+        }
+
 		public static List<string> ParseNames(string names)
 		{
 			return ParseNames(names, false, true, String.Empty);
