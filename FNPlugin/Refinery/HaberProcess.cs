@@ -46,7 +46,7 @@ namespace FNPlugin.Refinery
 
         private bool HasAccessToNitrogen()
         {
-            return FlightGlobals.getStaticPressure(_vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.01
+            return (FlightGlobals.getStaticPressure(_vessel.transform.position) / 100) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.01
                     || _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Nitrogen).Any(rs => rs.amount > 0);
         }
 
@@ -77,7 +77,7 @@ namespace FNPlugin.Refinery
 
             _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate * TimeWarp.fixedDeltaTime / _hydrogen_density) * _hydrogen_density / TimeWarp.fixedDeltaTime;
 
-            _atmospheric_nitrogen_rate = FlightGlobals.getStaticPressure(_vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen") * _current_rate * 10;
+            _atmospheric_nitrogen_rate = (FlightGlobals.getStaticPressure(_vessel.transform.position) /100) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen") * _current_rate * 10;
             if (_atmospheric_nitrogen_rate > nitrogen_rate)
                 _nitrogen_consumption_rate = nitrogen_rate;
             else

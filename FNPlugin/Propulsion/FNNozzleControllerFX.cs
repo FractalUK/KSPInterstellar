@@ -352,7 +352,7 @@ namespace FNPlugin{
 					myAttachedReactor.enableIfPossible();
 				}
 				updateIspEngineParams ();
-				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position), 1.0);
+				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position) / 100, 1.0);
 				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
 				double ispratio = currentIsp / maxISP;
 				this.current_isp = currentIsp;

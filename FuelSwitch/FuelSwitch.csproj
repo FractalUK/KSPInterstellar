@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>InterstellarFuelSwitch</RootNamespace>
     <AssemblyName>InterstellarFuelSwitch</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterstellarDebugMessages.cs" />
-    <Compile Include="InsterstellarFuelSwitch.cs" />
+    <Compile Include="InterstellarFuelSwitch.cs" />
     <Compile Include="InterstellarMeshSwitch.cs" />
     <Compile Include="InterstellarNodeLoader.cs" />
     <Compile Include="InterstellarTextureSwitch.cs" />

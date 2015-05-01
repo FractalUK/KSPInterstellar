@@ -325,7 +325,7 @@ namespace FNPlugin
             }
             else if (active_mode == 2) // Sabatier ISRU
             { 
-                if (FlightGlobals.getStaticPressure(vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01) 
+                if ((FlightGlobals.getStaticPressure(vessel.transform.position) / 100) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01) 
                 {
                     double electrical_power_provided = consumeFNResource((PluginHelper.BaseELCPowerConsumption) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseELCPowerConsumption);
@@ -425,7 +425,7 @@ namespace FNPlugin
                 bool atmosphereNitrogenIsAvailable = false;
                 float nitrogen_available = 0;
 
-                if ((FlightGlobals.getStaticPressure(vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.1))
+                if (((FlightGlobals.getStaticPressure(vessel.transform.position) /100) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.1))
                     atmosphereNitrogenIsAvailable = true;
                 else
                 {

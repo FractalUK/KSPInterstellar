@@ -31,7 +31,7 @@ namespace FNPlugin.Refinery
 
         public double CurrentPower { get { return _current_power; } }
 
-        public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) && FlightGlobals.getStaticPressure(_vessel.transform.position) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01; } }
+        public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) && (FlightGlobals.getStaticPressure(_vessel.transform.position) / 100) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01; } }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 

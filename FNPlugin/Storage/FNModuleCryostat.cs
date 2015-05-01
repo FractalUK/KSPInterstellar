@@ -101,7 +101,7 @@ namespace FNPlugin
                 Fields["powerStatusStr"].guiActive = coolingIsRelevant;
                 Fields["boiloffStr"].guiActive = boiloff > 0;
 
-                var atmosphereModifier = convectionMod == -1 ?  0 : convectionMod + FlightGlobals.getStaticPressure(vessel.transform.position) / (convectionMod + 1);
+                var atmosphereModifier = convectionMod == -1 ?  0 : convectionMod + (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / (convectionMod + 1);
                 var temperatureModifier = Math.Max(0, part.temperature + 273.15 - boilOffTemp) / 273.15;
                 environmentFactor = (float)(atmosphereModifier * temperatureModifier);
 

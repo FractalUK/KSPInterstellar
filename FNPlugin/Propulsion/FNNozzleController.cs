@@ -495,7 +495,7 @@ namespace FNPlugin
 
             // determine ISP
             updateIspEngineParams();
-            this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
+            this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0));
 
             // get the flameout safety limit
             if (currentpropellant_is_jet)
