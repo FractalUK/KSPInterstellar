@@ -35,7 +35,7 @@ namespace InterstellarFuelSwitch
         }
     }
 
-    class InterstellarTextureSwitch : PartModule
+    public class InterstellarTextureSwitch : PartModule
     {
         [KSPField]
         public string displayName = "Texture switcher";

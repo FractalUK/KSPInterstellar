@@ -39,7 +39,7 @@ namespace InterstellarFuelSwitch
         public List<FSresource> Resources = new List<FSresource>();
     }
 
-    public class InsterstellarFuelSwitch : PartModule, IPartCostModifier
+    public class InterstellarFuelSwitch : PartModule, IPartCostModifier
     {
         [KSPField]
         public string resourceGui = "";
@@ -213,7 +213,7 @@ namespace InterstellarFuelSwitch
                 for (int s = 0; s < part.symmetryCounterparts.Count; s++)
                 {
                     SetupTankInPart(part.symmetryCounterparts[s], calledByPlayer);
-                    InsterstellarFuelSwitch symSwitch = part.symmetryCounterparts[s].GetComponent<InsterstellarFuelSwitch>();
+                    InterstellarFuelSwitch symSwitch = part.symmetryCounterparts[s].GetComponent<InterstellarFuelSwitch>();
                     if (symSwitch != null)
                     {
                         symSwitch.selectedTankSetup = selectedTankSetup;

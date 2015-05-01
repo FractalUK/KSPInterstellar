@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace InterstellarFuelSwitch
 {
-    class InterstellarNodeLoader
+    public class InterstellarNodeLoader
     {
         public Part part;
         public string moduleName;

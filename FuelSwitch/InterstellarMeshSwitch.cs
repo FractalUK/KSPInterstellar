@@ -46,7 +46,7 @@ namespace InterstellarFuelSwitch
         private List<List<Transform>> objectTransforms = new List<List<Transform>>();
         private List<int> fuelTankSetupList = new List<int>();
         private List<string> objectDisplayList = new List<string>();
-        private InsterstellarFuelSwitch fuelSwitch;
+        private InterstellarFuelSwitch fuelSwitch;
         private InterstellarDebugMessages debug;
 
         private bool initialized = false;
@@ -207,7 +207,7 @@ namespace InterstellarFuelSwitch
 
                 if (useFuelSwitchModule)
                 {
-                    fuelSwitch = part.GetComponent<InsterstellarFuelSwitch>();
+                    fuelSwitch = part.GetComponent<InterstellarFuelSwitch>();
                     if (fuelSwitch == null)
                     {
                         useFuelSwitchModule = false;

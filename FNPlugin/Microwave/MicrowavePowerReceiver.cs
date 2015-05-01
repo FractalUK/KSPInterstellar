@@ -274,7 +274,7 @@ namespace FNPlugin
                     connectedrelaysi = 0;
                     networkDepth = 0;
 
-                    atmosphericefficiency = (float)Math.Exp(-FlightGlobals.getStaticPressure(vessel.transform.position) / 5);
+                    atmosphericefficiency = (float)Math.Exp(- (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / 5);
                     efficiency_d = GameConstants.microwave_dish_efficiency * atmosphericefficiency;
                     deactivate_timer = 0;
 

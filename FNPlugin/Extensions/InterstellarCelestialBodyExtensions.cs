@@ -39,7 +39,7 @@ namespace FNPlugin
         {
             lat = lat / 180 * Math.PI;
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[PluginHelper.REF_BODY_KERBIN];
-            double atmosphere = FlightGlobals.getStaticPressure(altitude, body);
+            double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / 100;
             double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(body);
             double atmosphere_scaling = Math.Exp(-atmosphere);
 
@@ -79,7 +79,7 @@ namespace FNPlugin
         {
             lat = lat / 180 * Math.PI;
             CelestialBody crefkerbin = FlightGlobals.fetch.bodies[PluginHelper.REF_BODY_KERBIN];
-            double atmosphere = FlightGlobals.getStaticPressure(altitude, body);
+            double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / 100;
             double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(body);
             double atmosphere_scaling = Math.Exp(-atmosphere);
 
