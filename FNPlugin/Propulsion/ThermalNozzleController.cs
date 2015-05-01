@@ -4,7 +4,6 @@ using ORSv1_4_3::OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using TweakScale;
 using FNPlugin.Propulsion;
@@ -131,30 +130,38 @@ namespace FNPlugin
 		protected ModuleEngines myAttachedEngine;
 		
 		protected bool _currentpropellant_is_jet = false;
+
+		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Engine Fuel Flow Rate")]
 		protected double fuel_flow_rate = 0;
+
 		protected int thrustLimitRatio = 0;
-		protected double current_isp = 0;
+
+		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
+		protected float current_isp = 0;
+
 		protected double old_intake = 0;
         protected int partDistance = 0;
         
         protected float old_atmospheric_limit;
+
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
         protected float maxPressureThresholdAtKerbinSurface;
+
         protected double currentintakeatm;
 
         public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
         public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
         public int Fuel_mode { get { return fuel_mode; } }
 
-        private IThermalSource myAttachedReactor;
+        private IThermalSource _myAttachedReactor;
         public IThermalSource MyAttachedReactor 
         {
-            get { return myAttachedReactor; }
+            get { return _myAttachedReactor; }
             private set 
             {
-                myAttachedReactor = value;
-                if (myAttachedReactor == null) return;
-                myAttachedReactor.AttachThermalReciever(id, radius);
+                _myAttachedReactor = value;
+                if (_myAttachedReactor == null) return;
+                _myAttachedReactor.AttachThermalReciever(id, radius);
             }
         }
 
@@ -244,7 +251,7 @@ namespace FNPlugin
         {
             if (MyAttachedReactor == null) return;
 
-            myAttachedReactor.DetachThermalReciever(id);
+            _myAttachedReactor.DetachThermalReciever(id);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -691,8 +698,8 @@ namespace FNPlugin
 
             GetMaximumIspAndThrustMultiplier();
 
-            var requested_thermal_power = _assThermalPower * myAttachedEngine.currentThrottle * GetAtmosphericLimit() * this.myAttachedReactor.GetFractionThermalReciever(id);
-            requestedReactorPower = requested_thermal_power.ToString("0.00") + " MW " + (this.myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
+            var requested_thermal_power = _assThermalPower * myAttachedEngine.currentThrottle * GetAtmosphericLimit() * this._myAttachedReactor.GetFractionThermalReciever(id);
+            requestedReactorPower = requested_thermal_power.ToString("0.00") + " MW " + (this._myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
 
             double fixed_requested_termal_power = TimeWarp.fixedDeltaTime * requested_thermal_power;
             var thermal_power_received = consumeFNResource(fixed_requested_termal_power, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
@@ -718,13 +725,13 @@ namespace FNPlugin
             engineMaxThrust = 0.01f;
             if (_assThermalPower > 0)
             {
-                double ispRatio = _currentpropellant_is_jet ? this.current_isp / _maxISP : 1;
-                double thrust_limit = myAttachedEngine.thrustPercentage / 100.0;
-                engineMaxThrust = (float)Math.Max(thrust_limit * GetPowerThrustModifier() * GetHeatThrustModifier() * thermal_power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.01);
+                double ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;
+                double thrustLimit = myAttachedEngine.thrustPercentage / 100.0;
+                engineMaxThrust = (float)Math.Max(thrustLimit * GetPowerThrustModifier() * GetHeatThrustModifier() * thermal_power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.01);
             }
 
             max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100;
-            double engine_thrust = max_thrust_in_space;
+            double engineThrust = max_thrust_in_space;
 
             var vesselStaticPresure = FlightGlobals.getStaticPressure(vessel.transform.position);
             
@@ -732,43 +739,43 @@ namespace FNPlugin
             if (!_currentpropellant_is_jet)
             {
                 pressureTreshold = exitArea * (float)vesselStaticPresure;
-                engine_thrust = Math.Max(max_thrust_in_space - pressureTreshold, 0.00001);
-                var thrustAtmosphereRatio = engine_thrust / Math.Max(max_thrust_in_space, 0.000001);
-                var isp_reduction_fraction = thrustAtmosphereRatio * heatExchangerThrustDivisor;
-                updateIspEngineParams(isp_reduction_fraction, max_thrust_in_space);
-                this.current_isp = _maxISP * isp_reduction_fraction;
+                engineThrust = Math.Max(max_thrust_in_space - pressureTreshold, 0.00001);
+                var thrustAtmosphereRatio = engineThrust / Math.Max(max_thrust_in_space, 0.000001);
+                var ispReductionFraction = thrustAtmosphereRatio * heatExchangerThrustDivisor;
+                updateIspEngineParams(ispReductionFraction, max_thrust_in_space);
+                current_isp = (float)(_maxISP * ispReductionFraction);
             }
 
             //myAttachedEngine.maxThrust = !double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust)
             //    ? (float)engine_thrust * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f)
             //    : 0.000001f;
 
-
-            final_engine_thrust = !double.IsInfinity(engine_thrust) && !double.IsNaN(engine_thrust) 
+            final_engine_thrust = !double.IsInfinity(engineThrust) && !double.IsNaN(engineThrust) 
                 ? (float)max_thrust_in_space * _thrustPropellantMultiplier 
                 : 0.000001f;
+            //myAttachedEngine.maxThrust = final_engine_thrust;
 
-            myAttachedEngine.maxThrust = final_engine_thrust;
-            myAttachedEngine.resultingThrust = final_engine_thrust;
-            myAttachedEngine.finalThrust = final_engine_thrust;
+			// set the fuelflow multiplier
+	        //myAttachedEngine.flowMultiplier = _thrustPropellantMultiplier;
             
 
             // amount of fuel being used at max throttle with no atmospheric limits
             if (current_isp > 0)
             {
-                double vcurve_at_current_velocity = 1;
+				// calculate base fuel flow rate
+				fuel_flow_rate = final_engine_thrust / current_isp / PluginHelper.GravityConstant / 0.005 * TimeWarp.fixedDeltaTime;
 
-                //if (myAttachedEngine.useVelocityCurve && myAttachedEngine.velocityCurve != null)
-                if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
-                    //vcurve_at_current_velocity = myAttachedEngine.velocityCurve.Evaluate((float)vessel.srf_velocity.magnitude);
-                    vcurve_at_current_velocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
-
-                fuel_flow_rate = engine_thrust / current_isp / PluginHelper.GravityConstant / 0.005 * TimeWarp.fixedDeltaTime;
-                if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity))
-                    this.fuel_flow_rate = fuel_flow_rate / vcurve_at_current_velocity;
+				double vcurveAtCurrentVelocity = !myAttachedEngine.useVelCurve || myAttachedEngine.velCurve == null ? 1 
+					: myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+                
+                if (vcurveAtCurrentVelocity > 0 && !double.IsInfinity(vcurveAtCurrentVelocity) && !double.IsNaN(vcurveAtCurrentVelocity))
+                    fuel_flow_rate = fuel_flow_rate / vcurveAtCurrentVelocity;
 
                 if (atmospheric_limit > 0 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
-                    this.fuel_flow_rate = fuel_flow_rate / atmospheric_limit;
+                    fuel_flow_rate = fuel_flow_rate / atmospheric_limit;
+
+				// set engines maximum fuel flow
+	            myAttachedEngine.maxFuelFlow = (float)fuel_flow_rate;
 
                 if (_fuelToxicity > 0 && fuel_flow_rate > 0 && vesselStaticPresure > 1)
                 {
@@ -783,6 +790,7 @@ namespace FNPlugin
                         _savedReputationCost -= flooredReputationCost;
                     }
                 }
+
 
                 // calculate fuelFlowCooling
                 fuelFlowCooling = (float)fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);
@@ -995,8 +1003,8 @@ namespace FNPlugin
             if (MyAttachedReactor != null)
             {
                 // re-attach with updated radius
-                myAttachedReactor.DetachThermalReciever(id);
-                myAttachedReactor.AttachThermalReciever(id, radius);
+                _myAttachedReactor.DetachThermalReciever(id);
+                _myAttachedReactor.AttachThermalReciever(id, radius);
 
                 Fields["vacuumPerformance"].guiActiveEditor = true;
                 Fields["radiusModifier"].guiActiveEditor = true;
@@ -1037,9 +1045,9 @@ namespace FNPlugin
 
         private double GetHeatExchangerThrustDivisor()
         {
-            if (MyAttachedReactor == null || MyAttachedReactor.getRadius() == 0 || radius == 0 || myAttachedReactor.GetFractionThermalReciever(id) == 0) return 0;
+            if (MyAttachedReactor == null || MyAttachedReactor.getRadius() == 0 || radius == 0 || _myAttachedReactor.GetFractionThermalReciever(id) == 0) return 0;
 
-            var fractionalReactorRadius = Math.Sqrt(Math.Pow(MyAttachedReactor.getRadius(), 2) * myAttachedReactor.GetFractionThermalReciever(id));
+            var fractionalReactorRadius = Math.Sqrt(Math.Pow(MyAttachedReactor.getRadius(), 2) * _myAttachedReactor.GetFractionThermalReciever(id));
 
             // scale down thrust if it's attached to the wrong sized reactor
             double heat_exchanger_thrust_divisor = radius > fractionalReactorRadius

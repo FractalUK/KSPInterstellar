@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarpPlugin", "FNPlugin\WarpPlugin.csproj", "{AD686AF3-DDDC-4991-909F-EAD9C16C469B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -16,6 +16,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenResourceSystem", "OpenResourceSystem\OpenResourceSystem.csproj", "{BCA16E74-23E5-4327-9D24-B908A8CE3836}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuelSwitch", "FuelSwitch\FuelSwitch.csproj", "{17B33055-25E4-4D97-B5F4-8E67FB657601}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{82CD03B3-8069-4269-9743-6AF888A25A9A}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
