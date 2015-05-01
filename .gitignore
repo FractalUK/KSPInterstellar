@@ -10,5 +10,5 @@ WPv023/
 *.ogg
 *.png
 *.mbm
-
-GameData/WarpPlugin/Parts/FuelTank/AntimatterTanks1/Thumbs.db
+*.suo
+Thumbs.db
