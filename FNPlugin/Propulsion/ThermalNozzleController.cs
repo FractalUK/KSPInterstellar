@@ -101,12 +101,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected float max_thrust_in_space;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Thrust")]
-        protected float final_max_engine_thrust;
+        protected float final_max_engine_thrust_in_space;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
         protected float _maxISP;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
         protected float _minISP;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Engine Fuel Flow Rate")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
         protected float current_isp = 0;
@@ -631,40 +631,47 @@ namespace FNPlugin
 		public override void OnFixedUpdate() 
         {
             // note: does not seem to be called in edit mode
+            if (MyAttachedReactor == null) return;
+
 
             //staticPresure = (GameConstants.EarthAtmospherePressureAtSeaLevel * FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
             staticPresure = (FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
 
-            if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0 && MyAttachedReactor != null)
+            if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
                 GenerateThrustFromReactorHeat();
             else
             {
                 requestedReactorPower = String.Empty;
                 recievedReactorPower = String.Empty;
+                fuelFlowCooling = 0;
+                atmospheric_limit = GetAtmosphericLimit();
 
-                // set isp
                 _maxISP = (float)(Math.Sqrt((double)MyAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
+                
+                var expectedMaxThrust = (float)(MyAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
+
+                max_fuel_flow_rate = expectedMaxThrust / _maxISP / PluginHelper.GravityConstant;
+
+                pressureTreshold = _currentpropellant_is_jet ? 0 : exitArea * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
+
+                var thrustAtmosphereRatio = expectedMaxThrust <= 0 ? 0 : Math.Max(0, expectedMaxThrust - pressureTreshold) / expectedMaxThrust;
+
+                current_isp = _maxISP * thrustAtmosphereRatio;
+
                 FloatCurve newISP = new FloatCurve();
-                newISP.Add(0, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
+                newISP.Add(0, Mathf.Min(current_isp, PluginHelper.MaxThermalNozzleIsp), 0, 0);
                 myAttachedEngine.atmosphereCurve = newISP;
 
-                fuelFlowCooling = 0;
-                if (myAttachedEngine.realIsp > 0)
+                if (myAttachedEngine.useVelCurve)
                 {
-                    atmospheric_limit = GetAtmosphericLimit();
-                    double vcurve_at_current_velocity = 1;
-                    if (myAttachedEngine.useVelCurve)
-                        vcurve_at_current_velocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+                    double vcurve_at_current_velocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
 
-                    max_fuel_flow_rate = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / PluginHelper.GravityConstant; /// 0.005 * TimeWarp.fixedDeltaTime;
                     if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity))
                         max_fuel_flow_rate = max_fuel_flow_rate / vcurve_at_current_velocity;
                 }
-                else
-                    max_fuel_flow_rate = 0;
 
                 // set engines maximum fuel flow
-                myAttachedEngine.maxFuelFlow = Math.Max(1f, (float)max_fuel_flow_rate);
+                myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
 
                 //if (_currentpropellant_is_jet)
                     //part.temperature = 1;
@@ -736,51 +743,52 @@ namespace FNPlugin
                 current_isp = (float)(_maxISP * ispReductionFraction);
             }
 
-            final_max_engine_thrust = !double.IsInfinity(engineThrust) && !double.IsNaN(engineThrust)
+            const float insignificantAmount = 0.000001f;
+
+            final_max_engine_thrust_in_space = !double.IsInfinity(engineThrust) && !double.IsNaN(engineThrust)
                 ? (float)max_thrust_in_space * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f)
-                : 0.000001f;
+                : insignificantAmount;
 
             // amount of fuel being used at max throttle with no atmospheric limits
-            if (current_isp > 0)
-            {
-				// calculate base fuel flow rate
-				//fuel_flow_rate = final_engine_thrust / current_isp / PluginHelper.GravityConstant / 0.005 * TimeWarp.fixedDeltaTime;
-                max_fuel_flow_rate = final_max_engine_thrust / current_isp / PluginHelper.GravityConstant;
+            if (_maxISP <= 0) return;
+            
+			// calculate fuel flow rate
+            max_fuel_flow_rate = final_max_engine_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
 
-				double vcurveAtCurrentVelocity = !myAttachedEngine.useVelCurve || myAttachedEngine.velCurve == null ? 1 
-					: myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
-                
+            if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+            {
+                double vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+
                 if (vcurveAtCurrentVelocity > 0 && !double.IsInfinity(vcurveAtCurrentVelocity) && !double.IsNaN(vcurveAtCurrentVelocity))
                     max_fuel_flow_rate = max_fuel_flow_rate / vcurveAtCurrentVelocity;
-
-                if (atmospheric_limit > 0 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
-                    max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
-
-				// set engines maximum fuel flow
-	            myAttachedEngine.maxFuelFlow = (float)max_fuel_flow_rate;
-
-                //if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
-                //{
-                //    var fuelflowReputationCost = max_fuel_flow_rate * _fuelToxicity * Math.Pow(vesselStaticPresure / 100, 3);
-                //    _savedReputationCost += (float)fuelflowReputationCost;
-                //    if (_savedReputationCost > 1)
-                //    {
-                //        float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
-
-                //        Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
-                //        ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
-                //        _savedReputationCost -= flooredReputationCost;
-                //    }
-                //}
-
-
-                // calculate fuelFlowCooling
-                fuelFlowCooling = (float)max_fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);
-                if (_currentpropellant_is_jet)
-                    fuelFlowCooling *= (float)currentintakeatm;
-                else
-                    fuelFlowCooling *= 10;
             }
+
+            if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
+                max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
+
+			// set engines maximum fuel flow
+	        myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
+
+            //if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
+            //{
+            //    var fuelflowReputationCost = max_fuel_flow_rate * _fuelToxicity * Math.Pow(vesselStaticPresure / 100, 3);
+            //    _savedReputationCost += (float)fuelflowReputationCost;
+            //    if (_savedReputationCost > 1)
+            //    {
+            //        float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
+
+            //        Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
+            //        ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+            //        _savedReputationCost -= flooredReputationCost;
+            //    }
+            //}
+
+            // calculate fuelFlowCooling
+            fuelFlowCooling = (float)max_fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);
+            if (_currentpropellant_is_jet)
+                fuelFlowCooling *= (float)currentintakeatm;
+            else
+                fuelFlowCooling *= 10;
         }
 
         private void GetMaximumIspAndThrustMultiplier()
