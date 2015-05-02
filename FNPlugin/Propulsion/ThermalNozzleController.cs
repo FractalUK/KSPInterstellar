@@ -66,7 +66,6 @@ namespace FNPlugin
         public float _propellantSootFactor = 1;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
         public float _thrustPropellantMultiplier = 1;
-
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
@@ -75,18 +74,16 @@ namespace FNPlugin
         public float heatProductionExtra;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
         public float fuelFlowCooling;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Static Presure")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
         public string staticPresure;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
         public float pressureTreshold;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmospheric Limit")]
         public float atmospheric_limit;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Power")]
         public string requestedReactorPower;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Power")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Power")]
         public string recievedReactorPower;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Vacuum")]
@@ -101,25 +98,28 @@ namespace FNPlugin
         protected float heatExchangerThrustDivisor;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Engine Max Thrust")]
         protected float engineMaxThrust;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust In Space")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected float max_thrust_in_space;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Final Thrust")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Thrust")]
         protected float final_max_engine_thrust;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
+        protected float _maxISP;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
+        protected float _minISP;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Engine Fuel Flow Rate")]
+        protected double max_fuel_flow_rate = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
+        protected float current_isp = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
+        protected float maxPressureThresholdAtKerbinSurface;
 
 		//Internal
         protected float _fuelToxicity;
         protected float _savedReputationCost;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
-		protected float _maxISP;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
-        protected float _minISP;
-
         protected float _heatDecompositionFraction;
 		protected float _assThermalPower;
         protected float _minDecompositionTemp;
         protected float _maxDecompositionTemp;
-
         protected const float _hydroloxDecompositionEnergy = 16.2137f;
         protected Guid id = Guid.NewGuid();
 		protected ConfigNode[] propellants;
@@ -128,25 +128,11 @@ namespace FNPlugin
 		protected bool hasstarted = false;
         protected bool hasSetupPropellant = false;
 		protected ModuleEngines myAttachedEngine;
-		
 		protected bool _currentpropellant_is_jet = false;
-
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Engine Fuel Flow Rate")]
-		protected double max_fuel_flow_rate = 0;
-
 		protected int thrustLimitRatio = 0;
-
-		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
-		protected float current_isp = 0;
-
 		protected double old_intake = 0;
         protected int partDistance = 0;
-        
         protected float old_atmospheric_limit;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
-        protected float maxPressureThresholdAtKerbinSurface;
-
         protected double currentintakeatm;
 
         public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
