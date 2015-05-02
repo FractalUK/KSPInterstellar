@@ -1,0 +1,22 @@
+{
+     "NAME":"TweakScale",
+     "URL":"https://github.com/pellinor0/TweakScale/blob/master/GameData/TweakScale/TweakScale.version",
+     "DOWNLOAD":"https://kerbalstuff.com/mod/344/TweakScale%20-%20Rescale%20Everything!/download/",
+     "GITHUB":{
+         "USERNAME":"Pellinor",
+         "REPOSITORY":"TweakScale",
+         "ALLOW_PRE_RELEASE":false,
+     },
+     "VERSION":{
+         "MAJOR":2,
+         "MINOR":1,
+         "PATCH":0,
+         "BUILD":0
+     },
+     "KSP_VERSION":{
+         "MAJOR":1,
+         "MINOR":0,
+         "PATCH":2
+     }
+ }
+ 

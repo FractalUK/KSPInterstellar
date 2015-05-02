@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <string name="Disable Autoscale">LeftShift</string>
+    <string name="Toggle Autoscale">LeftControl+L</string>
+    <bool name="Autoscale">0</bool>
+    <string name="Disable Scale chaining">LeftShift</string>
+    <string name="Toggle Scale chaining">LeftControl+K</string>
+    <bool name="Scale chaining">0</bool>
+</config>
