@@ -264,88 +264,88 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            if (selectedTankSetup >= 0 && selectedTankSetup < tankList.Count) 
+            var selectedTank = tankList[selectedTankSetup];
+            tankGuiName = selectedTank.GuiName;
+            Fields["tankGuiName"].guiActive = !String.IsNullOrEmpty(tankGuiName);
+            Fields["tankGuiName"].guiActiveEditor = !String.IsNullOrEmpty(tankGuiName);
+
+            Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
+            for (int resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
             {
-                var selectedTank = tankList[selectedTankSetup];
-                tankGuiName = selectedTank.GuiName;
-                Fields["tankGuiName"].guiActive = !String.IsNullOrEmpty(tankGuiName);
-                Fields["tankGuiName"].guiActiveEditor = !String.IsNullOrEmpty(tankGuiName);
-
-                Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
-                for (int resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
+                if (tankList[selectedTankSetup].Resources[resourceId].name == "Structural")
                 {
-                    if (tankList[selectedTankSetup].Resources[resourceId].name == "Structural") continue;
+                    Debug.Log("InsterstellarFuelSwitch found Structural");
+                    continue;
+                }
 
-                    var resourceName = selectedTank.Resources[resourceId].name;
-                    newResources.Add(resourceName);
+                var resourceName = selectedTank.Resources[resourceId].name;
+                newResources.Add(resourceName);
 
-                    ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                    double maxAmount = selectedTank.Resources[resourceId].maxAmount * volumeMultiplier;
+                ConfigNode newResourceNode = new ConfigNode("RESOURCE");
+                double maxAmount = selectedTank.Resources[resourceId].maxAmount * volumeMultiplier;
 
-                    newResourceNode.AddValue("name", resourceName);
-                    newResourceNode.AddValue("maxAmount", maxAmount);
+                newResourceNode.AddValue("name", resourceName);
+                newResourceNode.AddValue("maxAmount", maxAmount);
 
-                    PartResource existingResource = null;
+                PartResource existingResource = null;
 
-                    if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
+                if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
+                {
+                    foreach (PartResource partResource in part.Resources)
                     {
-                        foreach (PartResource partResource in part.Resources)
+                        if (partResource.resourceName.Equals(resourceName))
                         {
-                            if (partResource.resourceName.Equals(resourceName))
-                            {
-                                Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existing resource found!");
-                                existingResource = partResource;
-                                break;
-                            }
+                            Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existing resource found");
+                            existingResource = partResource;
+                            break;
                         }
                     }
-
-                    double resourceNodeAmount;
-                    if (existingResource != null)
-                    {
-                        resourceNodeAmount = Math.Min(existingResource.amount, maxAmount);
-                        Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existingResource = " + resourceNodeAmount);
-                    }
-                    else if (!HighLogic.LoadedSceneIsEditor && resourceId < parsedConfigAmount.Count)
-                    {
-                        resourceNodeAmount = parsedConfigAmount[resourceId];
-                        Debug.Log("InsterstellarFuelSwitch assignResourcesToPart parsedConfigAmount[" + resourceId + "] = " + resourceNodeAmount);                    
-                    }
-                    else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
-                    {
-                        resourceNodeAmount = 0.0;
-                        Debug.Log("InsterstellarFuelSwitch assignResourcesToPart reset");
-                    }
-                    else
-                    {
-                        resourceNodeAmount = tankList[selectedTankSetup].Resources[resourceId].amount * volumeMultiplier;
-                        Debug.Log("InsterstellarFuelSwitch assignResourcesToPart tankList[" + selectedTankSetup + "].Resources[" + resourceId + "].amount * " + volumeMultiplier + " = " + resourceNodeAmount);
-                    }
-
-                    newResourceNode.AddValue("amount", resourceNodeAmount);
-                    newResourceNodes.Add(newResourceNode);
                 }
+
+                double resourceNodeAmount;
+                if (existingResource != null)
+                {
+                    resourceNodeAmount = Math.Min(existingResource.amount, maxAmount);
+                    Debug.Log("InsterstellarFuelSwitch assignResourcesToPart existingResource = " + resourceNodeAmount);
+                }
+                else if (!HighLogic.LoadedSceneIsEditor && resourceId < parsedConfigAmount.Count)
+                {
+                    resourceNodeAmount = parsedConfigAmount[resourceId];
+                    Debug.Log("InsterstellarFuelSwitch assignResourcesToPart parsedConfigAmount[" + resourceId + "] = " + resourceNodeAmount);
+                }
+                else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
+                {
+                    resourceNodeAmount = 0.0;
+                    Debug.Log("InsterstellarFuelSwitch assignResourcesToPart reset");
+                }
+                else
+                {
+                    resourceNodeAmount = tankList[selectedTankSetup].Resources[resourceId].amount * volumeMultiplier;
+                    Debug.Log("InsterstellarFuelSwitch assignResourcesToPart tankList[" + selectedTankSetup + "].Resources[" + resourceId + "].amount * " + volumeMultiplier + " = " + resourceNodeAmount);
+                }
+
+                newResourceNode.AddValue("amount", resourceNodeAmount);
+                newResourceNodes.Add(newResourceNode);
             }
 
-            if (newResourceNodes.Count > 0) 
+            currentPart.Resources.list.Clear();
+            PartResource[] partResources = currentPart.GetComponents<PartResource>();
+            for (int i = 0; i < partResources.Length; i++)
             {
-                currentPart.Resources.list.Clear();
-                PartResource[] partResources = currentPart.GetComponents<PartResource>();
-                for (int i = 0; i < partResources.Length; i++)
-                {
-                    var resource = partResources[i];
-                    Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
-                    DestroyImmediate(resource);
-                }
+                var resource = partResources[i];
+                Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
+                DestroyImmediate(resource);
+            }
 
+            if (newResourceNodes.Count > 0)
+            {
                 Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + ParseTools.Print(newResources));
                 foreach (var resourceNode in newResourceNodes)
                 {
                     currentPart.AddResource(resourceNode);
                 }
             }
-            else
-                Debug.Log("InsterstellarFuelSwitch setupTankInPart keeps existing resources unchanged");
+
 
             // This also needs to be done when going from a setup with resources to a setup with no resources.
             currentPart.Resources.UpdateList();
