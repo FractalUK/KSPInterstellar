@@ -648,7 +648,9 @@ namespace FNPlugin
 
                 _maxISP = (float)(Math.Sqrt((double)MyAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
                 
-                var expectedMaxThrust = (float)(MyAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
+                var expectedMaxThrust = MyAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP;
+
+                expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f);
 
                 max_fuel_flow_rate = expectedMaxThrust / _maxISP / PluginHelper.GravityConstant;
 
@@ -656,7 +658,7 @@ namespace FNPlugin
 
                 var thrustAtmosphereRatio = expectedMaxThrust <= 0 ? 0 : Math.Max(0, expectedMaxThrust - pressureTreshold) / expectedMaxThrust;
 
-                current_isp = _maxISP * thrustAtmosphereRatio;
+                current_isp = _maxISP * (float)thrustAtmosphereRatio;
 
                 FloatCurve newISP = new FloatCurve();
                 newISP.Add(0, Mathf.Min(current_isp, PluginHelper.MaxThermalNozzleIsp), 0, 0);
@@ -752,7 +754,7 @@ namespace FNPlugin
             // amount of fuel being used at max throttle with no atmospheric limits
             if (_maxISP <= 0) return;
             
-			// calculate fuel flow rate
+			// calculate maximum fuel flow rate
             max_fuel_flow_rate = final_max_engine_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
 
             if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
@@ -769,19 +771,22 @@ namespace FNPlugin
 			// set engines maximum fuel flow
 	        myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
 
-            //if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
-            //{
-            //    var fuelflowReputationCost = max_fuel_flow_rate * _fuelToxicity * Math.Pow(vesselStaticPresure / 100, 3);
-            //    _savedReputationCost += (float)fuelflowReputationCost;
-            //    if (_savedReputationCost > 1)
-            //    {
-            //        float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
+            if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
+            {
+                _savedReputationCost += (float)(max_fuel_flow_rate * _fuelToxicity * TimeWarp.fixedDeltaTime * Math.Pow(vesselStaticPresure / 100, 3));
+                if (_savedReputationCost > 1)
+                {
+                    float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
 
-            //        Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
-            //        ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
-            //        _savedReputationCost -= flooredReputationCost;
-            //    }
-            //}
+                    if (Reputation.Instance != null)
+                        Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
+                    else
+                        UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - No Reputation found, was not able to reduce reputation by " + flooredReputationCost);
+
+                    ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                    _savedReputationCost -= flooredReputationCost;
+                }
+            }
 
             // calculate fuelFlowCooling
             fuelFlowCooling = (float)max_fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);

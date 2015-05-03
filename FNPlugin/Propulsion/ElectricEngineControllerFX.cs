@@ -44,6 +44,8 @@ namespace FNPlugin
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string engineTypeStr = "";
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Propellant")]
+        public string propNameStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Share")]
         public string electricalPowerShareStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Recieved")]
@@ -52,10 +54,10 @@ namespace FNPlugin
         public string efficiencyStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Production")]
         public string heatProductionStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Propellant")]
-        public string propNameStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr = "";
+
+
 
         //[KSPField(isPersistant = false, guiActive = true, guiName = "Stable Power", guiUnits = " MW")]
         //public float stable_power_supply;
@@ -82,7 +84,8 @@ namespace FNPlugin
         protected bool _hasrequiredupgrade;
         protected double _modifiedCurrentPropellantIspMultiplier;
         protected double _propellantIspMultiplierPowerLimitModifier;
-
+        protected double _maxISP;
+        protected double _max_fuel_flow_rate;
 
         private ElectricEnginePropellant _current_propellant;
         public ElectricEnginePropellant Current_propellant
@@ -189,9 +192,17 @@ namespace FNPlugin
                 return;
             }
 
+            if (Current_propellant.SupportedEngines == 8 && vessel.IsInAtmosphere())
+            {
+                _rep++;
+                togglePropellants();
+                return;
+            }
+
             if (HighLogic.LoadedSceneIsFlight)
             { // you can have any fuel you want in the editor but not in flight
                 List<PartResource> totalpartresources = list_of_propellants.SelectMany(prop => part.GetConnectedResources(prop.name)).ToList();
+
                 if (!list_of_propellants.All(prop => totalpartresources.Select(pr => pr.resourceName).Contains(prop.name)) && _rep < _propellants.Count)
                 {
                     _rep++;
@@ -241,7 +252,7 @@ namespace FNPlugin
             updatePropellantBar();
         }
 
-        private float _avrageragedLastActualMaxThrustWithTrottle;
+        //private float _avrageragedLastActualMaxThrustWithTrottle;
 
         public void FixedUpdate()
         {
@@ -267,33 +278,51 @@ namespace FNPlugin
                      
             // produce thrust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
+
             double max_thrust_in_space = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
-            double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel * part.vessel.atmDensity), 0.0);
+            
+            _maxISP = (float)(modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier);
+            _max_fuel_flow_rate = _maxISP <= 0 ? 0 :  max_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
 
             if (_attached_engine.currentThrottle > 0)
             {
-                if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust))
-                {
-                    // update engine ISP
-                    updateISP(actual_max_thrust / Math.Max(max_thrust_in_space, 0.00001f));
+                double max_thrut_with_current_throttle = max_thrust_in_space * _attached_engine.currentThrottle;
+                double actual_max_thrust = Math.Max(max_thrut_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
 
-                    _attached_engine.maxThrust = Mathf.Max((float)actual_max_thrust, 0.00001f);
-                    _avrageragedLastActualMaxThrustWithTrottle = (10 * _avrageragedLastActualMaxThrustWithTrottle + _attached_engine.maxThrust) / 11f;
+                if (actual_max_thrust > 0 && !double.IsNaN(actual_max_thrust) && max_thrut_with_current_throttle > 0 && !double.IsNaN(max_thrut_with_current_throttle))
+                {
+                    updateISP(actual_max_thrust / max_thrut_with_current_throttle);
+                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate;
                 }
                 else
                 {
-                    updateISP(1);
-                    _attached_engine.maxThrust = 0.00001f;
+                    updateISP(0.000001);
+                    _attached_engine.maxFuelFlow = 0;
                 }
 
-                float fx_ratio = Mathf.Min(_electrical_consumption_f / maxPower, _attached_engine.finalThrust / _attached_engine.maxThrust);
-                part.Effect(Current_propellant.ParticleFXName, fx_ratio);
-                                
+                part.Effect(Current_propellant.ParticleFXName, Mathf.Min(_electrical_consumption_f / maxPower, _attached_engine.finalThrust / _attached_engine.maxThrust));
             }
             else
             {
-                updateISP(1);
-                _attached_engine.maxThrust = _avrageragedLastActualMaxThrustWithTrottle > 1 ? _avrageragedLastActualMaxThrustWithTrottle : 1;
+                double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
+
+                if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust) && actual_max_thrust > 0 && max_thrust_in_space > 0)
+                {
+                    updateISP(actual_max_thrust / max_thrust_in_space);
+                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate;
+                }
+                else
+                {
+                    double max_theoretical_thrust = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * powerAvailableForEngine / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0);
+                    _max_fuel_flow_rate = _maxISP <= 0 ? 0 : max_theoretical_thrust / _maxISP / PluginHelper.GravityConstant;
+
+                    double atmospheric_max_theoretical_thrust = Math.Max(max_theoretical_thrust - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
+
+                    updateISP(Math.Max(0.000001, atmospheric_max_theoretical_thrust / max_theoretical_thrust));
+                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate;
+                }
+                
+                //_attached_engine.maxThrust = _avrageragedLastActualMaxThrustWithTrottle > 1 ? _avrageragedLastActualMaxThrustWithTrottle : 1;
                 part.Effect(Current_propellant.ParticleFXName, 0);
             }
 
