@@ -106,6 +106,12 @@ namespace OpenResourceSystem {
 			return managedPowerSupplyWithMinimum (pm, power, 0);
 		}
 
+        public double getResourceAvailability()
+        {
+            return my_part.GetConnectedResources(resource_name).ToList()
+                .Sum(partresource => partresource.amount); ;
+        }
+
 		public double getSpareResourceCapacity() 
         {
             return my_part.GetConnectedResources(resource_name).ToList()

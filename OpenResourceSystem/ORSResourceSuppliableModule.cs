@@ -164,21 +164,29 @@ namespace OpenResourceSystem {
 			return manager.getResourceBarRatio ();
 		}
 
-        public double getSpareResourceCapacity(String resourcename) {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+        public double getSpareResourceCapacity(String resourcename) 
+        {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) 
                 return 0;
-            }
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getSpareResourceCapacity();
         }
 
+        public double getResourceAvailability(String resourcename)
+        {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) 
+                return 0;
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            return manager.getResourceAvailability();
+        }
+        
+
         public double getTotalResourceCapacity(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-            {
                 return 0;
-            }
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getTotalResourceCapacity();

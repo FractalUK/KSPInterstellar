@@ -1,0 +1,1 @@
+Images to be auto-loaded for the resources tab
