@@ -23,7 +23,7 @@ namespace FNPlugin
         private const String _PLUTONIUM_238 = "Plutonium-238";
         private const String _ALUMINA = "Alumina";
         private const String _HELIUM = "LqdHelium";
-        private const String _HELIUM3 = "LqdHelium3";
+        private const String _HELIUM3 = "LqdHe3";
         private const String _DEUTERIUM = "LqdDeuterium";
         private const String _TRITIUM = "LqdTritium";
 

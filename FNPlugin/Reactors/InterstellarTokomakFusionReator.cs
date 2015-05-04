@@ -5,7 +5,7 @@ namespace FNPlugin
 {
     class InterstellarTokamakFusionReator : InterstellarFusionReactor
     {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Heating maintance")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Maintance")]
         public string tokomakPower;
 
         protected bool fusion_alert = false;
@@ -16,9 +16,11 @@ namespace FNPlugin
 
         // properties
 
-        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
+        //public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
+        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio == 1 ? 1 : 0.000000001f); } }
 
-        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
+        //public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
+        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio == 1 ? 1 : 0.000000001f); } }
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
@@ -49,7 +51,7 @@ namespace FNPlugin
                 fusion_alert = false;
 
             Events["SwapFuelMode"].active = isupgraded;
-            tokomakPower = PluginHelper.getFormattedPowerString(power_consumed);
+            tokomakPower = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
         }
 
         public override void OnFixedUpdate() 
@@ -57,10 +59,25 @@ namespace FNPlugin
             base.OnFixedUpdate();
             if (IsEnabled) 
             {
-                power_consumed = consumeFNResource(HeatingPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                if (power_consumed < HeatingPowerRequirements) 
-                    power_consumed += part.RequestResource("ElectricCharge", (HeatingPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000.0;
+                var fixedHeatingPowerRequirements = HeatingPowerRequirements * TimeWarp.fixedDeltaTime;
+
+                // don't try to start fusion is we don't have the power
+                //var availablePower = (float)getResourceAvailability(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                //if (availablePower >= fixedHeatingPowerRequirements)
+                //var stableSupply = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                //if (stableSupply > fixedHeatingPowerRequirements)
+                    power_consumed = consumeFNResource(fixedHeatingPowerRequirements, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                //else
+                //    power_consumed = stableSupply;
+
+                //if (power_consumed < HeatingPowerRequirements) 
+                //    power_consumed += part.RequestResource("ElectricCharge", (HeatingPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000.0;
                 plasma_ratio = (HeatingPowerRequirements != 0.0f) ? (float)(power_consumed / HeatingPowerRequirements) : 1.0f;
+            }
+            else
+            {
+                plasma_ratio = 0;
+                power_consumed = 0;
             }
         }
 

@@ -24,8 +24,8 @@ namespace FNPlugin
         // Visible Non Persistant
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
         private float _max_reactor_power;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thruster Power", guiUnits = " MW")]
-        private float _max_truster_power;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Charge", guiUnits = " MW")]
+        private float _max_charged_particles_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
         private float _charged_particles_requested;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Particles", guiUnits = " MW")]
@@ -106,11 +106,7 @@ namespace FNPlugin
 
             return null;
         }
-
-		//public override void OnUpdate() { }
-
-
-                
+           
 		public void FixedUpdate() 
         {
             if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null)
@@ -119,18 +115,22 @@ namespace FNPlugin
                     ? _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius
                     : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
 
-                _max_reactor_power = _attached_reactor.MaximumChargedPower;
-                _max_truster_power = _max_reactor_power * (float)exchanger_thrust_divisor;
-
                 double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
-                double current_isp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
+                double minimum_isp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
 
+                var throttle = _attached_engine.currentThrottle;
+                var maximum_isp = minimum_isp * 100;
+                var current_isp = throttle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / throttle / throttle);
+
+                // update Isp
                 FloatCurve new_isp = new FloatCurve();
                 new_isp.Add(0, (float)current_isp, 0, 0);
                 _attached_engine.atmosphereCurve = new_isp;
 
-                _charged_particles_requested = _max_truster_power * _attached_engine.currentThrottle;
+                _max_charged_particles_power = _attached_reactor.MaximumChargedPower * (float)exchanger_thrust_divisor;
+                _charged_particles_requested = throttle > 0  ? _max_charged_particles_power : 0 ; 
                 _charged_particles_received = consumeFNResource(_charged_particles_requested * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
+                
                 consumeFNResource(_charged_particles_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 _requestedElectricPower = _charged_particles_received * (0.01f * Math.Max(_attached_reactor_distance, 1));
                 _recievedElectricPower = consumeFNResource(_requestedElectricPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
@@ -140,18 +140,25 @@ namespace FNPlugin
 
                 double atmo_thrust_factor = Math.Min(1.0, Math.Max(1.0 - Math.Pow(vessel.atmDensity, 0.2), 0));
 
-                _engineMaxThrust = 0.000000001f;
-                if (_max_truster_power > 0)
+                _engineMaxThrust = 0;
+                if (_max_charged_particles_power > 0)
                 {
-                    float power_ratio = (float)(_charged_particles_received / _max_truster_power);
                     double powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * NozzlePowerThrustMultiplier;
-                    _engineMaxThrust = (float)Math.Max(powerThrustModifier * _charged_particles_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant / _attached_engine.currentThrottle, 0.000000001);
+                    var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant;
+                    var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant;
+
+                    _engineMaxThrust = throttle > 0
+                        ? (float)Math.Max(enginethrust_from_recieved_particles, 0.000000001)
+                        : (float)Math.Max(max_theoretical_thrust, 0.000000001);
                 }
 
-                if (!double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust))
-                    _attached_engine.maxThrust = _engineMaxThrust;
-                else
-                    _attached_engine.maxThrust = 0.000000001f;
+
+                double max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && current_isp > 0 
+                    ? _engineMaxThrust / current_isp / PluginHelper.GravityConstant / (throttle > 0 ? throttle : 1)
+                    : 0;
+
+                // set maximum flow
+                _attached_engine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
 
                 // This whole thing may be inefficient, but it should clear up some confusion for people.
                 if (!_attached_engine.getFlameoutState)
@@ -159,12 +166,12 @@ namespace FNPlugin
                     if (megajoules_ratio < 0.75 && _requestedElectricPower > 0)
                         _attached_engine.status = "Insufficient Electricity";
                     else if (atmo_thrust_factor < 0.75)
-                        _attached_engine.status = "High Atmospheric Pressure";
+                        _attached_engine.status = "Too dense atmospherere";
                 }
             } 
             else if (_attached_engine != null)
             {
-                _attached_engine.maxThrust = 0.000000001f;
+                _attached_engine.maxFuelFlow = 0;
                 _recievedElectricPower = 0;
                 _charged_particles_requested = 0;
                 _charged_particles_received = 0;
@@ -181,6 +188,5 @@ namespace FNPlugin
         {
             return "Magnetic Nozzle";
         }
-
 	}
 }

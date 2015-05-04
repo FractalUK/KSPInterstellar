@@ -38,6 +38,8 @@ namespace FNPlugin {
         public bool startDisabled;
 
         // Persistent False
+        [KSPField(isPersistant = true)]
+        public float bonusBufferFactor = 0.05f;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public float heatTransportationEfficiency = 0.8f;
         [KSPField(isPersistant = false)]
@@ -190,6 +192,8 @@ namespace FNPlugin {
         public bool IsSelfContained { get { return containsPowerGenerator; } }
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
+
+        public float PowerBufferBonus { get { return this.bonusBufferFactor; } }
 
         public double FuelEfficiency { get { return isupgraded ? upgradedFuelEfficiency > 0 ? upgradedFuelEfficiency : fuelEfficiency : fuelEfficiency; } }
 

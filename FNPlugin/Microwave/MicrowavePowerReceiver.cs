@@ -112,6 +112,8 @@ namespace FNPlugin
         static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
         double penaltyFreeDistance = 1;//should be set to proper value by OnStart method
 
+        public float PowerBufferBonus { get { return 0; } }
+
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
         public bool IsSelfContained { get { return false; } }

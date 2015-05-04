@@ -6,7 +6,7 @@ namespace FNPlugin {
     [KSPModule("IC Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor, IChargedParticleSource
     {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Laser Consumption")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Maintenance")]
         public string laserPower;
 
         protected double power_consumed;
@@ -25,7 +25,7 @@ namespace FNPlugin {
             get
             {
                 float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
-                float laser_power_4 = Mathf.Pow(plasma_ratio, 4.0f);
+                float laser_power_4 = plasma_ratio == 1 ? 1 : 0.000000001f;   //Mathf.Pow(plasma_ratio, 4.0f);
                 return isupgraded 
                     ? upgradedPowerOutput != 0 
                         ? laser_power_4 * upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
@@ -39,7 +39,7 @@ namespace FNPlugin {
             get 
             {
                 float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
-                float laser_power_4 = Mathf.Pow(plasma_ratio, 4.0f);
+                float laser_power_4 = plasma_ratio == 1 ? 1 : 0.000000001f;  //Mathf.Pow(plasma_ratio, 4.0f);
                 return isupgraded 
 					? upgradedPowerOutput != 0 
 						? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio 
@@ -84,7 +84,7 @@ namespace FNPlugin {
                 fusion_alert = false;
             
             Events["SwapFuelMode"].active = isupgraded;
-            laserPower = PluginHelper.getFormattedPowerString(power_consumed);
+            laserPower = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
             base.OnUpdate();
         }
 
@@ -94,9 +94,17 @@ namespace FNPlugin {
 
 	        if (!IsEnabled) return;
 
-	        power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-	        if (power_consumed < LaserPowerRequirements)  
-				power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
+            var fixedLaserPowerRequirements = LaserPowerRequirements * TimeWarp.fixedDeltaTime;
+
+            // don't try to start fusion is we don't have the power
+            //var availablePower = (float)getResourceAvailability(FNResourceManager.FNRESOURCE_MEGAJOULES);
+            //if (availablePower >= fixedLaserPowerRequirements)
+                power_consumed = consumeFNResource(fixedLaserPowerRequirements, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            //else
+            //    power_consumed = 0;
+
+	        //if (power_consumed < LaserPowerRequirements)  
+			//	power_consumed += part.RequestResource("ElectricCharge", (LaserPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000;
 	        plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
         }
 

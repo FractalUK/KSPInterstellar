@@ -381,8 +381,9 @@ namespace FNPlugin
                 {
                     _powerState = PowerStates.powerOnline;
 
-                    var requiredMegawattCapacity = Math.Max(1, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + 0.05 * maxStableMegaWattPower);
-                    var previousMegawattCapacity = Math.Max(1, previousTimeWarp * maxStableMegaWattPower + 0.05 * maxStableMegaWattPower);
+                    var powerBufferingBonus =  myAttachedReactor.PowerBufferBonus * maxStableMegaWattPower;
+                    var requiredMegawattCapacity = Math.Max(1, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
+                    var previousMegawattCapacity = Math.Max(1, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
 
                     PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
 

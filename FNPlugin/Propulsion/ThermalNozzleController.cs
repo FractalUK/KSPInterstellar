@@ -100,7 +100,7 @@ namespace FNPlugin
         protected float engineMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected float max_thrust_in_space;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Thrust")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Final Thrust")]
         protected float final_max_engine_thrust_in_space;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
         protected float _maxISP;
@@ -701,11 +701,14 @@ namespace FNPlugin
             requestedReactorPower = requested_thermal_power.ToString("0.00") + " MW " + (this._myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
 
             double fixed_requested_termal_power = TimeWarp.fixedDeltaTime * requested_thermal_power;
-            var thermal_power_received = consumeFNResource(fixed_requested_termal_power, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
-            recievedReactorPower = thermal_power_received.ToString("0.00") + " MW "; 
+            double fixed_thermal_power_received = consumeFNResource(fixed_requested_termal_power, FNResourceManager.FNRESOURCE_THERMALPOWER);
+            double thermal_power_received = fixed_thermal_power_received / TimeWarp.fixedDeltaTime;
 
-            if (thermal_power_received * TimeWarp.fixedDeltaTime < fixed_requested_termal_power)
-                thermal_power_received += consumeFNResource(fixed_requested_termal_power - thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
+            if (fixed_thermal_power_received < fixed_requested_termal_power)
+                fixed_requested_termal_power += consumeFNResource(fixed_requested_termal_power - fixed_thermal_power_received, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+
+            thermal_power_received = fixed_thermal_power_received / TimeWarp.fixedDeltaTime;
+            recievedReactorPower = thermal_power_received.ToString("0.00") + " MW ";
 
             // modify sootAccumulation
             if (myAttachedEngine.currentThrottle > 0 && _propellantSootFactor != 0 && _thrustPropellantMultiplier > 0)
@@ -717,7 +720,7 @@ namespace FNPlugin
             }
 
             // consume wasteheat
-            consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * fixed_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT);
             
             // calculate max thrust
             heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
