@@ -31,18 +31,20 @@ namespace FNPlugin
 		//Persistent False
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
-		[KSPField(isPersistant = false)]
-		public float upgradeCost;
-		[KSPField(isPersistant = false)]
-		public string originalName;
-		[KSPField(isPersistant = false)]
-		public string upgradedName;
-		[KSPField(isPersistant = false)]
-		public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplier = 1.0f;
         [KSPField(isPersistant = false)]
         public float IspTempMultOffset = 0f;
+
+        [KSPField(isPersistant = false)]
+        public float upgradeCost;
+        [KSPField(isPersistant = false)]
+        public string originalName;
+        [KSPField(isPersistant = false)]
+        public string upgradedName;
+        [KSPField(isPersistant = false)]
+        public string upgradeTechReq = null;
+
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
         public float radius;

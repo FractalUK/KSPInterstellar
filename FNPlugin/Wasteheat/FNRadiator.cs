@@ -75,7 +75,8 @@ namespace FNPlugin
 		protected static List<FNRadiator> list_of_radiators = new List<FNRadiator>();
 
 
-		public static List<FNRadiator> getRadiatorsForVessel(Vessel vess) {
+		public static List<FNRadiator> getRadiatorsForVessel(Vessel vess) 
+        {
 			List<FNRadiator> list_of_radiators_for_vessel = new List<FNRadiator>();
 			list_of_radiators.RemoveAll(item => item == null);
 			foreach (FNRadiator radiator in list_of_radiators) {
@@ -86,53 +87,59 @@ namespace FNPlugin
 			return list_of_radiators_for_vessel;
 		}
 
-		public static bool hasRadiatorsForVessel(Vessel vess) {
+		public static bool hasRadiatorsForVessel(Vessel vess) 
+        {
 			list_of_radiators.RemoveAll(item => item == null);
 			bool has_radiators = false;
-			foreach (FNRadiator radiator in list_of_radiators) {
-				if (radiator.vessel == vess) {
+			foreach (FNRadiator radiator in list_of_radiators) 
+            {
+				if (radiator.vessel == vess) 
 					has_radiators = true;
-				}
 			}
 			return has_radiators;
 		}
 
-		public static double getAverageRadiatorTemperatureForVessel(Vessel vess) {
+		public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
+        {
 			list_of_radiators.RemoveAll(item => item == null);
 			double average_temp = 0;
 			double n_radiators = 0;
-			foreach (FNRadiator radiator in list_of_radiators) {
-				if (radiator.vessel == vess) {
+			foreach (FNRadiator radiator in list_of_radiators) 
+            {
+				if (radiator.vessel == vess) 
+                {
 					average_temp += radiator.getRadiatorTemperature ();
 					n_radiators+=1.0f;
 				}
 			}
 
-			if (n_radiators > 0) {
+			if (n_radiators > 0) 
 				average_temp = average_temp / n_radiators;
-			} else {
+			else 
 				average_temp = 0;
-			}
 
 			return average_temp;
 		}
 
-        public static double getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) {
+        public static double getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
+        {
             list_of_radiators.RemoveAll(item => item == null);
             double average_temp = 0;
             double n_radiators = 0;
-            foreach (FNRadiator radiator in list_of_radiators) {
-                if (radiator.vessel == vess) {
+
+            foreach (FNRadiator radiator in list_of_radiators) 
+            {
+                if (radiator.vessel == vess) 
+                {
                     average_temp += radiator.radiatorTemp;
                     n_radiators += 1.0f;
                 }
             }
 
-            if (n_radiators > 0) {
+            if (n_radiators > 0) 
                 average_temp = average_temp / n_radiators;
-            } else {
+            else 
                 average_temp = 0;
-            }
 
             return average_temp;
         }
@@ -410,7 +417,8 @@ namespace FNPlugin
             return false;
         }
 
-		public float getRadiatorTemperature() {
+		public float getRadiatorTemperature() 
+        {
 			return (float)current_rad_temp;
 		}
 

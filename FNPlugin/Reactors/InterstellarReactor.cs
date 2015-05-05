@@ -430,8 +430,8 @@ namespace FNPlugin {
             Events["StopBreedTritium"].active = breedtritium && IsNeutronRich && IsEnabled;
             Events["RetrofitReactor"].active = ResearchAndDevelopment.Instance != null ? !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade : false;
             //Update Fields
-            Fields["currentTPwr"].guiActive = IsEnabled && (ongoing_thermal_power_f > 0);
-            Fields["currentCPwr"].guiActive = IsEnabled && (ongoing_charged_power_f > 0);
+            Fields["currentTPwr"].guiActive = IsEnabled && (ongoing_thermal_power_f > 0.01);
+            Fields["currentCPwr"].guiActive = IsEnabled && (ongoing_charged_power_f > 0.01);
             fuelModeStr = current_fuel_mode != null ? current_fuel_mode.ModeGUIName : "";
             //
             reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
