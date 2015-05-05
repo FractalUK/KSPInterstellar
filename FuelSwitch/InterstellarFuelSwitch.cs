@@ -66,18 +66,29 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current")]
+        // Persistants
+        [KSPField(isPersistant = true)]
+        public string configuredAmounts = "";
+
+
+        // Gui
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
         public string tankGuiName = String.Empty; 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Added cost")]
         public float addedCost = 0f;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0f;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
         public float volumeMultiplier = 1f;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
         public float massMultiplier = 1f;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Amounts")]
-        public string configuredAmounts = "";
+
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public string resourceAmountStr0 = "";
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public string resourceAmountStr1 = "";
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public string resourceAmountStr2 = "";
 
         // Persistants
         [KSPField(isPersistant = true)]
@@ -93,6 +104,14 @@ namespace InterstellarFuelSwitch
         private List<double> weightList;
         private List<double> tankCostList;
         private bool initialized = false;
+
+        private PartResource _partResource0;
+        private PartResource _partResource1;
+        private PartResource _partResource2;
+
+        private PartResourceDefinition _partRresourceDefinition0;
+        private PartResourceDefinition _partRresourceDefinition1;
+        private PartResourceDefinition _partRresourceDefinition2;
 
         UIPartActionWindow tweakableUI;
 
@@ -346,11 +365,28 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-
             // This also needs to be done when going from a setup with resources to a setup with no resources.
             currentPart.Resources.UpdateList();
             UpdateWeight(currentPart, selectedTankSetup, calledByPlayer);
             UpdateCost();
+
+            // update GUI
+            ConfigureResourceMassGui(newResources);
+        }
+
+        private void ConfigureResourceMassGui(List<string> newResources)
+        {
+            _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null;
+            _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;
+            _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null;
+
+            Fields["resourceAmountStr0"].guiName = _partRresourceDefinition0 != null ? _partRresourceDefinition0.name : ":";
+            Fields["resourceAmountStr1"].guiName = _partRresourceDefinition1 != null ? _partRresourceDefinition1.name : ":";
+            Fields["resourceAmountStr2"].guiName = _partRresourceDefinition2 != null ? _partRresourceDefinition2.name : ":";
+
+            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition0.name);
+            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition1.name);
+            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
         }
 
         private float UpdateCost() // Does this even do anything?
@@ -370,6 +406,26 @@ namespace InterstellarFuelSwitch
                 currentPart.mass = Math.Max(basePartMass, newMass);
             }
         }
+
+        protected string formatMassStr(double amount)
+        {
+            if (amount >= 1)
+                return (amount).ToString("0.0000000") + " t";
+            else if (amount >= 1e-3)
+                return (amount * 1e3).ToString("0.0000000") + " kg";
+            else if (amount >= 1e-6)
+                return (amount * 1e6).ToString("0.0000000") + " g";
+            else 
+                return (amount * 1e9).ToString("0.0000000") + " mg";
+        }
+
+        private void UpdateGuiResourceMass()
+        {
+            resourceAmountStr0 = _partRresourceDefinition0 == null || _partResource0 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource0.amount);
+            resourceAmountStr1 = _partRresourceDefinition1 == null || _partResource1 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource1.amount);
+            resourceAmountStr2 = _partRresourceDefinition2 == null || _partResource2 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource2.amount);
+        }
+
         public override void OnUpdate()
         {
             //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
@@ -380,6 +436,8 @@ namespace InterstellarFuelSwitch
         }
         public void Update()
         {
+            UpdateGuiResourceMass();
+
             if (!HighLogic.LoadedSceneIsEditor) return;
 
             dryMassInfo = part.mass;
@@ -459,6 +517,15 @@ namespace InterstellarFuelSwitch
                 }
             }
 
+            var maxNrTanks = tankList.Max(t => t.Resources.Count);
+
+            Fields["resourceAmountStr0"].guiActive = maxNrTanks > 0;
+            Fields["resourceAmountStr1"].guiActive = maxNrTanks > 1;
+            Fields["resourceAmountStr2"].guiActive = maxNrTanks > 2;
+
+            Fields["resourceAmountStr0"].guiActiveEditor = maxNrTanks > 0;
+            Fields["resourceAmountStr1"].guiActiveEditor = maxNrTanks > 1;
+            Fields["resourceAmountStr2"].guiActiveEditor = maxNrTanks > 2;
         }
 
         public float GetModuleCost()
