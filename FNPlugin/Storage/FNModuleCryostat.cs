@@ -58,6 +58,8 @@ namespace FNPlugin
         public string boiloffStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Environment Factor")]
         public float environmentFactor;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature")]
+        public float partTemperature;
 
         public float boiloff;
 
@@ -91,7 +93,6 @@ namespace FNPlugin
             else
                 cryostat_resource = null;
 
-
             if (cryostat_resource != null)
             {
                 bool coolingIsRelevant = powerReqKW > 0 && cryostat_resource.amount > 0;
@@ -99,10 +100,12 @@ namespace FNPlugin
                 Events["Activate"].active = isDisabled && coolingIsRelevant;
                 Events["Deactivate"].active = !isDisabled && coolingIsRelevant;
                 Fields["powerStatusStr"].guiActive = coolingIsRelevant;
-                Fields["boiloffStr"].guiActive = boiloff > 0;
+                Fields["boiloffStr"].guiActive = boiloff > 0.00001;
+                Fields["partTemperature"].guiActive = coolingIsRelevant;
 
                 var atmosphereModifier = convectionMod == -1 ?  0 : convectionMod + (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / (convectionMod + 1);
-                var temperatureModifier = Math.Max(0, part.temperature + 273.15 - boilOffTemp) / 273.15;
+                partTemperature = (float)part.temperature;
+                var temperatureModifier = Math.Max(0, partTemperature - boilOffTemp) / 273.15;
                 environmentFactor = (float)(atmosphereModifier * temperatureModifier);
 
                 if (powerReqKW > 0)
@@ -162,9 +165,10 @@ namespace FNPlugin
             boiloff = boiloffReducuction <= 0 ? 0 :
                 (float)(environmentFactor * boiloffReducuction * boilOffMultiplier * boilOffBase);
 
-            boiloffStr = boiloff.ToString("0.00") + " L/s " + cryostat_resource.resourceName;
+            boiloffStr = boiloff.ToString("0.00000") + " L/s " + cryostat_resource.resourceName;
 
-            cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
+            if (boiloff > 0.00001)
+                cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
         }
 
         public override string getResourceManagerDisplayName() 
