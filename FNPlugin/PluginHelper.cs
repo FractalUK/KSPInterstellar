@@ -360,12 +360,13 @@ namespace FNPlugin
             return v1p;
         }
 
-        public static float getMaxAtmosphericAltitude(CelestialBody body)
+        public static double getMaxAtmosphericAltitude(CelestialBody body)
         {
             if (!body.atmosphere) return 0;
 
             //return (float)-body.atmosphereScaleHeight * 1000.0f * Mathf.Log(1e-6f);
-            return (float)-body.atmosphereDepth * 1000.0f * Mathf.Log(1e-6f);
+            //return (float)-body.atmosphereDepth * 1000.0f * Mathf.Log(1e-6f);
+            return body.atmosphereDepth;
         }
 
         public static float getScienceMultiplier(int refbody, bool landed)

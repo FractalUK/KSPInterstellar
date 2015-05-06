@@ -8,7 +8,8 @@ using System.Text;
 using UnityEngine;
 using TweakScale;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         public enum ReactorTypes 
