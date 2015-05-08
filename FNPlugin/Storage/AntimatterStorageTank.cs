@@ -23,9 +23,9 @@ namespace FNPlugin
 		public string chargeStatusStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
 		public string statusStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Current")]
+        [KSPField(isPersistant = false, guiActiveEditor = true,  guiActive = true, guiName = "Current")]
         public string capacityStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Maximum")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum")]
         public string maxAmountStr;
 
 		bool charging = false;
@@ -80,9 +80,10 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-			if (state == StartState.Editor) return;
-			this.part.force_activate();
             antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
+
+            if (state == StartState.Editor) return;
+            this.part.force_activate();
 		}
 
 		public override void OnUpdate() 
@@ -109,9 +110,19 @@ namespace FNPlugin
 					statusStr = "No Power Required.";
 			}
 
+            UpdateAmounts();
+		}
+
+        public void Update()
+        {
+            UpdateAmounts();
+        }
+
+        private void UpdateAmounts()
+        {
             capacityStr = formatMassStr(antimatter.amount);
             maxAmountStr = formatMassStr(antimatter.maxAmount);
-		}
+        }
 
 		public override void OnFixedUpdate() 
         {
