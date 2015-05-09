@@ -59,6 +59,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new AmmoniaElectrolyzer(this.part));
                 unsortedList.Add(new CarbonDioxideElectroliser(this.part));
                 unsortedList.Add(new WaterGasShift(this.part));
+                unsortedList.Add(new ReverseWaterGasShift(this.part));
             }
             catch (Exception e)
             {
@@ -74,10 +75,9 @@ namespace FNPlugin.Refinery
         public override void OnUpdate()
         {
             status_str = "Offline";
-            if (_current_activity != null)
-            {
-                status_str = _current_activity.Status;
-            }
+            if (_current_activity == null) return;
+
+            status_str = _current_activity.Status;
         }
 
         public void FixedUpdate()
