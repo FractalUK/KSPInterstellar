@@ -86,6 +86,7 @@
     <Compile Include="Refinery\AmmoniaElectrolyzer.cs" />
     <Compile Include="Propulsion\ThermalNozzleController.cs" />
     <Compile Include="Propulsion\InterstellarMagneticNozzleControllerFX.cs" />
+    <Compile Include="Refinery\WaterGasShift.cs" />
     <Compile Include="Refinery\CarbonDioxideElectroliser.cs" />
     <Compile Include="Toolbar\InterstellarToolbar.cs" />
     <Compile Include="Microwave\MicrowaveSources.cs" />

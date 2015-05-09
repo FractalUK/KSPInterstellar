@@ -58,6 +58,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new HaberProcess(this.part));
                 unsortedList.Add(new AmmoniaElectrolyzer(this.part));
                 unsortedList.Add(new CarbonDioxideElectroliser(this.part));
+                unsortedList.Add(new WaterGasShift(this.part));
             }
             catch (Exception e)
             {

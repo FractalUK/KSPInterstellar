@@ -21,13 +21,14 @@ namespace FNPlugin.Refinery
         protected Vessel _vessel;
         protected String _status = "";
         
-        protected double _dioxide_consumption_rate;
-        protected double _monoxide_production_rate;
-        protected double _oxygen_production_rate;
         protected double _current_power;
         protected double _fixedMaxConsumptionDioxideRate;
         protected double _current_rate;
         protected double _consumptionStorageRatio;
+
+        protected double _dioxide_consumption_rate;
+        protected double _monoxide_production_rate;
+        protected double _oxygen_production_rate;
 
         protected string _dioxideResourceName;
         protected string _oxygenResourceName;
@@ -51,7 +52,7 @@ namespace FNPlugin.Refinery
 
         public double CurrentPower { get { return _current_power; } }
 
-        public bool HasActivityRequirements {  get  {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.CarbonDioxide).Any(rs => rs.amount > 0);  } }
+        public bool HasActivityRequirements { get { return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0); } }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
@@ -143,22 +144,22 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Carbondioxide Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("CarbonDioxide Available", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_availableDioxideMass.ToString("0.0000") + " mT / " + _maxCapacityDioxideMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Carbondioxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("CarbonDioxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label((_dioxide_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Monoxide Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("CarbonMonoxide Storage", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_spareRoomMonoxideMass.ToString("0.00000") + " mT / " + _maxCapacityMonoxideMass.ToString("0.00000") + " mT", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Monoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("CarbonMonoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label((_monoxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
