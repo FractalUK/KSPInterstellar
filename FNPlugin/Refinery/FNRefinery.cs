@@ -303,7 +303,7 @@ namespace FNPlugin
             { 
                 double electrical_power_provided = consumeFNResource(reprocessor.PowerRequirements, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 electrical_power_ratio = (float)(electrical_power_provided / reprocessor.PowerRequirements);
-                reprocessor.UpdateFrame(electrical_power_ratio);
+                reprocessor.UpdateFrame(electrical_power_ratio, true);
                 if (reprocessor.getActinidesRemovedPerHour() > 0) 
                     reprocessing_rate_d = reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour();
                 else 

@@ -49,7 +49,7 @@ namespace FNPlugin.Refinery
             _hydrazine_density = PartResourceLibrary.Instance.GetDefinition("MonoPropellant").density;
         }
 
-        public void UpdateFrame(double rateMultiplier)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.PechineyUgineKuhlmannEnergyPerTon;

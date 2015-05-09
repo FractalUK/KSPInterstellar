@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenResourceSystem {
-    public static class ORSPartExtensions {
+namespace OpenResourceSystem 
+{
+    public static class ORSPartExtensions 
+    {
 
         public static IEnumerable<PartResource> GetConnectedResources(this Part part, PartResourceDefinition definition) 
         {

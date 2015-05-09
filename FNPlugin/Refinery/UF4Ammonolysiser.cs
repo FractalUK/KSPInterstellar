@@ -31,7 +31,14 @@ namespace FNPlugin.Refinery
 
         public double CurrentPower { get { return _current_power; } }
 
-        public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0); } }
+        public bool HasActivityRequirements 
+        { 
+            get 
+            {
+                    return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride)
+                        .Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);
+            } 
+        }
 
         public double PowerRequirements { get { return PluginHelper.BaseUraniumAmmonolysisPowerConsumption; } }
 
@@ -46,7 +53,7 @@ namespace FNPlugin.Refinery
             _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rateMultiplier)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / GameConstants.baseUraniumAmmonolysisRate;
@@ -94,21 +101,18 @@ namespace FNPlugin.Refinery
             } else if (CurrentPower <= 0.01*PowerRequirements)
             {
                 _status = "Insufficient Power";
-            } else
+            } 
+            else
             {
                 if (_ammonia_consumption_rate > 0 && _uranium_tetraflouride_consumption_rate > 0)
-                {
                     _status = "Insufficient Storage";
-                } else if (_ammonia_consumption_rate > 0)
-                {
+                else if (_ammonia_consumption_rate > 0)
                     _status = "Uranium Tetraflouride Deprived";
-                } else if (_uranium_tetraflouride_consumption_rate > 0)
-                {
+                else if (_uranium_tetraflouride_consumption_rate > 0)
                     _status = "Ammonia Deprived";
-                } else
-                {
+                else
                     _status = "UF4 and Ammonia Deprived";
-                }
+
             }
         }
     }

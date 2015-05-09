@@ -64,7 +64,7 @@ namespace FNPlugin.Refinery
             _nitrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
         {
             _current_power = PowerRequirements * rateMultiplier;
 

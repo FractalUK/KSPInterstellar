@@ -27,7 +27,6 @@ namespace FNPlugin.Refinery
         protected double _hydrogen_peroxide_production_rate;
         protected double _current_power;
 
-
 		protected double _hydrogenMollFractionInHydrogenPeroxide = (1.0079 * 2)/ 34.01468;
 
         private GUIStyle _bold_label;
@@ -60,7 +59,7 @@ namespace FNPlugin.Refinery
             
         }
 
-	    public void UpdateFrame(double rateMultiplier)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
 	    {
 		    _current_power = PowerRequirements * rateMultiplier;
 		    _current_rate = CurrentPower/PluginHelper.AnthraquinoneEnergyPerTon;

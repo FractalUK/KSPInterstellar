@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
-    class ElectricRCSController : FNResourceSuppliableModule {
+namespace FNPlugin 
+{
+    class ElectricRCSController : FNResourceSuppliableModule 
+    {
         //persistant false
         [KSPField(isPersistant = false)]
         public float maxThrust;
@@ -24,7 +26,8 @@ namespace FNPlugin {
         protected float electrical_consumption_f = 0;
         protected float heat_production_f = 0;
 
-        public override void OnStart(PartModule.StartState state) {
+        public override void OnStart(PartModule.StartState state) 
+        {
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
             attachedRCS = this.part.Modules["ModuleRCS"] as ModuleRCS;
             this.resources_to_supply = resources_to_supply;
@@ -32,20 +35,26 @@ namespace FNPlugin {
             if (state == StartState.Editor) return;
         }
 
-        public override void OnUpdate() {
-            if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) {
+        public override void OnUpdate() 
+        {
+            if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) 
+            {
                 Fields["electricalPowerConsumptionStr"].guiActive = true;
                 Fields["heatProductionStr"].guiActive = true;
                 electricalPowerConsumptionStr = electrical_consumption_f.ToString("0.00") + " MW";
                 heatProductionStr = heat_production_f.ToString("0.00") + " MW";
-            } else {
+            } 
+            else 
+            {
                 Fields["electricalPowerConsumptionStr"].guiActive = false;
                 Fields["heatProductionStr"].guiActive = false;
             }
         }
 
-        public void FixedUpdate() {
-            if (attachedRCS != null && HighLogic.LoadedSceneIsFlight && vessel.ActionGroups[KSPActionGroup.RCS]) {
+        public void FixedUpdate() 
+        {
+            if (attachedRCS != null && HighLogic.LoadedSceneIsFlight && vessel.ActionGroups[KSPActionGroup.RCS]) 
+            {
                 double total_thrust = attachedRCS.thrustForces.Sum(frc => frc);
                 float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
                 double currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
@@ -59,7 +68,8 @@ namespace FNPlugin {
             }
         }
 
-        public override string getResourceManagerDisplayName() {
+        public override string getResourceManagerDisplayName() 
+        {
             return "Electrical Reaction Control System";
         }
     }
