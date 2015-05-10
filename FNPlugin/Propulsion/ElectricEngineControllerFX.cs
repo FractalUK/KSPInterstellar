@@ -29,6 +29,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float baseISP;
         [KSPField(isPersistant = false)]
+        public float ispGears = 3;
+        [KSPField(isPersistant = false)]
         public float exitArea = 0;
         [KSPField(isPersistant = false)]
         public float maxPower;
@@ -252,7 +254,15 @@ namespace FNPlugin
             updatePropellantBar();
         }
 
-        //private float _avrageragedLastActualMaxThrustWithTrottle;
+        private float GetModifiedThrotte()
+        {
+            return Math.Min(_attached_engine.currentThrottle * ispGears, 1);
+        }
+
+        private float ThrottleModifiedIsp()
+        {
+            return _attached_engine.currentThrottle < (1f / ispGears) ? ispGears : ispGears - ((_attached_engine.currentThrottle - (1f / ispGears)) * ispGears);
+        }
 
         public void FixedUpdate()
         {
@@ -265,7 +275,8 @@ namespace FNPlugin
             // retrieve power
             _electrical_share_f = maxPower / Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.maxPower), maxPower);
             double powerAvailableForEngine = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0) * _electrical_share_f;
-            double power_per_engine = Math.Min(_attached_engine.currentThrottle * evaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerThrustModifier() * g0, maxPower * CurrentPropellantEfficiency);
+            double power_per_engine = Math.Min(GetModifiedThrotte() * EvaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerThrustModifier() * g0, maxPower * CurrentPropellantEfficiency);
+
             double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / CurrentPropellantEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     
             // produce waste heat
@@ -279,20 +290,20 @@ namespace FNPlugin
             // produce thrust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
 
-            double max_thrust_in_space = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0 * _attached_engine.currentThrottle);
-            
-            _maxISP = (float)(modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier);
+            double max_thrust_in_space = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * ThrottleModifiedIsp() * g0 * GetModifiedThrotte());
+
+            _maxISP = (float)(modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier) * ThrottleModifiedIsp();
             _max_fuel_flow_rate = _maxISP <= 0 ? 0 :  max_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
 
-            if (_attached_engine.currentThrottle > 0)
+            if (GetModifiedThrotte() > 0)
             {
-                double max_thrut_with_current_throttle = max_thrust_in_space * _attached_engine.currentThrottle;
-                double actual_max_thrust = Math.Max(max_thrut_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
+                double max_thrust_with_current_throttle = max_thrust_in_space * GetModifiedThrotte();
+                double actual_max_thrust = Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
 
-                if (actual_max_thrust > 0 && !double.IsNaN(actual_max_thrust) && max_thrut_with_current_throttle > 0 && !double.IsNaN(max_thrut_with_current_throttle))
+                if (actual_max_thrust > 0 && !double.IsNaN(actual_max_thrust) && max_thrust_with_current_throttle > 0 && !double.IsNaN(max_thrust_with_current_throttle))
                 {
-                    updateISP(actual_max_thrust / max_thrut_with_current_throttle);
-                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate;
+                    updateISP(actual_max_thrust / max_thrust_with_current_throttle);
+                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate * (GetModifiedThrotte() / _attached_engine.currentThrottle);
                 }
                 else
                 {
@@ -304,6 +315,7 @@ namespace FNPlugin
             }
             else
             {
+                
                 double actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
 
                 if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust) && actual_max_thrust > 0 && max_thrust_in_space > 0)
@@ -313,13 +325,8 @@ namespace FNPlugin
                 }
                 else
                 {
-                    double max_theoretical_thrust = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * powerAvailableForEngine / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * g0);
-                    _max_fuel_flow_rate = _maxISP <= 0 ? 0 : max_theoretical_thrust / _maxISP / PluginHelper.GravityConstant;
-
-                    double atmospheric_max_theoretical_thrust = Math.Max(max_theoretical_thrust - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
-
-                    updateISP(Math.Max(0.000001, atmospheric_max_theoretical_thrust / max_theoretical_thrust));
-                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate;
+                    updateISP(1);
+                    _attached_engine.maxFuelFlow = 0;
                 }
                 
                 //_attached_engine.maxThrust = _avrageragedLastActualMaxThrustWithTrottle > 1 ? _avrageragedLastActualMaxThrustWithTrottle : 1;
@@ -393,7 +400,7 @@ namespace FNPlugin
             setupPropellants();
         }
 
-        protected double evaluateMaxThrust(double power_supply)
+        protected double EvaluateMaxThrust(double power_supply)
         {
             if (Current_propellant == null) return 0;
 
@@ -403,7 +410,7 @@ namespace FNPlugin
         protected void updateISP(double isp_efficiency)
         {
             FloatCurve newISP = new FloatCurve();
-            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier));
+            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp()));
             _attached_engine.atmosphereCurve = newISP;
         }
 

@@ -18,6 +18,7 @@ namespace FNPlugin  {
         public float airFlow;
         [KSPField(guiName = "Atm Speed", guiUnits = "M/s", guiFormat = "F2", isPersistant = false, guiActive = false)]
         public float airSpeed;
+
         [KSPField(isPersistant = false)]
         public float aoaThreshold = 0.1f;
         [KSPField(isPersistant = false)]
