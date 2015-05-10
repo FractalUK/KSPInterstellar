@@ -11,6 +11,9 @@ namespace FNPlugin.Refinery
 {
     class SabatierReactor : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
@@ -72,41 +75,35 @@ namespace FNPlugin.Refinery
                 _bold_label.fontStyle = FontStyle.Bold;
             }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Methane Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_methane_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Methane Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_methane_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_oxygen_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_oxygen_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
             if (_methane_production_rate > 0 && _oxygen_production_rate > 0)
-            {
                 _status = "Sabatier Process Ongoing";
-            } else if (_oxygen_production_rate > 0)
-            {
+            else if (_oxygen_production_rate > 0)
                 _status = "Ongoing: Insufficient Oxygen Storage";
-            } else if (_methane_production_rate > 0)
-            {
+            else if (_methane_production_rate > 0)
                 _status = "Ongoing: Insufficient Methane Storage";
-            } else if (CurrentPower <= 0.01*PowerRequirements)
-            {
+            else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = "Insufficient Power";
-            } else
-            {
+            else
                 _status = "Insufficient Storage";
-            }
         }
     }
 }

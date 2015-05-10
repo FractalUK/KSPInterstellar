@@ -11,11 +11,11 @@ namespace FNPlugin.Refinery
 {
     class WaterElectroliser : IRefineryActivity
     {
-        const double hydrogenMassByFraction = (2 * 1.008) / (15.999 + (2 * 1.008));
-        const double oxygenMassByFraction = 1 - hydrogenMassByFraction;
-
         const int labelWidth = 200;
         const int valueWidth = 200;
+
+        const double hydrogenMassByFraction = (2 * 1.008) / (15.999 + (2 * 1.008));
+        const double oxygenMassByFraction = 1 - hydrogenMassByFraction;
 
         protected Part _part;
         protected Vessel _vessel;

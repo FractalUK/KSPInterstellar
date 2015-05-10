@@ -11,11 +11,11 @@ namespace FNPlugin.Refinery
 {
     class CarbonDioxideElectroliser : IRefineryActivity
     {
-        const double carbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
-        const double oxygenMassByFraction = 1 - carbonMonoxideMassByFraction;
-
         const int labelWidth = 200;
         const int valueWidth = 200;
+
+        const double carbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
+        const double oxygenMassByFraction = 1 - carbonMonoxideMassByFraction;
 
         protected Part _part;
         protected Vessel _vessel;

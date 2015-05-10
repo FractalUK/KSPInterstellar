@@ -11,6 +11,9 @@ namespace FNPlugin.Refinery
 {
     class HaberProcess : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
@@ -97,50 +100,44 @@ namespace FNPlugin.Refinery
                 _bold_label.fontStyle = FontStyle.Bold;
             }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Current Rate ", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_current_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Current Rate ", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_current_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Avaialble Atmospheric Nitrogen ", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_atmospheric_nitrogen_rate.ToString(), GUILayout.Width(150));
+            GUILayout.Label("Avaialble Atmospheric Nitrogen ", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_atmospheric_nitrogen_rate.ToString(), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Nitrogen Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_nitrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Nitrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_nitrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammonia Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_ammonia_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Ammonia Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_ammonia_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
             if (_ammonia_production_rate > 0) 
-            {
                 _status = "Haber Process Ongoing";
-            }
             else if (CurrentPower <= 0.01 * PowerRequirements)
-            {
                 _status = "Insufficient Power";
-            }
             else
-            {
                 _status = "Insufficient Storage";
-            }
         }
     }
 }

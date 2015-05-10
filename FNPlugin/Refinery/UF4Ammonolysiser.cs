@@ -11,6 +11,9 @@ namespace FNPlugin.Refinery
 {
     class UF4Ammonolysiser : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
@@ -76,20 +79,20 @@ namespace FNPlugin.Refinery
                 _bold_label.fontStyle = FontStyle.Bold;
             }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(200));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammona Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_ammonia_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Ammona Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_ammonia_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(200));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Uranium Tetraflouride Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_uranium_tetraflouride_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Uranium Tetraflouride Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_uranium_tetraflouride_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(200));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Uranium Nitride Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_uranium_nitride_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Uranium Nitride Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_uranium_nitride_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(200));
             GUILayout.EndHorizontal();
         }
 

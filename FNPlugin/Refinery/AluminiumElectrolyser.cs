@@ -11,9 +11,13 @@ namespace FNPlugin.Refinery
 {
     class AluminiumElectrolyser : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
+
         protected double _current_rate;
         protected double _alumina_density;
         protected double _aluminium_density;
@@ -63,41 +67,35 @@ namespace FNPlugin.Refinery
                 _bold_label.fontStyle = FontStyle.Bold;
             }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Alumina Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_alumina_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Alumina Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_alumina_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Aluminium Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_aluminium_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Aluminium Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_aluminium_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_oxygen_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_oxygen_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
             if (_aluminium_production_rate > 0 && _oxygen_production_rate > 0)
-            {
                 _status = "Electrolysing";
-            } else if (_alumina_consumption_rate > 0)
-            {
+            else if (_alumina_consumption_rate > 0)
                 _status = "Electrolysing: Insufficient Oxygen Storage";
-            } else if (_oxygen_production_rate > 0)
-            {
+            else if (_oxygen_production_rate > 0)
                 _status = "Electrolysing: Insufficient Aluminium Storage";
-            } else if (CurrentPower <= 0.01 * PowerRequirements)
-            {
+            else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = "Insufficient Power";
-            } else
-            {
+            else
                 _status = "Insufficient Storage";
-            }
         }
     }
 }

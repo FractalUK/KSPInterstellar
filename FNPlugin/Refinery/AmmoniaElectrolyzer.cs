@@ -12,6 +12,9 @@ namespace FNPlugin.Refinery
 {
     class AmmoniaElectrolyzer : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
@@ -86,48 +89,42 @@ namespace FNPlugin.Refinery
                 _bold_label.fontStyle = FontStyle.Bold;
             }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammonia Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label((_ammonia_consumption_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Ammonia Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_ammonia_consumption_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label((_hydrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_hydrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label((_nitrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_nitrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             var spare_capacity_nitrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Nitrogen);
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Spare Capacity Nitrogen", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(spare_capacity_nitrogen.ToString("0.000"), GUILayout.Width(150));
+            GUILayout.Label("Spare Capacity Nitrogen", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(spare_capacity_nitrogen.ToString("0.000"), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
             if (_hydrogen_production_mass_rate > 0 && _nitrogen_production_mass_rate > 0)
-            {
                 _status = "Electrolysing";
-            } else if (_hydrogen_production_mass_rate > 0)
-            {
+            else if (_hydrogen_production_mass_rate > 0)
                 _status = "Electrolysing: Insufficient Nitrogen Storage";
-            } else if (_nitrogen_production_mass_rate > 0)
-            {
+            else if (_nitrogen_production_mass_rate > 0)
                 _status = "Electrolysing: Insufficient Hydrogen Storage";
-            } else if (CurrentPower <= 0.01 * PowerRequirements)
-            {
+            else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = "Insufficient Power";
-            } else
-            {
+            else
                 _status = "Insufficient Storage";
-            }
         }
     }
 }

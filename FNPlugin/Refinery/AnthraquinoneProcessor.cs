@@ -11,16 +11,18 @@ namespace FNPlugin.Refinery
 {
     class AnthraquinoneProcessor : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
         protected double _current_rate;
-        //protected double _water_density;
+
 		protected double _hydrogen_density;
 		protected double _oxygen_density;
         protected double _hydrogen_peroxide_density;
-        
-        //protected double _water_consumption_rate;
+
 		protected double _hydrogen_consumption_rate;
 		protected double _oxygen_consumption_rate;
 
@@ -52,18 +54,16 @@ namespace FNPlugin.Refinery
         {
             _part = part;
             _vessel = part.vessel;
-            //_water_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
+
 			_hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
 			_oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
             _hydrogen_peroxide_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
-            
         }
 
         public void UpdateFrame(double rateMultiplier, bool allowOverflow)
 	    {
 		    _current_power = PowerRequirements * rateMultiplier;
 		    _current_rate = CurrentPower/PluginHelper.AnthraquinoneEnergyPerTon;
-		    //_water_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Water, _current_rate * TimeWarp.fixedDeltaTime / _water_density) / TimeWarp.fixedDeltaTime * _water_density;
 
 		    _hydrogen_consumption_rate =
 				_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, _hydrogenMollFractionInHydrogenPeroxide * _current_rate * TimeWarp.fixedDeltaTime / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
@@ -99,20 +99,20 @@ namespace FNPlugin.Refinery
                  _bold_label = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold};
             
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(150));
-			GUILayout.Label((_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
-			GUILayout.Label("Oxygen Consumption Rate", _bold_label, GUILayout.Width(150));
-			GUILayout.Label((_oxygen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Oxygen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_oxygen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
 			GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Peroxide Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label((_hydrogen_peroxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrogen Peroxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_hydrogen_peroxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

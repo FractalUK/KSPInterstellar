@@ -11,14 +11,14 @@ namespace FNPlugin.Refinery
 {
     class WaterGasShift : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+        
         const double waterMassByFraction = 18.01528 / (18.01528 + 28.010);
         const double monoxideMassByFraction = 1 - waterMassByFraction;
 
         const double hydrogenMassByFraction = (2 * 1.008) / (44.01 + (2 * 1.008));
         const double dioxideMassByFraction = 1 - hydrogenMassByFraction;
-
-        const int labelWidth = 200;
-        const int valueWidth = 200;
 
         protected Part _part;
         protected Vessel _vessel;

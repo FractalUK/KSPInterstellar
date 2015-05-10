@@ -11,6 +11,9 @@ namespace FNPlugin.Refinery
 {
     class MonopropellantProducer : IRefineryActivity
     {
+        const int labelWidth = 200;
+        const int valueWidth = 200;
+
         protected Part _part;
         protected Vessel _vessel;
         protected String _status = "";
@@ -72,56 +75,47 @@ namespace FNPlugin.Refinery
                 _bold_label.fontStyle = FontStyle.Bold;
             }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammona Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_ammonia_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Ammona Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_ammonia_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Peroxide Consumption Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_hydrogen_peroxide_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrogen Peroxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_hydrogen_peroxide_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Water Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_water_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Water Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_water_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrazine (Monopropellant) Production Rate", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(_hydrazine_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(150));
+            GUILayout.Label("Hydrazine (Monopropellant) Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_hydrazine_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
             if (_water_production_rate > 0 && _hydrazine_production_rate > 0)
-            {
                 _status = "Peroxide Process Ongoing";
-            } else if (_hydrazine_production_rate > 0)
-            {
+            else if (_hydrazine_production_rate > 0)
                 _status = "Ongoing: Insufficient Monopropellant Storage";
-            } else if (_water_production_rate > 0)
-            {
+            else if (_water_production_rate > 0)
                 _status = "Ongoing: Insufficient Water Storage";
-            } else if (CurrentPower <= 0.01*PowerRequirements)
-            {
+            else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = "Insufficient Power";
-            } else
+            else
             {
                 if (_ammonia_consumption_rate > 0 && _hydrogen_peroxide_consumption_rate > 0)
-                {
                     _status = "Insufficient Storage";
-                } else if (_ammonia_consumption_rate > 0)
-                {
+                else if (_ammonia_consumption_rate > 0)
                     _status = "Hydrogen Peroxide Deprived";
-                } else if (_hydrogen_peroxide_consumption_rate > 0)
-                {
+                else if (_hydrogen_peroxide_consumption_rate > 0)
                     _status = "Ammonia Deprived";
-                } else
-                {
+                else
                     _status = "Hydrogen Peroxide and Ammonia Deprived";
-                }
             }
         }
     }
