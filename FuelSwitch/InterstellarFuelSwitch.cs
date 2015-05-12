@@ -54,7 +54,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string tankMass = "0;0;0;0";
         [KSPField]
-        public string tankCost = "0; 0; 0; 0";
+        public string tankCost = "";
         [KSPField]
         public bool displayCurrentTankCost = false;
         [KSPField]
@@ -187,7 +187,7 @@ namespace InterstellarFuelSwitch
                 Events["previousTankSetupEvent"].guiActiveEditor = false;
             }
 
-            if (HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+            if (HighLogic.LoadedSceneIsEditor ||  HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
                 Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
 
             initialized = true;
@@ -389,10 +389,31 @@ namespace InterstellarFuelSwitch
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
         }
 
-        private float UpdateCost() // Does this even do anything?
+        private float UpdateCost() 
         {
-            //GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship); //crashes game
-            return selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count ? (float)tankCostList[selectedTankSetup] : 0f;
+            if (selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count)
+            {
+                addedCost = (float)tankCostList[selectedTankSetup];
+                //part.partInfo.cost = newCost
+                //Debug.Log("InsterstellarFuelSwitch: changed addedCost to " + addedCost);
+                return addedCost;
+            }
+            else
+            {
+                addedCost = 0;
+                if (_partRresourceDefinition0 != null && _partResource0 != null)
+                {
+                    addedCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
+                    if (_partRresourceDefinition1 != null && _partResource1 != null)
+                    {
+                        addedCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+                        if (_partRresourceDefinition2 != null && _partResource2 != null)
+                            addedCost += _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount;
+                    }
+                }
+
+                return addedCost;
+            }
         }
         private void UpdateWeight(Part currentPart, int newTankSetup, bool calledByPlayer = false)
         {
@@ -422,8 +443,8 @@ namespace InterstellarFuelSwitch
         private void UpdateGuiResourceMass()
         {
             resourceAmountStr0 = _partRresourceDefinition0 == null || _partResource0 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource0.amount);
-            resourceAmountStr1 = _partRresourceDefinition1 == null || _partResource1 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource1.amount);
-            resourceAmountStr2 = _partRresourceDefinition2 == null || _partResource2 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource2.amount);
+            resourceAmountStr1 = _partRresourceDefinition1 == null || _partResource1 == null ? String.Empty : formatMassStr(_partRresourceDefinition1.density * _partResource1.amount);
+            resourceAmountStr2 = _partRresourceDefinition2 == null || _partResource2 == null ? String.Empty : formatMassStr(_partRresourceDefinition2.density * _partResource2.amount);
         }
 
         public override void OnUpdate()
