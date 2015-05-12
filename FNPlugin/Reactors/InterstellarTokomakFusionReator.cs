@@ -1,15 +1,18 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin 
 {
-    class InterstellarTokamakFusionReator : InterstellarFusionReactor
+    class LargeInterstellarTokamakFusionReactor : InterstellarTokamakFusionReactor { }
+
+    class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Maintance")]
         public string tokomakPower;
 
         protected bool fusion_alert = false;
-        protected double power_consumed = 0.0;
+        protected float power_consumed = 0.0f;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
@@ -17,10 +20,10 @@ namespace FNPlugin
         // properties
 
         //public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
-        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio == 1 ? 1 : 0.000000001f); } }
+        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
 
         //public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
-        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio == 1 ? 1 : 0.000000001f); } }
+        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
@@ -72,7 +75,8 @@ namespace FNPlugin
 
                 //if (power_consumed < HeatingPowerRequirements) 
                 //    power_consumed += part.RequestResource("ElectricCharge", (HeatingPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000.0;
-                plasma_ratio = (HeatingPowerRequirements != 0.0f) ? (float)(power_consumed / HeatingPowerRequirements) : 1.0f;
+                //plasma_ratio= ((HeatingPowerRequirements != 0.0f) ? power_consumed / HeatingPowerRequirements : 1.0f);
+                plasma_ratio = (float)Math.Round((HeatingPowerRequirements != 0.0f) ? power_consumed / HeatingPowerRequirements : 1.0f, 4);
             }
             else
             {

@@ -104,14 +104,14 @@ namespace FNPlugin
 		}
 
         [KSPEvent(guiName = "Swap Type", guiActiveEditor = false, guiActiveUnfocused = false, guiActive = false)]
-        public void EditorSwapType() 
+        public void EditorSwapType()
         {
-            if (!chargedParticleMode) 
+            if (!chargedParticleMode)
             {
                 generatorType = altUpgradedName;
                 chargedParticleMode = true;
-            } 
-            else 
+            }
+            else
             {
                 generatorType = upgradedName;
                 chargedParticleMode = false;
@@ -138,7 +138,7 @@ namespace FNPlugin
 			isupgraded = true;
 			pCarnotEff = upgradedpCarnotEff;
             generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
-            Events["EditorSwapType"].guiActiveEditor = true;
+            //Events["EditorSwapType"].guiActiveEditor = true;
 		}
 
         public void OnEditorAttach() 
