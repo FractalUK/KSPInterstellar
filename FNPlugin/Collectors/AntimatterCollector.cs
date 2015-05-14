@@ -6,8 +6,10 @@ using System.Linq;
 using System.Text;
 using ORSv1_4_3::OpenResourceSystem;
 
-namespace FNPlugin {
-    public class AntimatterCollector : PartModule    {
+namespace FNPlugin 
+{
+    public class AntimatterCollector : PartModule    
+    {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
         public string ParticleFlux;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Rate")]
@@ -19,7 +21,8 @@ namespace FNPlugin {
         protected int drawCount = 0;
         protected double collection_rate_d = 0;
 
-        public override void OnStart(PartModule.StartState state) {
+        public override void OnStart(PartModule.StartState state) 
+        {
             if (state == StartState.Editor) { return; }
 
             double now = Planetarium.GetUniversalTime();
@@ -34,7 +37,8 @@ namespace FNPlugin {
             }
         }
 
-        public override void OnUpdate() {
+        public override void OnUpdate() 
+        {
             double lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
             double flux = vessel.mainBody.GetBeltAntiparticles(vessel.altitude, lat);
             ParticleFlux = flux.ToString("E");
