@@ -27,8 +27,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
 
-        [KSPField(isPersistant = true, guiActive = false, guiName = "Soot Accumulation", guiUnits = " %")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Soot Accumulation", guiUnits = " %")]
         public float sootAccumulationPercentage;
+
 
 		//Persistent False
 		[KSPField(isPersistant = false)]
@@ -37,6 +38,8 @@ namespace FNPlugin
         public float powerTrustMultiplier = 1.0f;
         [KSPField(isPersistant = false)]
         public float IspTempMultOffset = 0f;
+        [KSPField(isPersistant = false)]
+        public float sootHeadDivider = 20f;
 
         [KSPField(isPersistant = false)]
         public float upgradeCost;
@@ -68,14 +71,17 @@ namespace FNPlugin
         public float _ispPropellantMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fuel Soot Factor")]
         public float _propellantSootFactor = 1;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra Heat Production ")]
+        public float heatProductionExtra;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
+        public string temperatureStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
         public float _thrustPropellantMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float heatProductionBase;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra Heat Production ")]
-        public float heatProductionExtra;
+
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
         public float fuelFlowCooling;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
@@ -104,7 +110,7 @@ namespace FNPlugin
         protected float engineMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected float max_thrust_in_space;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Final Thrust")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Thrust")]
         protected float final_max_engine_thrust_in_space;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
         protected float _maxISP;
@@ -319,7 +325,7 @@ namespace FNPlugin
                 setupPropellants(true, true);
             }
 
-
+            temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
             staticPresure = (FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
             pressureTreshold = exitArea * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
 
@@ -405,7 +411,7 @@ namespace FNPlugin
                     {
                         fuel_gauge.SetMessage(curprop.name);
                         myAttachedEngine.thrustPercentage = 100;
-                        part.temperature = 1;
+                        //part.temperature = 1;
                     }
 
                     fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
@@ -715,13 +721,18 @@ namespace FNPlugin
                 thermal_power_received += consumeFNResource(fixed_requested_termal_power - thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
 
             // modify sootAccumulation
-            if (myAttachedEngine.currentThrottle > 0 && _propellantSootFactor != 0 && _thrustPropellantMultiplier > 0)
+            if (myAttachedEngine.currentThrottle > 0 && _propellantSootFactor > 0 && _thrustPropellantMultiplier > 0)
             {
                 var sootMultiplier = _propellantSootFactor > 0 ? _heatDecompositionFraction : 1;
                 sootAccumulationPercentage = Math.Min(100, Math.Max(0, sootAccumulationPercentage + (TimeWarp.fixedDeltaTime * _propellantSootFactor * sootMultiplier)));
-                heatProductionExtra = (sootAccumulationPercentage / 50f) * heatProductionBase;
-                myAttachedEngine.heatProduction = heatProductionBase + heatProductionExtra;
             }
+            else
+            {
+                sootAccumulationPercentage -= TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * 0.1f;
+            }
+
+            heatProductionExtra = (sootAccumulationPercentage / sootHeadDivider) * heatProductionBase;
+            myAttachedEngine.heatProduction = heatProductionBase + heatProductionExtra;
 
             // consume wasteheat
             consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -821,7 +832,7 @@ namespace FNPlugin
                 {
                     ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     myAttachedEngine.Shutdown();
-                    part.temperature = 1;
+                    //part.temperature = 1;
                 }
                 else
                     part.temperature = temp;
