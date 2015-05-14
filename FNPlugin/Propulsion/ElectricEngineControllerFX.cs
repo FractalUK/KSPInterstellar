@@ -34,14 +34,16 @@ namespace FNPlugin
         public float exitArea = 0;
         [KSPField(isPersistant = false)]
         public float maxPower;
-        [KSPField(isPersistant = false)]
-        public float powerTrustMultiplier = 1.0f;
+        [KSPField(isPersistant = false, guiName = "Power Thrust Multiplier")]
+        public float powerThrustMultiplier = 1.0f;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
         public string originalName;
         [KSPField(isPersistant = false)]
         public string upgradedName;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -58,15 +60,6 @@ namespace FNPlugin
         public string heatProductionStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr = "";
-
-
-
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Stable Power", guiUnits = " MW")]
-        //public float stable_power_supply;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Available Power", guiUnits = " MW")]
-        //public float availablePower;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "High Priority ", guiUnits = " MW")]
-        //public float highPriorityPower;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -137,6 +130,10 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // calculate WasteHeat Capacity
+            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+
             g0 = PluginHelper.GravityConstant;
             modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
             
@@ -373,7 +370,7 @@ namespace FNPlugin
             double powerThrustModifier = GetPowerThrustModifier();
             List<ElectricEnginePropellant> props = getPropellantsEngineType();
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
-            double thrust_per_mw = (2e6 * powerTrustMultiplier) / g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
+            double thrust_per_mw = (2e6 * powerThrustMultiplier) / g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
             {
                 double ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (float)prop.IspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
@@ -416,7 +413,7 @@ namespace FNPlugin
 
         private double GetPowerThrustModifier()
         {
-            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalElectricEnginePowerMaxThrustMult * powerTrustMultiplier;
+            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalElectricEnginePowerMaxThrustMult * powerThrustMultiplier;
         }
 
         private double GetAtmosphericDensityModifier()

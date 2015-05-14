@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace FNPlugin 
 {
-    class LargeInterstellarTokamakFusionReactor : InterstellarTokamakFusionReactor { }
-
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
         [KSPField(isPersistant = false, guiActive = true, guiName = "Maintance")]

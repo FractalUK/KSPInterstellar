@@ -40,6 +40,8 @@ namespace FNPlugin
         public float fusionWasteHeat = 2500;
         [KSPField(isPersistant = false)]
         public float fusionWasteHeatUpgraded = 10000;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
@@ -131,6 +133,9 @@ namespace FNPlugin
             else if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
+            // calculate WasteHeat Capacity
+            part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+
             if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
             {
                 isupgraded = true;
@@ -220,7 +225,7 @@ namespace FNPlugin
                 supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
-                supplyFNResource(FusionWasteHeat * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);
@@ -242,9 +247,7 @@ namespace FNPlugin
                         curEngineT.status = "Insufficient Electricity";
                 }
 
-                //currentHeatProduction = baseHeatProduction / throttle;
                 currentHeatProduction = FusionWasteHeat / throttle;
-                
                 curEngineT.heatProduction = currentHeatProduction;
             }
             else
@@ -256,7 +259,7 @@ namespace FNPlugin
                 var maxFuelFlow = MaximumThrust / minISP / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
 
-                curEngineT.heatProduction = FusionWasteHeat; // baseHeatProduction
+                curEngineT.heatProduction = FusionWasteHeat; 
             }
 
             radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);

@@ -24,6 +24,8 @@ namespace FNPlugin
 		public bool engineInit = false;
 		[KSPField(isPersistant = true)]
 		public int fuel_mode = 0;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         [KSPField(isPersistant = true, guiActive = false, guiName = "Soot Accumulation", guiUnits = " %")]
         public float sootAccumulationPercentage;
@@ -244,6 +246,10 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // calculate WasteHeat Capacity
+            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+
             engineType = originalName;
             myAttachedEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
 

@@ -17,9 +17,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "t")]
         public float partMass;
         [KSPField(isPersistant = false)]
-        public float powerTrustMultiplier = 1.0f;
-        [KSPField(isPersistant = false)]
         public float powerThrustMultiplier = 1.0f;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         // Visible Non Persistant
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
@@ -46,13 +46,12 @@ namespace FNPlugin
 		protected IChargedParticleSource _attached_reactor;
         protected int _attached_reactor_distance;
 
-        protected float NozzlePowerThrustMultiplier
-        {
-            get { return powerThrustMultiplier * powerThrustMultiplier; }
-        }
-
 		public override void OnStart(PartModule.StartState state) 
         {
+            // calculate WasteHeat Capacity
+            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+            
             if (state == StartState.Editor) return;
 
 			_attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
@@ -143,7 +142,7 @@ namespace FNPlugin
                 _engineMaxThrust = 0;
                 if (_max_charged_particles_power > 0)
                 {
-                    double powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * NozzlePowerThrustMultiplier;
+                    double powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
                     var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant;
                     var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant;
 

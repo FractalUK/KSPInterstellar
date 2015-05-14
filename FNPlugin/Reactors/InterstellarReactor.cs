@@ -83,6 +83,8 @@ namespace FNPlugin
         public bool containsPowerGenerator = false;
         [KSPField(isPersistant = false)]
         public float fuelUsePerMJMult = 1f;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
@@ -359,6 +361,10 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
+            // calculate WasteHeat Capacity
+            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+
             PowerOutputBase = PowerOutput;
             upgradedPowerOutputBase = upgradedPowerOutput;
 
