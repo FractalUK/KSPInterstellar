@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InterstellarTextureSwitch2.cs" />
     <Compile Include="InterstellarDebugMessages.cs" />
     <Compile Include="InterstellarFuelSwitch.cs" />
     <Compile Include="InterstellarMeshSwitch.cs" />
