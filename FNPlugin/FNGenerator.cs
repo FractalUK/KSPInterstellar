@@ -103,20 +103,20 @@ namespace FNPlugin
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
 		}
 
-        [KSPEvent(guiName = "Swap Type", guiActiveEditor = false, guiActiveUnfocused = false, guiActive = false)]
-        public void EditorSwapType()
-        {
-            if (!chargedParticleMode)
-            {
-                generatorType = altUpgradedName;
-                chargedParticleMode = true;
-            }
-            else
-            {
-                generatorType = upgradedName;
-                chargedParticleMode = false;
-            }
-        }
+        //[KSPEvent(guiName = "Swap Type", guiActiveEditor = false, guiActiveUnfocused = false, guiActive = false)]
+        //public void EditorSwapType()
+        //{
+        //    if (!chargedParticleMode)
+        //    {
+        //        generatorType = altUpgradedName;
+        //        chargedParticleMode = true;
+        //    }
+        //    else
+        //    {
+        //        generatorType = upgradedName;
+        //        chargedParticleMode = false;
+        //    }
+        //}
 
 		[KSPAction("Activate Generator")]
 		public void ActivateGeneratorAction(KSPActionParam param) {

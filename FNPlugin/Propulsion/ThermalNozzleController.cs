@@ -729,6 +729,7 @@ namespace FNPlugin
             else
             {
                 sootAccumulationPercentage -= TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * 0.1f;
+                sootAccumulationPercentage = Math.Max(0, sootAccumulationPercentage);
             }
 
             heatProductionExtra = (sootAccumulationPercentage / sootHeadDivider) * heatProductionBase;

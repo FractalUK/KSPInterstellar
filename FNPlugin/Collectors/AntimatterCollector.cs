@@ -14,6 +14,8 @@ namespace FNPlugin
         public string ParticleFlux;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Rate")]
         public string collectionRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Multiplier")]
+        public float collectionMultiplier;
         [KSPField(isPersistant = true)]
         public float last_active_time;
         
@@ -32,7 +34,7 @@ namespace FNPlugin
                 double vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2.0f;
                 double vessel_inclination = vessel.orbit.inclination;
                 double flux = 0.5 * (vessel.mainBody.GetBeltAntiparticles(vessel_avg_alt, vessel_inclination) + vessel.mainBody.GetBeltAntiparticles(vessel_avg_alt, 0.0));
-                double antimatter_to_add = time_diff*flux;
+                double antimatter_to_add = time_diff * flux * collectionMultiplier;
                 part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, -antimatter_to_add);
             }
         }
