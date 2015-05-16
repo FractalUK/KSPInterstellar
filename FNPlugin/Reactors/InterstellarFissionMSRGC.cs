@@ -13,9 +13,20 @@ namespace FNPlugin
 
 
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable {
+    class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable 
+    {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
+
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Remaining Fuel")]
+        public string remainingFuel;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides")]
+        public string actinidesBuildup;
+
+
+        //PartResourceDefinition resourceDefinitionUranium;
+        //PartResourceDefinition resourceDefinitionThorium;
+        PartResourceDefinition resourceDefinitionActinides;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
@@ -30,6 +41,7 @@ namespace FNPlugin
                     fuel_mode++;
                     if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
                     current_fuel_mode = fuel_modes[fuel_mode];
+                    fuelModeStr = current_fuel_mode.ModeGUIName;
                     Refuel();
                 }
             }
@@ -38,11 +50,52 @@ namespace FNPlugin
         [KSPEvent(guiName = "Swap Fuel", guiActiveEditor = true, guiActiveUnfocused = false, guiActive = false)]
         public void EditorSwapFuel()
         {
-            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) part.Resources[fuel.FuelName].amount = 0;
-            fuel_mode++;
-            if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
-            current_fuel_mode = fuel_modes[fuel_mode];
-            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels) part.Resources[fuel.FuelName].amount = part.Resources[fuel.FuelName].maxAmount;
+            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+            {
+                part.Resources[fuel.FuelName].amount = 0;
+            }
+
+            var startFirstFuelType = current_fuel_mode.ReactorFuels.First();
+            var currentFirstFuelType = startFirstFuelType;
+
+            do 
+            {
+                fuel_mode++;
+                if (fuel_mode >= fuel_modes.Count)
+                    fuel_mode = 0;
+
+                current_fuel_mode = fuel_modes[fuel_mode];
+                currentFirstFuelType = current_fuel_mode.ReactorFuels.First();
+            } 
+            while (currentFirstFuelType.FuelName == startFirstFuelType.FuelName);
+
+            foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+            {
+                part.Resources[fuel.FuelName].amount = part.Resources[fuel.FuelName].maxAmount;
+            }
+
+            fuelModeStr = current_fuel_mode.ModeGUIName;
+        }
+
+        [KSPEvent(guiName = "Switch Mode", guiActiveEditor = true, guiActiveUnfocused = true, guiActive = true)]
+        public void SwitchMode()
+        {
+            var startFirstFuelType = current_fuel_mode.ReactorFuels.First();
+            var currentFirstFuelType = startFirstFuelType;
+
+            // repeat until found same or differnt fuelmode with same kind of primary fuel
+            do
+            {
+                fuel_mode++;
+                if (fuel_mode >= fuel_modes.Count)
+                    fuel_mode = 0;
+
+                current_fuel_mode = fuel_modes[fuel_mode];
+                currentFirstFuelType = current_fuel_mode.ReactorFuels.First();
+            }
+            while (currentFirstFuelType.FuelName != startFirstFuelType.FuelName);
+
+            fuelModeStr = current_fuel_mode.ModeGUIName;
         }
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
@@ -146,6 +199,8 @@ namespace FNPlugin
             // start as normal
             base.OnStart(state);
 
+            resourceDefinitionActinides = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Actinides);
+
             // auto switch if current fuel mode is depleted
             if (isCurrentFuelDepleted())
             {
@@ -154,6 +209,7 @@ namespace FNPlugin
                 
                 current_fuel_mode = fuel_modes[fuel_mode];
             }
+            fuelModeStr = current_fuel_mode.ModeGUIName;
         }
 
         public override void OnFixedUpdate()
@@ -208,15 +264,27 @@ namespace FNPlugin
             {
                 if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
                 {
-                    double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
-                    part.Resources[fuel.FuelName].amount -= amount;
-                    part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount += amount;
+                    var partResourceFuel = part.Resources[fuel.FuelName];
+                    var partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+                    var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
+
+                    double amount = Math.Min(consume_amount, partResourceFuel.amount / FuelEfficiency);
+                    partResourceFuel.amount -= amount;
+                    partResourceAnticides.amount += amount;
+
+                    if (resourceDefinition != null)
+                    {
+                        remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.000000") + " kg";
+                        Fields["remainingFuel"].guiName = fuel.FuelName;
+                    }
+                    actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.000000") + " kg";
+
                     return amount;
-                } else return 0;
-            } else
-            {
+                } 
+                else return 0;
+            } 
+            else
                 return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
-            }
         }
 
         protected override void setDefaultFuelMode()

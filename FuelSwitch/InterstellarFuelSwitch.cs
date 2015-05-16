@@ -74,7 +74,7 @@ namespace InterstellarFuelSwitch
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
         public string tankGuiName = String.Empty; 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Added cost")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Added cost")]
         public float addedCost = 0f;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0f;
@@ -187,8 +187,9 @@ namespace InterstellarFuelSwitch
                 Events["previousTankSetupEvent"].guiActiveEditor = false;
             }
 
-            if (HighLogic.LoadedSceneIsEditor ||  HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
-                Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
+            //if (HighLogic.LoadedSceneIsEditor ||  HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+            //    Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
+            Fields["addedCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
 
             initialized = true;
         }
@@ -394,8 +395,6 @@ namespace InterstellarFuelSwitch
             if (selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count)
             {
                 addedCost = (float)tankCostList[selectedTankSetup];
-                //part.partInfo.cost = newCost
-                //Debug.Log("InsterstellarFuelSwitch: changed addedCost to " + addedCost);
                 return addedCost;
             }
             else

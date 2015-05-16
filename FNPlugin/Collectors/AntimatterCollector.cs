@@ -25,11 +25,13 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor) return; 
 
             double now = Planetarium.GetUniversalTime();
             double time_diff = now - last_active_time;
-            if (last_active_time != 0 && vessel.orbit.eccentricity < 1) {
+
+            if (last_active_time != 0 && vessel.orbit.eccentricity < 1) 
+            {
                 double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
                 double vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2.0f;
                 double vessel_inclination = vessel.orbit.inclination;
@@ -49,15 +51,14 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                drawCount++;
-                double lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
-                double flux = vessel.mainBody.GetBeltAntiparticles(vessel.altitude, lat);
-                part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, -flux * TimeWarp.fixedDeltaTime);
-                last_active_time = (float)Planetarium.GetUniversalTime();
-                collection_rate_d = flux * GameConstants.EARH_DAY_SECONDS;
-            }
+            if (!HighLogic.LoadedSceneIsFlight) return;
+            
+            drawCount++;
+            double lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
+            double flux = vessel.mainBody.GetBeltAntiparticles(vessel.altitude, lat);
+            part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, -flux * TimeWarp.fixedDeltaTime);
+            last_active_time = (float)Planetarium.GetUniversalTime();
+            collection_rate_d = flux * GameConstants.EARH_DAY_SECONDS;
         }
     }
 }

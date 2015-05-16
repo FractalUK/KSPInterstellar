@@ -10,7 +10,7 @@ using TweakScale;
 
 namespace FNPlugin 
 {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule, IRescalable<ThermalNozzleController>
+    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule, IRescalable<ThermalNozzleController> 
     {
         public enum ReactorTypes 
         {
@@ -105,7 +105,7 @@ namespace FNPlugin
         public string currentTPwr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Charged Power")]
         public string currentCPwr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel")]
         public string fuelModeStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Connections")]
         public string connectedRecieversStr = String.Empty;
@@ -135,7 +135,9 @@ namespace FNPlugin
         protected int windowID = 90175467;
         protected bool render_window = false;
         protected GUIStyle bold_label;
-        
+
+
+        //protected Dictionary<string, PartResourceDefinition> partResourceDefinitionsWithCost = new Dictionary<string, PartResourceDefinition>();
 
         // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
@@ -487,7 +489,9 @@ namespace FNPlugin
 
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
+
                 double fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => getFuelAvailability(fuel) / fuel.GetFuelUseForPower(FuelEfficiency, max_power_to_supply, fuelUsePerMJMult)), 1.0);
+
                 double min_throttle = fuel_ratio > 0 ? minimumThrottle / fuel_ratio : 1;
                 max_power_to_supply = max_power_to_supply * fuel_ratio;
                 // Charged Power
@@ -511,7 +515,8 @@ namespace FNPlugin
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
                 {
                     var fuel_request= total_power_received * fuel.FuelUsePerMJ * fuelUsePerMJMult;
-                    var fuel_recieved = consumeReactorFuel(fuel, fuel_request); // consume fuel
+
+                    var fuel_recieved = fuel.FuelName != InterstellarResourcesConfiguration.Instance.Actinides ? consumeReactorFuel(fuel, fuel_request) : fuel_request; // consume fuel
 
                     if (current_fuel_mode.OutputResourceName != null && current_fuel_mode.OutputResourceFraction > 0)
                         part.ImprovedRequestResource(current_fuel_mode.OutputResourceName, -fuel_recieved * current_fuel_mode.OutputResourceFraction / FuelEfficiency);
@@ -716,6 +721,9 @@ namespace FNPlugin
 
         protected double getFuelAvailability(ReactorFuel fuel) 
         {
+            if (fuel.FuelName == InterstellarResourcesConfiguration.Instance.Actinides)
+                return 1;
+            
             if (!consumeGlobal) 
             {
                 if (part.Resources.Contains(fuel.FuelName)) 
