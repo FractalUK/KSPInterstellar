@@ -136,9 +136,6 @@ namespace FNPlugin
         protected bool render_window = false;
         protected GUIStyle bold_label;
 
-
-        //protected Dictionary<string, PartResourceDefinition> partResourceDefinitionsWithCost = new Dictionary<string, PartResourceDefinition>();
-
         // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
@@ -147,8 +144,6 @@ namespace FNPlugin
         {
             try
             {
-                //UnityEngine.Debug.Log("[KSPI] - InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
-
                 if (!connectedRecievers.ContainsKey(key))
                 {
                     connectedRecievers.Add(key, radius);

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-
 namespace FNPlugin 
 {
     [KSPModule("Fission Reactor")]
@@ -23,27 +22,23 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides")]
         public string actinidesBuildup;
 
-
-        //PartResourceDefinition resourceDefinitionUranium;
-        //PartResourceDefinition resourceDefinitionThorium;
-        PartResourceDefinition resourceDefinitionActinides;
+        private PartResourceDefinition resourceDefinitionActinides;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]
         public void SwapFuelMode()
         {
-            if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount <= 0.01)
+            if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) || part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount > 0.01) return;
+
+            defuelCurrentFuel();
+            if (isCurrentFuelDepleted())
             {
-                defuelCurrentFuel();
-                if (isCurrentFuelDepleted())
-                {
-                    fuel_mode++;
-                    if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
-                    current_fuel_mode = fuel_modes[fuel_mode];
-                    fuelModeStr = current_fuel_mode.ModeGUIName;
-                    Refuel();
-                }
+                fuel_mode++;
+                if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+                current_fuel_mode = fuel_modes[fuel_mode];
+                fuelModeStr = current_fuel_mode.ModeGUIName;
+                Refuel();
             }
         }
 
@@ -168,14 +163,12 @@ namespace FNPlugin
                 if (HighLogic.LoadedSceneIsFlight && !isupgraded)
                 {
                     double temp_scale;
+
                     if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
-                    {
                         temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-                    }
                     else
-                    {
                         temp_scale = base.CoreTemperature / 2.0;
-                    }
+
                     double temp_diff = (base.CoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
                     return (float)(temp_scale + temp_diff);
                 }
