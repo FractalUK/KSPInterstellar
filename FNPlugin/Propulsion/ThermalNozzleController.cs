@@ -535,12 +535,12 @@ namespace FNPlugin
 			} 
             else 
             {
-				if (MyAttachedReactor.shouldScaleDownJetISP ()) 
-                {
-					_maxISP = _maxISP*2.0f/3.0f;
-					//if (maxISP > 300) 
-					//	maxISP = maxISP / 2.5f;
-				}
+                //if (MyAttachedReactor.shouldScaleDownJetISP ()) 
+                //{
+                //    _maxISP = _maxISP*2.0f/3.0f;
+                //    //if (maxISP > 300) 
+                //    //	maxISP = maxISP / 2.5f;
+                //}
                 newISP.Add(0, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
                 newISP.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
                 newISP.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
@@ -763,11 +763,9 @@ namespace FNPlugin
                 current_isp = (float)(_maxISP * ispReductionFraction);
             }
 
-            const float insignificantAmount = 0.000001f;
-
             final_max_engine_thrust_in_space = !double.IsInfinity(max_thrust_in_space) && !double.IsNaN(max_thrust_in_space)
                 ? (float)max_thrust_in_space * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f)
-                : insignificantAmount;
+                : 0.000001f;
 
             // amount of fuel being used at max throttle with no atmospheric limits
             if (_maxISP <= 0) return;

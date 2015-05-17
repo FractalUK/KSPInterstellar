@@ -11,6 +11,10 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Precooler status")]
         public string statusStr;
 
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Intake")]
+        public string attachedIntakeName;
+
+
         protected bool functional = false;
         
         public ModuleResourceIntake attachedIntake;
@@ -47,19 +51,27 @@ namespace FNPlugin
             // if not did found and stack connected airintakes, find an radial connected air intake
             if (attachedIntake == null)
             {
-                foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null))
-                {
-                    radialAttachedIntakes = attach_node.attachedPart.children
-                        .Where(c => c.attachMode == AttachModes.SRF_ATTACH)
-                        .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>())
-                        .Where(mre => mre.resourceName == "IntakeAir")
-                        .ToList();
-
-                    if (radialAttachedIntakes.Count > 0) break;
-                }
+                //if (radialAttachedIntakes.Count > 0) break;
+                radialAttachedIntakes = part.children.SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == "IntakeAir").ToList();
             }
 
+
+
             part.force_activate();
+
+            if (attachedIntake != null)
+                attachedIntakeName = attachedIntake.name;
+            else
+            {
+                if (radialAttachedIntakes == null )
+                    attachedIntakeName = "Null found";
+                else if (radialAttachedIntakes.Count > 1)
+                    attachedIntakeName = "Multiple intakes found";
+                else if (radialAttachedIntakes.Count > 0)
+                    attachedIntakeName = radialAttachedIntakes.First().name;
+                else
+                    attachedIntakeName = "Not found";
+            }
         }
 
         public override void OnUpdate() 

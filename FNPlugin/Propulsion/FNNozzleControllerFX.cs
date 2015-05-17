@@ -292,12 +292,12 @@ namespace FNPlugin{
 			} 
             else 
             {
-				if (myAttachedReactor.shouldScaleDownJetISP ()) {
-					maxISP = maxISP*2.0f/3.0f;
-					if (maxISP > 300) {
-						maxISP = maxISP / 2.5f;
-					}
-				}
+                //if (myAttachedReactor.shouldScaleDownJetISP ()) {
+                //    maxISP = maxISP*2.0f/3.0f;
+                //    if (maxISP > 300) {
+                //        maxISP = maxISP / 2.5f;
+                //    }
+                //}
                 newISP.Add(0, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
                 newISP.Add(0.15f, Mathf.Min(maxISP, 2997.13f));
                 newISP.Add(0.3f, Mathf.Min(maxISP * 4.0f / 5.0f, 2997.13f));
