@@ -367,7 +367,8 @@ namespace FNPlugin
 				myAttachedEngine.ignitionThreshold = 0.01f;
 			}
 
-			myAttachedEngine.atmosphereCurve = newISP;
+			//myAttachedEngine.atmosphereCurve = newISP;
+			myAttachedEngine.atmCurve = newISP;
 			//myAttachedEngine.velocityCurve = vCurve;
             myAttachedEngine.velCurve = vCurve;
 			assThermalPower = myAttachedReactor.MaximumPower;
@@ -412,7 +413,8 @@ namespace FNPlugin
         public void estimateEditorPerformance() 
         {
             //bool attached_reactor_upgraded = false;
-            FloatCurve atmospherecurve = new FloatCurve();
+            //FloatCurve atmospherecurve = new FloatCurve();
+            FloatCurve atmcurve = new FloatCurve();
             float thrust = 0;
 
             if (myAttachedReactor != null) 
@@ -426,18 +428,23 @@ namespace FNPlugin
                 
                 maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
                 minISP = maxISP * 0.4f;
-                atmospherecurve.Add(0, maxISP, 0, 0);
-                atmospherecurve.Add(1, minISP, 0, 0);
+                //atmospherecurve.Add(0, maxISP, 0, 0);
+                //atmospherecurve.Add(1, minISP, 0, 0);
+                atmcurve.Add(0, maxISP, 0, 0);
+                atmcurve.Add(1, minISP, 0, 0);
 
                 thrust = (float)(myAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / maxISP);
                 myAttachedEngine.maxThrust = thrust;
-                myAttachedEngine.atmosphereCurve = atmospherecurve;
+                //myAttachedEngine.atmosphereCurve = atmospherecurve;
+                myAttachedEngine.atmCurve = atmcurve;
             } 
             else 
             {
-                atmospherecurve.Add(0, 0.00001f, 0, 0);
+                //atmospherecurve.Add(0, 0.00001f, 0, 0);
+                atmcurve.Add(0, 0.00001f, 0, 0);
                 myAttachedEngine.maxThrust = thrust;
-                myAttachedEngine.atmosphereCurve = atmospherecurve;
+                //myAttachedEngine.atmosphereCurve = atmospherecurve;
+                myAttachedEngine.atmCurve = atmcurve;
             }
         }
 
@@ -495,7 +502,8 @@ namespace FNPlugin
 
             // determine ISP
             updateIspEngineParams();
-            this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0));
+            //this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0));
+            this.current_isp = myAttachedEngine.atmCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0));
 
             // get the flameout safety limit
             if (currentpropellant_is_jet)

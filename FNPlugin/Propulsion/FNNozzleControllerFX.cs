@@ -312,7 +312,8 @@ namespace FNPlugin{
 				myAttachedEngine.ignitionThreshold = 0.01f;
 			}
 
-			myAttachedEngine.atmosphereCurve = newISP;
+			//myAttachedEngine.atmosphereCurve = newISP;
+			myAttachedEngine.atmCurve = newISP;
 			//myAttachedEngine.velocityCurve = vCurve;
             myAttachedEngine.velCurve = vCurve;
 			assThermalPower = myAttachedReactor.MaximumPower;
@@ -353,7 +354,8 @@ namespace FNPlugin{
 				}
 				updateIspEngineParams ();
 				float curve_eval_point = (float)Math.Min (FlightGlobals.getStaticPressure (vessel.transform.position) / 100, 1.0);
-				float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
+				//float currentIsp = myAttachedEngine.atmosphereCurve.Evaluate (curve_eval_point);
+				float currentIsp = myAttachedEngine.atmCurve.Evaluate (curve_eval_point);
 				double ispratio = currentIsp / maxISP;
 				this.current_isp = currentIsp;
 				// scale down thrust if it's attached to the wrong sized reactor

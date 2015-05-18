@@ -408,7 +408,8 @@ namespace FNPlugin
         {
             FloatCurve newISP = new FloatCurve();
             newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp()));
-            _attached_engine.atmosphereCurve = newISP;
+            //_attached_engine.atmosphereCurve = newISP;
+            _attached_engine.atmCurve = newISP;
         }
 
         private double GetPowerThrustModifier()
