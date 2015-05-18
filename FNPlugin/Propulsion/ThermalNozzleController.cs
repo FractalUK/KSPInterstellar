@@ -1,6 +1,6 @@
-﻿extern alias ORSv1_4_3;
+﻿extern alias ORSvKSPIE;
 
-using ORSv1_4_3::OpenResourceSystem;
+using ORSvKSPIE::OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,11 +35,11 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
         [KSPField(isPersistant = false)]
-        public float powerTrustMultiplier = 1.0f;
+        public float powerTrustMultiplier = 1;
         [KSPField(isPersistant = false)]
-        public float IspTempMultOffset = 0f;
+        public float IspTempMultOffset = 0;
         [KSPField(isPersistant = false)]
-        public float sootHeadDivider = 20f;
+        public float sootHeatDivider = 20;
 
         [KSPField(isPersistant = false)]
         public float upgradeCost;
@@ -49,7 +49,6 @@ namespace FNPlugin
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public string upgradeTechReq = null;
-
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
         public float radius;
@@ -122,6 +121,8 @@ namespace FNPlugin
         protected float current_isp = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
         protected float maxPressureThresholdAtKerbinSurface;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Heat Production")]
+        protected float currentHeatProduction;
 
 		//Internal
         protected float _fuelToxicity;
@@ -732,9 +733,6 @@ namespace FNPlugin
                 sootAccumulationPercentage = Math.Max(0, sootAccumulationPercentage);
             }
 
-            heatProductionExtra = (sootAccumulationPercentage / sootHeadDivider) * heatProductionBase;
-            myAttachedEngine.heatProduction = heatProductionBase + heatProductionExtra;
-
             // consume wasteheat
             consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             
@@ -749,6 +747,13 @@ namespace FNPlugin
             }
 
             max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100;
+            heatProductionExtra = (sootAccumulationPercentage / sootHeatDivider) * heatProductionBase;
+
+            if (max_thrust_in_space > 0)
+                myAttachedEngine.heatProduction = heatProductionBase * (float)Math.Max((float)Math.Pow(heatProductionBase / max_thrust_in_space, 0.9) / (float)Math.Pow(GetIspPropellantModifier(), 0.8), 0.1) + heatProductionExtra;
+
+            currentHeatProduction = myAttachedEngine.heatProduction;
+
 
             var vesselStaticPresure = FlightGlobals.getStaticPressure(vessel.transform.position);
             
@@ -785,7 +790,7 @@ namespace FNPlugin
                 max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
 
 			// set engines maximum fuel flow
-	        myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
+	        myAttachedEngine.maxFuelFlow = Math.Min(1, (float)max_fuel_flow_rate);
 
             if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
             {

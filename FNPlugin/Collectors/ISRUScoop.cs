@@ -1,10 +1,10 @@
-﻿extern alias ORSv1_4_3;
+﻿extern alias ORSvKSPIE;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSv1_4_3::OpenResourceSystem;
+using ORSvKSPIE::OpenResourceSystem;
 
 namespace FNPlugin 
 {
@@ -114,6 +114,9 @@ namespace FNPlugin
 
             this.part.force_activate();
 
+            // verify if body has atmosphere at all
+            if (!vessel.mainBody.atmosphere) return;
+
             // verify scoop was enabled 
             if (!scoopIsEnabled) return;
 
@@ -181,6 +184,8 @@ namespace FNPlugin
         public override void OnFixedUpdate() 
         {
             if (!scoopIsEnabled) return;
+
+            if (!vessel.mainBody.atmosphere) return;
             
             // scoop athmosphere for a single frame
             ScoopAthmosphere(TimeWarp.fixedDeltaTime, false);
