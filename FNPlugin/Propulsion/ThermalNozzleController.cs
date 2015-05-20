@@ -555,8 +555,7 @@ namespace FNPlugin
 				myAttachedEngine.ignitionThreshold = 0.01f;
 			}
 
-			//myAttachedEngine.atmosphereCurve = newISP;
-			myAttachedEngine.atmCurve = newISP;
+			myAttachedEngine.atmosphereCurve = newISP;
             myAttachedEngine.velCurve = vCurve;
 			_assThermalPower = MyAttachedReactor.MaximumPower;
 
@@ -605,8 +604,7 @@ namespace FNPlugin
 
         public void estimateEditorPerformance() 
         {
-            //FloatCurve atmospherecurve = new FloatCurve();
-            FloatCurve atmcurve = new FloatCurve();
+            FloatCurve atmospherecurve = new FloatCurve();
             float thrust = 0;
             UpdateRadiusModifier();
 
@@ -621,23 +619,18 @@ namespace FNPlugin
 
                 _maxISP = (float)(Math.Sqrt((double)MyAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
                 _minISP = _maxISP * 0.4f;
-                //atmospherecurve.Add(0, _maxISP, 0, 0);
-                //atmospherecurve.Add(1, _minISP, 0, 0);
-                atmcurve.Add(0, _maxISP, 0, 0);
-                atmcurve.Add(1, _minISP, 0, 0);
+                atmospherecurve.Add(0, _maxISP, 0, 0);
+                atmospherecurve.Add(1, _minISP, 0, 0);
 
                 thrust = (float)(MyAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
                 myAttachedEngine.maxThrust = thrust;
-                //myAttachedEngine.atmosphereCurve = atmospherecurve;
-                myAttachedEngine.atmCurve = atmcurve;
+                myAttachedEngine.atmosphereCurve = atmospherecurve;
             } 
             else 
             {
-                //atmospherecurve.Add(0, 0.00001f, 0, 0);
-                atmcurve.Add(0, 0.00001f, 0, 0);
+                atmospherecurve.Add(0, 0.00001f, 0, 0);
                 myAttachedEngine.maxThrust = thrust;
-                //myAttachedEngine.atmosphereCurve = atmospherecurve;
-                myAttachedEngine.atmCurve = atmcurve;
+                myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
         }
 
@@ -682,8 +675,7 @@ namespace FNPlugin
 
                 FloatCurve newISP = new FloatCurve();
                 newISP.Add(0, Mathf.Min(current_isp, PluginHelper.MaxThermalNozzleIsp), 0, 0);
-                //myAttachedEngine.atmosphereCurve = newISP;
-                myAttachedEngine.atmCurve = newISP;
+                myAttachedEngine.atmosphereCurve = newISP;
 
                 if (myAttachedEngine.useVelCurve)
                 {
@@ -831,8 +823,7 @@ namespace FNPlugin
             if (_currentpropellant_is_jet)
             {
                 updateIspEngineParams();
-                //this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
-                this.current_isp = myAttachedEngine.atmCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
+                this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
                 int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Sum(prc => prc.ValidAttachedIntakes);
                 int intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
 

@@ -124,8 +124,7 @@ namespace FNPlugin
                 // update Isp
                 FloatCurve new_isp = new FloatCurve();
                 new_isp.Add(0, (float)current_isp, 0, 0);
-                //_attached_engine.atmosphereCurve = new_isp;
-                _attached_engine.atmCurve = new_isp;
+                _attached_engine.atmosphereCurve = new_isp;
 
                 _max_charged_particles_power = _attached_reactor.MaximumChargedPower * (float)exchanger_thrust_divisor;
                 _charged_particles_requested = throttle > 0  ? _max_charged_particles_power : 0 ; 

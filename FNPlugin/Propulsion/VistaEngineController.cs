@@ -120,8 +120,7 @@ namespace FNPlugin
 
             if (curEngineT == null) return;
 
-            //minISP = curEngineT.atmosphereCurve.Evaluate(0);
-            minISP = curEngineT.atmCurve.Evaluate(0);
+            minISP = curEngineT.atmosphereCurve.Evaluate(0);
             baseHeatProduction = curEngineT.heatProduction;
             currentHeatProduction = curEngineT.heatProduction;
 
@@ -236,8 +235,7 @@ namespace FNPlugin
                 FloatCurve newISP = new FloatCurve();
                 var currentIsp = Math.Max(minISP * fusionRatio / throttle, minISP / 10);
                 newISP.Add(0, (float)currentIsp);
-                //curEngineT.atmosphereCurve = newISP;
-                curEngineT.atmCurve = newISP;
+                curEngineT.atmosphereCurve = newISP;
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
@@ -256,8 +254,7 @@ namespace FNPlugin
             {
                 FloatCurve newISP = new FloatCurve();
                 newISP.Add(0, (float)minISP);
-                //curEngineT.atmosphereCurve = newISP;
-                curEngineT.atmCurve = newISP;
+                curEngineT.atmosphereCurve = newISP;
 
                 var maxFuelFlow = MaximumThrust / minISP / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;

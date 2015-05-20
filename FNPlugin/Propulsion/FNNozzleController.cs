@@ -367,8 +367,7 @@ namespace FNPlugin
 				myAttachedEngine.ignitionThreshold = 0.01f;
 			}
 
-			//myAttachedEngine.atmosphereCurve = newISP;
-			myAttachedEngine.atmCurve = newISP;
+			myAttachedEngine.atmosphereCurve = newISP;
 			//myAttachedEngine.velocityCurve = vCurve;
             myAttachedEngine.velCurve = vCurve;
 			assThermalPower = myAttachedReactor.MaximumPower;
@@ -413,8 +412,7 @@ namespace FNPlugin
         public void estimateEditorPerformance() 
         {
             //bool attached_reactor_upgraded = false;
-            //FloatCurve atmospherecurve = new FloatCurve();
-            FloatCurve atmcurve = new FloatCurve();
+            FloatCurve atmospherecurve = new FloatCurve();
             float thrust = 0;
 
             if (myAttachedReactor != null) 
@@ -428,23 +426,18 @@ namespace FNPlugin
                 
                 maxISP = (float)(Math.Sqrt((double)myAttachedReactor.CoreTemperature) * PluginHelper.IspCoreTempMult * GetIspPropellantModifier());
                 minISP = maxISP * 0.4f;
-                //atmospherecurve.Add(0, maxISP, 0, 0);
-                //atmospherecurve.Add(1, minISP, 0, 0);
-                atmcurve.Add(0, maxISP, 0, 0);
-                atmcurve.Add(1, minISP, 0, 0);
+                atmospherecurve.Add(0, maxISP, 0, 0);
+                atmospherecurve.Add(1, minISP, 0, 0);
 
                 thrust = (float)(myAttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / maxISP);
                 myAttachedEngine.maxThrust = thrust;
-                //myAttachedEngine.atmosphereCurve = atmospherecurve;
-                myAttachedEngine.atmCurve = atmcurve;
+                myAttachedEngine.atmosphereCurve = atmospherecurve;
             } 
             else 
             {
-                //atmospherecurve.Add(0, 0.00001f, 0, 0);
-                atmcurve.Add(0, 0.00001f, 0, 0);
+                atmospherecurve.Add(0, 0.00001f, 0, 0);
                 myAttachedEngine.maxThrust = thrust;
-                //myAttachedEngine.atmosphereCurve = atmospherecurve;
-                myAttachedEngine.atmCurve = atmcurve;
+                myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
         }
 
