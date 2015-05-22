@@ -47,6 +47,7 @@ namespace FNPlugin
             if (anim != null)
             {
                 anim[animName].speed = 1f;
+                anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
             IsEnabled = true;
@@ -58,9 +59,8 @@ namespace FNPlugin
             if (relay) { return; }
             if (anim != null)
             {
-                if (anim[animName].normalizedTime == 0.0f)
-                    anim[animName].normalizedTime = 1.0f;
                 anim[animName].speed = -1f;
+                anim[animName].normalizedTime = 1f;
                 anim.Blend(animName, 2f);
             }
             IsEnabled = false;
@@ -73,6 +73,7 @@ namespace FNPlugin
             if (anim != null)
             {
                 anim[animName].speed = 1f;
+                anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
             IsEnabled = true;
@@ -85,9 +86,8 @@ namespace FNPlugin
             if (!relay) { return; }
             if (anim != null)
             {
-                if (anim[animName].normalizedTime == 0.0f)
-                    anim[animName].normalizedTime = 1.0f;
-                anim[animName].speed = -1.0f;
+                anim[animName].speed = 1f;
+                anim[animName].normalizedTime = 0f;
                 anim.Blend(animName, 2f);
             }
             IsEnabled = false;
@@ -135,12 +135,19 @@ namespace FNPlugin
             if (anim != null)
             {
                 anim[animName].layer = 1;
-                if (IsEnabled)
+                if (!IsEnabled)
                 {
                     anim[animName].normalizedTime = 1f;
-					anim[animName].enabled = true;
-					anim.Sample();
+                    anim[animName].speed = -1f;
+
                 }
+                else
+                {
+                    anim[animName].normalizedTime = 0f;
+                    anim[animName].speed = 1f;
+
+                }
+                anim.Play();
             }
 
             this.part.force_activate();
@@ -229,14 +236,6 @@ namespace FNPlugin
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
                     float output = panel.flowRate;
-
-                    // attempt to retrieve all solar power output
-                    if (output == 0.0)
-                    {
-                        var solarpanels = panel.part.parent.FindModulesImplementing<ModuleDeployableSolarPanel>();
-                        solarpanels.ForEach(s => output += s.flowRate);
-                    }
-
                     float spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
                     double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
                     displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
@@ -324,11 +323,7 @@ namespace FNPlugin
                 foreach (var pmodule in ppart.modules)
                 {
                     if (pmodule.moduleName == "MicrowavePowerTransmitter")
-                    {
-                        string nuclear_power = pmodule.moduleValues.GetValue("nuclear_power");
-                        if (nuclear_power != null)
-                            total_nuclear_power += double.Parse(nuclear_power);
-                    }
+                        total_nuclear_power += double.Parse(pmodule.moduleValues.GetValue("nuclear_power"));
                 }
             }
             return total_nuclear_power;
@@ -342,11 +337,7 @@ namespace FNPlugin
                 foreach (var pmodule in ppart.modules)
                 {
                     if (pmodule.moduleName == "MicrowavePowerTransmitter")
-                    {
-                        string solar_power = pmodule.moduleValues.GetValue("solar_power");
-                        if (solar_power != null)
-                            total_solar_power += double.Parse(solar_power);
-                    }
+                        total_solar_power += double.Parse(pmodule.moduleValues.GetValue("solar_power"));
                 }
             }
             return total_solar_power;
@@ -359,11 +350,8 @@ namespace FNPlugin
                 foreach (var pmodule in ppart.modules)
                 {
                     if (pmodule.moduleName == "MicrowavePowerTransmitter")
-                    {
-                        string relay_value = pmodule.moduleValues.GetValue("relay");
-                        if (relay_value != null)
-                            return bool.Parse(relay_value);
-                    }
+                        if (bool.Parse(pmodule.moduleValues.GetValue("relay")))
+                            return true;
                 }
             }
             return false;

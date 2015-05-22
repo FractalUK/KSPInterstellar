@@ -189,10 +189,11 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // initialsie before onstart
+            resourceDefinitionActinides = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Actinides);
+
             // start as normal
             base.OnStart(state);
-
-            resourceDefinitionActinides = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Actinides);
 
             // auto switch if current fuel mode is depleted
             if (isCurrentFuelDepleted())
@@ -253,31 +254,37 @@ namespace FNPlugin
 
         protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
         {
-            if (!consumeGlobal)
-            {
-                if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
+                if (!consumeGlobal)
                 {
-                    var partResourceFuel = part.Resources[fuel.FuelName];
-                    var partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                    var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
-
-                    double amount = Math.Min(consume_amount, partResourceFuel.amount / FuelEfficiency);
-                    partResourceFuel.amount -= amount;
-                    partResourceAnticides.amount += amount;
-
-                    if (resourceDefinition != null)
+                    if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
                     {
-                        remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.000000") + " kg";
-                        Fields["remainingFuel"].guiName = fuel.FuelName;
-                    }
-                    actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.000000") + " kg";
 
-                    return amount;
-                } 
-                else return 0;
-            } 
-            else
-                return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
+                        var partResourceFuel = part.Resources[fuel.FuelName];
+                        var partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+                        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
+
+                        double amount = Math.Min(consume_amount, partResourceFuel.amount / FuelEfficiency);
+                        partResourceFuel.amount -= amount;
+                        partResourceAnticides.amount += amount;
+
+                        if (resourceDefinition != null)
+                        {
+                            remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.000000") + " kg";
+                            Fields["remainingFuel"].guiName = fuel.FuelName;
+                        }
+
+                        if (resourceDefinitionActinides == null)
+                            UnityEngine.Debug.LogWarning("[KSPI] - InterstellarFissionMSRGC.consumeReactorFuel.resourceDefinitionActinides is null");
+
+                        actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.000000") + " kg";
+
+                        return amount;
+                    }
+                    else return 0;
+                }
+                else
+                    return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
+
         }
 
         protected override void setDefaultFuelMode()

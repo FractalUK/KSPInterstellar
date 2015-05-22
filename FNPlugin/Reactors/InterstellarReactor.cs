@@ -634,7 +634,8 @@ namespace FNPlugin
                     sb.AppendLine("Power Multiplier: " + fm.NormalisedReactionRate.ToString("0.00"));
                     sb.AppendLine("Charged Particle Ratio: " + fm.ChargedPowerRatio.ToString("0.00"));
                     sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
-                    foreach (ReactorFuel fuel in fm.ReactorFuels) {
+                    foreach (ReactorFuel fuel in fm.ReactorFuels) 
+                    {
                         sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * upgradedPowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / upgradedFuelEfficiency + fuel.Unit + "/day");
                     }
                     sb.AppendLine("---");
@@ -643,16 +644,19 @@ namespace FNPlugin
             return sb.ToString();
         }
 
-        protected void doPersistentResourceUpdate() 
+        protected void doPersistentResourceUpdate()
         {
             double now = Planetarium.GetUniversalTime();
             double time_diff = now - last_active_time;
+
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
-                consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
+                if (fuel.FuelName != InterstellarResourcesConfiguration.Instance.Actinides)
+                    consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
             }
 
-            if (breedtritium) 
+
+            if (breedtritium)
             {
                 tritium_rate = MaximumPower / 1000.0 / GameConstants.tritiumBreedRate;
                 PartResourceDefinition lithium_definition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
@@ -700,17 +704,17 @@ namespace FNPlugin
 
         protected virtual double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
         {
-            if (!consumeGlobal) 
+            if (!consumeGlobal)
             {
-                if (part.Resources.Contains(fuel.FuelName)) 
+                if (part.Resources.Contains(fuel.FuelName))
                 {
                     double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
                     part.Resources[fuel.FuelName].amount -= amount;
                     return amount;
-                } 
-                else 
+                }
+                else
                     return 0;
-            } 
+            }
             return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
         }
 

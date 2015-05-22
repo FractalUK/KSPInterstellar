@@ -18,7 +18,7 @@ namespace FNPlugin
         public string animName;
         [KSPField(isPersistant = false)]
         public string animTName;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor= true)]
         public float collectorArea = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver;
@@ -28,7 +28,7 @@ namespace FNPlugin
         public float ThermalTemp;
         [KSPField(isPersistant = false)]
         public float ThermalPower;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor= true)]
         public float radius;
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
@@ -138,6 +138,12 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
         public void ActivateReceiver()
         {
+            if (anim != null)
+            {
+                anim[animName].speed = 1f;
+                anim.Blend(animName, 2f);
+            }
+
             receiverIsEnabled = true;
         }
 
@@ -145,6 +151,14 @@ namespace FNPlugin
         public void DisableReceiver()
         {
             receiverIsEnabled = false;
+
+            if (anim != null)
+            {
+                if (anim[animName].normalizedTime == 0.0f)
+                    anim[animName].normalizedTime = 1.0f;
+                anim[animName].speed = -1f;
+                anim.Blend(animName, 2f);
+            }
         }
 
         [KSPAction("Activate Receiver")]
