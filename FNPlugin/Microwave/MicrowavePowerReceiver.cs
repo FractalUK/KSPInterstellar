@@ -57,6 +57,11 @@ namespace FNPlugin
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
         protected float connectedRecieversSum;
 
+        public bool IsThermalSource
+        {
+            get { return this.isThermalReceiver; }
+        }
+
         public void AttachThermalReciever(Guid key, float radius)
         {
             try
@@ -120,7 +125,7 @@ namespace FNPlugin
 
         public float CoreTemperature { get { return PluginHelper.IsRecieverCoreTempTweaked ? 3500 : 1500; } }
 
-        public float StableMaximumThermalPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
+        public float StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 
         public float MaximumPower { get { return MaximumThermalPower; } }
 

@@ -38,7 +38,7 @@ namespace FNPlugin.Extensions
         {
             if (stackdepth == 0)
             {
-                var thermalsources = currentpart.FindModulesImplementing<IThermalSource>();
+                var thermalsources = currentpart.FindModulesImplementing<IThermalSource>().Where(s => s.IsThermalSource);
                 var source = skipSelfContained ? thermalsources.FirstOrDefault(s => !s.IsSelfContained) : thermalsources.FirstOrDefault();
                 if (source != null)
                     return new ThermalSourceSearchResult(source, 0);

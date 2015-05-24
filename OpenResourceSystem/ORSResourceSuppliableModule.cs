@@ -213,30 +213,34 @@ namespace OpenResourceSystem {
 			}
 		}
 
-		public override void OnFixedUpdate() {
-			if (resources_to_supply != null) {
+		public override void OnFixedUpdate() 
+        {
+			if (resources_to_supply != null) 
+            {
 
 				foreach (String resourcename in resources_to_supply) {
 					ORSResourceManager manager;
 
-					if (!getOvermanagerForResource(resourcename).hasManagerForVessel (vessel)) {
+					if (!getOvermanagerForResource(resourcename).hasManagerForVessel (vessel)) 
+                    {
                         manager = createResourceManagerForResource(resourcename);
                         print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-					} else {
+					} 
+                    else 
+                    {
 						manager = getOvermanagerForResource(resourcename).getManagerForVessel (vessel);
-						if (manager == null) {
+						if (manager == null) 
+                        {
                             manager = createResourceManagerForResource(resourcename);
                             print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
 						}
 					}
 
-					if (manager.getPartModule ().vessel != this.vessel || manager.getPartModule() == null) {
+					if (manager.getPartModule ().vessel != this.vessel || manager.getPartModule() == null) 
 						manager.updatePartModule (this);
-					}
 
-					if (manager.getPartModule () == this) {
+					if (manager.getPartModule () == this) 
 						manager.update ();
-					}
 				}
 			}
 

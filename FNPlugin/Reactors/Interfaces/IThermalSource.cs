@@ -18,7 +18,7 @@ namespace FNPlugin
     {
         float PowerBufferBonus { get; }
 
-        float StableMaximumThermalPower { get; }
+        float StableMaximumReactorPower { get; }
 
         float MaximumPower { get; }
 
@@ -46,6 +46,7 @@ namespace FNPlugin
 
         float GetThermalPowerAtTemp(float temp);
 
+        bool IsThermalSource { get; }
 	}
 }
 

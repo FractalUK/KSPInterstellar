@@ -148,7 +148,7 @@ namespace FNPlugin
                 }
                 catch (Exception error)
                 {
-                    UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.MaximumThermalPower exception: " + error.Message);
+                    UnityEngine.Debug.LogError("[KSPI] - InterstellarFissionMSRGC.MaximumThermalPower exception: " + error.Message);
                     return base.MaximumThermalPower;
                 }
             }
@@ -189,6 +189,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            //UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.OnStart begin");
+
             // initialsie before onstart
             resourceDefinitionActinides = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Actinides);
 
@@ -204,6 +206,8 @@ namespace FNPlugin
                 current_fuel_mode = fuel_modes[fuel_mode];
             }
             fuelModeStr = current_fuel_mode.ModeGUIName;
+
+            //UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.OnStart end");
         }
 
         public override void OnFixedUpdate()

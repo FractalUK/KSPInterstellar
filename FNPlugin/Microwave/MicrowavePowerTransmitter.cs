@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace FNPlugin
 {
+    class ExternalPowerSourePartModule
+    {
+        public string Name { get; set; }
+        public float Power { get; set; }
+    }
+
     class MicrowavePowerTransmitter : FNResourceSuppliableModule
     {
         //Persistent True
@@ -34,6 +40,8 @@ namespace FNPlugin
         //Internal
         protected Animation anim;
         protected float displayed_solar_power = 0;
+
+        protected List<ExternalPowerSourePartModule> externalPowerSources;
         protected List<FNGenerator> generators;
         protected List<MicrowavePowerReceiver> receivers;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -43,7 +51,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = true)]
         public void ActivateTransmitter()
         {
-            if (relay) { return; }
+            if (relay) return;
+
             if (anim != null)
             {
                 anim[animName].speed = 1f;
@@ -56,7 +65,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Deactivate Transmitter", active = false)]
         public void DeactivateTransmitter()
         {
-            if (relay) { return; }
+            if (relay) return;
+ 
             if (anim != null)
             {
                 anim[animName].speed = -1f;
@@ -69,7 +79,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Relay", active = true)]
         public void ActivateRelay()
         {
-            if (IsEnabled) { return; }
+            if (IsEnabled) return;
+
             if (anim != null)
             {
                 anim[animName].speed = 1f;
@@ -83,7 +94,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Deactivate Relay", active = true)]
         public void DeactivateRelay()
         {
-            if (!relay) { return; }
+            if (!relay) return;
+
             if (anim != null)
             {
                 anim[animName].speed = 1f;
@@ -120,11 +132,12 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor) return;
 
             generators = vessel.FindPartModulesImplementing<FNGenerator>();
             receivers = vessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
             panels = vessel.FindPartModulesImplementing<ModuleDeployableSolarPanel>();
+
             if (part.FindModulesImplementing<MicrowavePowerReceiver>().Count == 1)
             {
                 part_receiver = part.FindModulesImplementing<MicrowavePowerReceiver>().First();
@@ -139,30 +152,32 @@ namespace FNPlugin
                 {
                     anim[animName].normalizedTime = 1f;
                     anim[animName].speed = -1f;
-
                 }
                 else
                 {
                     anim[animName].normalizedTime = 0f;
                     anim[animName].speed = 1f;
-
                 }
                 anim.Play();
             }
 
             this.part.force_activate();
+
+            Debug.Log("[KSPI] - MicrowavePowerTransmitter - Looking for externalPowerSources");
+            foreach (Part vesselpart in vessel.Parts)
+            {
+                if (vesselpart.partName == "reactor-25")
+                {
+                    externalPowerSources.Add(new ExternalPowerSourePartModule() { Name = "reactor-25", Power = 2 });
+                    Debug.Log("[KSPI] - MicrowavePowerTransmitter - found " + vesselpart.partInfo.title);
+                }
+           }
         }
 
         public override void OnUpdate()
         {
-            bool receiver_on = false;
-            if (has_receiver)
-            {
-                if (part_receiver.isActive())
-                {
-                    receiver_on = true;
-                }
-            }
+            bool receiver_on = has_receiver && part_receiver.isActive();
+
             Events["ActivateTransmitter"].active = !IsEnabled && !relay && !receiver_on;
             Events["DeactivateTransmitter"].active = IsEnabled && !relay;
             Events["ActivateRelay"].active = !IsEnabled && !relay && !receiver_on;
@@ -173,35 +188,23 @@ namespace FNPlugin
             if (IsEnabled)
             {
                 if (relay)
-                {
                     statusStr = "Relay Active";
-                }
                 else
-                {
                     statusStr = "Transmitter Active";
-                }
             }
             else
-            {
                 statusStr = "Inactive.";
-            }
 
             double inputPower = nuclear_power + displayed_solar_power;
             if (inputPower > 1000)
             {
                 if (inputPower > 1e6)
-                {
                     beamedpower = (inputPower / 1e6).ToString("0.000") + " GW";
-                }
                 else
-                {
                     beamedpower = (inputPower / 1000).ToString("0.000") + " MW";
-                }
             }
             else
-            {
                 beamedpower = inputPower.ToString("0.000") + " KW";
-            }
         }
 
         public override void OnFixedUpdate()
@@ -235,24 +238,37 @@ namespace FNPlugin
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
-                    float output = panel.flowRate;
-                    float spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
-                    double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
-                    displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
+                    double output = panel.flowRate;
+
+                    // attempt to retrieve all solar power output
+                    if (output == 0.0)
+                    {
+                        var partModulesList = panel.part.parent.Modules;
+                        foreach (var module in partModulesList)
+                        {
+                            var solarmodule = module as ModuleDeployableSolarPanel;
+                            if (solarmodule != null)
+                                output += solarmodule.flowRate;
+                        }
+                    }
+
+                    double spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
+
+                    var distanceBetweenVesselAndSun  = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
+                    var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
+                    double inv_square_mult = Math.Pow(distanceBetweenSunAndKerbin, 2) / Math.Pow(distanceBetweenVesselAndSun, 2);
+
+                    displayed_solar_power += (float)(spower / TimeWarp.fixedDeltaTime);
                     //scale solar power to what it would be in Kerbin orbit for file storage
                     solar_power += (float)(spower / TimeWarp.fixedDeltaTime / inv_square_mult);
                 }
             }
 
             if (double.IsInfinity(nuclear_power) || double.IsNaN(nuclear_power))
-            {
                 nuclear_power = 0;
-            }
 
             if (double.IsInfinity(solar_power) || double.IsNaN(solar_power))
-            {
                 solar_power = 0;
-            }
         }
 
         public double getNuclearPower()
@@ -308,9 +324,7 @@ namespace FNPlugin
             foreach (MicrowavePowerTransmitter transmitter in transmitters)
             {
                 if (transmitter.getIsRelay() && transmitter.isActive())
-                {
                     return true;
-                }
             }
             return false;
         }
@@ -349,9 +363,8 @@ namespace FNPlugin
             {
                 foreach (var pmodule in ppart.modules)
                 {
-                    if (pmodule.moduleName == "MicrowavePowerTransmitter")
-                        if (bool.Parse(pmodule.moduleValues.GetValue("relay")))
-                            return true;
+                    if (pmodule.moduleName == "MicrowavePowerTransmitter" && bool.Parse(pmodule.moduleValues.GetValue("relay")))
+                        return true;
                 }
             }
             return false;

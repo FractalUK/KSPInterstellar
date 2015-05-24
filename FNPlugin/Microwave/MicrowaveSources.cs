@@ -41,6 +41,7 @@ namespace FNPlugin
                     var trans_pers = new VesselMicrowavePersistence(vessel);
                     trans_pers.setNuclearPower(MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel.protoVessel));
                     trans_pers.setSolarPower(MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel.protoVessel));
+
                     if (trans_pers.getAvailablePower() > 1.0)
                         transmitters[vessel] = trans_pers;
                     else
@@ -70,6 +71,7 @@ namespace FNPlugin
                     var persistence = new VesselMicrowavePersistence(vessel);
                     persistence.setNuclearPower(MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel));
                     persistence.setSolarPower(MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel));
+
                     if (persistence.getAvailablePower() > 1.0)
                         transmitters[vessel] = persistence;
                     else
