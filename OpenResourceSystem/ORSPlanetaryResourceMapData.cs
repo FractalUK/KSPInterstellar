@@ -199,19 +199,28 @@ namespace OpenResourceSystem {
                     stored_scale = ScaledSpace.ScaleFactor;
                 }
                 //celbody.renderer.material.mainTexture.
-            } else {
+            } 
+            else 
+            {
                 if (body_resource_maps.ContainsKey(displayed_resource) && FlightGlobals.currentMainBody.flightGlobalsIndex == map_body && displayed_resource == map_resource) {
                     CelestialBody celbody = FlightGlobals.currentMainBody;
-                    foreach (ORSResourceAbundanceMarker abundance_marker in abundance_markers) {
-                        if (lineOfSightToPosition(abundance_marker.getPlanetarySphere().transform.position, celbody)) {
-                            if (MapView.MapIsEnabled) {
+                    foreach (ORSResourceAbundanceMarker abundance_marker in abundance_markers) 
+                    {
+                        if (lineOfSightToPosition(abundance_marker.getPlanetarySphere().transform.position, celbody)) 
+                        {
+                            if (MapView.MapIsEnabled) 
+                            {
                                 abundance_marker.getScaledSphere().renderer.enabled = true;
                                 abundance_marker.getPlanetarySphere().renderer.enabled = false;
-                            } else {
+                            } 
+                            else 
+                            {
                                 abundance_marker.getScaledSphere().renderer.enabled = false;
                                 abundance_marker.getPlanetarySphere().renderer.enabled = true;
                             }   
-                        }else{
+                        }
+                        else
+                        {
                             abundance_marker.getScaledSphere().renderer.enabled = false;
                             abundance_marker.getPlanetarySphere().renderer.enabled = false;
                         }

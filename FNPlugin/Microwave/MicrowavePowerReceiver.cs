@@ -484,10 +484,12 @@ namespace FNPlugin
             return 0;
         }
 
+        /*
         protected bool lineOfSightTo(Vessel vess)
         {
             Vector3d a = vessel.transform.position;
             Vector3d b = PluginHelper.getVesselPos(vess);
+            
             if (Vector3d.Distance(a, b) < 2500.0)           // if both vessels are active
                 return true;
 
@@ -508,6 +510,7 @@ namespace FNPlugin
             }
             return true;
         }
+         */
 
         public static double getEnumeratedPowerFromSatelliteForAllVesssels(VesselMicrowavePersistence vmp)
         {
@@ -533,7 +536,10 @@ namespace FNPlugin
         #region RelayRouting
         protected double ComputeVisibilityAndDistance(VesselRelayPersistence r, Vessel v)
         {
-            return r.lineOfSightTo(v) ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) : -1;
+            //return r.lineOfSightTo(v) ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) : -1;
+            return PluginHelper.HasLineOfSightWith(this.vessel, v) 
+                ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) 
+                : -1;
         }
 
         protected double ComputeDistance(Vessel v1, Vessel v2)
@@ -580,7 +586,7 @@ namespace FNPlugin
         {
             //these two dictionaries store transmitters and relays and best currently known route to them which is replaced if better one is found. 
 
-            var transmitterRouteDictionary = new Dictionary<VesselMicrowavePersistence, MicrowaveRoute>();
+            var transmitterRouteDictionary = new Dictionary<VesselMicrowavePersistence, MicrowaveRoute>(); // stores all transmitter we can have a connection with
             var relayRouteDictionary = new Dictionary<VesselRelayPersistence, MicrowaveRoute>();
 
             var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
@@ -591,13 +597,17 @@ namespace FNPlugin
                 //first check for direct connection from current vessel to transmitters, will always be optimal
                 if (transmitter.getAvailablePower() <= 0) continue;
 
-                //ignore if no power or transmitter is on the same vessel
-                if (isInlineReceiver && transmitter.getVessel() == vessel) continue;
+                // get transmitting vessel
+                var transmitterVessel = transmitter.getVessel();
 
-                if (lineOfSightTo(transmitter.getVessel()))
+                //ignore if no power or transmitter is on the same vessel
+                if (isInlineReceiver && transmitterVessel == vessel) continue;
+                
+                //if (lineOfSightTo(transmitter.getVessel()))
+                if (PluginHelper.HasLineOfSightWith(this.vessel, transmitterVessel))
                 {
-                    double distance = ComputeDistance(vessel, transmitter.getVessel());
-                    double facingFactor = ComputeFacingFactor(transmitter.getVessel());
+                    double distance = ComputeDistance(vessel, transmitterVessel);
+                    double facingFactor = ComputeFacingFactor(transmitterVessel);
                     double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
                     transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiency, distance, facingFactor); //store in dictionary that optimal route to this transmitter is direct connection, can be replaced if better route is found
                 }
@@ -615,10 +625,13 @@ namespace FNPlugin
             {
                 if (!relay.isActive()) continue;
 
-                if (lineOfSightTo(relay.getVessel()))
+                var relayVessel = relay.getVessel();
+
+                //if (lineOfSightTo(relay.getVessel()))
+                if (PluginHelper.HasLineOfSightWith(this.vessel, relayVessel))
                 {
-                    double distance = ComputeDistance(vessel, relay.getVessel());
-                    double facingFactor = ComputeFacingFactor(relay.getVessel());
+                    double distance = ComputeDistance(vessel, relayVessel);
+                    double facingFactor = ComputeFacingFactor(relayVessel);
                     double efficiency = ComputeTransmissionEfficiency(distance, facingFactor);
                     relayRouteDictionary[relay] = new MicrowaveRoute(efficiency, distance, facingFactor);//store in dictionary that optimal route to this relay is direct connection, can be replaced if better route is found
                     currentRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(relay, relayIndex));
@@ -696,8 +709,10 @@ namespace FNPlugin
                                 continue;
 
                             double distanceToNextRelay = relayToRelayDistances[relayEntry.Value, r];
-                            if (distanceToNextRelay > 0) //any relay which is in LOS of this relay
-                            {
+
+                            if (distanceToNextRelay <= 0) continue;
+                            //if (distanceToNextRelay > 0) //any relay which is in LOS of this relay
+                            //{
                                 double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
                                 double efficiencyByThisRelay = ComputeTransmissionEfficiency(relayToNextRelayDistance, relayRouteFacingFactor);
 
@@ -711,7 +726,6 @@ namespace FNPlugin
 
                                         relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay, relayToNextRelayDistance, relayRoute.FacingFactor, relay);
                                     //we put it in dictionary as optimal
-
                                 }
                                 else //there is no other route to this relay yet known so we put this one as optimal
                                 {
@@ -727,7 +741,7 @@ namespace FNPlugin
                                     //in next iteration we will check what next relay can see
                                     coveredRelays.Add(r);
                                 }
-                            }
+                            //}
                         }
                     }
                     currentRelayGroup = nextRelayGroup;

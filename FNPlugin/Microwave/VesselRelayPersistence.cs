@@ -26,6 +26,7 @@ namespace FNPlugin {
             relay = active;
         }
 
+        /*
         public bool lineOfSightTo(Vessel vess) 
         {
             Vector3d a = PluginHelper.getVesselPos(vessel);
@@ -48,5 +49,6 @@ namespace FNPlugin {
             }
             return true;
         }
+         */
     }
 }

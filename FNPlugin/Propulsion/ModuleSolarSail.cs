@@ -80,14 +80,17 @@ namespace FNPlugin {
             solarAcc = solar_acc_d.ToString("E") + " m/s";
         }
 
-        public override void OnFixedUpdate() {
-            if (FlightGlobals.fetch != null) {
+        public override void OnFixedUpdate() 
+        {
+            if (FlightGlobals.fetch != null) 
+            {
                 solar_force_d = 0;
                 if (!IsEnabled) { return; }
                 double sunlightFactor = 1.0;
                 Vector3 sunVector = FlightGlobals.fetch.bodies[0].position - part.orgPos;
 
-                if (!PluginHelper.lineOfSightToSun(vessel)) {
+                if (!PluginHelper.lineOfSightToSun(vessel)) 
+                {
                     sunlightFactor = 0.0f;
                 }
 

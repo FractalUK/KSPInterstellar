@@ -32,9 +32,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float efficiency = 0.19f;
         [KSPField(isPersistant = false)]
-        public float leathalDistance = 2000f;
+        public float leathalDistance = 2000;
         [KSPField(isPersistant = false)]
-        public float killDivider = 50f;
+        public float killDivider = 50;
 
         [KSPField(isPersistant = false)]
         public float fusionWasteHeat = 2500;
