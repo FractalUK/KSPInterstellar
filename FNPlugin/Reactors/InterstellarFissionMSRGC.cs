@@ -273,14 +273,14 @@ namespace FNPlugin
 
                         if (resourceDefinition != null)
                         {
-                            remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.000000") + " kg";
+                            remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.0000000") + " kg";
                             Fields["remainingFuel"].guiName = fuel.FuelName;
                         }
 
                         if (resourceDefinitionActinides == null)
                             UnityEngine.Debug.LogWarning("[KSPI] - InterstellarFissionMSRGC.consumeReactorFuel.resourceDefinitionActinides is null");
 
-                        actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.000000") + " kg";
+                        actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.0000000") + " kg";
 
                         return amount;
                     }

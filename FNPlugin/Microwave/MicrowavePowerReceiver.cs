@@ -32,8 +32,16 @@ namespace FNPlugin
         public float radius;
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
+        [KSPField(isPersistant = false)]
+        public float powerHeatExponent = 0.7f;
+        [KSPField(isPersistant = false)]
+        public float powerHeatMultiplier = 20f;
+        [KSPField(isPersistant = false)]
+        public float powerHeatBase = 1600f;
 
         //GUI
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temperature")]
+        public string coreTempererature;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Input Power")]
         public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Satellites Connected")]
@@ -123,7 +131,14 @@ namespace FNPlugin
 
         public bool IsSelfContained { get { return false; } }
 
-        public float CoreTemperature { get { return PluginHelper.IsRecieverCoreTempTweaked ? 3500 : 1500; } }
+        public float CoreTemperature 
+        { 
+            get 
+            { 
+                //return PluginHelper.IsRecieverCoreTempTweaked ? 3500 : 1500; 
+                return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);
+            } 
+        }
 
         public float StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 
@@ -225,6 +240,16 @@ namespace FNPlugin
             Events["ActivateReceiver"].active = !receiverIsEnabled && !transmitter_on;
             Events["DisableReceiver"].active = receiverIsEnabled;
             Fields["toteff"].guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
+
+            if (IsThermalSource)
+            {
+                coreTempererature = CoreTemperature.ToString("0.0") + " K";
+                Fields["coreTempererature"].guiActive = true;
+            }
+            else
+                Fields["coreTempererature"].guiActive = false;
+            
+            Fields["coreTempererature"].guiActive = IsThermalSource;
 
             if (receiverIsEnabled)
             {

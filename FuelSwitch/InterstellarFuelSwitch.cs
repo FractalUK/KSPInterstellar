@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using UnityEngine;
+using TweakScale;
 
 namespace InterstellarFuelSwitch
 {
@@ -39,7 +40,7 @@ namespace InterstellarFuelSwitch
         public List<FSresource> Resources = new List<FSresource>();
     }
 
-    public class InterstellarFuelSwitch : PartModule, IPartCostModifier
+    public class InterstellarFuelSwitch : PartModule, IPartCostModifier, IRescalable<InterstellarFuelSwitch>
     {
         [KSPField]
         public string resourceGui = "";
@@ -70,18 +71,14 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public string configuredAmounts = "";
 
-
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
         public string tankGuiName = String.Empty; 
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Added cost")]
-        public float addedCost = 0f;
+        public float addedCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
-        public float dryMassInfo = 0f;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
-        public float volumeMultiplier = 1f;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
-        public float massMultiplier = 1f;
+        public float dryMassInfo = 0;
+
 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
@@ -89,6 +86,15 @@ namespace InterstellarFuelSwitch
         public string resourceAmountStr1 = "";
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr2 = "";
+
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
+        public float volumeMultiplier = 1;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
+        public float massMultiplier = 1;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Exponent")]
+        public float volumeExponent = 3;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Exponent")]
+        public float massExponent = 3;
 
         // Persistants
         [KSPField(isPersistant = true)]
@@ -114,6 +120,12 @@ namespace InterstellarFuelSwitch
         private PartResourceDefinition _partRresourceDefinition2;
 
         UIPartActionWindow tweakableUI;
+
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            volumeMultiplier = (float)Math.Pow(factor.absolute.linear, volumeExponent);
+            massMultiplier = (float)Math.Pow(factor.absolute.linear, massExponent);
+        }
 
         public override void OnStart(PartModule.StartState state)
         {

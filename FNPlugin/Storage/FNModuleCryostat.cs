@@ -11,6 +11,10 @@ namespace FNPlugin
     [KSPModule("Cyrostat Tank")]
     class FNModuleCryostat : FNResourceSuppliableModule 
     {
+        // Persistant
+        [KSPField(isPersistant = true)]
+        bool isDisabled;
+
         // Confuration
         [KSPField(isPersistant = false)]
         public string resourceName;
@@ -25,6 +29,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fullPowerReqKW = 0;
         [KSPField(isPersistant = false)]
+        public float powerReqMult = 1f;
+        [KSPField(isPersistant = false)]
         public float boilOffMultiplier;
         [KSPField(isPersistant = false)]
         public float boilOffBase = 10000;
@@ -34,24 +40,14 @@ namespace FNPlugin
         public float boilOffTemp = 20.271f;
         [KSPField(isPersistant = false)]
         public float convectionMod = 1;
-
         [KSPField(isPersistant = false)]
         public int maxStoreAmount = 0;
 
+        //GUI
         [KSPField(isPersistant = false)]
         public string StartActionName = "Activate Cooling";
         [KSPField(isPersistant = false)]
         public string StopActionName = "Deactivate Cooling";
-
-        // Persistant
-        [KSPField(isPersistant = true)]
-        bool isDisabled;
-        
-        protected PartResource cryostat_resource;
-        protected double recievedPowerKW;
-        protected double currentPowerReq;
-
-        //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
         public string powerStatusStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Boiloff")]
@@ -61,7 +57,10 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature")]
         public float partTemperature;
 
-        public float boiloff;
+        protected float boiloff;
+        protected PartResource cryostat_resource;
+        protected float recievedPowerKW;
+        protected float currentPowerReq;
 
         [KSPEvent(guiName = "Deactivate Cooling", guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
         public void Deactivate()
@@ -110,13 +109,13 @@ namespace FNPlugin
 
                 if (powerReqKW > 0)
                 {
-                    var resourceRatio = Math.Pow(cryostat_resource.amount / cryostat_resource.maxAmount, resourceRatioExp);
+                    var resourceRatio = (float)Math.Pow(cryostat_resource.amount / cryostat_resource.maxAmount, resourceRatioExp);
 
                     currentPowerReq = fullPowerReqKW > powerReqKW
                         ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
                         : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
 
-                    currentPowerReq *= environmentFactor;
+                    currentPowerReq *= environmentFactor * powerReqMult;
 
                     powerStatusStr = powerReqKW < 1.0e+3
                         ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
@@ -146,12 +145,12 @@ namespace FNPlugin
 
             if (!isDisabled && currentPowerReq > 0)
             {
-                var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
+                var fixedPowerReqKW = (float)(currentPowerReq * TimeWarp.fixedDeltaTime);
 
-                double fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000.0, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0;
+                float fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000.0f, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f;
 
                 if (powerReqKW < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += ORSHelper.fixedRequestResource(part, "ElectricCharge", fixedPowerReqKW - fixedRecievedChargeKW);
+                    fixedRecievedChargeKW += part.RequestResource("ElectricCharge", fixedPowerReqKW - fixedRecievedChargeKW);
 
                 recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
             }

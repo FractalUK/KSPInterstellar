@@ -500,8 +500,8 @@ namespace FNPlugin
                 // calculate thermalpower capacity
                 if (TimeWarp.fixedDeltaTime != previousTimeWarp)
                 {
-                    var requiredThermalCapacity = Math.Max(0.001, TimeWarp.fixedDeltaTime * MaximumThermalPower * 20);
-                    var previousThermalCapacity = Math.Max(0.001, previousTimeWarp * MaximumThermalPower * 20);
+                    var requiredThermalCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
+                    var previousThermalCapacity = Math.Max(0.0001, previousTimeWarp * MaximumThermalPower + MaximumThermalPower);
 
                     if (thermalPowerResource != null)
                     {
@@ -511,8 +511,8 @@ namespace FNPlugin
                             : Math.Max(0, Math.Min(requiredThermalCapacity, (thermalPowerResource.amount / thermalPowerResource.maxAmount) * requiredThermalCapacity));
                     }
 
-                    var requiredChargedCapacity = Math.Max(0.001, TimeWarp.fixedDeltaTime * MaximumChargedPower * 20);
-                    var previousChargedCapacity = Math.Max(0.001, previousTimeWarp * MaximumChargedPower * 20);
+                    var requiredChargedCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
+                    var previousChargedCapacity = Math.Max(0.0001, previousTimeWarp * MaximumChargedPower + MaximumChargedPower);
 
                     if (chargedPowerResource != null)
                     {
@@ -526,13 +526,13 @@ namespace FNPlugin
                 {
                     if (thermalPowerResource != null)
                     {
-                        var requiredThermalCapacity = Math.Max(0.001, TimeWarp.fixedDeltaTime * MaximumThermalPower * 20);
+                        var requiredThermalCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
                         thermalPowerResource.maxAmount = requiredThermalCapacity;
                     }
 
                     if (chargedPowerResource != null)
                     {
-                        var requiredChargedCapacity = Math.Max(0.001, TimeWarp.fixedDeltaTime * MaximumChargedPower * 20);
+                        var requiredChargedCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
                         chargedPowerResource.maxAmount = requiredChargedCapacity;
                     }
                 }

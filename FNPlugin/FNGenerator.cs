@@ -392,8 +392,8 @@ namespace FNPlugin
                     _powerState = PowerStates.powerOnline;
 
                     var powerBufferingBonus = myAttachedReactor.PowerBufferBonus * maxStableMegaWattPower;
-                    var requiredMegawattCapacity = Math.Max(0.001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
-                    var previousMegawattCapacity = Math.Max(0.001, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
+                    var requiredMegawattCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
+                    var previousMegawattCapacity = Math.Max(0.0001, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
 
                     if (megajouleResource != null)
                     {
@@ -418,9 +418,8 @@ namespace FNPlugin
                     PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
                     if (electricChargeResource != null)
                     {
-                        if (maxStableMegaWattPower <= 0)
-
-                            electricChargeResource.maxAmount = requiredMegawattCapacity;
+                        //if (maxStableMegaWattPower <= 0)
+                        electricChargeResource.maxAmount = requiredMegawattCapacity;
                         electricChargeResource.amount = maxStableMegaWattPower <= 0 ? 0 : Math.Min(electricChargeResource.maxAmount, electricChargeResource.amount);
                     }
                 }
