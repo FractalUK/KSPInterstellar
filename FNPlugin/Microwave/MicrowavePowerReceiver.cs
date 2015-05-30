@@ -18,7 +18,7 @@ namespace FNPlugin
         public string animName;
         [KSPField(isPersistant = false)]
         public string animTName;
-        [KSPField(isPersistant = false, guiActiveEditor= true, guiActive=true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Collector Area")]
         public float collectorArea = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver;
@@ -30,7 +30,7 @@ namespace FNPlugin
         public float ThermalPower;
         [KSPField(isPersistant = false, guiActiveEditor= true, guiName= "Radius")]
         public float radius;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName= "Collector Area")]
+        [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
         public float powerHeatExponent = 0.7f;
@@ -545,7 +545,7 @@ namespace FNPlugin
         protected double ComputeVisibilityAndDistance(VesselRelayPersistence r, Vessel v)
         {
             //return r.lineOfSightTo(v) ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) : -1;
-            return PluginHelper.HasLineOfSightWith(this.vessel, v) 
+            return PluginHelper.HasLineOfSightWith(r.getVessel(), v, 0) 
                 ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) 
                 : -1;
         }

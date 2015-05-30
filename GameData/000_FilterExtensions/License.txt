@@ -1,6 +1,0 @@
-Icons distributed with Filter Extensions are licensed under the CC-BY-SA 4.0
-https://creativecommons.org/licenses/by-sa/4.0/
-
-Plugin is licensed under GPL v3
-https://www.gnu.org/licenses/quick-guide-gplv3.html
-

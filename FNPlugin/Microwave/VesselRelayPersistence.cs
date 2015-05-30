@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FNPlugin {
-    class VesselRelayPersistence {
+namespace FNPlugin 
+{
+    class VesselRelayPersistence 
+    {
         Vessel vessel;
         bool relay;
 
-        public VesselRelayPersistence(Vessel vessel) {
+        public VesselRelayPersistence(Vessel vessel) 
+        {
             this.vessel = vessel;
         }
 

@@ -809,13 +809,12 @@ namespace FNPlugin
         /// <summary>Tests whether two vessels have line of sight to each other</summary>
         /// <returns><c>true</c> if a straight line from a to b is not blocked by any celestial body; 
         /// otherwise, <c>false</c>.</returns>
-        public static bool HasLineOfSightWith(Vessel vessA, Vessel vessB)
+        public static bool HasLineOfSightWith(Vessel vessA, Vessel vessB, double freeDistance = 2500, double min_height = 5)
         {
-            const double MIN_HEIGHT = 5.0;
             Vector3d vesselA = vessA.transform.position;
             Vector3d vesselB = vessB.transform.position;
 
-            if (Vector3d.Distance(vesselA, vesselB) < 2500.0)           // if both vessels are within active view
+            if (freeDistance > 0 && Vector3d.Distance(vesselA, vesselB) < freeDistance)           // if both vessels are within active view
                 return true;
 
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
@@ -834,7 +833,7 @@ namespace FNPlugin
                 // lies between the origin and bFromA
                 Vector3d lateralOffset = bodyFromA - Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm;
 
-                if (lateralOffset.magnitude < referenceBody.Radius - MIN_HEIGHT) return false;
+                if (lateralOffset.magnitude < referenceBody.Radius - min_height) return false;
             }
             return true;
         }

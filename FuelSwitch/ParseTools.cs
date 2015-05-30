@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.Linq.Expressions;
 
 namespace InterstellarFuelSwitch
 {
 	public static class ParseTools
 	{
-		public static List<double> ParseDoubles(string stringOfDoubles)
+        public static List<double> ParseDoubles<T>(string stringOfDoubles, Expression<Func<T>> expr)
+        {
+            var body = (MemberExpression)expr.Body;
+
+            return ParseDoubles(stringOfDoubles, body.Member.Name);
+        }
+
+		public static List<double> ParseDoubles(string stringOfDoubles, string errorDisplayName = "")
 		{
 			var list = new List<double>();
 			var array = stringOfDoubles.Trim().Split(';');
@@ -17,7 +25,7 @@ namespace InterstellarFuelSwitch
 				if (Double.TryParse(arrayItem.Trim(), out item))
 					list.Add(item);
 				else
-					Debug.Log("InsterstellarFuelSwitch parseDoubles: invalid float: [len:" + arrayItem.Length + "] '" + arrayItem + "']");
+					Debug.Log("InsterstellarFuelSwitch parseDoubles: invalid float: " + errorDisplayName +  " [len:" + arrayItem.Length + "] '" + arrayItem + "']");
 			}
 			return list;
 		}

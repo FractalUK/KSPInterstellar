@@ -54,14 +54,18 @@ namespace FNPlugin {
             IsEnabled = false;
         }
 
-        public override void OnStart(StartState state) {
-            if (state != StartState.None && state != StartState.Editor) {
+        public override void OnStart(StartState state) 
+        {
+            if (state != StartState.None && state != StartState.Editor) 
+            {
                 //surfaceTransform = part.FindModelTransform(surfaceTransformName);
                 //solarSailAnim = (ModuleAnimateGeneric)part.Modules["ModuleAnimateGeneric"];
-                if (animName != null) {
+                if (animName != null) 
+                {
                     solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
                 }
-                if (IsEnabled) {
+                if (IsEnabled) 
+                {
                     solarSailAnim[animName].speed = 1f;
                     solarSailAnim[animName].normalizedTime = 0f;
                     solarSailAnim.Blend(animName, 0.1f);
@@ -71,7 +75,8 @@ namespace FNPlugin {
             }
         }
 
-        public override void OnUpdate() {
+        public override void OnUpdate() 
+        {
             Events["DeploySail"].active = !IsEnabled;
             Events["RetractSail"].active = IsEnabled;
             Fields["solarAcc"].guiActive = IsEnabled;
@@ -85,7 +90,8 @@ namespace FNPlugin {
             if (FlightGlobals.fetch != null) 
             {
                 solar_force_d = 0;
-                if (!IsEnabled) { return; }
+                if (!IsEnabled) return;
+
                 double sunlightFactor = 1.0;
                 Vector3 sunVector = FlightGlobals.fetch.bodies[0].position - part.orgPos;
 
@@ -99,10 +105,14 @@ namespace FNPlugin {
                 //print(surfaceArea);
 
                 Vector3d solar_accel = solarForce / vessel.GetTotalMass() / 1000.0 * TimeWarp.fixedDeltaTime;
-                if (!this.vessel.packed) {
+                if (!this.vessel.packed) 
+                {
                     vessel.ChangeWorldVelocity(solar_accel);
-                } else {
-                    if (sunlightFactor > 0) {
+                } 
+                else 
+                {
+                    if (sunlightFactor > 0) 
+                    {
                         double temp1 = solar_accel.y;
                         solar_accel.y = solar_accel.z;
                         solar_accel.z = temp1;
@@ -110,7 +120,8 @@ namespace FNPlugin {
                         Orbit orbit2 = new Orbit(vessel.orbit.inclination, vessel.orbit.eccentricity, vessel.orbit.semiMajorAxis, vessel.orbit.LAN, vessel.orbit.argumentOfPeriapsis, vessel.orbit.meanAnomalyAtEpoch, vessel.orbit.epoch, vessel.orbit.referenceBody);
                         orbit2.UpdateFromStateVectors(position, vessel.orbit.vel + solar_accel, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
                         //print(orbit2.timeToAp);
-                        if (!double.IsNaN(orbit2.inclination) && !double.IsNaN(orbit2.eccentricity) && !double.IsNaN(orbit2.semiMajorAxis) && orbit2.timeToAp > TimeWarp.fixedDeltaTime) {
+                        if (!double.IsNaN(orbit2.inclination) && !double.IsNaN(orbit2.eccentricity) && !double.IsNaN(orbit2.semiMajorAxis) && orbit2.timeToAp > TimeWarp.fixedDeltaTime) 
+                        {
                             vessel.orbit.inclination = orbit2.inclination;
                             vessel.orbit.eccentricity = orbit2.eccentricity;
                             vessel.orbit.semiMajorAxis = orbit2.semiMajorAxis;
@@ -175,7 +186,8 @@ namespace FNPlugin {
                 return Vector3d.zero;
         } 
 
-        private double solarForceAtDistance() {
+        private double solarForceAtDistance() 
+        {
             double distance_from_sun = Vector3.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position, vessel.transform.position);
             double force_to_return = thrust_coeff * kerbin_distance * kerbin_distance / distance_from_sun / distance_from_sun;
             return force_to_return;

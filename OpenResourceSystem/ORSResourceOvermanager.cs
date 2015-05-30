@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenResourceSystem {
-    public class ORSResourceOvermanager {
+namespace OpenResourceSystem 
+{
+    public class ORSResourceOvermanager 
+    {
         protected static Dictionary<String, ORSResourceOvermanager> resources_managers = new Dictionary<String, ORSResourceOvermanager>();
 
         public static ORSResourceOvermanager getResourceOvermanagerForResource(String resource_name) {

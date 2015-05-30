@@ -8,36 +8,37 @@ using TweakScale;
 
 namespace InterstellarFuelSwitch
 {
-    public class FSresource
+    public class IFSresource
     {
         public string name;
         public int ID;
-        public float ratio;
-        public double currentSupply = 0f;
-        public double amount = 0f;
-        public double maxAmount = 0f;
+        public double currentSupply = 0;
+        public double amount = 0;
+        public double maxAmount = 0;
+        public double boiloffTemp = 0;
 
-        public FSresource(string _name, float _ratio)
+        //public float ratio;
+        //public IFSresource(string _name, float _ratio)
+        //{
+        //    name = _name;
+        //    ID = _name.GetHashCode();
+        //    ratio = _ratio;
+        //}
+
+        public IFSresource(string _name)
         {
             name = _name;
             ID = _name.GetHashCode();
-            ratio = _ratio;
-        }
-
-        public FSresource(string _name)
-        {
-            name = _name;
-            ID = _name.GetHashCode();
-            ratio = 1f;
+            //ratio = 1f;
         }
     }
 
-    public class FSmodularTank
+    public class IFSmodularTank
     {
         public string GuiName = String.Empty;
         public string Contents = String.Empty;
 
-        public List<FSresource> Resources = new List<FSresource>();
+        public List<IFSresource> Resources = new List<IFSresource>();
     }
 
     public class InterstellarFuelSwitch : PartModule, IPartCostModifier, IRescalable<InterstellarFuelSwitch>
@@ -56,6 +57,10 @@ namespace InterstellarFuelSwitch
         public string tankMass = "0;0;0;0";
         [KSPField]
         public string tankCost = "";
+        [KSPField]
+        public string boilOffTemp = "";
+        [KSPField]
+        public bool displayCurrentBoilOffTemp = true;
         [KSPField]
         public bool displayCurrentTankCost = false;
         [KSPField]
@@ -100,15 +105,16 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public int selectedTankSetup = -1;
         [KSPField(isPersistant = true)]
-        public bool hasLaunched = false;
-        [KSPField(isPersistant = true)]
+        //public bool hasLaunched = false;
+        //[KSPField(isPersistant = true)]
         public bool gameLoaded = false;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
 
-        private List<FSmodularTank> tankList;
+        private List<IFSmodularTank> tankList;
         private List<double> weightList;
         private List<double> tankCostList;
+        private List<double> boilOffTempList;
         private bool initialized = false;
 
         private PartResource _partResource0;
@@ -178,11 +184,13 @@ namespace InterstellarFuelSwitch
             if (initialized) return;
 
             SetupTankList(false);
-            weightList = ParseTools.ParseDoubles(tankMass);
-            tankCostList = ParseTools.ParseDoubles(tankCost);
 
-            if (HighLogic.LoadedSceneIsFlight)
-                hasLaunched = true;
+            weightList = ParseTools.ParseDoubles(tankMass, () => weightList);
+            tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
+            //boilOffTempList = ParseTools.ParseDoubles(tankCost, () => boilOffTemp);
+
+            //if (HighLogic.LoadedSceneIsFlight)
+            //    hasLaunched = true;
 
             if (hasGUI)
             {
@@ -482,18 +490,26 @@ namespace InterstellarFuelSwitch
         }
         private void SetupTankList(bool calledByPlayer)
         {
-            tankList = new List<FSmodularTank>();
+            tankList = new List<IFSmodularTank>();
+
+            // toDo: move to tankList
             weightList = new List<double>();
             tankCostList = new List<double>();
 
             // First find the amounts each tank type is filled with
             List<List<double>> resourceList = new List<List<double>>();
             List<List<double>> initialResourceList = new List<List<double>>();
+            List<List<double>> boilOffTempList = new List<List<double>>();
+
             string[] resourceTankAmountArray = resourceAmounts.Split(';');
             string[] initialResourceTankArray = initialResourceAmounts.Split(';');
-            string[] tankGuiNameArray = resourceGui.Split(';');
-            int tankGuiNameArrayCount = tankGuiNameArray.Count();
+            string[] tankGuiNameTankArray = resourceGui.Split(';');
+            string[] boilOffTempTankArray = boilOffTemp.Split(';');
+            string[] tankNameArray = resourceNames.Split(';');
 
+            int tankGuiNameArrayCount = tankGuiNameTankArray.Count();
+
+            // if missing or not complete, use full amount
             if (initialResourceAmounts.Equals("") || initialResourceTankArray.Length != resourceTankAmountArray.Length)
                 initialResourceTankArray = resourceTankAmountArray;
 
@@ -502,10 +518,14 @@ namespace InterstellarFuelSwitch
             {
                 resourceList.Add(new List<double>());
                 initialResourceList.Add(new List<double>());
+                boilOffTempList.Add(new List<double>());
+
                 string[] resourceAmountArray = resourceTankAmountArray[tankCount].Trim().Split(',');
                 string[] initialResourceAmountArray = initialResourceTankArray[tankCount].Trim().Split(',');
+                string[] boilOffTempAmountArray = boilOffTempTankArray[tankCount].Trim().Split(',');
 
-                if (initialResourceAmounts.Equals("") || initialResourceAmountArray.Length != resourceAmountArray.Length)
+                // if missing or not complete, use full amount
+                if (initialResourceAmounts.Equals(String.Empty) || initialResourceAmountArray.Length != resourceAmountArray.Length)
                     initialResourceAmountArray = resourceAmountArray;
 
                 for (int amountCount = 0; amountCount < resourceAmountArray.Length; amountCount++)
@@ -514,6 +534,7 @@ namespace InterstellarFuelSwitch
                     {
                         resourceList[tankCount].Add(double.Parse(resourceAmountArray[amountCount].Trim()));
                         initialResourceList[tankCount].Add(double.Parse(initialResourceAmountArray[amountCount].Trim()));
+                        boilOffTempList[tankCount].Add(double.Parse(boilOffTempAmountArray[amountCount].Trim()));
                     }
                     catch
                     {
@@ -523,19 +544,21 @@ namespace InterstellarFuelSwitch
             }
 
             // Then find the kinds of resources each tank holds, and fill them with the amounts found previously, or the amount hey held last (values kept in save persistence/craft)
-            string[] tankNameArray = resourceNames.Split(';');
+            
             for (int currentResourceCounter = 0; currentResourceCounter < tankNameArray.Length; currentResourceCounter++)
             {
-                FSmodularTank newTank = new FSmodularTank();
+                IFSmodularTank newTank = new IFSmodularTank();
 
                 if (currentResourceCounter < tankGuiNameArrayCount)
-                    newTank.GuiName = tankGuiNameArray[currentResourceCounter];
+                {
+                    newTank.GuiName = tankGuiNameTankArray[currentResourceCounter];
+                }
 
                 tankList.Add(newTank);
                 string[] resourceNameArray = tankNameArray[currentResourceCounter].Split(',');
                 for (int nameCount = 0; nameCount < resourceNameArray.Length; nameCount++)
                 {
-                    FSresource newResource = new FSresource(resourceNameArray[nameCount].Trim(' '));
+                    IFSresource newResource = new IFSresource(resourceNameArray[nameCount].Trim(' '));
                     if (resourceList[currentResourceCounter] != null)
                     {
                         if (nameCount < resourceList[currentResourceCounter].Count)

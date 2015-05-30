@@ -1,1 +1,0 @@
-Patch Icons are for rectifying mistakes made by the autoloader.

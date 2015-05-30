@@ -155,10 +155,9 @@ namespace OpenResourceSystem {
 			return manager.getCurrentUnfilledResourceDemand ();
 		}
 
-		public double getResourceBarRatio(String resourcename) {
-			if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
-				return 0;
-			}
+		public double getResourceBarRatio(String resourcename) 
+        {
+			if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) return 0;
 
 			ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 			return manager.getResourceBarRatio ();

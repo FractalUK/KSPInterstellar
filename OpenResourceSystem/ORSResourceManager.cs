@@ -170,7 +170,8 @@ namespace OpenResourceSystem {
 			return (float) (current_resource_demand - powersupply);
 		}
 
-		public double getResourceBarRatio() {
+		public double getResourceBarRatio() 
+        {
 			return resource_bar_ratio;
 		}
 

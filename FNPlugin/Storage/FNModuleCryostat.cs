@@ -164,10 +164,13 @@ namespace FNPlugin
             boiloff = boiloffReducuction <= 0 ? 0 :
                 (float)(environmentFactor * boiloffReducuction * boilOffMultiplier * boilOffBase);
 
-            boiloffStr = boiloff.ToString("0.00000") + " L/s " + cryostat_resource.resourceName;
-
-            if (boiloff > 0.00001)
+            if (boiloff > 0.000001)
+            {
                 cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
+                boiloffStr = boiloff.ToString("0.000000") + " L/s " + cryostat_resource.resourceName;
+            }
+            else
+                boiloffStr = "0.000000 L/s " + cryostat_resource.resourceName;
         }
 
         public override string getResourceManagerDisplayName() 
