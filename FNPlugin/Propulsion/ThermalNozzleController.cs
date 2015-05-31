@@ -262,9 +262,14 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
-            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+            if (wasteheatPowerResource != null)
+            {
+                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+            }
 
             engineType = originalName;
             baseEmisiveConstant = part.emissiveConstant;
@@ -771,9 +776,6 @@ namespace FNPlugin
             max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100;
             heatProductionExtra = (sootAccumulationPercentage / sootHeatDivider) * heatProductionBase;
 
-            //part.emissiveConstant = CalculateEmisiveConstant();
-            //currentEmisiveConstant = (float)part.emissiveConstant;
-
             if (max_thrust_in_space > 0)
             {
                 var adjustedBaseHeatProduction = heatProductionBase * Math.Max(heatProductionBase / max_thrust_in_space , 0.01);
@@ -835,13 +837,6 @@ namespace FNPlugin
                     _savedReputationCost -= flooredReputationCost;
                 }
             }
-
-            //// calculate fuelFlowCooling
-            //fuelFlowCooling = (float)max_fuel_flow_rate * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.5);
-            //if (_currentpropellant_is_jet)
-            //    fuelFlowCooling *= (float)currentintakeatm;
-            //else
-            //    fuelFlowCooling *= 10;
         }
 
         private void GetMaximumIspAndThrustMultiplier()

@@ -139,6 +139,7 @@ namespace FNPlugin
 
         protected PartResource thermalPowerResource = null;
         protected PartResource chargedPowerResource = null;
+        protected PartResource wasteheatPowerResource = null;
 
         // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
@@ -375,10 +376,15 @@ namespace FNPlugin
             // initialise resource defenitions
             thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
             chargedPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+            wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             // calculate WasteHeat Capacity
-            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+            if (wasteheatPowerResource != null)
+            {
+                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+            }
 
             // Gui Fields
             Fields["partMass"].guiActiveEditor = partMass > 0;
@@ -500,45 +506,55 @@ namespace FNPlugin
                 // calculate thermalpower capacity
                 if (TimeWarp.fixedDeltaTime != previousTimeWarp)
                 {
-                    var requiredThermalCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
-                    var previousThermalCapacity = Math.Max(0.0001, previousTimeWarp * MaximumThermalPower + MaximumThermalPower);
-
                     if (thermalPowerResource != null)
                     {
+                        var requiredThermalCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
+                        var previousThermalCapacity = Math.Max(0.0001, previousTimeWarp * MaximumThermalPower + MaximumThermalPower);
+
                         thermalPowerResource.maxAmount = requiredThermalCapacity;
                         thermalPowerResource.amount = requiredThermalCapacity > previousThermalCapacity
                             ? Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerResource.amount + requiredThermalCapacity - previousThermalCapacity))
                             : Math.Max(0, Math.Min(requiredThermalCapacity, (thermalPowerResource.amount / thermalPowerResource.maxAmount) * requiredThermalCapacity));
                     }
 
-                    var requiredChargedCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
-                    var previousChargedCapacity = Math.Max(0.0001, previousTimeWarp * MaximumChargedPower + MaximumChargedPower);
-
                     if (chargedPowerResource != null)
                     {
+                        var requiredChargedCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
+                        var previousChargedCapacity = Math.Max(0.0001, previousTimeWarp * MaximumChargedPower + MaximumChargedPower);
+
                         chargedPowerResource.maxAmount = requiredChargedCapacity;
                         chargedPowerResource.amount = requiredChargedCapacity > previousChargedCapacity
                             ? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity))
                             : Math.Max(0, Math.Min(requiredChargedCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredChargedCapacity));
                     }
+
+                    //if (wasteheatPowerResource)
+                    //{
+                    //    var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                    //    var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
+                    //    var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
+
+                    //    chargedPowerResource.maxAmount = requiredWasteheatCapacity;
+                    //    chargedPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
+                    //        ? Math.Max(0, Math.Min(requiredWasteheatCapacity, chargedPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
+                    //        : Math.Max(0, Math.Min(requiredWasteheatCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredWasteheatCapacity));
+                    //}
                 }
                 else
                 {
                     if (thermalPowerResource != null)
-                    {
-                        var requiredThermalCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
-                        thermalPowerResource.maxAmount = requiredThermalCapacity;
-                    }
+                        thermalPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower); 
 
                     if (chargedPowerResource != null)
-                    {
-                        var requiredChargedCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
-                        chargedPowerResource.maxAmount = requiredChargedCapacity;
-                    }
+                        chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
+
+                    //if (wasteheatPowerResource != null)
+                    //{
+                    //    var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                    //    wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
+                    //}
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
-
-
 
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);

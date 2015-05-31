@@ -40,6 +40,8 @@ namespace FNPlugin
         public float powerHeatBase = 1600f;
         [KSPField(isPersistant = false)]
         public float receiverType = 0;
+        [KSPField(isPersistant = false)]
+        public float microwaveDishEfficiency = (float)GameConstants.microwave_dish_efficiency;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temperature")]
@@ -327,9 +329,8 @@ namespace FNPlugin
                     connectedrelaysi = 0;
                     networkDepth = 0;
 
-                    //  atmosphericefficiency = (float)Math.Exp(- (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / 5);
                     atmosphericefficiency = GetAtmosphericEfficiency(this.vessel);
-                    efficiency_d = GameConstants.microwave_dish_efficiency * atmosphericefficiency;
+                    efficiency_d = microwaveDishEfficiency * atmosphericefficiency;
                     deactivate_timer = 0;
 
                     HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
@@ -368,7 +369,7 @@ namespace FNPlugin
                     connectedsatsi = activeSatsIncr;
                     connectedrelaysi = usedRelays.Count;
 
-                    powerInputMegajoules = total_power / 1000.0 * GameConstants.microwave_dish_efficiency * atmosphericefficiency * receiptPower / 100.0f;
+                    powerInputMegajoules = total_power / 1000.0 * microwaveDishEfficiency * atmosphericefficiency * receiptPower / 100.0f;
                     powerInput = powerInputMegajoules * 1000.0f;
                 }
 
@@ -385,7 +386,7 @@ namespace FNPlugin
                 if (!isThermalReceiver)
                 {
                     supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                    double waste_heat_production = powerInputMegajoules / GameConstants.microwave_dish_efficiency * (1.0f - GameConstants.microwave_dish_efficiency);
+                    double waste_heat_production = powerInputMegajoules / microwaveDishEfficiency * (1.0f - microwaveDishEfficiency);
                     supplyFNResource(waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
                 else
@@ -730,6 +731,7 @@ namespace FNPlugin
                             double distanceToNextRelay = relayToRelayDistances[relayEntry.Value, r];
 
                             if (distanceToNextRelay <= 0) continue;
+
                             //if (distanceToNextRelay > 0) //any relay which is in LOS of this relay
                             //{
                                 double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;

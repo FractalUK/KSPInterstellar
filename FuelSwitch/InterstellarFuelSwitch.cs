@@ -17,19 +17,10 @@ namespace InterstellarFuelSwitch
         public double maxAmount = 0;
         public double boiloffTemp = 0;
 
-        //public float ratio;
-        //public IFSresource(string _name, float _ratio)
-        //{
-        //    name = _name;
-        //    ID = _name.GetHashCode();
-        //    ratio = _ratio;
-        //}
-
         public IFSresource(string _name)
         {
             name = _name;
             ID = _name.GetHashCode();
-            //ratio = 1f;
         }
     }
 
@@ -43,6 +34,11 @@ namespace InterstellarFuelSwitch
 
     public class InterstellarFuelSwitch : PartModule, IPartCostModifier, IRescalable<InterstellarFuelSwitch>
     {
+        // Persistants
+        [KSPField(isPersistant = true)]
+        public string configuredAmounts = "";
+
+        // Config properties
         [KSPField]
         public string resourceGui = "";
         [KSPField]
@@ -71,10 +67,8 @@ namespace InterstellarFuelSwitch
         public bool availableInEditor = true;
         [KSPField]
         public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
-
-        // Persistants
-        [KSPField(isPersistant = true)]
-        public string configuredAmounts = "";
+        [KSPField]
+        public string resourcesToIgnore = "";
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
@@ -105,13 +99,12 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public int selectedTankSetup = -1;
         [KSPField(isPersistant = true)]
-        //public bool hasLaunched = false;
-        //[KSPField(isPersistant = true)]
         public bool gameLoaded = false;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
 
         private List<IFSmodularTank> tankList;
+        private List<string> resourceIgnoreList;
         private List<double> weightList;
         private List<double> tankCostList;
         private List<double> boilOffTempList;
@@ -185,12 +178,9 @@ namespace InterstellarFuelSwitch
 
             SetupTankList(false);
 
+            resourceIgnoreList = ParseTools.ParseNames(this.resourcesToIgnore);
             weightList = ParseTools.ParseDoubles(tankMass, () => weightList);
             tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
-            //boilOffTempList = ParseTools.ParseDoubles(tankCost, () => boilOffTemp);
-
-            //if (HighLogic.LoadedSceneIsFlight)
-            //    hasLaunched = true;
 
             if (hasGUI)
             {
@@ -207,8 +197,6 @@ namespace InterstellarFuelSwitch
                 Events["previousTankSetupEvent"].guiActiveEditor = false;
             }
 
-            //if (HighLogic.LoadedSceneIsEditor ||  HighLogic.CurrentGame == null || HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
-            //    Fields["addedCost"].guiActiveEditor = displayCurrentTankCost;
             Fields["addedCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
 
             initialized = true;
@@ -368,15 +356,24 @@ namespace InterstellarFuelSwitch
                 newResourceNodes.Add(newResourceNode);
             }
 
-            currentPart.Resources.list.Clear();
+            // remove all resources except te once we ignore
             PartResource[] partResources = currentPart.GetComponents<PartResource>();
             for (int i = 0; i < partResources.Length; i++)
             {
-                var resource = partResources[i];
-                Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
-                DestroyImmediate(resource);
+                PartResource resource = partResources[i];
+                if (resourceIgnoreList.Any(r => r == resource.resourceName))
+                {
+                    Debug.Log("InsterstellarFuelSwitch setupTankInPart skipped removing resource: " + resource.resourceName);
+                }
+                else
+                {
+                    Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
+                    currentPart.Resources.list.Remove(resource);
+                    DestroyImmediate(resource);
+                }
             }
 
+            // add new resources
             if (newResourceNodes.Count > 0)
             {
                 Debug.Log("InsterstellarFuelSwitch setupTankInPart adding new resources: " + ParseTools.Print(newResources));
@@ -439,12 +436,11 @@ namespace InterstellarFuelSwitch
             // when changed by player
             if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
 
-            if (newTankSetup < weightList.Count)
-            {
-                var newMass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
-                Debug.Log("InsterstellarFuelSwitch: UpdateWeight to " + basePartMass + " + " + weightList[newTankSetup].ToString() + " * " + massMultiplier);
-                currentPart.mass = Math.Max(basePartMass, newMass);
-            }
+            if (newTankSetup >= weightList.Count) return;
+
+            var newMass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
+            Debug.Log("InsterstellarFuelSwitch: UpdateWeight to " + basePartMass + " + " + weightList[newTankSetup].ToString() + " * " + massMultiplier);
+            currentPart.mass = Math.Max(basePartMass, newMass);
         }
 
         protected string formatMassStr(double amount)
@@ -510,63 +506,63 @@ namespace InterstellarFuelSwitch
             int tankGuiNameArrayCount = tankGuiNameTankArray.Count();
 
             // if missing or not complete, use full amount
-            if (initialResourceAmounts.Equals("") || initialResourceTankArray.Length != resourceTankAmountArray.Length)
+            if (initialResourceAmounts.Equals(String.Empty) || initialResourceTankArray.Length != resourceTankAmountArray.Length)
                 initialResourceTankArray = resourceTankAmountArray;
 
-            //Debug.Log("FSDEBUGRES: " + resourceTankArray.Length+" "+resourceAmounts);
-            for (int tankCount = 0; tankCount < resourceTankAmountArray.Length; tankCount++)
+            for (int tankCounter = 0; tankCounter < resourceTankAmountArray.Length; tankCounter++)
             {
                 resourceList.Add(new List<double>());
                 initialResourceList.Add(new List<double>());
                 boilOffTempList.Add(new List<double>());
 
-                string[] resourceAmountArray = resourceTankAmountArray[tankCount].Trim().Split(',');
-                string[] initialResourceAmountArray = initialResourceTankArray[tankCount].Trim().Split(',');
-                string[] boilOffTempAmountArray = boilOffTempTankArray[tankCount].Trim().Split(',');
+                string[] resourceAmountArray = resourceTankAmountArray[tankCounter].Trim().Split(',');
+                string[] initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
+                string[] boilOffTempAmountArray = boilOffTempTankArray.Count() > tankCounter ? boilOffTempTankArray[tankCounter].Trim().Split(',') : new string[0];
 
                 // if missing or not complete, use full amount
                 if (initialResourceAmounts.Equals(String.Empty) || initialResourceAmountArray.Length != resourceAmountArray.Length)
                     initialResourceAmountArray = resourceAmountArray;
 
-                for (int amountCount = 0; amountCount < resourceAmountArray.Length; amountCount++)
+                for (int amountCounter = 0; amountCounter < resourceAmountArray.Length; amountCounter++)
                 {
                     try
                     {
-                        resourceList[tankCount].Add(double.Parse(resourceAmountArray[amountCount].Trim()));
-                        initialResourceList[tankCount].Add(double.Parse(initialResourceAmountArray[amountCount].Trim()));
-                        boilOffTempList[tankCount].Add(double.Parse(boilOffTempAmountArray[amountCount].Trim()));
+                        resourceList[tankCounter].Add(double.Parse(resourceAmountArray[amountCounter].Trim()));
+                        initialResourceList[tankCounter].Add(double.Parse(initialResourceAmountArray[amountCounter].Trim()));
+
+                        if (boilOffTempAmountArray.Length > amountCounter)
+                            boilOffTempList[tankCounter].Add(double.Parse(boilOffTempAmountArray[amountCounter].Trim()));
                     }
                     catch
                     {
-                        Debug.Log("InsterstellarFuelSwitch: error parsing resource amount " + tankCount + "/" + amountCount + ": '" + resourceTankAmountArray[amountCount] + "': '" + resourceAmountArray[amountCount].Trim() + "'");
+                        Debug.Log("InsterstellarFuelSwitch: error parsing resource amount " + tankCounter + "/" + amountCounter + ": '" + resourceTankAmountArray[amountCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "'");
                     }
                 }
             }
 
             // Then find the kinds of resources each tank holds, and fill them with the amounts found previously, or the amount hey held last (values kept in save persistence/craft)
-            
             for (int currentResourceCounter = 0; currentResourceCounter < tankNameArray.Length; currentResourceCounter++)
             {
                 IFSmodularTank newTank = new IFSmodularTank();
 
                 if (currentResourceCounter < tankGuiNameArrayCount)
-                {
                     newTank.GuiName = tankGuiNameTankArray[currentResourceCounter];
-                }
 
                 tankList.Add(newTank);
                 string[] resourceNameArray = tankNameArray[currentResourceCounter].Split(',');
-                for (int nameCount = 0; nameCount < resourceNameArray.Length; nameCount++)
+                for (int nameCounter = 0; nameCounter < resourceNameArray.Length; nameCounter++)
                 {
-                    IFSresource newResource = new IFSresource(resourceNameArray[nameCount].Trim(' '));
-                    if (resourceList[currentResourceCounter] != null)
+                    IFSresource newResource = new IFSresource(resourceNameArray[nameCounter].Trim(' '));
+                    if (resourceList[currentResourceCounter] != null && nameCounter < resourceList[currentResourceCounter].Count)
                     {
-                        if (nameCount < resourceList[currentResourceCounter].Count)
-                        {
-                            newResource.maxAmount = resourceList[currentResourceCounter][nameCount];
-                            newResource.amount = initialResourceList[currentResourceCounter][nameCount];
-                        }
+                        newResource.maxAmount = resourceList[currentResourceCounter][nameCounter];
+                        newResource.amount = initialResourceList[currentResourceCounter][nameCounter];
                     }
+
+                    // add boiloff data
+                    if (boilOffTempList.Count > currentResourceCounter && boilOffTempList[currentResourceCounter] != null && boilOffTempList[currentResourceCounter].Count > nameCounter)
+                        newResource.boiloffTemp = boilOffTempList[currentResourceCounter][nameCounter];
+
                     newTank.Contents += newResource.name + ",";
                     newTank.Resources.Add(newResource);
                 }
@@ -595,19 +591,17 @@ namespace InterstellarFuelSwitch
 
         public override string GetInfo()
         {
-            if (showInfo)
+            if (!showInfo) return string.Empty;
+
+            var resourceList = ParseTools.ParseNames(resourceNames);
+            var info = new StringBuilder();
+
+            info.AppendLine("Fuel tank setups available:");
+            for (int i = 0; i < resourceList.Count; i++)
             {
-                var resourceList = ParseTools.ParseNames(resourceNames);
-                var info = new StringBuilder();
-                info.AppendLine("Fuel tank setups available:");
-                for (int i = 0; i < resourceList.Count; i++)
-                {
-                    info.AppendLine(resourceList[i].Replace(",", ", "));
-                }
-                return info.ToString();
+                info.AppendLine(resourceList[i].Replace(",", ", "));
             }
-            else
-                return string.Empty;
+            return info.ToString();
         }
     } 
 }

@@ -213,9 +213,14 @@ namespace FNPlugin
 			Actions["RetractRadiatorAction"].guiName = Events["RetractRadiator"].guiName = String.Format("Retract Radiator");
 			Actions["ToggleRadiatorAction"].guiName = String.Format("Toggle Radiator");
 
+            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
-            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+            if (wasteheatPowerResource != null)
+            {
+                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+            }
 
             if (state == StartState.Editor) 
             {

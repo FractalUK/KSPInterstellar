@@ -41,7 +41,7 @@ namespace FNPlugin
         protected Animation anim;
         protected float displayed_solar_power = 0;
 
-        protected List<ExternalPowerSourePartModule> externalPowerSources;
+        //protected List<ExternalPowerSourePartModule> externalPowerSources = new List<ExternalPowerSourePartModule>();
         protected List<FNGenerator> generators;
         protected List<MicrowavePowerReceiver> receivers;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -163,15 +163,15 @@ namespace FNPlugin
 
             this.part.force_activate();
 
-            Debug.Log("[KSPI] - MicrowavePowerTransmitter - Looking for externalPowerSources");
-            foreach (Part vesselpart in vessel.Parts)
-            {
-                if (vesselpart.partName == "reactor-25")
-                {
-                    externalPowerSources.Add(new ExternalPowerSourePartModule() { Name = "reactor-25", Power = 2 });
-                    Debug.Log("[KSPI] - MicrowavePowerTransmitter - found " + vesselpart.partInfo.title);
-                }
-           }
+           // Debug.Log("[KSPI] - MicrowavePowerTransmitter - Looking for externalPowerSources");
+           // foreach (Part vesselpart in vessel.Parts)
+           // {
+           //     if (vesselpart.partName == "reactor-25")
+           //     {
+           //         externalPowerSources.Add(new ExternalPowerSourePartModule() { Name = "reactor-25", Power = 2 });
+           //         Debug.Log("[KSPI] - MicrowavePowerTransmitter - found " + vesselpart.partInfo.title);
+           //     }
+           //}
         }
 
         public override void OnUpdate()
@@ -218,22 +218,21 @@ namespace FNPlugin
             {
                 foreach (FNGenerator generator in generators)
                 {
-                    if (generator.isActive())
+                    if (!generator.isActive()) continue;
+
+                    IThermalSource thermal_source = generator.getThermalSource();
+
+                    if (thermal_source == null || thermal_source.IsVolatileSource) continue;
+
+                    float output = generator.getMaxPowerOutput();
+                    if (thermal_source is InterstellarFusionReactor)
                     {
-                        IThermalSource thermal_source = generator.getThermalSource();
-                        if (thermal_source != null && !thermal_source.IsVolatileSource)
-                        {
-                            float output = generator.getMaxPowerOutput();
-                            if (thermal_source is InterstellarFusionReactor)
-                            {
-                                InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
-                                output = output * 0.92f;
-                            }
-                            output = output * transmitPower / 100.0f;
-                            float gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                            nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
-                        }
+                        InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
+                        output = output * 0.92f;
                     }
+                    output = output * transmitPower / 100.0f;
+                    float gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
                 }
 
                 foreach (ModuleDeployableSolarPanel panel in panels)

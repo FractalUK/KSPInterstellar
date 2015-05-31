@@ -130,9 +130,14 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
-            if (part.Resources.Contains(FNResourceManager.FNRESOURCE_WASTEHEAT))
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+            if (wasteheatPowerResource != null)
+            {
+                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+            }
 
             g0 = PluginHelper.GravityConstant;
             modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
