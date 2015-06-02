@@ -104,7 +104,7 @@ namespace InterstellarFuelSwitch
         public bool configLoaded = false;
 
         private List<IFSmodularTank> tankList;
-        private List<string> resourceIgnoreList;
+        private HashSet<string> activeResourceList;
         private List<double> weightList;
         private List<double> tankCostList;
         private List<double> boilOffTempList;
@@ -178,7 +178,6 @@ namespace InterstellarFuelSwitch
 
             SetupTankList(false);
 
-            resourceIgnoreList = ParseTools.ParseNames(this.resourcesToIgnore);
             weightList = ParseTools.ParseDoubles(tankMass, () => weightList);
             tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
 
@@ -361,16 +360,14 @@ namespace InterstellarFuelSwitch
             for (int i = 0; i < partResources.Length; i++)
             {
                 PartResource resource = partResources[i];
-                if (resourceIgnoreList.Any(r => r == resource.resourceName))
-                {
-                    Debug.Log("InsterstellarFuelSwitch setupTankInPart skipped removing resource: " + resource.resourceName);
-                }
-                else
+                if (activeResourceList.Contains(resource.resourceName))
                 {
                     Debug.Log("InsterstellarFuelSwitch setupTankInPart removing resource: " + resource.resourceName);
                     currentPart.Resources.list.Remove(resource);
                     DestroyImmediate(resource);
                 }
+                else
+                    Debug.Log("InsterstellarFuelSwitch setupTankInPart skipped removing resource: " + resource.resourceName);
             }
 
             // add new resources
@@ -491,6 +488,7 @@ namespace InterstellarFuelSwitch
             // toDo: move to tankList
             weightList = new List<double>();
             tankCostList = new List<double>();
+            activeResourceList = new HashSet<string>(); 
 
             // First find the amounts each tank type is filled with
             List<List<double>> resourceList = new List<List<double>>();
@@ -552,7 +550,12 @@ namespace InterstellarFuelSwitch
                 string[] resourceNameArray = tankNameArray[currentResourceCounter].Split(',');
                 for (int nameCounter = 0; nameCounter < resourceNameArray.Length; nameCounter++)
                 {
-                    IFSresource newResource = new IFSresource(resourceNameArray[nameCounter].Trim(' '));
+                    var resourceName = resourceNameArray[nameCounter].Trim(' ');
+
+                    if (!activeResourceList.Contains(resourceName))
+                        activeResourceList.Add(resourceName);
+
+                    IFSresource newResource = new IFSresource(resourceName);
                     if (resourceList[currentResourceCounter] != null && nameCounter < resourceList[currentResourceCounter].Count)
                     {
                         newResource.maxAmount = resourceList[currentResourceCounter][nameCounter];

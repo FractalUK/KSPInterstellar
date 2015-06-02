@@ -528,17 +528,17 @@ namespace FNPlugin
                             : Math.Max(0, Math.Min(requiredChargedCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredChargedCapacity));
                     }
 
-                    //if (wasteheatPowerResource)
-                    //{
-                    //    var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                    //    var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
-                    //    var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
+                    if (wasteheatPowerResource)
+                    {
+                        var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                        var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
+                        var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
 
-                    //    chargedPowerResource.maxAmount = requiredWasteheatCapacity;
-                    //    chargedPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
-                    //        ? Math.Max(0, Math.Min(requiredWasteheatCapacity, chargedPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
-                    //        : Math.Max(0, Math.Min(requiredWasteheatCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredWasteheatCapacity));
-                    //}
+                        wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                        wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
+                            ? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
+                            : Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
+                    }
                 }
                 else
                 {
@@ -548,17 +548,16 @@ namespace FNPlugin
                     if (chargedPowerResource != null)
                         chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
 
-                    //if (wasteheatPowerResource != null)
-                    //{
-                    //    var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                    //    wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
-                    //}
+                    if (wasteheatPowerResource != null)
+                    {
+                        var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                        wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
+                    }
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
 
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
-
                 double fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => getFuelAvailability(fuel) / fuel.GetFuelUseForPower(FuelEfficiency, max_power_to_supply, fuelUsePerMJMult)), 1.0);
 
                 double min_throttle = fuel_ratio > 0 ? minimumThrottle / fuel_ratio : 1;
