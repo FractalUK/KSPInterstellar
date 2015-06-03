@@ -49,7 +49,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor= true, guiName = "Base Radiator Area")]
         public float radiatorArea;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgraded Radiator Area")]
-        public float upgradedRadiatorArea = 0;
+        public float upgradedRadiatorArea = 0.01f;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
@@ -57,14 +57,13 @@ namespace FNPlugin
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
 		public string upgradeCostStr;
 
-        protected static float rad_const_h = 1000;
-        protected static double alpha = 0.001998001998001998001998001998;
+        protected readonly static float rad_const_h = 1000;
+        protected readonly static double alpha = 0.001998001998001998001998001998;
 
 		protected Animation anim;
 		protected float radiatedThermalPower;
 		protected float convectedThermalPower;
 		protected double current_rad_temp;
-		protected float myScience = 0;
 		protected float directionrotate = 1;
 		protected float oldangle = 0;
 		protected Vector3 original_eulers;
@@ -81,10 +80,10 @@ namespace FNPlugin
         {
 			List<FNRadiator> list_of_radiators_for_vessel = new List<FNRadiator>();
 			list_of_radiators.RemoveAll(item => item == null);
-			foreach (FNRadiator radiator in list_of_radiators) {
-				if (radiator.vessel == vess) {
+			foreach (FNRadiator radiator in list_of_radiators) 
+            {
+				if (radiator.vessel == vess) 
 					list_of_radiators_for_vessel.Add (radiator);
-				}
 			}
 			return list_of_radiators_for_vessel;
 		}
@@ -148,10 +147,10 @@ namespace FNPlugin
 
 
 		[KSPEvent(guiActive = true, guiName = "Deploy Radiator", active = true)]
-		public void DeployRadiator() {
-			if (!isDeployable) {
-				return;
-			}
+		public void DeployRadiator() 
+        {
+			if (!isDeployable) return;
+			
 			anim [animName].speed = 1f;
 			anim [animName].normalizedTime = 0f;
 			anim.Blend (animName, 2f);
@@ -159,10 +158,10 @@ namespace FNPlugin
 		}
 
 		[KSPEvent(guiActive = true, guiName = "Retract Radiator", active = false)]
-		public void RetractRadiator() {
-			if (!isDeployable) {
-				return;
-			}
+		public void RetractRadiator() 
+        {
+			if (!isDeployable) return;
+
 			anim [animName].speed = -1f;
 			anim [animName].normalizedTime = 1f;
 			anim.Blend (animName, 2f);
@@ -206,7 +205,17 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-            if (upgradedRadiatorArea == 0)
+            radiatedThermalPower = 0;
+		    convectedThermalPower = 0;
+		    current_rad_temp = 0;
+		    directionrotate = 1;
+		    oldangle = 0;
+		    last_draw_update = 0;
+            update_count = 0;
+		    hasrequiredupgrade = false;
+		    explode_counter = 0;
+
+            if (upgradedRadiatorArea == 0.01f)
                 upgradedRadiatorArea = radiatorArea * 1.7f;
 
     		Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = String.Format("Deploy Radiator");
@@ -262,13 +271,14 @@ namespace FNPlugin
 				radiatorIsEnabled = true;
 			
 
-			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) {
-				if(PluginHelper.hasTech(upgradeTechReq)) {
+			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) 
+            {
+				if(PluginHelper.hasTech(upgradeTechReq)) 
 					hasrequiredupgrade = true;
-				}
-			}else{
-				hasrequiredupgrade = true;
 			}
+            else
+				hasrequiredupgrade = true;
+			
 
 			if (radiatorInit == false) 
 				radiatorInit = true;
@@ -307,6 +317,12 @@ namespace FNPlugin
 			
             if (update_count - last_draw_update > 8) 
             {
+                if (Double.IsNaN(radiatedThermalPower) || Double.IsNaN(convectedThermalPower) || Double.IsNaN(current_rad_temp))
+                {
+                    Debug.Log("Double.IsNaN detected, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    OnStart(PartModule.StartState.None);
+                }
+
                 thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
                 thermalPowerConvStr = convectedThermalPower.ToString("0.000") + "MW";
                 radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + radiatorTemp.ToString("0.0") + "K";
@@ -329,7 +345,7 @@ namespace FNPlugin
 			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) 
             {
 				float pressure = ((float) FlightGlobals.getStaticPressure (vessel.transform.position) / 100);
-				float dynamic_pressure = (float) (0.5*pressure*1.2041*vessel.srf_velocity.sqrMagnitude/101325.0);
+				float dynamic_pressure = (float) (0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325.0);
 				pressure += dynamic_pressure;
 				float low_temp = (float)FlightGlobals.getExternalTemperature (vessel.transform.position);
 
@@ -340,7 +356,8 @@ namespace FNPlugin
 				
 				convectedThermalPower = consumeFNResource (conv_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
-				if (radiatorIsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-3 && isDeployable) {
+				if (radiatorIsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-3 && isDeployable) 
+                {
 					part.deactivate();
 
 					//part.breakingForce = 1;
@@ -352,7 +369,8 @@ namespace FNPlugin
 
 			if (radiatorIsEnabled) 
             {
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 1 && current_rad_temp >= radiatorTemp) {
+				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 1 && current_rad_temp >= radiatorTemp) 
+                {
 					explode_counter ++;
 					if (explode_counter > 25) 
 						part.explode ();
@@ -374,7 +392,6 @@ namespace FNPlugin
                 else 
                     current_rad_temp = instantaneous_rad_temp * alpha + (1.0 - alpha) * instantaneous_rad_temp;
                 
-
 				if (isDeployable) 
                 {
 					Vector3 pivrot = pivot.rotation.eulerAngles;
@@ -416,7 +433,6 @@ namespace FNPlugin
                     current_rad_temp = instantaneous_rad_temp;
                 else 
                     current_rad_temp = instantaneous_rad_temp * alpha + (1.0 - alpha) * instantaneous_rad_temp;
-                
                 
 				part.maximum_drag = 0.2f;
 				part.minimum_drag = 0.2f;
