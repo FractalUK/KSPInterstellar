@@ -532,23 +532,27 @@ namespace FNPlugin
                     {
                         var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
                         var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
-                        var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
+                        //var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
 
-                        wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                        wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
-                            ? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
-                            : Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
+	                    var wasteHeatRatio = Math.Max(0, Math.Min(1,  wasteheatPowerResource.amount/wasteheatPowerResource.maxAmount));
+						wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+						wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
+
+						//wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+						//wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
+						//	? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
+						//	: Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
                     }
                 }
                 else
                 {
                     if (thermalPowerResource != null)
-                        thermalPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower); 
+                        thermalPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
 
-                    if (chargedPowerResource != null)
-                        chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
+	                if (chargedPowerResource != null)
+		                chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
 
-                    if (wasteheatPowerResource != null)
+	                if (wasteheatPowerResource != null)
                     {
                         var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
                         wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
