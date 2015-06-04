@@ -11,7 +11,7 @@ namespace FNPlugin {
         [KSPField(isPersistant = true)]
         protected double accumulatedElectricChargeInMW;
 
-        protected double power_consumed;
+        protected float power_consumed;
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
 
@@ -131,6 +131,7 @@ namespace FNPlugin {
                 return;
             }
 
+			//power_consumed = part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, LaserPowerRequirements * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
             power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
             if (TimeWarp.fixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && power_consumed < LaserPowerRequirements && (accumulatedElectricChargeInMW + power_consumed) >= LaserPowerRequirements)
@@ -139,13 +140,13 @@ namespace FNPlugin {
                 if (shortage <= accumulatedElectricChargeInMW)
                 {
                     ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
-                    power_consumed += accumulatedElectricChargeInMW;
+                    power_consumed += (float)accumulatedElectricChargeInMW;
                 }
             }
 
-	        plasma_ratio = (float)(power_consumed / LaserPowerRequirements);
+	        plasma_ratio = power_consumed / LaserPowerRequirements;
 
-            if (plasma_ratio >= 1)
+            if (plasma_ratio >= 0.99)
             {
                 plasma_ratio = 1;
 

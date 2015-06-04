@@ -338,8 +338,8 @@ namespace FNPlugin
 		public override void OnFixedUpdate() 
         {
 			//float atmosphere_height = vessel.mainBody.maxAtmosphereAltitude;
-            float atmosphere_height = (float)vessel.mainBody.atmosphereDepth;
-			float vessel_height = (float) vessel.mainBody.GetAltitude (vessel.transform.position);
+            //float atmosphere_height = (float)vessel.mainBody.atmosphereDepth;
+			//float vessel_height = (float) vessel.mainBody.GetAltitude (vessel.transform.position);
 			float conv_power_dissip = 0;
 
 			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) 

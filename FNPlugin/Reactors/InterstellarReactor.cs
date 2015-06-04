@@ -503,6 +503,7 @@ namespace FNPlugin
                     return;
                 }
 
+				
                 // calculate thermalpower capacity
                 if (TimeWarp.fixedDeltaTime != previousTimeWarp)
                 {
@@ -559,6 +560,7 @@ namespace FNPlugin
                     }
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
+				 
 
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
