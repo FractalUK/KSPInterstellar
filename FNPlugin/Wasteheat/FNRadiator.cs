@@ -47,9 +47,9 @@ namespace FNPlugin
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
 		public string radiatorTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor= true, guiName = "Base Radiator Area")]
-        public float radiatorArea;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgraded Radiator Area")]
-        public float upgradedRadiatorArea = 0.01f;
+        public float radiatorArea = 1;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Upgraded Radiator Area")]
+        public float upgradedRadiatorArea = 1;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
@@ -215,7 +215,7 @@ namespace FNPlugin
 		    hasrequiredupgrade = false;
 		    explode_counter = 0;
 
-            if (upgradedRadiatorArea == 0.01f)
+            if (upgradedRadiatorArea == 1)
                 upgradedRadiatorArea = radiatorArea * 1.7f;
 
     		Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = String.Format("Deploy Radiator");
@@ -226,7 +226,7 @@ namespace FNPlugin
             // calculate WasteHeat Capacity
             if (wasteheatPowerResource != null)
             {
-                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                var ratio =  Math.Min(1, Math.Max(0, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
                 wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }

@@ -224,14 +224,10 @@ namespace FNPlugin
                 if (PluginHelper.TechnologyIsInUse)
                 {
                     if (techid != null && PluginHelper.hasTech(techid))
-                    {
                         return true;
-                    }
                 }
                 else
-                {
                     return true;
-                }
             }
             return false;
         }

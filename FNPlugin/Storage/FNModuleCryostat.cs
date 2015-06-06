@@ -55,7 +55,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Environment Factor")]
         public float environmentFactor;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature")]
-        public float partTemperature;
+        public float externalTemperature;
 
         protected float boiloff;
         protected PartResource cryostat_resource;
@@ -92,6 +92,8 @@ namespace FNPlugin
             else
                 cryostat_resource = null;
 
+
+
             if (cryostat_resource != null)
             {
                 bool coolingIsRelevant = powerReqKW > 0 && cryostat_resource.amount > 0;
@@ -100,11 +102,13 @@ namespace FNPlugin
                 Events["Deactivate"].active = !isDisabled && coolingIsRelevant;
                 Fields["powerStatusStr"].guiActive = coolingIsRelevant;
                 Fields["boiloffStr"].guiActive = boiloff > 0.00001;
-                Fields["partTemperature"].guiActive = coolingIsRelevant;
+                Fields["externalTemperature"].guiActive = coolingIsRelevant;
 
                 var atmosphereModifier = convectionMod == -1 ?  0 : convectionMod + (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / (convectionMod + 1);
-                partTemperature = (float)part.temperature;
-                var temperatureModifier = Math.Max(0, partTemperature - boilOffTemp) / 273.15;
+
+                externalTemperature = (float)part.temperature;
+
+                var temperatureModifier = Math.Max(0, externalTemperature - boilOffTemp) / 300; //273.15;
                 environmentFactor = (float)(atmosphereModifier * temperatureModifier);
 
                 if (powerReqKW > 0)

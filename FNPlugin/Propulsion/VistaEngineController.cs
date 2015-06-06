@@ -42,6 +42,8 @@ namespace FNPlugin
         public float fusionWasteHeatUpgraded = 10000;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float maxTemp = 3200;
 
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
@@ -56,16 +58,18 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Current Heat Prduction")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Heat Prduction")]
         public float currentHeatProduction;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Base Heat Prduction")]
-        public float baseHeatProduction;
+        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Base Heat Prduction")]
+        //public float baseHeatProduction;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
         public float coldBathTemp;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Radiator Temp")]
         public float maxTempatureRadiators;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Performance Radiators")]
         public float radiatorPerformance;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisiveness")]
+        public float partEmissiveConstant;
 
         protected bool hasrequiredupgrade = false;
 		protected bool radhazard = false;
@@ -115,13 +119,16 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
+            part.maxTemp = maxTemp;
+            part.thermalMass = 1;
+            part.thermalMassModifier = 1;
+
             engineType = originalName;
             curEngineT = (ModuleEngines)this.part.Modules["ModuleEngines"];
 
             if (curEngineT == null) return;
 
             minISP = curEngineT.atmosphereCurve.Evaluate(0);
-            baseHeatProduction = curEngineT.heatProduction;
             currentHeatProduction = curEngineT.heatProduction;
 
             standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio;
@@ -143,9 +150,7 @@ namespace FNPlugin
             }
             
             if (state != StartState.Editor)
-            {
                 part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
-            }
 		}
 
 		public override void OnUpdate() 
@@ -265,6 +270,8 @@ namespace FNPlugin
             radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);
 
             part.emissiveConstant = Math.Max(4 * part.mass * radiatorPerformance, 0.95);
+
+            partEmissiveConstant = (float)part.emissiveConstant;
         }
 
         private void KillKerbalsWithRadiation(float throttle)

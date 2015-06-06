@@ -23,6 +23,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string upgradeTechReq;
         [KSPField(isPersistant = false)]
+        public string gearsTechReq;
+
+        [KSPField(isPersistant = false)]
         public int type;
         [KSPField(isPersistant = false)]
         public int upgradedtype;
@@ -63,11 +66,9 @@ namespace FNPlugin
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
-        //Config settings settings
-        protected double g0 = PluginHelper.GravityConstant;
-        protected double modifiedEngineBaseISP;
-
         // internal
+        protected double _g0 = PluginHelper.GravityConstant;
+        protected double _modifiedEngineBaseISP;
         protected List<ElectricEnginePropellant> _propellants;
         protected VInfoBox fuel_gauge;
         protected ModuleEnginesFX _attached_engine;
@@ -77,6 +78,7 @@ namespace FNPlugin
         protected float _heat_production_f = 0;
         protected int _rep = 0;
         protected bool _hasrequiredupgrade;
+        protected bool _hasGearTechnology;
         protected double _modifiedCurrentPropellantIspMultiplier;
         protected double _propellantIspMultiplierPowerLimitModifier;
         protected double _maxISP;
@@ -130,6 +132,11 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            _g0 = PluginHelper.GravityConstant;
+            _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
+            _modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
+            _attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
             if (wasteheatPowerResource != null)
@@ -139,11 +146,7 @@ namespace FNPlugin
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
-            g0 = PluginHelper.GravityConstant;
-            modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
-            
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
-            _attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
             this.resources_to_supply = resources_to_supply;
             _propellants = getPropellantsEngineType();
             base.OnStart(state);
@@ -256,14 +259,19 @@ namespace FNPlugin
             updatePropellantBar();
         }
 
+        private float IspGears
+        {
+            get { return _hasGearTechnology ? ispGears : 1; }
+        }
+
         private float GetModifiedThrotte()
         {
-            return Math.Min(_attached_engine.currentThrottle * ispGears, 1);
+            return Math.Min(_attached_engine.currentThrottle * IspGears, 1);
         }
 
         private float ThrottleModifiedIsp()
         {
-            return _attached_engine.currentThrottle < (1f / ispGears) ? ispGears : ispGears - ((_attached_engine.currentThrottle - (1f / ispGears)) * ispGears);
+            return _attached_engine.currentThrottle < (1f / IspGears) ? IspGears : IspGears - ((_attached_engine.currentThrottle - (1f / IspGears)) * IspGears);
         }
 
         public void FixedUpdate()
@@ -277,7 +285,7 @@ namespace FNPlugin
             // retrieve power
             _electrical_share_f = maxPower / Math.Max(vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.maxPower), maxPower);
             double powerAvailableForEngine = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0) * _electrical_share_f;
-            double power_per_engine = Math.Min(GetModifiedThrotte() * EvaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * modifiedEngineBaseISP / GetPowerThrustModifier() * g0, maxPower * CurrentPropellantEfficiency);
+            double power_per_engine = Math.Min(GetModifiedThrotte() * EvaluateMaxThrust(powerAvailableForEngine) * _current_propellant.IspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0, maxPower * CurrentPropellantEfficiency);
 
             double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / CurrentPropellantEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     
@@ -292,9 +300,9 @@ namespace FNPlugin
             // produce thrust
             double thrust_ratio = power_per_engine > 0 ? Math.Min(power_received / power_per_engine, 1.0) : 1;
 
-            double max_thrust_in_space = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * modifiedEngineBaseISP * ThrottleModifiedIsp() * g0 * GetModifiedThrotte());
+            double max_thrust_in_space = CurrentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp() * _g0 * GetModifiedThrotte());
 
-            _maxISP = (float)(modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier) * ThrottleModifiedIsp();
+            _maxISP = (float)(_modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier) * ThrottleModifiedIsp();
             _max_fuel_flow_rate = _maxISP <= 0 ? 0 :  max_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
 
             if (GetModifiedThrotte() > 0)
@@ -375,11 +383,11 @@ namespace FNPlugin
             double powerThrustModifier = GetPowerThrustModifier();
             List<ElectricEnginePropellant> props = getPropellantsEngineType();
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
-            double thrust_per_mw = (2e6 * powerThrustMultiplier) / g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
+            double thrust_per_mw = (2e6 * powerThrustMultiplier) / _g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
             {
                 double ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (float)prop.IspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
-                double ispProp = modifiedEngineBaseISP * ispPropellantModifier;
+                double ispProp = _modifiedEngineBaseISP * ispPropellantModifier;
                 double efficiency = type == (int)ElectricEngineType.ARCJET ? 0.87 : prop.Efficiency;
                 double thrustProp = thrust_per_mw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET ? prop.ThrustMultiplier : 1);
                 return_str = return_str + "---" + prop.PropellantGUIName + "---\nThrust: " + thrustProp.ToString("0.000") + " kN per MW\nEfficiency: " + (efficiency * 100.0).ToString("0.00") + "%\nISP: " + ispProp.ToString("0.00") + "s\n";
@@ -406,13 +414,13 @@ namespace FNPlugin
         {
             if (Current_propellant == null) return 0;
 
-            return CurrentPropellantEfficiency * GetPowerThrustModifier() * power_supply / (modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * g0);
+            return CurrentPropellantEfficiency * GetPowerThrustModifier() * power_supply / (_modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * _g0);
         }
 
         protected void updateISP(double isp_efficiency)
         {
             FloatCurve newISP = new FloatCurve();
-            newISP.Add(0, (float)(isp_efficiency * modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp()));
+            newISP.Add(0, (float)(isp_efficiency * _modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp()));
             _attached_engine.atmosphereCurve = newISP;
         }
 

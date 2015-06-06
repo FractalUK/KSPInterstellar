@@ -32,7 +32,7 @@ namespace InterstellarFuelSwitch
         public List<IFSresource> Resources = new List<IFSresource>();
     }
 
-    public class InterstellarFuelSwitch : PartModule, IPartCostModifier, IRescalable<InterstellarFuelSwitch>
+    public class InterstellarFuelSwitch : PartModule, IPartCostModifier, IRescalable<InterstellarFuelSwitch> , IPartMassModifier
     {
         // Persistants
         [KSPField(isPersistant = true)]
@@ -78,7 +78,6 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0;
 
-
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
@@ -86,10 +85,13 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr2 = "";
 
+        // Obsolte
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
         public float volumeMultiplier = 1;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
         public float massMultiplier = 1;
+
+
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Exponent")]
         public float volumeExponent = 3;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Exponent")]
@@ -110,6 +112,9 @@ namespace InterstellarFuelSwitch
         private List<double> boilOffTempList;
         private bool initialized = false;
 
+        public float currentVolumeMultiplier = 1;
+        public float currentMassMultiplier = 1;
+
         private PartResource _partResource0;
         private PartResource _partResource1;
         private PartResource _partResource2;
@@ -122,8 +127,10 @@ namespace InterstellarFuelSwitch
 
         public virtual void OnRescale(TweakScale.ScalingFactor factor)
         {
-            volumeMultiplier = (float)Math.Pow(factor.absolute.linear, volumeExponent);
-            massMultiplier = (float)Math.Pow(factor.absolute.linear, massExponent);
+            currentVolumeMultiplier = (float)Math.Pow(factor.absolute.linear, volumeExponent);
+            currentMassMultiplier = (float)Math.Pow(factor.absolute.linear, massExponent);
+
+            UpdateMass(part, selectedTankSetup, false);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -234,17 +241,29 @@ namespace InterstellarFuelSwitch
         private void AssignResourcesToPart(bool calledByPlayer, bool calledAtStartup = false)
         {
             // destroying a resource messes up the gui in editor, but not in flight.
-            SetupTankInPart(part, calledByPlayer, calledAtStartup);
+            var newResources = SetupTankInPart(part, calledByPlayer, calledAtStartup);
+
+            // update GUI part
+            Debug.Log("InsterstellarFuelSwitch setupTankInPart show Resource mass GUI");
+            ConfigureResourceMassGui(newResources);
+            UpdateTankName();
+
             if (HighLogic.LoadedSceneIsEditor)
             {
                 for (int s = 0; s < part.symmetryCounterparts.Count; s++)
                 {
-                    SetupTankInPart(part.symmetryCounterparts[s], calledByPlayer);
-                    InterstellarFuelSwitch symSwitch = part.symmetryCounterparts[s].GetComponent<InterstellarFuelSwitch>();
+                    var symPart = part.symmetryCounterparts[s];
+
+                    var symNewResources = SetupTankInPart(symPart, calledByPlayer, calledAtStartup);
+
+                    InterstellarFuelSwitch symSwitch = symPart.GetComponent<InterstellarFuelSwitch>();
                     if (symSwitch != null)
                     {
-                        symSwitch.selectedTankSetup = selectedTankSetup;
                         Debug.Log("InsterstellarFuelSwitch assignResourcesToPart symSwitch.selectedTankSetup = selectedTankSetup = " + selectedTankSetup);
+
+                        symSwitch.selectedTankSetup = selectedTankSetup;
+                        symSwitch.ConfigureResourceMassGui(symNewResources);
+                        symSwitch.UpdateTankName();
                     }
                 }
             }
@@ -257,7 +276,16 @@ namespace InterstellarFuelSwitch
             else
                 Debug.Log("InsterstellarFuelSwitch assignResourcesToPart - no UI to refresh");
         }
-        private void SetupTankInPart(Part currentPart, bool calledByPlayer, bool calledAtStartup = false)
+
+        public void UpdateTankName()
+        {
+            var selectedTank = tankList[selectedTankSetup];
+            tankGuiName = selectedTank.GuiName;
+            Fields["tankGuiName"].guiActive = !String.IsNullOrEmpty(tankGuiName);
+            Fields["tankGuiName"].guiActiveEditor = !String.IsNullOrEmpty(tankGuiName);
+        }
+
+        private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer, bool calledAtStartup = false)
         {
             // create new ResourceNode
             List<string> newResources = new List<string>();
@@ -292,9 +320,6 @@ namespace InterstellarFuelSwitch
             }
 
             var selectedTank = tankList[selectedTankSetup];
-            tankGuiName = selectedTank.GuiName;
-            Fields["tankGuiName"].guiActive = !String.IsNullOrEmpty(tankGuiName);
-            Fields["tankGuiName"].guiActiveEditor = !String.IsNullOrEmpty(tankGuiName);
 
             Debug.Log("InsterstellarFuelSwitch assignResourcesToPart setupTankInPart = " + selectedTankSetup);
             for (int resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
@@ -309,7 +334,7 @@ namespace InterstellarFuelSwitch
                 newResources.Add(resourceName);
 
                 ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                double maxAmount = selectedTank.Resources[resourceId].maxAmount * volumeMultiplier;
+                double maxAmount = selectedTank.Resources[resourceId].maxAmount * currentVolumeMultiplier;
 
                 newResourceNode.AddValue("name", resourceName);
                 newResourceNode.AddValue("maxAmount", maxAmount);
@@ -318,7 +343,7 @@ namespace InterstellarFuelSwitch
 
                 if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
                 {
-                    foreach (PartResource partResource in part.Resources)
+                    foreach (PartResource partResource in currentPart.Resources)
                     {
                         if (partResource.resourceName.Equals(resourceName))
                         {
@@ -347,8 +372,8 @@ namespace InterstellarFuelSwitch
                 }
                 else
                 {
-                    resourceNodeAmount = tankList[selectedTankSetup].Resources[resourceId].amount * volumeMultiplier;
-                    Debug.Log("InsterstellarFuelSwitch assignResourcesToPart tankList[" + selectedTankSetup + "].Resources[" + resourceId + "].amount * " + volumeMultiplier + " = " + resourceNodeAmount);
+                    resourceNodeAmount = tankList[selectedTankSetup].Resources[resourceId].amount * currentVolumeMultiplier;
+                    Debug.Log("InsterstellarFuelSwitch assignResourcesToPart tankList[" + selectedTankSetup + "].Resources[" + resourceId + "].amount * " + currentVolumeMultiplier + " = " + resourceNodeAmount);
                 }
 
                 newResourceNode.AddValue("amount", resourceNodeAmount);
@@ -382,14 +407,13 @@ namespace InterstellarFuelSwitch
 
             // This also needs to be done when going from a setup with resources to a setup with no resources.
             currentPart.Resources.UpdateList();
-            UpdateWeight(currentPart, selectedTankSetup, calledByPlayer);
+            UpdateMass(currentPart, selectedTankSetup, calledByPlayer);
             UpdateCost();
 
-            // update GUI
-            ConfigureResourceMassGui(newResources);
+            return newResources;
         }
 
-        private void ConfigureResourceMassGui(List<string> newResources)
+        public void ConfigureResourceMassGui(List<string> newResources)
         {
             _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null;
             _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;
@@ -402,6 +426,12 @@ namespace InterstellarFuelSwitch
             _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition0.name);
             _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition1.name);
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
+        }
+
+        public float GetModuleMass(float defaultMass)
+        {
+            var newMass = CalculateDryMass(selectedTankSetup);
+            return newMass;
         }
 
         private float UpdateCost() 
@@ -428,16 +458,21 @@ namespace InterstellarFuelSwitch
                 return addedCost;
             }
         }
-        private void UpdateWeight(Part currentPart, int newTankSetup, bool calledByPlayer = false)
+        private void UpdateMass(Part currentPart, int tankSetupIndex, bool calledByPlayer = false)
         {
             // when changed by player
             if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
 
-            if (newTankSetup >= weightList.Count) return;
+            if (tankSetupIndex >= weightList.Count) return;
 
-            var newMass = (float)((basePartMass + weightList[newTankSetup]) * massMultiplier);
-            Debug.Log("InsterstellarFuelSwitch: UpdateWeight to " + basePartMass + " + " + weightList[newTankSetup].ToString() + " * " + massMultiplier);
-            currentPart.mass = Math.Max(basePartMass, newMass);
+            var newMass = CalculateDryMass(tankSetupIndex);
+            Debug.Log("InsterstellarFuelSwitch: UpdateMass to (" + basePartMass + " + " + weightList[tankSetupIndex].ToString() + ") * " + currentMassMultiplier + " = " + newMass);
+            currentPart.mass = newMass;
+        }
+
+        private float CalculateDryMass(int tankSetupIndex)
+        {
+            return (float)((basePartMass + weightList[tankSetupIndex]) * currentMassMultiplier);
         }
 
         protected string formatMassStr(double amount)
@@ -452,7 +487,7 @@ namespace InterstellarFuelSwitch
                 return (amount * 1e9).ToString("0.0000000") + " mg";
         }
 
-        private void UpdateGuiResourceMass()
+        public void UpdateGuiResourceMass()
         {
             resourceAmountStr0 = _partRresourceDefinition0 == null || _partResource0 == null ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource0.amount);
             resourceAmountStr1 = _partRresourceDefinition1 == null || _partResource1 == null ? String.Empty : formatMassStr(_partRresourceDefinition1.density * _partResource1.amount);
@@ -473,7 +508,11 @@ namespace InterstellarFuelSwitch
 
             if (!HighLogic.LoadedSceneIsEditor) return;
 
-            dryMassInfo = part.mass;
+            // update Dry Mass
+            var newMass = CalculateDryMass(selectedTankSetup);
+            part.mass = newMass;
+            dryMassInfo = newMass; 
+
             configuredAmounts = "";
             foreach ( var resoure in part.Resources.list)
             {

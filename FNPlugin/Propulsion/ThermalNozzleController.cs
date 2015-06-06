@@ -262,6 +262,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // make sure max temp is correct
+            part.maxTemp = 2750;
+
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
             if (wasteheatPowerResource != null)
