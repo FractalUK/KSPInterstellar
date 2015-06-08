@@ -74,8 +74,13 @@ namespace FNPlugin
 		public string _fuelmode;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Isp Multiplier")]
         public float _ispPropellantMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fuel Soot Factor")]
-        public float _propellantSootFactor = 1;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Max Soot")]
+        public float _propellantSootFactorFullThrotle;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Min Soot")]
+        public float _propellantSootFactorMinThrotle;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Equilibrium Soot")]
+        public float _propellantSootFactorEquilibrium;
+
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra Heat Production ")]
         public float heatProductionExtra;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
@@ -276,7 +281,8 @@ namespace FNPlugin
 
             engineType = originalName;
             baseEmisiveConstant = part.emissiveConstant;
-            myAttachedEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
+            //myAttachedEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
+            myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
 
             // find attached thermal source
             FindAttachedThermalSource();
@@ -501,7 +507,9 @@ namespace FNPlugin
         private void UpdatePropellantModeBehavior(ConfigNode chosenpropellant)
         {
             _fuelmode = chosenpropellant.GetValue("guiName");
-            _propellantSootFactor = chosenpropellant.HasValue("sootFactor") ? float.Parse(chosenpropellant.GetValue("sootFactor")) : 0;
+            _propellantSootFactorFullThrotle = chosenpropellant.HasValue("maxSootFactor") ? float.Parse(chosenpropellant.GetValue("maxSootFactor")) : 0;
+            _propellantSootFactorMinThrotle = chosenpropellant.HasValue("minSootFactor") ? float.Parse(chosenpropellant.GetValue("minSootFactor")) : 0;
+            _propellantSootFactorEquilibrium = chosenpropellant.HasValue("levelSootFraction") ? float.Parse(chosenpropellant.GetValue("levelSootFraction")) : 0;
             _minDecompositionTemp = chosenpropellant.HasValue("MinDecompositionTemp") ? float.Parse(chosenpropellant.GetValue("MinDecompositionTemp")) : 0;
             _maxDecompositionTemp = chosenpropellant.HasValue("MaxDecompositionTemp") ? float.Parse(chosenpropellant.GetValue("MaxDecompositionTemp")) : 0;
             _decompositionEnergy = chosenpropellant.HasValue("DecompositionEnergy") ? float.Parse(chosenpropellant.GetValue("DecompositionEnergy")) : 0;
@@ -751,17 +759,7 @@ namespace FNPlugin
             if (thermal_power_received * TimeWarp.fixedDeltaTime < fixed_requested_termal_power)
                 thermal_power_received += consumeFNResource(fixed_requested_termal_power - thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
 
-            // modify sootAccumulation
-            if (myAttachedEngine.currentThrottle > 0 && _propellantSootFactor > 0 && _thrustPropellantMultiplier > 0)
-            {
-                var sootMultiplier = _propellantSootFactor > 0 ? _heatDecompositionFraction : 1;
-                sootAccumulationPercentage = Math.Min(100, Math.Max(0, sootAccumulationPercentage + (TimeWarp.fixedDeltaTime * _propellantSootFactor * sootMultiplier)));
-            }
-            else
-            {
-                sootAccumulationPercentage -= TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * 0.1f;
-                sootAccumulationPercentage = Math.Max(0, sootAccumulationPercentage);
-            }
+            UpdateSootAccumulation();
 
             // consume wasteheat
             consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -839,6 +837,40 @@ namespace FNPlugin
                     ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
                     _savedReputationCost -= flooredReputationCost;
                 }
+            }
+        }
+
+        private void UpdateSootAccumulation()
+        {
+            if (myAttachedEngine.currentThrottle > 0 && _propellantSootFactorFullThrotle != 0 || _propellantSootFactorMinThrotle != 0)
+            {
+                float sootEffect;
+
+                if (_propellantSootFactorEquilibrium != 0)
+                {
+                    var ratio = myAttachedEngine.currentThrottle > _propellantSootFactorEquilibrium
+                        ? (myAttachedEngine.currentThrottle - _propellantSootFactorEquilibrium) / (1 - _propellantSootFactorEquilibrium)
+                        : 1 - (myAttachedEngine.currentThrottle / _propellantSootFactorEquilibrium);
+
+                    var sootMultiplier = myAttachedEngine.currentThrottle < _propellantSootFactorEquilibrium ? 1 
+                        : _propellantSootFactorFullThrotle > 0 ? _heatDecompositionFraction : 1;
+
+                    sootEffect = myAttachedEngine.currentThrottle > _propellantSootFactorEquilibrium
+                        ? _propellantSootFactorFullThrotle * ratio * sootMultiplier
+                        : _propellantSootFactorMinThrotle * ratio * sootMultiplier;
+                 }
+                else
+                {
+                    var sootMultiplier = _heatDecompositionFraction > 0 ? _heatDecompositionFraction : 1;
+                    sootEffect = _propellantSootFactorFullThrotle * sootMultiplier;
+                }
+
+                sootAccumulationPercentage = Math.Min(100, Math.Max(0, sootAccumulationPercentage + (TimeWarp.fixedDeltaTime * sootEffect)));
+            }
+            else
+            {
+                sootAccumulationPercentage -= TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * 0.1f;
+                sootAccumulationPercentage = Math.Max(0, sootAccumulationPercentage);
             }
         }
 

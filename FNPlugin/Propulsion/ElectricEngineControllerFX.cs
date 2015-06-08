@@ -135,7 +135,9 @@ namespace FNPlugin
             _g0 = PluginHelper.GravityConstant;
             _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
             _modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
-            _attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+
+            //_attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();
 
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
@@ -290,7 +292,7 @@ namespace FNPlugin
             double power_received = consumeFNResource(power_per_engine * TimeWarp.fixedDeltaTime / CurrentPropellantEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                     
             // produce waste heat
-            double heat_to_produce = power_received * (1.0 - CurrentPropellantEfficiency);
+            double heat_to_produce = power_received * (1.0 - CurrentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
             double heat_production = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
                     
             // update GUI Values
@@ -368,8 +370,8 @@ namespace FNPlugin
                 vacplasmaadded = true;
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
-                node.AddValue("maxAmount", 10);
-                node.AddValue("amount", 10);
+                node.AddValue("maxAmount", maxPower / 100);
+                node.AddValue("amount", maxPower / 100);
                 part.AddResource(node);
             }
         }

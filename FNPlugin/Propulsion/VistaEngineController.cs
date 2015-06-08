@@ -124,7 +124,8 @@ namespace FNPlugin
             part.thermalMassModifier = 1;
 
             engineType = originalName;
-            curEngineT = (ModuleEngines)this.part.Modules["ModuleEngines"];
+            //curEngineT = (ModuleEnginesFX)this.part.Modules["ModuleEnginesFX"];
+            curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
 
             if (curEngineT == null) return;
 

@@ -67,7 +67,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
         [KSPField]
-        public string resourcesToIgnore = "";
+        public string resourcesToIgnore = ""; // obsolete
+        [KSPField]
+        public string resourcesFormat = "0.0000000";
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
@@ -89,7 +91,6 @@ namespace InterstellarFuelSwitch
         public float volumeMultiplier = 1;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
         public float massMultiplier = 1;
-
 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Exponent")]
         public float volumeExponent = 3;
@@ -501,13 +502,13 @@ namespace InterstellarFuelSwitch
 	    private string formatMassStr(double amount)
         {
             if (amount >= 1)
-                return (amount).ToString("0.0000000") + " t";
+                return (amount).ToString(resourcesFormat) + " t";
             if (amount >= 1e-3)
-                return (amount * 1e3).ToString("0.0000000") + " kg";
+                return (amount * 1e3).ToString(resourcesFormat) + " kg";
             if (amount >= 1e-6)
-                return (amount * 1e6).ToString("0.0000000") + " g";
-            
-            return (amount * 1e9).ToString("0.0000000") + " mg";
+                return (amount * 1e6).ToString(resourcesFormat) + " g";
+
+            return (amount * 1e9).ToString(resourcesFormat) + " mg";
         }
 
 	    private void UpdateGuiResourceMass()
@@ -593,17 +594,15 @@ namespace InterstellarFuelSwitch
 			    {
 				    try
 				    {
-						if (tankCounter >= resourceList.Count  || amountCounter >= resourceAmountArray.Count() ) continue;
+                        if (tankCounter >= resourceList.Count || amountCounter >= resourceAmountArray.Count()) continue;
+                            
+                        resourceList[tankCounter].Add(double.Parse(resourceAmountArray[amountCounter].Trim()));
 
-					    resourceList[tankCounter].Add(double.Parse(resourceAmountArray[amountCounter].Trim()));
+                        if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Count())
+                            initialResourceList[tankCounter].Add(double.Parse(initialResourceAmountArray[amountCounter].Trim()));
 
-						if (tankCounter >= initialResourceList.Count || amountCounter >= initialResourceAmountArray.Count()) continue;
-
-					    initialResourceList[tankCounter].Add(double.Parse(initialResourceAmountArray[amountCounter].Trim()));
-
-						if (tankCounter >= boilOffTempList.Count || amountCounter >= boilOffTempAmountArray.Length ) continue;
-
-						boilOffTempList[tankCounter].Add(double.Parse(boilOffTempAmountArray[amountCounter].Trim()));
+                        if (tankCounter < boilOffTempList.Count && amountCounter < boilOffTempAmountArray.Length)
+                            boilOffTempList[tankCounter].Add(double.Parse(boilOffTempAmountArray[amountCounter].Trim()));
 				    }
 				    catch
 				    {
