@@ -87,11 +87,15 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
 
         // Visible imput parameters 
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power upgrade tech")]
+        public string powerUpgradeTechReq = String.Empty;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power upgrade Multiplier")]
+        public float powerUpgradeTechMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
         public float PowerOutput;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgraded Power Output", guiUnits = " MW")]
         public float upgradedPowerOutput;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Upgrade")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade")]
         public string upgradeTechReq = String.Empty;
 
         // GUI strings
@@ -136,6 +140,7 @@ namespace FNPlugin
         protected bool render_window = false;
         protected GUIStyle bold_label;
         protected float previousTimeWarp;
+        protected bool _hasPowerUpgradeTechnology;
 
         protected PartResource thermalPowerResource = null;
         protected PartResource chargedPowerResource = null;
@@ -150,6 +155,8 @@ namespace FNPlugin
         {
             get { return true; }
         }
+
+        public float PowerUpgradeTechnologyBonus { get { return _hasPowerUpgradeTechnology ? powerUpgradeTechMult : 1; } }
 
         public void AttachThermalReciever(Guid key, float radius)
         {
@@ -272,7 +279,10 @@ namespace FNPlugin
 
         public virtual float StableMaximumReactorPower { get { return IsEnabled ? RawPowerOutput : 0; } }
 
-        public virtual float RawPowerOutput { get { return isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput; } }
+        public virtual float RawPowerOutput
+        {
+            get { return (isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput) * PowerUpgradeTechnologyBonus; }
+        }
 
 
         [KSPEvent(guiActive = true, guiName = "Activate Reactor", active = false)]
@@ -369,6 +379,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            _hasPowerUpgradeTechnology = PluginHelper.upgradeAvailable(powerUpgradeTechReq);
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             PowerOutputBase = PowerOutput;
             upgradedPowerOutputBase = upgradedPowerOutput;
@@ -503,7 +514,7 @@ namespace FNPlugin
                     return;
                 }
 
-				
+
                 // calculate thermalpower capacity
                 if (TimeWarp.fixedDeltaTime != previousTimeWarp)
                 {
@@ -535,14 +546,14 @@ namespace FNPlugin
                         var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
                         //var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
 
-	                    var wasteHeatRatio = Math.Max(0, Math.Min(1,  wasteheatPowerResource.amount/wasteheatPowerResource.maxAmount));
-						wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-						wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
+                        var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
+                        wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                        wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
 
-						//wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-						//wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
-						//	? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
-						//	: Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
+                        //wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                        //wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
+                        //	? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
+                        //	: Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
                     }
                 }
                 else
@@ -550,17 +561,17 @@ namespace FNPlugin
                     if (thermalPowerResource != null)
                         thermalPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
 
-	                if (chargedPowerResource != null)
-		                chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
+                    if (chargedPowerResource != null)
+                        chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
 
-	                if (wasteheatPowerResource != null)
+                    if (wasteheatPowerResource != null)
                     {
                         var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
                         wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
                     }
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
-				 
+
 
                 // Max Power
                 double max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);

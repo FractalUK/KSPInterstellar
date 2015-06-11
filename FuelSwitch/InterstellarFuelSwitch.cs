@@ -26,7 +26,7 @@ namespace InterstellarFuelSwitch
     public class IFSmodularTank
     {
         public string GuiName = String.Empty;
-        public string Contents = String.Empty;
+        //public string Contents = String.Empty;
 
         public List<IFSresource> Resources = new List<IFSresource>();
     }
@@ -55,7 +55,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string boilOffTemp = "";
         [KSPField]
-        public bool displayCurrentBoilOffTemp = true;
+        public bool displayCurrentBoilOffTemp = false;
         [KSPField]
         public bool displayCurrentTankCost = false;
         [KSPField]
@@ -78,6 +78,8 @@ namespace InterstellarFuelSwitch
         public float addedCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Boiloff Temp")]
+        public string currentBoiloffTempStr = "";
 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
@@ -109,7 +111,6 @@ namespace InterstellarFuelSwitch
         private HashSet<string> activeResourceList;
         private List<double> weightList;
         private List<double> tankCostList;
-        private List<double> boilOffTempList;
         private bool initialized = false;
 
         public float currentVolumeMultiplier = 1;
@@ -291,6 +292,20 @@ namespace InterstellarFuelSwitch
 		    tankGuiName = selectedTank.GuiName;
 		    Fields["tankGuiName"].guiActive = !String.IsNullOrEmpty(tankGuiName);
 		    Fields["tankGuiName"].guiActiveEditor = !String.IsNullOrEmpty(tankGuiName);
+
+            if (displayCurrentBoilOffTemp)
+            {
+                Fields["currentBoiloffTempStr"].guiActive = true;
+                Fields["currentBoiloffTempStr"].guiActiveEditor = true;
+                currentBoiloffTempStr = selectedTank.Resources[0].boiloffTemp.ToString("0.00");
+            }
+            else
+            {
+                Fields["currentBoiloffTempStr"].guiActive = false;
+                Fields["currentBoiloffTempStr"].guiActiveEditor = false;
+            }
+
+            
 	    }
 
 	    private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer, bool calledAtStartup = false)
@@ -637,11 +652,13 @@ namespace InterstellarFuelSwitch
 				    }
 
 				    // add boiloff data
-				    if (boilOffTempList.Count > currentResourceCounter && boilOffTempList[currentResourceCounter] != null &&
-				        boilOffTempList[currentResourceCounter].Count > nameCounter)
-					    newResource.boiloffTemp = boilOffTempList[currentResourceCounter][nameCounter];
+                    if (currentResourceCounter < boilOffTempList.Count && boilOffTempList[currentResourceCounter] != null
+                        && boilOffTempList[currentResourceCounter].Count > nameCounter)
+                    {
+                        newResource.boiloffTemp = boilOffTempList[currentResourceCounter][nameCounter];
+                    }
 
-				    newTank.Contents += newResource.name + ",";
+				    //newTank.Contents += newResource.name + ",";
 				    newTank.Resources.Add(newResource);
 			    }
 		    }
