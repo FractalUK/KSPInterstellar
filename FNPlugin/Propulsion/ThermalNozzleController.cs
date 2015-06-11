@@ -92,8 +92,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float heatProductionBase;
 
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Cooling", guiUnits = " MW")]
-        //public float fuelFlowCooling;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
         public string staticPresure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
@@ -281,7 +279,7 @@ namespace FNPlugin
 
             engineType = originalName;
             baseEmisiveConstant = part.emissiveConstant;
-            //myAttachedEngine = this.part.Modules["ModuleEngines"] as ModuleEngines;
+
             myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
 
             // find attached thermal source
@@ -562,16 +560,10 @@ namespace FNPlugin
 			} 
             else 
             {
-                //if (MyAttachedReactor.shouldScaleDownJetISP ()) 
-                //{
-                //    _maxISP = _maxISP*2.0f/3.0f;
-                //    //if (maxISP > 300) 
-                //    //	maxISP = maxISP / 2.5f;
-                //}
                 newISP.Add(0, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
                 newISP.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
                 newISP.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
-                newISP.Add(1, Mathf.Min(_maxISP * 2.0f / 3.0f, PluginHelper.MaxThermalNozzleIsp));
+                newISP.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
 				vCurve.Add(0, 1.0f);
                 vCurve.Add((float)(_maxISP * PluginHelper.GravityConstant * 1.0 / 3.0), 1.0f);
                 vCurve.Add((float)(_maxISP * PluginHelper.GravityConstant), 1.0f);
@@ -678,7 +670,11 @@ namespace FNPlugin
 		public override void OnFixedUpdate() 
         {
             // note: does not seem to be called in edit mode
-            if (MyAttachedReactor == null) return;
+            if (MyAttachedReactor == null)
+            {
+                myAttachedEngine.maxFuelFlow = 0;
+                return;
+            }
 
             staticPresure = (FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
 
@@ -749,12 +745,12 @@ namespace FNPlugin
             GetMaximumIspAndThrustMultiplier();
 
             var requested_thermal_power = _assThermalPower * myAttachedEngine.currentThrottle * GetAtmosphericLimit() * this._myAttachedReactor.GetFractionThermalReciever(id);
-            requestedReactorPower = requested_thermal_power.ToString("0.00") + " MW " + (this._myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
+            requestedReactorPower = requested_thermal_power.ToString("0.00000000") + " MW " + (this._myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
 
             double fixed_requested_termal_power = TimeWarp.fixedDeltaTime * requested_thermal_power;
 
             var thermal_power_received = consumeFNResource(fixed_requested_termal_power, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
-            recievedReactorPower = thermal_power_received.ToString("0.00") + " MW ";
+            recievedReactorPower = thermal_power_received.ToString("0.000000") + " MW ";
 
             if (thermal_power_received * TimeWarp.fixedDeltaTime < fixed_requested_termal_power)
                 thermal_power_received += consumeFNResource(fixed_requested_termal_power - thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
