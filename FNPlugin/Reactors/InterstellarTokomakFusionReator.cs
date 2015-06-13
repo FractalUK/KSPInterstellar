@@ -17,7 +17,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
-        public int launchPlatformFreePowerTime = 0;
+        public int jumpstartPowerTime = 0;
 
         // properties
         public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
@@ -80,15 +80,15 @@ namespace FNPlugin
                 //    power_consumed += part.RequestResource("ElectricCharge", (HeatingPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000.0;
                 //plasma_ratio= ((HeatingPowerRequirements != 0.0f) ? power_consumed / HeatingPowerRequirements : 1.0f);
 
-                if (launchPlatformFreePowerTime > 0)
+                if (jumpstartPowerTime > 0)
                 {
                     plasma_ratio = 1;
-                    launchPlatformFreePowerTime--;
+                    jumpstartPowerTime--;
                 }
                 else
                 {
-                    allowJumpStart = false;
-                    plasma_ratio = (float)Math.Round((HeatingPowerRequirements != 0.0f) ? power_consumed / HeatingPowerRequirements : 1.0f, 4);
+                    plasma_ratio = (float)Math.Round(HeatingPowerRequirements != 0.0f ? power_consumed / HeatingPowerRequirements : 1.0f, 4);
+                    allowJumpStart = plasma_ratio == 1;
                 }
             }
             else
@@ -106,7 +106,7 @@ namespace FNPlugin
 
                 if (allowJumpStart)
                 {
-                    launchPlatformFreePowerTime = 100;
+                    jumpstartPowerTime = 100;
                     UnityEngine.Debug.LogWarning("[KSPI] - InterstellarTokamakFusionReactor.OnStart allowJumpStart");
                 }
             }

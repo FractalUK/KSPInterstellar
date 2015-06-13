@@ -19,12 +19,15 @@ namespace OpenResourceSystem {
             }
         }
 
-        public float consumeFNResource(double power, String resourcename) {
+        public float consumeFNResource(double power, String resourcename) 
+        {
 			power = Math.Max (power, 0);
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) 
+            {
                 return 0;
             }
-            if (!fnresource_supplied.ContainsKey(resourcename)) {
+            if (!fnresource_supplied.ContainsKey(resourcename)) 
+            {
                 fnresource_supplied.Add(resourcename, 0);
             }
             double power_taken = Math.Max(Math.Min(power, fnresource_supplied[resourcename]*TimeWarp.fixedDeltaTime),0);
@@ -35,7 +38,8 @@ namespace OpenResourceSystem {
             return (float)power_taken;
         }
 
-        public float consumeFNResource(float power, String resourcename) {
+        public float consumeFNResource(float power, String resourcename) 
+        {
             return (float)consumeFNResource((double)power, resourcename);
         }
 

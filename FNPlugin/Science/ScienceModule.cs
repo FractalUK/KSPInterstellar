@@ -11,35 +11,8 @@ using FNPlugin.Refinery;
 
 namespace FNPlugin 
 {
-    class ScienceModule : ModuleModableScienceGenerator, ITelescopeController
+    class ScienceModule : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Mutiplier")]
-        public float powerReqMult = 1f;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
-        public string statusTitle;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
-        public string powerStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Science Rate")]
-        public string scienceRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Collected Science")]
-        public string collectedScience;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "R")]
-        public string reprocessingRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "A")]
-        public string antimatterRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "E")]
-        public string electrolysisRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "C")]
-        public string centrifugeRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
-        public string antimatterProductionEfficiency;
-        
-        // persistant false
-        [KSPField(isPersistant = false)]
-        public string animName1;
-        [KSPField(isPersistant = false)]
-        public string animName2;
-
         // persistant true
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
@@ -52,8 +25,43 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public float science_to_add;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        public string statusTitle;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
+        public string powerStr;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Data Scan Rate")]
+        public string scienceRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Scanned Data")]
+        public string collectedScience;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "R")]
+        public string reprocessingRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "A")]
+        public string antimatterRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "E")]
+        public string electrolysisRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "C")]
+        public string centrifugeRate;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Efficiency")]
+        public string antimatterProductionEfficiency;
+        [KSPField(isPersistant = false)]
+        public string beginResearchName = "Begin Scanning";
+
+        // persistant false
+        [KSPField(isPersistant = false)]
+        public string animName1;
+        [KSPField(isPersistant = false)]
+        public string animName2;
+        [KSPField(isPersistant = false)]
+        public string upgradeTechReq = null;
+        [KSPField(isPersistant = false)]
+        public float upgradeCost = 20;
+        [KSPField(isPersistant = true)]
+        public bool isupgraded = false;
+        [KSPField(isPersistant = false)]
+        public float powerReqMult = 1f;
+
         protected float megajoules_supplied = 0;
-        protected String[] modes = { "Researching", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
+        protected String[] modes = { "Scanning", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
         protected float science_rate_f;
         protected float reprocessing_rate_f = 0;
         protected float crew_capacity_ratio;
@@ -65,13 +73,16 @@ namespace FNPlugin
         protected Animation anim2;
         protected NuclearFuelReprocessor reprocessor;
         protected AntimatterFactory anti_factory;
+        protected bool hasrequiredupgrade = false;
+
+        
 
         public bool CanProvideTelescopeControl
         {
             get { return part.protoModuleCrew.Count > 0; }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Begin Research", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Begin Scanning", active = true)]
         public void BeginResearch() 
         {
             if (crew_capacity_ratio == 0) { return; }
@@ -157,9 +168,46 @@ namespace FNPlugin
             IsEnabled = false;
         }
 
+        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
+        public void RetrofitEngine()
+        {
+            if (ResearchAndDevelopment.Instance == null || isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
+
+            upgradePartModule();
+            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
+        }
+
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
+
+        public void upgradePartModule()
+        {
+            canDeploy = true;
+            isupgraded = true;
+        }
+
         public override void OnStart(PartModule.StartState state) 
         {
-            if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor)
+            {
+                if (this.HasTechsRequiredToUpgrade())
+                {
+                    isupgraded = true;
+                    upgradePartModule();
+                }
+                return;
+            }
+
+            if (isupgraded)
+                upgradePartModule();
+            else
+            {
+                if (this.HasTechsRequiredToUpgrade())
+                    hasrequiredupgrade = true;
+            }
+
+            // update gui names
+            Events["BeginResearch"].guiName = beginResearchName;
+
             reprocessor = new NuclearFuelReprocessor(part);
             anti_factory = new AntimatterFactory(part);
             ConfigNode config = PluginHelper.getPluginSaveFile();
@@ -230,18 +278,23 @@ namespace FNPlugin
         public override void OnUpdate() 
         {
             base.OnUpdate();
-            Events["BeginResearch"].active = !IsEnabled;
-            Events["ReprocessFuel"].active = !IsEnabled;
-            Events["ActivateFactory"].active = !IsEnabled;
+            Events["BeginResearch"].active = isupgraded && !IsEnabled;
+            Events["ReprocessFuel"].active = isupgraded && !IsEnabled;
+            Events["ActivateFactory"].active = isupgraded && !IsEnabled;
             Events["ActivateElectrolysis"].active = false;
-            Events["ActivateCentrifuge"].active = !IsEnabled && vessel.Splashed;
-            Events["StopActivity"].active = IsEnabled;
+            Events["ActivateCentrifuge"].active = isupgraded && !IsEnabled && vessel.Splashed;
+            Events["StopActivity"].active = isupgraded && IsEnabled;
+            Fields["statusTitle"].guiActive = isupgraded;
+
+            // only show retrofit btoon if we can actualy upgrade
+            Events["RetrofitEngine"].active = ResearchAndDevelopment.Instance == null ? false : !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 
             if (IsEnabled) 
             {
                 //anim [animName1].normalizedTime = 1f;
                 statusTitle = modes[active_mode] + "...";
                 Fields["scienceRate"].guiActive = false;
+
                 Fields["collectedScience"].guiActive = false;
                 Fields["reprocessingRate"].guiActive = false;
                 Fields["antimatterRate"].guiActive = false;

@@ -8,17 +8,19 @@ namespace FNPlugin
 {
     class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
+        [KSPField(isPersistant = false)]
         const float baseScienceRate = 0.3f;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string computercoreType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
         public string upgradeCostStr;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Name")]
         public string nameStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Science Rate")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Data Collection Rate")]
         public string scienceRate;
 
+        [KSPField(isPersistant = false)]
+        public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
@@ -47,7 +49,10 @@ namespace FNPlugin
 
         private ConfigNode _experiment_node;
 
-        public String UpgradeTechnology { get { return "none"; } }
+        protected ModuleCommand moduleCommand;
+
+        //public String UpgradeTechnology { get { return "none"; } }
+        public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         public bool CanProvideTelescopeControl
         {
@@ -67,7 +72,17 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (state == StartState.Editor) return;
+            if (state == StartState.Editor)
+            {
+                if (this.HasTechsRequiredToUpgrade())
+                {
+                    isupgraded = true;
+                    upgradePartModule();
+                }
+                return;
+            }
+
+            moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
             {
@@ -82,10 +97,10 @@ namespace FNPlugin
                 science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
                 science_to_add += (float)science_to_increment;
 
-                var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
-                curReaction.PitchTorque = 5;
-                curReaction.RollTorque = 5;
-                curReaction.YawTorque = 5;
+                //var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
+                //curReaction.PitchTorque = 5;
+                //curReaction.RollTorque = 5;
+                //curReaction.YawTorque = 5;
             } 
             else
                 computercoreType = originalName;
@@ -118,6 +133,10 @@ namespace FNPlugin
             if (isupgraded)
             {
                 float power_returned = consumeFNResource(upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+
+                //if (moduleCommand != null)
+                //    moduleCommand.enabled = power_returned >= megajouleRate;
+
                 electrical_power_ratio = power_returned / upgradedMegajouleRate;
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
@@ -126,9 +145,15 @@ namespace FNPlugin
                 if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
             }
-            //else 
+            //else
             //{
-            //    float power_returned = consumeFNResource(megajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            //    if (moduleCommand != null)
+            //    {
+            //        var fixedNeededPower = megajouleRate * TimeWarp.fixedDeltaTime;
+            //        float power_returned = consumeFNResource(fixedNeededPower, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            //        var electrical_power_ratio = Math.Round(power_returned / megajouleRate, 1);
+            //        moduleCommand.enabled = electrical_power_ratio == 1;
+            //    }
             //}
 
             last_active_time = (float)Planetarium.GetUniversalTime();
@@ -178,14 +203,16 @@ namespace FNPlugin
                 ConfigNode myName = namelist[rands.Next(0, namelist.Length)];
                 nameStr = myName.GetValue("name");
             }
-            if (part.Modules.Contains("ModuleReactionWheel"))
-            {
-                ModuleReactionWheel reaction_wheel = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
-                reaction_wheel.PitchTorque = 5;
-                reaction_wheel.RollTorque = 5;
-                reaction_wheel.YawTorque = 5;
-            }
+            //if (part.Modules.Contains("ModuleReactionWheel"))
+            //{
+            //    ModuleReactionWheel reaction_wheel = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
+            //    reaction_wheel.PitchTorque = 5;
+            //    reaction_wheel.RollTorque = 5;
+            //    reaction_wheel.YawTorque = 5;
+            //}
             isupgraded = true;
+            canDeploy = true;
+
             _experiment_node = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION").FirstOrDefault(nd => nd.GetValue("id") == experimentID);
         }
 

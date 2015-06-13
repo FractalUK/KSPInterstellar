@@ -155,7 +155,8 @@ namespace FNPlugin
                     Events["beginOberservations2"].active = false;
                     gLensStr = current_au.ToString("0.0") + " AU; Required 548 AU";
                 }
-            } else
+            } 
+            else
             {
                 Events["beginOberservations2"].active = false;
                 gLensStr = "Science Lab/Computer Core required";

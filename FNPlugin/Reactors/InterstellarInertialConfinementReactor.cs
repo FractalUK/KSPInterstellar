@@ -2,31 +2,43 @@
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
     [KSPModule("IC Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor, IChargedParticleSource
     {
+        [KSPField(isPersistant = true)]
+        public bool allowJumpStart = true;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Maintenance")]
         public string laserPower;
         [KSPField(isPersistant = true)]
         protected double accumulatedElectricChargeInMW;
 
-        protected float power_consumed;
-        protected bool fusion_alert = false;
-        protected int shutdown_c = 0;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
 
+        protected float power_consumed;
+        protected bool fusion_alert = false;
+        protected int shutdown_c = 0;
+        public int jumpstartPowerTime = 0;
         protected bool isChargingForJumpstart;
 
         [KSPEvent(guiActive = true, guiName = "Charge Jumpstart", active = true)]
         public void ChargeStartup()
         {
             isChargingForJumpstart = true;
+        }
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            if (state != StartState.Editor && allowJumpStart)
+            {
+                jumpstartPowerTime = 100;
+                UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
+            }
+            base.OnStart(state);
         }
 
         public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
@@ -144,12 +156,22 @@ namespace FNPlugin {
                 }
             }
 
-	        plasma_ratio = power_consumed / LaserPowerRequirements;
+	        //plasma_ratio = power_consumed / LaserPowerRequirements;
+            if (jumpstartPowerTime > 0)
+            {
+                plasma_ratio = 1;
+                jumpstartPowerTime--;
+            }
+            else
+            {
+                plasma_ratio = (float)Math.Round(LaserPowerRequirements != 0.0f ? power_consumed / LaserPowerRequirements : 1.0f, 4);
+                allowJumpStart = plasma_ratio == 1;
+            }
+
 
             if (plasma_ratio >= 0.99)
             {
                 plasma_ratio = 1;
-
                 isChargingForJumpstart = false;
                 framesPlasmaRatioIsGood++;
                 if (framesPlasmaRatioIsGood > 10)
@@ -159,7 +181,7 @@ namespace FNPlugin {
             {
                 framesPlasmaRatioIsGood = 0;
 
-                if (plasma_ratio < 0.001) ;
+                if (plasma_ratio < 0.001)
                     plasma_ratio = 0;
             }
         }
