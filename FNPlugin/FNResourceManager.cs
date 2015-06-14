@@ -7,21 +7,19 @@ using System.Text;
 using UnityEngine;
 using ORSvKSPIE::OpenResourceSystem;
 
-namespace FNPlugin {
-    public class FNResourceManager : ORSResourceManager {
-        
-
-        public FNResourceManager(PartModule pm, String resource_name) : base(pm, resource_name) {
+namespace FNPlugin 
+{
+    public class FNResourceManager : ORSResourceManager 
+    {
+        public FNResourceManager(PartModule pm, String resource_name) : base(pm, resource_name) 
+        {
             windowPosition = new Rect(200, 200, 350, 100);
-
-            
         }
 
         protected override void pluginSpecificImpl() 
         {
             if (resource_name == FNRESOURCE_CHARGED_PARTICLES) 
                 flow_type = FNRESOURCE_FLOWTYPE_EVEN;
-            
 
             if (String.Equals(this.resource_name, FNResourceManager.FNRESOURCE_WASTEHEAT) && !PluginHelper.IsThermalDissipationDisabled) 
             {   // passive dissip of waste heat - a little bit of this
@@ -39,7 +37,8 @@ namespace FNPlugin {
             }
         }
                 
-        protected override void doWindow(int windowID) {
+        protected override void doWindow(int windowID) 
+        {
             bold_label = new GUIStyle(GUI.skin.label);
             bold_label.fontStyle = FontStyle.Bold;
             green_label = new GUIStyle(GUI.skin.label);
@@ -50,9 +49,10 @@ namespace FNPlugin {
             //right_align.alignment = TextAnchor.UpperRight;
             GUIStyle net_style;
             GUIStyle net_style2;
-            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x")) {
+
+            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x")) 
                 render_window = false;
-            }
+            
             GUILayout.Space(2);
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
@@ -69,33 +69,39 @@ namespace FNPlugin {
             GUILayout.EndHorizontal();
             double demand_supply = stored_supply - stored_resource_demand;
             double demand_stable_supply = stored_resource_demand / stored_stable_supply;
-            if (demand_supply < -0.001) {
+            
+            if (demand_supply < -0.001) 
                 net_style = red_label;
-            } else {
+            else
                 net_style = green_label;
-            }
-            if (demand_stable_supply > 1) {
+
+            if (demand_stable_supply > 1) 
                 net_style2 = red_label;
-            } else {
+            else 
                 net_style2 = green_label;
-            }
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Net Power", bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(demand_supply), net_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
-            if (!double.IsNaN(demand_stable_supply) && !double.IsInfinity(demand_stable_supply)) {
+
+            if (!double.IsNaN(demand_stable_supply) && !double.IsInfinity(demand_stable_supply)) 
+            {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Utilisation", bold_label, GUILayout.ExpandWidth(true));
                 GUILayout.Label((demand_stable_supply).ToString("P3"), net_style2, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
                 GUILayout.EndHorizontal();
             }
+
             GUILayout.Space(5);
             GUILayout.BeginHorizontal();
             GUILayout.Label("Component",bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label("Demand", bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.Label("Priority", bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(50));
             GUILayout.EndHorizontal();
-            if (power_draw_list_archive != null) {
+
+            if (power_draw_list_archive != null) 
+            {
                 foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_list_archive) {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(power_kvp.Key.getResourceManagerDisplayName(), GUILayout.ExpandWidth(true));
@@ -104,6 +110,7 @@ namespace FNPlugin {
                     GUILayout.EndHorizontal();
                 }
             }
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("DC Electrical System", GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(stored_charge_demand), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
@@ -111,7 +118,6 @@ namespace FNPlugin {
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUI.DragWindow();
-            
         }
 
     }

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FNPlugin {
-    class GameConstants {
-        
+namespace FNPlugin 
+{
+    class GameConstants 
+    {
         public const double basePowerConsumption = 5;
         public const double baseAMFPowerConsumption = 5000;
         public const double baseCentriPowerConsumption = 43.5;

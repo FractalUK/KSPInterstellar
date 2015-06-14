@@ -93,7 +93,10 @@ namespace FNPlugin
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
-                double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / ((float)Math.Sqrt(altitude_multiplier));
+                //var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed);
+                var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
+
+                double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / ((float)Math.Sqrt(altitude_multiplier));
                 science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
                 science_to_add += (float)science_to_increment;
 
@@ -140,7 +143,11 @@ namespace FNPlugin
                 electrical_power_ratio = power_returned / upgradedMegajouleRate;
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
-                science_rate_f = (float) (baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));
+
+                //var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed);
+                var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
+
+                science_rate_f = (float)(baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
@@ -178,7 +185,7 @@ namespace FNPlugin
 
                 ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "");
 
-                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
+                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel); ///PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
                 ref_value = subject.scienceCap;
 
                 science_data = new ScienceData(science_to_add, 1, 0, subject.id, "Science Lab Data");

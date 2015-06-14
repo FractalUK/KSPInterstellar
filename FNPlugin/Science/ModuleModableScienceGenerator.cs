@@ -60,10 +60,11 @@ namespace FNPlugin
         }
 
         [KSPEvent(guiName = "Reset", active = true, guiActive = true)]
-        public void ResetExperiment() {
-            if (science_data != null) {
+        public void ResetExperiment() 
+        {
+            if (science_data != null) 
                 DumpData(science_data);
-            }
+
             Deployed = false;
         }
 
@@ -97,14 +98,10 @@ namespace FNPlugin
                     merdp.setUpScienceData(result_title, result_string, transmit_value, recovery_value, data_size, xmit_scalar, ref_value);
                 } 
                 else 
-                {
                     ExperimentsResultDialog.DisplayResult(merdp);
-                }
             } 
             else 
-            {
                 ResetExperiment();
-            }
         }
 
         public override void OnStart(PartModule.StartState state) 
@@ -154,10 +151,9 @@ namespace FNPlugin
 
         public int GetScienceCount() 
         {
-            if (science_data != null)
-            {
+            if (science_data != null) 
                 return 1;
-            }
+            
             return 0;
         }
 
@@ -174,9 +170,7 @@ namespace FNPlugin
         public void ReviewDataItem(ScienceData science_data) 
         {
             if (science_data == this.science_data) 
-            {
                 ReviewData();
-            }
         }
 
         public void DumpData(ScienceData science_data) 

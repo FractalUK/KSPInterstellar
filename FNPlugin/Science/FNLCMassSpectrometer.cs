@@ -7,8 +7,10 @@ using System.Text;
 using UnityEngine;
 using ORSvKSPIE::OpenResourceSystem;
 
-namespace FNPlugin {
-    class FNLCMassSpectrometer : PartModule {
+namespace FNPlugin 
+{
+    class FNLCMassSpectrometer : PartModule 
+    {
         protected Rect windowPosition = new Rect(20, 20, 300, 100);
         protected int windowID = 9875875;
         protected bool render_window = false;
@@ -17,72 +19,82 @@ namespace FNPlugin {
         protected static int analysis_length = 1500;
 
         [KSPEvent(guiActive = true, guiName = "Show Spectrometry Results", active = true)]
-        public void showWindow() {
+        public void showWindow() 
+        {
             render_window = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Hide Spectrometry Results", active = true)]
-        public void hideWindow() {
+        public void hideWindow() 
+        {
             render_window = false;
         }
 
-        public override void OnStart(StartState state) {
-            if (state == StartState.Editor) {
-                return;
-            }
-
+        public override void OnStart(StartState state) 
+        {
+            if (state == StartState.Editor) return;
+            
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
-
         }
 
-        public override void OnUpdate() {
+        public override void OnUpdate() 
+        {
             Events["showWindow"].active = !render_window;
             Events["hideWindow"].active = render_window;
-            if (!vessel.isActiveVessel || part == null) {
+
+            if (!vessel.isActiveVessel || part == null) 
                 RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
-            }
         }
 
-        private void OnGUI() {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window) {
+        private void OnGUI() 
+        {
+            if (this.vessel == FlightGlobals.ActiveVessel && render_window) 
+            {
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, "LC/MS - Ocean Composition");
-                if (analysis_count <= analysis_length) {
+                if (analysis_count <= analysis_length) 
                     analysis_count++;
-                }
             }
         }
 
-        private void Window(int windowID) {
+        private void Window(int windowID) 
+        {
             bold_label = new GUIStyle(GUI.skin.label);
             bold_label.fontStyle = FontStyle.Bold;
-            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x")) {
+
+            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x")) 
                 render_window = false;
-            }
+
             GUILayout.BeginVertical();
-            if (vessel.Splashed) {
-                if (analysis_count > analysis_length) {
+            if (vessel.Splashed) 
+            {
+                if (analysis_count > analysis_length) 
+                {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Liquid", bold_label, GUILayout.Width(150));
                     GUILayout.Label("Abundance", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
-                    foreach (ORSOceanicResource oceanic_resource in ORSOceanicResourceHandler.getOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) {
+
+                    foreach (ORSOceanicResource oceanic_resource in ORSOceanicResourceHandler.getOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
+                    {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(oceanic_resource.getDisplayName(), GUILayout.Width(150));
                         string resource_abundance_str;
-                        if (oceanic_resource.getResourceAbundance() > 0.001) {
+                        if (oceanic_resource.getResourceAbundance() > 0.001) 
                             resource_abundance_str = (oceanic_resource.getResourceAbundance() * 100.0).ToString() + "%";
-                        } else {
-                            if (oceanic_resource.getResourceAbundance() > 0.000001) {
+                        else 
+                        {
+                            if (oceanic_resource.getResourceAbundance() > 0.000001) 
                                 resource_abundance_str = (oceanic_resource.getResourceAbundance() * 1e6).ToString() + " ppm";
-                            } else {
+                            else 
                                 resource_abundance_str = (oceanic_resource.getResourceAbundance() * 1e9).ToString() + " ppb";
-                            }
                         }
                         GUILayout.Label(resource_abundance_str, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
                     }
-                } else {
+                } 
+                else 
+                {
                     double percent_analysed = (double)analysis_count / analysis_length * 100;
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Analysing...", GUILayout.Width(150));
@@ -90,7 +102,9 @@ namespace FNPlugin {
                     GUILayout.EndHorizontal();
                 }
 
-            } else {
+            } 
+            else 
+            {
                 GUILayout.Label("--No Ocean to Sample--", GUILayout.ExpandWidth(true));
                 analysis_count = 0;
             }

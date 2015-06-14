@@ -56,9 +56,7 @@ namespace FNPlugin
             beltparticles = beltparticles * relrp / relrt * 50.0;
 
             if (body.flightGlobalsIndex == 0)
-            {
                 beltparticles = beltparticles / 1000;
-            }
 
             beltparticles = beltparticles * Math.Abs(Math.Cos(lat)) * body.specialMagneticFieldScaling() *atmosphere_scaling;
 

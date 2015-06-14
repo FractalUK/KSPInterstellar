@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
-    class DTMagnetometer : PartModule {
+namespace FNPlugin 
+{
+    class DTMagnetometer : PartModule 
+    {
 		[KSPField(isPersistant = true)]
 		bool IsEnabled;
 		[KSPField(isPersistant = false)]
@@ -24,7 +26,8 @@ namespace FNPlugin {
 		protected Animation anim;
 
 		[KSPEvent(guiActive = true, guiName = "Activate Magnetometer", active = true)]
-		public void ActivateMagnetometer() {
+		public void ActivateMagnetometer() 
+        {
 			anim [animName].speed = 1f;
 			anim [animName].normalizedTime = 0f;
 			anim.Blend (animName, 2f);
@@ -32,7 +35,8 @@ namespace FNPlugin {
 		}
 
 		[KSPEvent(guiActive = true, guiName = "Deactivate Magnetometer", active = false)]
-		public void DeactivateMagnetometer() {
+		public void DeactivateMagnetometer() 
+        {
 			anim [animName].speed = -1f;
 			anim [animName].normalizedTime = 1f;
 			anim.Blend (animName, 2f);
@@ -40,44 +44,51 @@ namespace FNPlugin {
 		}
 
         [KSPAction("Activate Magnetometer")]
-        public void ActivateMagnetometerAction(KSPActionParam param) {
+        public void ActivateMagnetometerAction(KSPActionParam param) 
+        {
             ActivateMagnetometer();
         }
 
         [KSPAction("Deactivate Magnetometer")]
-        public void DeactivateMagnetometerAction(KSPActionParam param) {
+        public void DeactivateMagnetometerAction(KSPActionParam param) 
+        {
             DeactivateMagnetometer();
         }
 
         [KSPAction("Toggle Magnetometer")]
-        public void ToggleMagnetometerAction(KSPActionParam param) {
-            if (IsEnabled) {
+        public void ToggleMagnetometerAction(KSPActionParam param)
+        {
+            if (IsEnabled)
                 DeactivateMagnetometer();
-            } else {
+            else
                 ActivateMagnetometer();
-            }
         }
 
-        public override void OnStart(PartModule.StartState state) {
-            if (state == StartState.Editor) { return; }
+        public override void OnStart(PartModule.StartState state) 
+        {
+            if (state == StartState.Editor) return;
+
             this.part.force_activate();
 			anim = part.FindModelAnimators (animName).FirstOrDefault ();
-			if (anim != null) {
+			if (anim != null) 
+            {
 				anim [animName].layer = 1;
-				if (!IsEnabled) {
+				if (!IsEnabled) 
+                {
 					anim [animName].normalizedTime = 1f;
 					anim [animName].speed = -1f;
-
-				} else {
+				} 
+                else 
+                {
 					anim [animName].normalizedTime = 0f;
 					anim [animName].speed = 1f;
-
 				}
 				anim.Play ();
 			}
         }
 
-        public override void OnUpdate() {
+        public override void OnUpdate() 
+        {
 			Events["ActivateMagnetometer"].active = !IsEnabled;
 			Events["DeactivateMagnetometer"].active = IsEnabled;
 			Fields["Bmag"].guiActive = IsEnabled;
@@ -96,10 +107,6 @@ namespace FNPlugin {
             ParticleFlux = flux.ToString("E");
         }
 
-        public override void OnFixedUpdate() {
-            
-            
-
-        }
+        public override void OnFixedUpdate() {}
     }
 }

@@ -27,13 +27,13 @@ namespace FNPlugin
         private const String _DEUTERIUM = "LqdDeuterium";
 
         private readonly String _uranium_TerraFloride = _URANIUM_TETRAFLOURIDE;
-        private readonly String _aluminium;
+        private readonly String _aluminium = "Aluminium";
         private readonly String _ammonia = "LqdAmmonia";
-        private readonly String _argon;
+        private readonly String _argon = "ArgonGas";
         private readonly String _carbonDioxide = "LqdCO2";
         private readonly String _carbonMoxoxide = "LqdCO";
         private readonly String _hydrogen = "LqdHydrogen";
-        private readonly String _hydrogen_peroxide;
+        private readonly String _hydrogen_peroxide = "HTP";
         private readonly String _methane = "LqdMethane";
         private readonly String _nitrogen = "LqdNitrogen";
         private readonly String _oxygen = "LqdOxygen";
@@ -140,7 +140,8 @@ namespace FNPlugin
                     _nitrogen = plugin_settings.GetValue("NitrogenResourceName");
                     Debug.Log("[KSP Interstellar] Nitrogen resource name set to " + Nitrogen);
                 }
-            } else
+            } 
+            else
             {
                 PluginHelper.showInstallationErrorMessage();
             }

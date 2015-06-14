@@ -85,7 +85,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Begin Scanning", active = true)]
         public void BeginResearch() 
         {
-            if (crew_capacity_ratio == 0) { return; }
+            if (crew_capacity_ratio == 0) return;
+
             IsEnabled = true;
             active_mode = 0;
 
@@ -101,7 +102,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
         public void ReprocessFuel() 
         {
-            if (crew_capacity_ratio == 0) { return; }
+            if (crew_capacity_ratio == 0) return;
+
             IsEnabled = true;
             active_mode = 1;
 
@@ -117,7 +119,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Antimatter Factory", active = true)]
         public void ActivateFactory() 
         {
-            if (crew_capacity_ratio == 0) { return; }
+            if (crew_capacity_ratio == 0) return;
+
             IsEnabled = true;
             active_mode = 2;
 
@@ -133,7 +136,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Electrolysis", active = true)]
         public void ActivateElectrolysis() 
         {
-            if (crew_capacity_ratio == 0) { return; }
+            if (crew_capacity_ratio == 0) return;
+
             IsEnabled = true;
             active_mode = 3;
 
@@ -149,7 +153,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Centrifuge", active = true)]
         public void ActivateCentrifuge() 
         {
-            if (crew_capacity_ratio == 0) { return; }
+            if (crew_capacity_ratio == 0) return;
+
             IsEnabled = true;
             active_mode = 4;
 
@@ -216,18 +221,22 @@ namespace FNPlugin
 
             anim = part.FindModelAnimators(animName1).FirstOrDefault();
             anim2 = part.FindModelAnimators(animName2).FirstOrDefault();
-            if (anim != null && anim2 != null) {
+            if (anim != null && anim2 != null) 
+            {
 
                 anim[animName1].layer = 1;
                 anim2[animName2].layer = 1;
-                if (IsEnabled) {
+                if (IsEnabled) 
+                {
                     //anim [animName1].normalizedTime = 1f;
                     //anim2 [animName2].normalizedTime = 1f;
                     //anim [animName1].speed = -1f;
                     //anim2 [animName2].speed = -1f;
                     anim.Blend(animName1, 1, 0);
                     anim2.Blend(animName2, 1, 0);
-                } else {
+                } 
+                else 
+                {
                     //anim [animName1].normalizedTime = 0f;
                     //anim2 [animName2].normalizedTime = 0f;
                     //anim [animName1].speed = 1f;
@@ -252,8 +261,8 @@ namespace FNPlugin
                     float altitude_multiplier = Math.Max((float)(vessel.altitude / (vessel.mainBody.Radius)), 1);
                     float kerbalResearchSkillFactor = part.protoModuleCrew.Sum(proto_crew_member => GetKerbalScienceFactor(proto_crew_member) / 2f);
 
-                    double science_to_increment = kerbalResearchSkillFactor * GameConstants.baseScienceRate * time_diff 
-                        / GameConstants.EARH_DAY_SECONDS * electrical_power_ratio * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) 
+                    double science_to_increment = kerbalResearchSkillFactor * GameConstants.baseScienceRate * time_diff
+                        / GameConstants.EARH_DAY_SECONDS * electrical_power_ratio * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel)   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) 
                         / ((float)Math.Sqrt(altitude_multiplier));
 
                     science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
@@ -424,7 +433,7 @@ namespace FNPlugin
                 float kerbalScienceSkillFactor = part.protoModuleCrew.Sum(proto_crew_member => GetKerbalScienceFactor(proto_crew_member) / 2f);
                 float altitude_multiplier = Math.Max((float)(vessel.altitude / (vessel.mainBody.Radius)), 1);
 
-                science_rate_f = (float)(kerbalScienceSkillFactor * GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed)
+                science_rate_f = (float)(kerbalScienceSkillFactor * GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel) //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed)
                     / GameConstants.EARH_DAY_SECONDS * global_rate_multipliers
                     / (Mathf.Sqrt(altitude_multiplier)));
 
@@ -503,7 +512,7 @@ namespace FNPlugin
                 xmit_scalar = 1;
                 
                 ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "");
-                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
+                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel); //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
                 ref_value = subject.scienceCap;
 
                 science_data = new ScienceData(science_to_add, 1, 0, subject.id, "Science Lab Data");

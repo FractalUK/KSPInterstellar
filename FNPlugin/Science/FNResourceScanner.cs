@@ -6,8 +6,7 @@ using System.Linq;
 using System.Text;
 using ORSvKSPIE::OpenResourceSystem;
 
-namespace FNPlugin {
-    class FNResourceScanner : ORSResourceScanner {
-       
-    }
+namespace FNPlugin 
+{
+    class FNResourceScanner : ORSResourceScanner { }
 }

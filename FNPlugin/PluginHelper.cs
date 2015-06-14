@@ -333,6 +333,7 @@ namespace FNPlugin
                 { // the sun should not block line of sight to the sun
                     continue;
                 }
+
                 Vector3d refminusa = referenceBody.position - a;
                 Vector3d bminusa = b - a;
                 if (Vector3d.Dot(refminusa, bminusa) > 0)
@@ -341,9 +342,7 @@ namespace FNPlugin
                     {
                         Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
                         if (tang.magnitude < referenceBody.Radius)
-                        {
                             return false;
-                        }
                     }
                 }
             }
@@ -365,112 +364,104 @@ namespace FNPlugin
             return body.atmosphereDepth;
         }
 
-        public static float getScienceMultiplier(int refbody, bool landed)
+        public static float getScienceMultiplier(Vessel vessel)
         {
-            float multiplier = 1;
+            var vesselInAtmosphere = vessel.altitude < vessel.mainBody.atmosphereDepth;
 
-            if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY)
-                multiplier = 5f;
-            else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS)
-                multiplier = 2.5f;
-            else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP)
-                multiplier = 10f;
-            else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL)
-                multiplier = 12f;
-            else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO)
-                multiplier = 20f;
-            else if (refbody == REF_BODY_DRES)
-                multiplier = 7.5f;
-            else if (refbody == REF_BODY_KERBIN)
-                multiplier = 2f;
-            else if (refbody == REF_BODY_KERBOL)
-                multiplier = 15f;
+            if (vessel.Splashed)
+                return vessel.mainBody.scienceValues.SplashedDataValue;
+            if (vesselInAtmosphere && vessel.horizontalSrfSpeed == 0)
+                return vessel.mainBody.scienceValues.LandedDataValue;
+            if (vesselInAtmosphere && vessel.altitude < vessel.mainBody.scienceValues.flyingAltitudeThreshold )
+                return vessel.mainBody.scienceValues.FlyingLowDataValue;
+            if (vesselInAtmosphere && vessel.altitude > vessel.mainBody.scienceValues.flyingAltitudeThreshold )
+                return vessel.mainBody.scienceValues.FlyingHighDataValue;
+            if (!vesselInAtmosphere && vessel.altitude < vessel.mainBody.scienceValues.spaceAltitudeThreshold)
+                return vessel.mainBody.scienceValues.InSpaceLowDataValue;
             else
-                multiplier = 20f; // must be somewhere special
-
-            if (landed)
-            {
-                if (refbody == REF_BODY_TYLO)
-                    multiplier *= 3f;
-                if (refbody == REF_BODY_KERBIN)
-                    multiplier *= 0.5f; // Starting on Kerbin is earier than getting a lab into orbit
-                else if (refbody == REF_BODY_EVE)
-                    multiplier *= 2.5f;
-                else
-                    multiplier *=  2f;
-            }
-
-            return multiplier;
+                return vessel.mainBody.scienceValues.InSpaceHighDataValue;
         }
 
-        public static float getImpactorScienceMultiplier(int refbody)
-        {
-            float multiplier = 1;
+        //public static float getScienceMultiplier(int refbody, bool landed)
+        //{
+        //    float multiplier = 1;
 
-            if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY)
-            {
-                multiplier = 7f;
-            }
-            else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS)
-            {
-                multiplier = 5f;
-            }
-            else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP)
-            {
-                multiplier = 9f;
-            }
-            else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL)
-            {
-                multiplier = 11f;
-            }
-            else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO)
-            {
-                multiplier = 14f;
-            }
-            else if (refbody == REF_BODY_DRES)
-            {
-                multiplier = 8f;
-            }
-            else if (refbody == REF_BODY_KERBIN)
-            {
-                multiplier = 0.5f;
-            }
-            else
-            {
-                multiplier = 0f;
-            }
-            return multiplier;
-        }
+        //    if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY)
+        //        multiplier = 5f;
+        //    else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS)
+        //        multiplier = 2.5f;
+        //    else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP)
+        //        multiplier = 10f;
+        //    else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL)
+        //        multiplier = 12f;
+        //    else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO)
+        //        multiplier = 20f;
+        //    else if (refbody == REF_BODY_DRES)
+        //        multiplier = 7.5f;
+        //    else if (refbody == REF_BODY_KERBIN)
+        //        multiplier = 2f;
+        //    else if (refbody == REF_BODY_KERBOL)
+        //        multiplier = 15f;
+        //    else
+        //        multiplier = 20f; // must be somewhere special
+
+        //    if (landed)
+        //    {
+        //        if (refbody == REF_BODY_TYLO)
+        //            multiplier *= 3f;
+        //        if (refbody == REF_BODY_KERBIN)
+        //            multiplier *= 0.5f; // Starting on Kerbin is earier than getting a lab into orbit
+        //        else if (refbody == REF_BODY_EVE)
+        //            multiplier *= 2.5f;
+        //        else
+        //            multiplier *=  2f;
+        //    }
+
+        //    return multiplier;
+        //}
+
+        //public static float getImpactorScienceMultiplier(int refbody)
+        //{
+        //    float multiplier = 1;
+
+        //    if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY)
+        //        multiplier = 7f;
+        //    else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS)
+        //        multiplier = 5f;
+        //    else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP)
+        //        multiplier = 9f;
+        //    else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL)
+        //        multiplier = 11f;
+        //    else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO)
+        //        multiplier = 14f;
+        //    else if (refbody == REF_BODY_DRES)
+        //        multiplier = 8f;
+        //    else if (refbody == REF_BODY_KERBIN)
+        //        multiplier = 0.5f;
+        //    else
+        //        multiplier = 0f;
+        //    return multiplier;
+        //}
 
         public static string getFormattedPowerString(double power)
         {
             if (power > 1000)
             {
                 if (power > 20000)
-                {
                     return (power / 1000).ToString("0") + " GW";
-                }
                 else
-                {
                     return (power / 1000).ToString("0.0") + " GW";
-                }
             }
             else
             {
                 if (power > 20)
-                {
                     return power.ToString("0") + " MW";
-                }
                 else
                 {
                     if (power > 1)
-                    {
                         return power.ToString("0.0") + " MW";
-                    }
                     else
-                    {
                         return (power * 1000).ToString("0.0") + " KW";
-                    }
                 }
             }
         }

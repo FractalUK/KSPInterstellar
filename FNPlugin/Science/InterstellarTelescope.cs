@@ -67,7 +67,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor) return;
+
+            base.canDeploy = true;
 
             if (telescopeInit == false || lastMaintained == 0)
             {
@@ -110,7 +112,7 @@ namespace FNPlugin
                 xmit_scalar = 1;
 
                 ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "");
-                subject.scienceCap = 167*PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
+                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel);   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
                 ref_value = subject.scienceCap;
 
                 science_data = new ScienceData(science_awaiting_addition, 1, 0, subject.id, "Infrared Telescope Data");
@@ -145,12 +147,14 @@ namespace FNPlugin
                     {
                         Events["beginOberservations2"].active = true;
                         gLensStr = (telescopeIsEnabled && dpo) ? "Ongoing." : "Available";
-                    } else
+                    } 
+                    else
                     {
                         Events["beginOberservations2"].active = false;
                         gLensStr = "Eccentricity: " + vessel.orbit.eccentricity.ToString("0.0") + "; < 0.8 Required";
                     }
-                } else
+                } 
+                else
                 {
                     Events["beginOberservations2"].active = false;
                     gLensStr = current_au.ToString("0.0") + " AU; Required 548 AU";
@@ -184,9 +188,8 @@ namespace FNPlugin
                         double base_science = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
                         science_rate = base_science * perform_factor_d / 28800;
                         if (!double.IsNaN(science_rate) && !double.IsInfinity(science_rate))
-                        {
                             science_awaiting_addition += (float)(science_rate * TimeWarp.fixedDeltaTime);
-                        }
+
                         lastActiveTime = (float)Planetarium.GetUniversalTime();
                     }
                 }
