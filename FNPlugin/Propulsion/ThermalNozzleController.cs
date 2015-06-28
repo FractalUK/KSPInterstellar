@@ -45,8 +45,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float emisiveConstantMult = 3;
         [KSPField(isPersistant = false)]
-        public float emisiveConstantExp = 0.6f; 
-
+        public float emisiveConstantExp = 0.6f;
+        [KSPField(isPersistant = false)]
+        public float maxTemp = 2750;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
@@ -130,10 +131,10 @@ namespace FNPlugin
         protected float current_isp = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
         protected float maxPressureThresholdAtKerbinSurface;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
-        protected float currentHeatProduction;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisive Constant")]
-        protected float currentEmisiveConstant;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
+        //protected float currentHeatProduction;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisive Constant")]
+        //protected float currentEmisiveConstant;
 
 		//Internal
         protected float _fuelToxicity;
@@ -266,7 +267,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             // make sure max temp is correct
-            part.maxTemp = 2750;
+            part.maxTemp = maxTemp;
 
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
@@ -679,7 +680,7 @@ namespace FNPlugin
             staticPresure = (FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
 
             part.emissiveConstant = CalculateEmisiveConstant();
-            currentEmisiveConstant = (float)part.emissiveConstant;
+            //currentEmisiveConstant = (float)part.emissiveConstant;
 
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
                 GenerateThrustFromReactorHeat();
@@ -771,14 +772,14 @@ namespace FNPlugin
             }
 
             max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100;
-            heatProductionExtra = (sootAccumulationPercentage / sootHeatDivider) * heatProductionBase;
-
-            if (max_thrust_in_space > 0)
-            {
-                var adjustedBaseHeatProduction = heatProductionBase * Math.Max(heatProductionBase / max_thrust_in_space , 0.01);
-                myAttachedEngine.heatProduction = (float)(adjustedBaseHeatProduction + heatProductionExtra) * heatProductionMult;
-            }
-            currentHeatProduction = myAttachedEngine.heatProduction;
+            
+            //heatProductionExtra = (sootAccumulationPercentage / sootHeatDivider) * heatProductionBase;
+            //if (max_thrust_in_space > 0)
+            //{
+            //    var adjustedBaseHeatProduction = heatProductionBase * Math.Max(heatProductionBase / max_thrust_in_space , 0.01);
+            //    myAttachedEngine.heatProduction = (float)(adjustedBaseHeatProduction + heatProductionExtra) * heatProductionMult;
+            //}
+            //currentHeatProduction = myAttachedEngine.heatProduction;
 
 
             var vesselStaticPresure = FlightGlobals.getStaticPressure(vessel.transform.position);

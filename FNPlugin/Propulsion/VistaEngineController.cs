@@ -58,8 +58,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Heat Prduction")]
-        public float currentHeatProduction;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Heat Prduction")]
+        //public float currentHeatProduction;
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Base Heat Prduction")]
         //public float baseHeatProduction;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
@@ -130,7 +130,7 @@ namespace FNPlugin
             if (curEngineT == null) return;
 
             minISP = curEngineT.atmosphereCurve.Evaluate(0);
-            currentHeatProduction = curEngineT.heatProduction;
+            //currentHeatProduction = curEngineT.heatProduction;
 
             standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio;
             standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio;
@@ -194,6 +194,19 @@ namespace FNPlugin
 			}
 		}
 
+        private void ShutDown(string reason)
+        {
+            curEngineT.Events["Shutdown"].Invoke();
+            curEngineT.currentThrottle = 0;
+            curEngineT.requestedThrottle = 0;
+
+            ScreenMessages.PostScreenMessage(reason, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            foreach (FXGroup fx_group in part.fxGroups)
+            {
+                fx_group.setActive(false);
+            }
+        }
+
 		public override void OnFixedUpdate()
         {
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
@@ -202,17 +215,15 @@ namespace FNPlugin
 
             float throttle = curEngineT.currentThrottle;
 
-            if (radhazard && throttle > 0 && rad_safety_features)
-            {
-                curEngineT.Events["Shutdown"].Invoke();
-                curEngineT.currentThrottle = 0;
-                curEngineT.requestedThrottle = 0;
+            //double atmo_thrust_factor = Math.Min(1.0, Math.Max(1.0 - Math.Pow(vessel.atmDensity, 0.2), 0));
 
-                ScreenMessages.PostScreenMessage("Engines throttled down as they presently pose a radiation hazard!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                foreach (FXGroup fx_group in part.fxGroups)
-                {
-                    fx_group.setActive(false);
-                }
+            if (throttle > 0)
+            {
+                if (vessel.atmDensity > 0.001)
+                    ShutDown("Inertial Fusion cannot operate in atmosphere!");
+
+                if (radhazard && rad_safety_features)
+                    ShutDown("Engines throttled down as they presently pose a radiation hazard");
             }
 
             KillKerbalsWithRadiation(throttle);
@@ -237,6 +248,8 @@ namespace FNPlugin
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_tritium_rate / throttle / throttle);
 
+                
+
                 // Update ISP
                 FloatCurve newISP = new FloatCurve();
                 var currentIsp = Math.Max(minISP * fusionRatio / throttle, minISP / 10);
@@ -253,8 +266,8 @@ namespace FNPlugin
                         curEngineT.status = "Insufficient Electricity";
                 }
 
-                currentHeatProduction = FusionWasteHeat / throttle;
-                curEngineT.heatProduction = currentHeatProduction;
+                //currentHeatProduction = FusionWasteHeat / throttle;
+                //curEngineT.heatProduction = currentHeatProduction;
             }
             else
             {
@@ -265,12 +278,11 @@ namespace FNPlugin
                 var maxFuelFlow = MaximumThrust / minISP / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
 
-                curEngineT.heatProduction = FusionWasteHeat; 
+                //curEngineT.heatProduction = FusionWasteHeat; 
             }
 
             radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);
-
-            part.emissiveConstant = Math.Max(4 * part.mass * radiatorPerformance, 0.95);
+            //part.emissiveConstant = Math.Max(4 * part.mass * radiatorPerformance, 0.95);
 
             partEmissiveConstant = (float)part.emissiveConstant;
         }

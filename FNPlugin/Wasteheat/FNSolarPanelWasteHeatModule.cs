@@ -7,8 +7,10 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
-	class FNSolarPanelWasteHeatModule : FNResourceSuppliableModule {
+namespace FNPlugin 
+{
+	class FNSolarPanelWasteHeatModule : FNResourceSuppliableModule 
+    {
 		protected float wasteheat_production_f = 0;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Heat Production")]
 		public string heatProductionStr = ":";
@@ -16,7 +18,8 @@ namespace FNPlugin {
         protected ModuleDeployableSolarPanel solarPanel;
         private bool active = false;
 
-		public override void OnStart(PartModule.StartState state) {
+		public override void OnStart(PartModule.StartState state) 
+        {
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_MEGAJOULES};
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
@@ -28,12 +31,14 @@ namespace FNPlugin {
 			heatProductionStr = wasteheat_production_f.ToString ("0.00") + " KW";
 		}
 
-        public override void OnFixedUpdate() {
+        public override void OnFixedUpdate() 
+        {
             active = true;
             base.OnFixedUpdate();
         }
 
-		public void FixedUpdate() {
+		public void FixedUpdate() 
+        {
             if (HighLogic.LoadedSceneIsFlight)
             {
                 if (!active)
@@ -58,9 +63,8 @@ namespace FNPlugin {
                     {
                         solarPanel.Retract();
                         if (FlightGlobals.ActiveVessel == vessel)
-                        {
                             ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Solar Panel retraction occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                        }
+
                         return;
                     }
 
@@ -68,7 +72,10 @@ namespace FNPlugin {
                     double current_charge = prl.Sum(pr => pr.amount);
                     double max_charge = prl.Sum(pr => pr.maxAmount);
 
-                    supplyFNResourceFixedMax(current_charge >= max_charge ? solar_rate / 1000.0f : 0, solar_rate / 1000.0f, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    var solar_supply = current_charge >= max_charge ? solar_rate / 1000.0f : 0;
+                    var solar_maxSupply = solar_rate / 1000.0f;
+
+                    supplyFNResourceFixedMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     wasteheat_production_f = supplyFNResource(heat_rate, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime * 1000.0f;
                 }
             }

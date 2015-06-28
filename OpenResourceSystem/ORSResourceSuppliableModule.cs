@@ -12,24 +12,21 @@ namespace OpenResourceSystem {
         public void receiveFNResource(double power, String resourcename) {
             
             //resourcename = resourcename.ToLower();
-            if (fnresource_supplied.ContainsKey(resourcename)) {
+            if (fnresource_supplied.ContainsKey(resourcename)) 
                 fnresource_supplied[resourcename] = power;
-            }else{
+            else
                 fnresource_supplied.Add(resourcename, power);
-            }
         }
 
         public float consumeFNResource(double power, String resourcename) 
         {
 			power = Math.Max (power, 0);
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) 
-            {
                 return 0;
-            }
+
             if (!fnresource_supplied.ContainsKey(resourcename)) 
-            {
                 fnresource_supplied.Add(resourcename, 0);
-            }
+
             double power_taken = Math.Max(Math.Min(power, fnresource_supplied[resourcename]*TimeWarp.fixedDeltaTime),0);
             fnresource_supplied[resourcename] -= power_taken;
             ORSResourceManager mega_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
@@ -221,7 +218,8 @@ namespace OpenResourceSystem {
 			if (resources_to_supply != null) 
             {
 
-				foreach (String resourcename in resources_to_supply) {
+				foreach (String resourcename in resources_to_supply) 
+                {
 					ORSResourceManager manager;
 
 					if (!getOvermanagerForResource(resourcename).hasManagerForVessel (vessel)) 

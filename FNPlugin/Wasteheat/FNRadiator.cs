@@ -319,7 +319,13 @@ namespace FNPlugin
             {
                 if (Double.IsNaN(radiatedThermalPower) || Double.IsNaN(convectedThermalPower) || Double.IsNaN(current_rad_temp))
                 {
-                    Debug.Log("Double.IsNaN detected, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    if (Double.IsNaN(radiatedThermalPower))
+                        Debug.Log("Double.IsNaN detected in radiatedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    if (Double.IsNaN(convectedThermalPower))
+                        Debug.Log("Double.IsNaN detected in convectedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    if (Double.IsNaN(current_rad_temp))
+                        Debug.Log("Double.IsNaN detected in current_rad_temp, attepting to reinistialise Radiator. Report if this is called repeatedly");
+
                     OnStart(PartModule.StartState.None);
                 }
 

@@ -756,21 +756,21 @@ namespace FNPlugin
                         mod_info.moduleName = "Thermal Nozzle";
                     }
 
-                    if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)
-                    {
-                        Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
-                        if (type != null)
-                        {
-                            FNModuleRadiation pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
-                            prefab_available_part.Modules.Add(pm);
-                            pm.rad_hardness = (float)(prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5);
-                            AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
-                            minfo.moduleName = "Radiation Status";
-                            minfo.info = pm.GetInfo();
-                            available_part.moduleInfos.Add(minfo);
-                        }
-                        print("Adding ModuleRadiation to " + prefab_available_part.name);
-                    }
+                    //if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)
+                    //{
+                    //    Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
+                    //    if (type != null)
+                    //    {
+                    //        FNModuleRadiation pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
+                    //        prefab_available_part.Modules.Add(pm);
+                    //        pm.rad_hardness = (float)(prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5);
+                    //        AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
+                    //        minfo.moduleName = "Radiation Status";
+                    //        minfo.info = pm.GetInfo();
+                    //        available_part.moduleInfos.Add(minfo);
+                    //    }
+                    //    print("Adding ModuleRadiation to " + prefab_available_part.name);
+                    //}
                 }
                 catch (Exception ex)
                 {
