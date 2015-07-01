@@ -93,7 +93,7 @@ namespace FNPlugin.Refinery
         {
             _allowOverflow = allowOverflow;
             
-            // determine how much mass we can produce at max
+            // determine how much resource we have
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
 
@@ -112,7 +112,7 @@ namespace FNPlugin.Refinery
             _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _water_density;
             _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxide_density;
 
-            // determine how much carbondioxide we can consume
+            // determine how much we can consume
             var fixedMaxDioxideConsumptionRate = _current_rate * dioxideMassByFraction * TimeWarp.fixedDeltaTime;
             var dioxideConsumptionRatio = fixedMaxDioxideConsumptionRate > 0 ? Math.Min(fixedMaxDioxideConsumptionRate, _availableDioxideMass) / fixedMaxDioxideConsumptionRate : 0;
 

@@ -11,7 +11,7 @@ namespace FNPlugin
         public const double baseAMFPowerConsumption = 5000;
         public const double baseCentriPowerConsumption = 43.5;
         public const double baseELCPowerConsumption = 40;
-        public const double baseAnthraquiononePowerConsumption = 1;
+        public const double baseAnthraquiononePowerConsumption = 5;
         public const double basePechineyUgineKuhlmannPowerConsumption = 5;
         public const double baseHaberProcessPowerConsumption = 20;
         public const double baseUraniumAmmonolysisPowerConsumption = 12;
