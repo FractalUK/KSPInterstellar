@@ -708,52 +708,63 @@ namespace FNPlugin
 
                     }
 
-                    if (prefab_available_part.FindModulesImplementing<ModuleDeployableSolarPanel>().Count > 0)
+                    if (prefab_available_part.FindModulesImplementing<ModuleDeployableSolarPanel>().Any())
                     {
-                        ModuleDeployableSolarPanel panel = prefab_available_part.Modules["ModuleDeployableSolarPanel"] as ModuleDeployableSolarPanel;
-                        if (panel.chargeRate > 0)
+                        var existingSolarControlModule = prefab_available_part.FindModuleImplementing<FNSolarPanelWasteHeatModule>();
+                        if (existingSolarControlModule == null)
                         {
-                            Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
-                            if (type != null)
+                            //ModuleDeployableSolarPanel panel = prefab_available_part.Modules["ModuleDeployableSolarPanel"] as ModuleDeployableSolarPanel;
+                            ModuleDeployableSolarPanel panel = prefab_available_part.FindModuleImplementing<ModuleDeployableSolarPanel>();
+                            if (panel.chargeRate > 0)
                             {
-                                FNSolarPanelWasteHeatModule pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
-                                prefab_available_part.Modules.Add(pm);
+                                Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
+                                if (type != null)
+                                {
+                                    FNSolarPanelWasteHeatModule pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
+                                    prefab_available_part.Modules.Add(pm);
+                                }
+                            }
+
+                            if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
+                            {
+                                ConfigNode node = new ConfigNode("RESOURCE");
+                                node.AddValue("name", "WasteHeat");
+                                node.AddValue("maxAmount", panel.chargeRate * 100);
+                                node.AddValue("amount", 0);
+
+                                PartResource pr = prefab_available_part.AddResource(node);
+
+                                if (available_part.resourceInfo != null && pr != null)
+                                {
+                                    if (available_part.resourceInfo.Length == 0)
+                                        available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                                    else
+                                        available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                                }
                             }
                         }
 
-
-                        if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
-                        {
-                            ConfigNode node = new ConfigNode("RESOURCE");
-                            node.AddValue("name", "WasteHeat");
-                            node.AddValue("maxAmount", panel.chargeRate * 100);
-                            node.AddValue("amount", 0);
-                            PartResource pr = prefab_available_part.AddResource(node);
-
-                            if (available_part.resourceInfo != null && pr != null)
-                            {
-                                if (available_part.resourceInfo.Length == 0)
-                                    available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                                else
-                                    available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                            }
-                        }
                     }
 
                     if (prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0)
                     {
                         available_part.moduleInfo = prefab_available_part.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();
                         available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "Electric Engine Controller").First();
-                        mod_info.moduleName = "Electric Engine";
+                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.FirstOrDefault(modi => modi.moduleName == "Electric Engine Controller");
+
+                        if (mod_info != null)
+                             mod_info.moduleName = "Electric Engine";
                     }
+
 
                     if (prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0)
                     {
                         available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
                         available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.Where(modi => modi.moduleName == "FNNozzle Controller").First();
-                        mod_info.moduleName = "Thermal Nozzle";
+                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.FirstOrDefault(modi => modi.moduleName == "FNNozzle Controller");
+
+                        if (mod_info != null)
+                            mod_info.moduleName = "Thermal Nozzle";
                     }
 
                     //if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)

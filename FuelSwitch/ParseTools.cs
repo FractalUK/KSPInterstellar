@@ -8,6 +8,17 @@ namespace InterstellarFuelSwitch
 {
 	public static class ParseTools
 	{
+
+        public static double ParseDouble(string data)
+        {
+            var trimmed = data.Trim();
+
+            if (trimmed == String.Empty)
+                return 0;
+
+            return double.Parse(data);
+        }
+
         public static List<double> ParseDoubles<T>(string stringOfDoubles, Expression<Func<T>> expr)
         {
             var body = (MemberExpression)expr.Body;

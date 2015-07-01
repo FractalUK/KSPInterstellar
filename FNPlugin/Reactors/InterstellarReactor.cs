@@ -285,20 +285,30 @@ namespace FNPlugin
         }
 
 
-        [KSPEvent(guiActive = true, guiName = "Activate Reactor", active = false)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Activate Reactor", active = false)]
         public void ActivateReactor()
         {
-            if (IsNuclear) return;
+            if (HighLogic.LoadedSceneIsEditor)
+                startDisabled = false;
+            else
+            {
+                if (IsNuclear) return;
 
-            IsEnabled = true;
+                IsEnabled = true;
+            }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Reactor", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deactivate Reactor", active = true)]
         public void DeactivateReactor()
         {
-            if (IsNuclear) return;
+            if (HighLogic.LoadedSceneIsEditor)
+                startDisabled = true;
+            else
+            {
+                if (IsNuclear) return;
 
-            IsEnabled = false;
+                IsEnabled = false;
+            }
         }
 
         [KSPEvent(guiActive = true, guiName = "Enable Tritium Breeding", active = false)]
@@ -455,13 +465,18 @@ namespace FNPlugin
             maximumThermalPowerFloat = MaximumThermalPower;
         }
 
+        public void Update()
+        {
+            //Update Events
+            Events["ActivateReactor"].active = (HighLogic.LoadedSceneIsEditor && startDisabled) || (!HighLogic.LoadedSceneIsEditor && !IsEnabled && !IsNuclear);
+            Events["DeactivateReactor"].active = (HighLogic.LoadedSceneIsEditor && !startDisabled) || (!HighLogic.LoadedSceneIsEditor && IsEnabled && !IsNuclear);
+        }
+
         public override void OnUpdate()
         {
             maximumThermalPowerFloat = MaximumThermalPower;
 
-            //Update Events
-            Events["ActivateReactor"].active = !IsEnabled && !IsNuclear;
-            Events["DeactivateReactor"].active = IsEnabled && !IsNuclear;
+
             Events["BreedTritium"].active = !breedtritium && IsNeutronRich && IsEnabled;
             Events["StopBreedTritium"].active = breedtritium && IsNeutronRich && IsEnabled;
             Events["RetrofitReactor"].active = ResearchAndDevelopment.Instance != null ? !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade : false;

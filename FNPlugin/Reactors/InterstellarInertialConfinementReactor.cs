@@ -7,8 +7,6 @@ namespace FNPlugin
     [KSPModule("IC Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor, IChargedParticleSource
     {
-        [KSPField(isPersistant = true)]
-        public bool allowJumpStart = true;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Maintenance")]
         public string laserPower;
         [KSPField(isPersistant = true)]
@@ -35,7 +33,11 @@ namespace FNPlugin
         {
             if (state != StartState.Editor && allowJumpStart)
             {
-                jumpstartPowerTime = 100;
+                if (startDisabled)
+                    allowJumpStart = false;
+                else
+                    jumpstartPowerTime = 100;
+
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
             }
             base.OnStart(state);

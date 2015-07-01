@@ -738,21 +738,45 @@ namespace InterstellarFuelSwitch
                         if (tankCounter >= resourceList.Count || amountCounter >= resourceAmountArray.Count()) continue;
                             
                         resourceList[tankCounter].Add(double.Parse(resourceAmountArray[amountCounter].Trim()));
-
-                        if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Count())
-                            initialResourceList[tankCounter].Add(double.Parse(initialResourceAmountArray[amountCounter].Trim()));
-
-                        if (tankCounter < boilOffTempList.Count && amountCounter < boilOffTempAmountArray.Length)
-                            boilOffTempList[tankCounter].Add(double.Parse(boilOffTempAmountArray[amountCounter].Trim()));
-
-                        if (tankCounter < latendHeatVaporationList.Count && amountCounter < latendHeatVaporationAmountArray.Length)
-                            latendHeatVaporationList[tankCounter].Add(double.Parse(latendHeatVaporationAmountArray[amountCounter].Trim()));
-				    }
-				    catch
+                    }
+                    catch (Exception exception)
 				    {
-					    Debug.LogWarning("InsterstellarFuelSwitch: error parsing selectedTankResource amount " + tankCounter + "/" + amountCounter +
-					              ": '" + resourceTankAmountArray[amountCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "'");
+                        Debug.LogWarning("InsterstellarFuelSwitch: error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
+                                  ": '" + resourceTankAmountArray[tankCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
 				    }
+
+                    try
+                    {
+                        if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Count())
+                            initialResourceList[tankCounter].Add(ParseTools.ParseDouble(initialResourceAmountArray[amountCounter]));
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogWarning("InsterstellarFuelSwitch: error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
+                                  ": '" + initialResourceList[tankCounter] + "': '" + initialResourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
+                    }
+
+                    try
+                    {
+                        if (tankCounter < boilOffTempList.Count && amountCounter < boilOffTempAmountArray.Length)
+                            boilOffTempList[tankCounter].Add(ParseTools.ParseDouble(boilOffTempAmountArray[amountCounter]));
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogWarning("InsterstellarFuelSwitch: error parsing boilOffTempList amount " + tankCounter + "/" + amountCounter +
+                                  ": '" + boilOffTempList[tankCounter] + "': '" + boilOffTempAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
+                    }
+
+                    try
+                    {
+                        if (tankCounter < latendHeatVaporationList.Count && amountCounter < latendHeatVaporationAmountArray.Length)
+                            latendHeatVaporationList[tankCounter].Add(ParseTools.ParseDouble(latendHeatVaporationAmountArray[amountCounter].Trim()));
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogWarning("InsterstellarFuelSwitch: error parsing latendHeatVaporation amount " + tankCounter + "/" + amountCounter +
+                                  ": '" + latendHeatVaporationList[tankCounter] + "': '" + latendHeatVaporationAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
+                    }
 			    }
 		    }
 

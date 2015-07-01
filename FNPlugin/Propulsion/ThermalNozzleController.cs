@@ -40,8 +40,10 @@ namespace FNPlugin
         public float IspTempMultOffset = 0;
         [KSPField(isPersistant = false)]
         public float sootHeatDivider = 50;
-        [KSPField(isPersistant = false)]
-        public float heatProductionMult = 5;
+        //[KSPField(isPersistant = false)]
+        //public float heatProduction = 1;
+        //[KSPField(isPersistant = false)]
+        //public float heatProductionMult = 5;
         [KSPField(isPersistant = false)]
         public float emisiveConstantMult = 3;
         [KSPField(isPersistant = false)]
@@ -82,8 +84,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Equilibrium Soot")]
         public float _propellantSootFactorEquilibrium;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra Heat Production ")]
-        public float heatProductionExtra;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra Heat Production ")]
+        //public float heatProductionExtra;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
@@ -91,8 +93,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
-        public float heatProductionBase;
-
+        public float baseHeatProduction = 80;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Heat Production")]
+        public float engineHeatProduction;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
         public string staticPresure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
@@ -125,7 +128,7 @@ namespace FNPlugin
         protected float _maxISP;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
         protected float _minISP;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat="0.000000")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
         protected float current_isp = 0;
@@ -279,7 +282,7 @@ namespace FNPlugin
             }
 
             engineType = originalName;
-            baseEmisiveConstant = part.emissiveConstant;
+            //baseEmisiveConstant = part.emissiveConstant;
 
             myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
 
@@ -310,8 +313,8 @@ namespace FNPlugin
             if (engineInit == false)
                 engineInit = true;
 
-            if (myAttachedEngine != null)
-                heatProductionBase = myAttachedEngine.heatProduction;
+            //if (myAttachedEngine != null)
+            //    baseHeatProduction = myAttachedEngine.heatProduction;
 
             // if we can upgrade, let's do so
             if (isupgraded && isJet)
@@ -679,8 +682,13 @@ namespace FNPlugin
 
             staticPresure = (FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
 
-            part.emissiveConstant = CalculateEmisiveConstant();
+            //part.emissiveConstant = CalculateEmisiveConstant();
             //currentEmisiveConstant = (float)part.emissiveConstant;
+
+            // actively cool
+            var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
+            var tempRatio =  Math.Pow(part.temperature / part.maxTemp, 2);
+            part.temperature = part.temperature - (0.05 * tempRatio * part.temperature * TimeWarp.fixedDeltaTime * (1 - Math.Pow(wasteheatRatio, 0.5)));
 
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
                 GenerateThrustFromReactorHeat();
@@ -815,6 +823,12 @@ namespace FNPlugin
 
             if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
                 max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
+
+            //prevent divide by zero
+            max_fuel_flow_rate = Math.Max(0.00000001, max_fuel_flow_rate);
+
+            engineHeatProduction = baseHeatProduction / (float)max_fuel_flow_rate;
+            myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow
 	        myAttachedEngine.maxFuelFlow = Math.Min(1, (float)max_fuel_flow_rate);

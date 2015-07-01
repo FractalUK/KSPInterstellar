@@ -9,6 +9,8 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
+        [KSPField(isPersistant = true)]
+        public bool allowJumpStart = true;
 
         [KSPField(isPersistant = false)]
         public float powerRequirements;

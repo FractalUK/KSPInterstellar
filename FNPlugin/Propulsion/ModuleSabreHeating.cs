@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin {
-    class ModuleSabreHeating : PartModule {
+namespace FNPlugin 
+{
+    class ModuleSabreHeating : PartModule 
+    {
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
 
@@ -15,31 +17,40 @@ namespace FNPlugin {
         protected int intakes_open = 0;
         protected double proportion = 0;
 
-        public override void OnStart(PartModule.StartState state) {
-            if (state == StartState.Editor) { return; }
+        public override void OnStart(PartModule.StartState state) 
+        {
+            if (state == StartState.Editor) return;
+
             List<ModuleEnginesFX> mefxs = part.FindModulesImplementing<ModuleEnginesFX>().Where(e => e.engineID == "AirBreathing").ToList();
             List<ModuleEngines> mes = part.FindModulesImplementing<ModuleEngines>().ToList();
+
             rapier_engine = mefxs.FirstOrDefault();
             rapier_engine2 = mes.FirstOrDefault();
         }
 
-        public override void OnUpdate() {
-            if (rapier_engine != null) {
-                if (rapier_engine.isOperational && !IsEnabled) {
+        public override void OnUpdate() 
+        {
+            if (rapier_engine != null) 
+            {
+                if (rapier_engine.isOperational && !IsEnabled) 
+                {
                     IsEnabled = true;
                     part.force_activate();
                 }
             }
 
-            if (rapier_engine2 != null) {
-                if (rapier_engine2.isOperational && !IsEnabled) {
+            if (rapier_engine2 != null) 
+            {
+                if (rapier_engine2.isOperational && !IsEnabled) 
+                {
                     IsEnabled = true;
                     part.force_activate();
                 }
             }
         }
 
-        public void FixedUpdate() {
+        public void FixedUpdate() 
+        {
             if (HighLogic.LoadedSceneIsFlight)
             {
                 try
@@ -52,7 +63,6 @@ namespace FNPlugin {
 
                     if (rapier_engine != null)
                     {
-                        //if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelocityCurve)
                         if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelCurve)
                         {
                             float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
@@ -64,15 +74,13 @@ namespace FNPlugin {
                                 return;
                             }
                             part.temperature = temp;
-                        } else
-                        {
+                        } 
+                        else
                             part.temperature = 1;
-                        }
                     }
 
                     if (rapier_engine2 != null)
                     {
-                        //if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelocityCurve)
                         if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelCurve)
                         {
                             float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
@@ -84,12 +92,12 @@ namespace FNPlugin {
                                 return;
                             }
                             part.temperature = temp;
-                        } else
-                        {
+                        } 
+                        else
                             part.temperature = 1;
-                        }
                     }
-                } catch (Exception ex)
+                } 
+                catch (Exception ex)
                 {
                     Debug.Log("[KSP Interstellar] ModuleSabreHeating threw Exception in OnFixedUpdate(): " + ex);
                 }

@@ -139,7 +139,7 @@
     <Compile Include="ModableExperimentResultDialogPage.cs" />
     <Compile Include="Science\ModuleModableScienceGenerator.cs" />
     <Compile Include="Storage\ModuleElementRadioactiveDecay.cs" />
-    <Compile Include="ModuleSabreHeating.cs" />
+    <Compile Include="Propulsion\ModuleSabreHeating.cs" />
     <Compile Include="PluginHelper.cs" />
     <Compile Include="Radiation\RadiationDose.cs" />
     <Compile Include="Reactors\ReactorFuel.cs" />

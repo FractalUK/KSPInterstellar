@@ -6,8 +6,7 @@ namespace FNPlugin
 {
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
-        [KSPField(isPersistant = true)]
-        public bool allowJumpStart = true;
+
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Maintance")]
         public string tokomakPower;
@@ -106,7 +105,11 @@ namespace FNPlugin
 
                 if (allowJumpStart)
                 {
-                    jumpstartPowerTime = 100;
+                    if (startDisabled)
+                        allowJumpStart = false;
+                    else
+                        jumpstartPowerTime = 100;
+                    
                     UnityEngine.Debug.LogWarning("[KSPI] - InterstellarTokamakFusionReactor.OnStart allowJumpStart");
                 }
             }
