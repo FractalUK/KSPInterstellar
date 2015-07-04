@@ -176,7 +176,8 @@ namespace InterstellarFuelSwitch
 		    if (selectedTankSetup == -1)
 			    selectedTankSetup = 0;
 
-            this.part.force_activate();
+            //this.part.force_activate();
+            this.enabled = true;
 
 		    if (state != StartState.Editor)
 		    {

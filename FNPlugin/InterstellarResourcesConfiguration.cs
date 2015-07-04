@@ -10,9 +10,9 @@ namespace FNPlugin
     {
         private static InterstellarResourcesConfiguration _instance = null;
 
+        private const String _ALIMINIUM = "Aluminium";
         private const String _ANTIMATTER = "Antimatter";
         private const String _INTAKE_ATMOSPHERE = "IntakeAtm";
-        private const String _URANIUM_TETRAFLOURIDE = "EnrichedUranium";
         private const String _THORIUM_TETRAFLOURIDE = "ThF4";
         private const String _URANIUM_NITRIDE = "UraniumNitride";
         private const String _ACTINIDES = "Actinides";
@@ -22,23 +22,26 @@ namespace FNPlugin
         private const String _LITHIUM = "Lithium";
         private const String _PLUTONIUM_238 = "Plutonium-238";
         private const String _ALUMINA = "Alumina";
-        private const String _HELIUM = "LqdHelium";
-        private const String _HELIUM3 = "LqdHe3";
+        //private const String _HELIUM = "LqdHelium";
+        //private const String _HELIUM3 = "LqdHe3";
         private const String _DEUTERIUM = "LqdDeuterium";
 
-        private readonly String _uranium_TerraFloride = _URANIUM_TETRAFLOURIDE;
-        private readonly String _aluminium = "Aluminium";
-        private readonly String _ammonia = "LqdAmmonia";
-        private readonly String _argon = "ArgonGas";
-        private readonly String _carbonDioxide = "LqdCO2";
-        private readonly String _carbonMoxoxide = "LqdCO";
-        private readonly String _hydrogen = "LqdHydrogen";
-        private readonly String _hydrogen_peroxide = "HTP";
-        private readonly String _methane = "LqdMethane";
-        private readonly String _nitrogen = "LqdNitrogen";
-        private readonly String _oxygen = "LqdOxygen";
-        private readonly String _water = "Water";
-        private readonly String _tritium = "LqdTritium";
+        private String _uranium_TerraFloride = "EnrichedUranium";
+        private String _aluminium = "Aluminium";
+        private String _ammonia = "LqdAmmonia";
+        private String _argon = "ArgonGas";
+        private String _carbonDioxide = "LqdCO2";
+        private String _carbonMoxoxide = "LqdCO";
+        private String _helium4 = "LqdHelium";
+        private String _helium3 = "LqdHe3";
+        private String _hydrogen = "LqdHydrogen";
+        private String _hydrogen_peroxide = "HTP";
+        private String _hydrazine = "Hydrazine";
+        private String _methane = "LqdMethane";
+        private String _nitrogen = "LqdNitrogen";
+        private String _oxygen = "LqdOxygen";
+        private String _water = "Water";
+        private String _tritium = "LqdTritium";
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -51,10 +54,11 @@ namespace FNPlugin
         public String DepletedFuel { get { return _DEPLETED_FUEL; } }
         public String Deuterium { get { return _DEUTERIUM; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
-        public String Helium { get { return _HELIUM; } }
-        public String Helium3 { get { return _HELIUM3; } }
+        public String Helium { get { return _helium4; } }
+        public String Helium3 { get { return _helium3; } }
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
+        public String Hydrazine { get { return _hydrazine; } }
         public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
         public String Lithium { get { return _LITHIUM; } }
         public String Methane { get { return _methane; } }
@@ -73,72 +77,88 @@ namespace FNPlugin
         {
             if (plugin_settings != null)
             {
-                if (plugin_settings.HasValue("TritiumResourceName"))
-                {
-                    _tritium = plugin_settings.GetValue("TritiumResourceName");
-                    Debug.Log("[KSP Interstellar] Tritium resource name set to " + _tritium);
-                }
-
-                if (plugin_settings.HasValue("CarbonDioxideResourceName"))
-                {
-                    _carbonDioxide = plugin_settings.GetValue("CarbonDioxideResourceName");
-                    Debug.Log("[KSP Interstellar] CarbonDioxide resource name set to " + _carbonDioxide);
-                }
-                if (plugin_settings.HasValue("CarbonMonoxideResourceName"))
-                {
-                    _carbonMoxoxide = plugin_settings.GetValue("CarbonMonoxideResourceName");
-                    Debug.Log("[KSP Interstellar] CarbonMonoxide resource name set to " + _carbonMoxoxide);
-                }
-
-                if (plugin_settings.HasValue("UraniumTetraflourideName"))
-                {
-                    _uranium_TerraFloride = plugin_settings.GetValue("UraniumTetraflourideName");
-                    Debug.Log("[KSP Interstellar] UraniumTetraflouride resource name set to " + _uranium_TerraFloride);
-                }
-                if (plugin_settings.HasValue("HydrogenResourceName"))
-                {
-                    _hydrogen = plugin_settings.GetValue("HydrogenResourceName");
-                    Debug.Log("[KSP Interstellar] Hydrogen resource name set to " + Hydrogen);
-                }
-                if (plugin_settings.HasValue("OxygenResourceName"))
-                {
-                    _oxygen = plugin_settings.GetValue("OxygenResourceName");
-                    Debug.Log("[KSP Interstellar] Oxygen resource name set to " + Oxygen);
-                }
                 if (plugin_settings.HasValue("AluminiumResourceName"))
                 {
                     _aluminium = plugin_settings.GetValue("AluminiumResourceName");
                     Debug.Log("[KSP Interstellar] Aluminium resource name set to " + Aluminium);
-                }
-                if (plugin_settings.HasValue("MethaneResourceName"))
-                {
-                    _methane = plugin_settings.GetValue("MethaneResourceName");
-                    Debug.Log("[KSP Interstellar] Methane resource name set to " + Methane);
-                }
-                if (plugin_settings.HasValue("ArgonResourceName"))
-                {
-                    _argon = plugin_settings.GetValue("ArgonResourceName");
-                    Debug.Log("[KSP Interstellar] Argon resource name set to " + Argon);
-                }
-                if (plugin_settings.HasValue("WaterResourceName"))
-                {
-                    _water = plugin_settings.GetValue("WaterResourceName");
-                    Debug.Log("[KSP Interstellar] Water resource name set to " + Water);
-                }
-                if (plugin_settings.HasValue("HydrogenPeroxideResourceName"))
-                {
-                    _hydrogen_peroxide = plugin_settings.GetValue("HydrogenPeroxideResourceName");
-                    Debug.Log("[KSP Interstellar] Hydrogen Peroxide resource name set to " + HydrogenPeroxide);
                 }
                 if (plugin_settings.HasValue("AmmoniaResourceName"))
                 {
                     _ammonia = plugin_settings.GetValue("AmmoniaResourceName");
                     Debug.Log("[KSP Interstellar] Ammonia resource name set to " + Ammonia);
                 }
+                if (plugin_settings.HasValue("ArgonResourceName"))
+                {
+                    _argon = plugin_settings.GetValue("ArgonResourceName");
+                    Debug.Log("[KSP Interstellar] Argon resource name set to " + Argon);
+                }
+                if (plugin_settings.HasValue("CarbonDioxideResourceName"))
+                {
+                    _carbonDioxide = plugin_settings.GetValue("CarbonDioxideResourceName");
+                    Debug.Log("[KSP Interstellar] CarbonDioxide resource name set to " + CarbonDioxide);
+                }
+                if (plugin_settings.HasValue("CarbonMonoxideResourceName"))
+                {
+                    _carbonMoxoxide = plugin_settings.GetValue("CarbonMonoxideResourceName");
+                    Debug.Log("[KSP Interstellar] CarbonMonoxide resource name set to " + CarbonMoxoxide);
+                }
+                if (plugin_settings.HasValue("HeliumResourceName"))
+                {
+                    _helium4 = plugin_settings.GetValue("HeliumResourceName");
+                    Debug.Log("[KSP Interstellar] Helium4 resource name set to " + Helium);
+                }
+                if (plugin_settings.HasValue("Helium3ResourceName"))
+                {
+                    _helium3 = plugin_settings.GetValue("Helium3ResourceName");
+                    Debug.Log("[KSP Interstellar] Helium3 resource name set to " + Helium3);
+                }
+
+                if (plugin_settings.HasValue("HydrazineResourceName"))
+                {
+                    _hydrazine = plugin_settings.GetValue("HydrazineResourceName");
+                    Debug.Log("[KSP Interstellar] Hydrazine resource name set to " + Hydrazine);
+                }
+                if (plugin_settings.HasValue("HydrogenResourceName"))
+                {
+                    _hydrogen = plugin_settings.GetValue("HydrogenResourceName");
+                    Debug.Log("[KSP Interstellar] Hydrogen resource name set to " + Hydrogen);
+                }
+                if (plugin_settings.HasValue("HydrogenPeroxideResourceName"))
+                {
+                    _hydrogen_peroxide = plugin_settings.GetValue("HydrogenPeroxideResourceName");
+                    Debug.Log("[KSP Interstellar] Hydrogen Peroxide resource name set to " + HydrogenPeroxide);
+                }
+
+                if (plugin_settings.HasValue("MethaneResourceName"))
+                {
+                    _methane = plugin_settings.GetValue("MethaneResourceName");
+                    Debug.Log("[KSP Interstellar] Methane resource name set to " + Methane);
+                }
                 if (plugin_settings.HasValue("NitrogenResourceName"))
                 {
                     _nitrogen = plugin_settings.GetValue("NitrogenResourceName");
                     Debug.Log("[KSP Interstellar] Nitrogen resource name set to " + Nitrogen);
+                }
+                if (plugin_settings.HasValue("OxygenResourceName"))
+                {
+                    _oxygen = plugin_settings.GetValue("OxygenResourceName");
+                    Debug.Log("[KSP Interstellar] Oxygen resource name set to " + Oxygen);
+                }
+
+                if (plugin_settings.HasValue("TritiumResourceName"))
+                {
+                    _tritium = plugin_settings.GetValue("TritiumResourceName");
+                    Debug.Log("[KSP Interstellar] Tritium resource name set to " + _tritium);
+                }
+                if (plugin_settings.HasValue("UraniumTetraflourideName"))
+                {
+                    _uranium_TerraFloride = plugin_settings.GetValue("UraniumTetraflourideName");
+                    Debug.Log("[KSP Interstellar] UraniumTetraflouride resource name set to " + _uranium_TerraFloride);
+                }
+                if (plugin_settings.HasValue("WaterResourceName"))
+                {
+                    _water = plugin_settings.GetValue("WaterResourceName");
+                    Debug.Log("[KSP Interstellar] Water resource name set to " + Water);
                 }
             } 
             else

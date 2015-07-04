@@ -93,7 +93,7 @@
     <Compile Include="Toolbar\InterstellarToolbar.cs" />
     <Compile Include="Microwave\MicrowaveSources.cs" />
     <Compile Include="Refinery\HaberProcess.cs" />
-    <Compile Include="Refinery\MonopropellantProducer.cs" />
+    <Compile Include="Refinery\PeroxideProcess.cs" />
     <Compile Include="Reactors\Interfaces\IChargedParticleSource.cs" />
     <Compile Include="Reactors\InterstellarCatalysedFissionFusion.cs" />
     <Compile Include="Extensions\InterstellarCelestialBodyExtensions.cs" />
@@ -114,7 +114,6 @@
     <Compile Include="Science\DTMagnetometer.cs" />
     <Compile Include="Reactors\FNAntimatterReactor.cs" />
     <Compile Include="Propulsion\FNNozzleControllerFX.cs" />
-    <Compile Include="Refinery\FNRefinery.cs" />
     <Compile Include="FNResourceOvermanager.cs" />
     <Compile Include="Science\FNResourceScanner.cs" />
     <Compile Include="Science\FNSeismicProbe.cs" />

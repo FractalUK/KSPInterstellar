@@ -53,7 +53,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new AluminiumElectrolyser(this.part));
                 unsortedList.Add(new SabatierReactor(this.part));
                 unsortedList.Add(new WaterElectroliser(this.part));
-                unsortedList.Add(new MonopropellantProducer(this.part));
+                unsortedList.Add(new PeroxideProcess(this.part));
                 unsortedList.Add(new UF4Ammonolysiser(this.part));
                 unsortedList.Add(new HaberProcess(this.part));
                 unsortedList.Add(new AmmoniaElectrolyzer(this.part));

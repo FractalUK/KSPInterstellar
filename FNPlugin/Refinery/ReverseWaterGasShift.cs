@@ -93,10 +93,11 @@ namespace FNPlugin.Refinery
         {
             _allowOverflow = allowOverflow;
             
-            // determine how much resource we have
+            // determine overal maximum production rate
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
 
+            // determine how much resource we have
             var partsThatContainWater = _part.GetConnectedResources(_waterResourceName);
             var partsThatContainMonoxide = _part.GetConnectedResources(_monoxideResourceName);
             var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogenResourceName);
@@ -109,6 +110,7 @@ namespace FNPlugin.Refinery
 
             _availableDioxideMass = partsThatContainDioxide.Sum(r => r.amount) * _dioxide_density;
             _availableHydrogenMass = partsThatContainHydrogen.Sum(r => r.amount) * _hydrogen_density;
+
             _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _water_density;
             _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxide_density;
 
@@ -132,7 +134,7 @@ namespace FNPlugin.Refinery
 
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate, fixedMaxPossibleWaterRate / fixedMaxWaterRate);
 
-                // now we do the real elextrolysis
+                // now we do the real consumption
                 _dioxide_consumption_rate = _part.RequestResource(_dioxideResourceName, dioxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _dioxide_density) / TimeWarp.fixedDeltaTime * _dioxide_density;
                 _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogenMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
                 var combined_consumption_rate = _dioxide_consumption_rate + _hydrogen_consumption_rate;
