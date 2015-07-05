@@ -112,12 +112,12 @@ namespace FNPlugin.Refinery
                 var oxygen_consumption_rate = fixedMaxPossibleHydrogenPeroxidenRate * _oxygenMassByFraction;
 
                 // consume the resource
-                _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_consumption_rate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _oxygen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, oxygen_consumption_rate / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
+                _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogen_consumption_rate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
+                _oxygen_consumption_rate = _part.RequestResource(_oxygenResourceName, oxygen_consumption_rate / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
 
                 var combined_consumption_rate = (_hydrogen_consumption_rate + _oxygen_consumption_rate) * TimeWarp.fixedDeltaTime / _hydrogen_peroxide_density;
 
-                _hydrogen_peroxide_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide, -combined_consumption_rate) / TimeWarp.fixedDeltaTime * _hydrogen_peroxide_density;
+                _hydrogen_peroxide_production_rate = -_part.RequestResource(_hydrogenPeroxideResourceName, -combined_consumption_rate) / TimeWarp.fixedDeltaTime * _hydrogen_peroxide_density;
             }
             else
             {

@@ -39,7 +39,9 @@ namespace FNPlugin
         public bool startDisabled;
 
         // Persistent False
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = false)]
+        public float breedDivider = 100000.0f;
+        [KSPField(isPersistant = false)]
         public float bonusBufferFactor = 0.05f;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public float heatTransportationEfficiency = 0.8f;
@@ -128,6 +130,7 @@ namespace FNPlugin
         protected ReactorFuelMode current_fuel_mode;
         protected double powerPcnt;
         protected float tritium_produced_f;
+        protected float helium_produced_f;
         protected long update_count;
         protected long last_draw_update;
         protected float ongoing_thermal_power_f;
@@ -150,6 +153,9 @@ namespace FNPlugin
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
         protected float connectedRecieversSum;
+
+        protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
+        protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
 
         public bool IsThermalSource
         {
@@ -441,17 +447,19 @@ namespace FNPlugin
             if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
                 hasrequiredupgrade = true;
 
-            if (!reactorInit && startDisabled)
-            {
-                last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * GameConstants.EARH_DAY_SECONDS);
-                IsEnabled = false;
-                startDisabled = false;
-                reactorInit = true;
-            }
-            else if (!reactorInit)
+            if (!reactorInit)
             {
                 IsEnabled = true;
                 reactorInit = true;
+                breedtritium = true;
+
+                if (startDisabled)
+                {
+                    last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * GameConstants.EARH_DAY_SECONDS);
+                    IsEnabled = false;
+                    startDisabled = false;
+                    breedtritium = false;
+                }
             }
 
             print("[KSP Interstellar] Reactor Persistent Resource Update");
@@ -594,18 +602,21 @@ namespace FNPlugin
 
                 double min_throttle = fuel_ratio > 0 ? minimumThrottle / fuel_ratio : 1;
                 max_power_to_supply = max_power_to_supply * fuel_ratio;
+
                 // Charged Power
                 double max_charged_to_supply = Math.Max(MaximumChargedPower * TimeWarp.fixedDeltaTime, 0) * fuel_ratio;
                 double charged_particles_to_supply = max_charged_to_supply;
                 double charged_power_received = supplyManagedFNResourceWithMinimum(charged_particles_to_supply, minimumThrottle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 double charged_power_ratio = ChargedParticleRatio > 0 ? charged_power_received / max_charged_to_supply : 0;
                 ongoing_charged_power_f = (float)(charged_power_received / TimeWarp.fixedDeltaTime);
+
                 // Thermal Power
                 double max_thermal_to_supply = Math.Max(MaximumThermalPower * TimeWarp.fixedDeltaTime, 0) * fuel_ratio;
                 double thermal_power_to_supply = max_thermal_to_supply;
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(thermal_power_to_supply, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 double thermal_power_ratio = (1 - ChargedParticleRatio) > 0 ? thermal_power_received / max_thermal_to_supply : 0;
                 ongoing_thermal_power_f = (float)(thermal_power_received / TimeWarp.fixedDeltaTime);
+
                 // Total
                 double total_power_received = thermal_power_received + charged_power_received;
                 total_power_per_frame = total_power_received;
@@ -626,7 +637,7 @@ namespace FNPlugin
                 ongoing_total_power_f = ongoing_charged_power_f + ongoing_thermal_power_f;
                 // Waste Heat
                 supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
-                //
+                
                 powerPcnt = 100.0 * total_power_ratio;
 
                 if (min_throttle > 1.05) IsEnabled = false;
@@ -634,13 +645,31 @@ namespace FNPlugin
                 {
                     PartResourceDefinition lithium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
                     PartResourceDefinition tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
-                    double breed_rate = thermal_power_received / TimeWarp.fixedDeltaTime / 100000.0 / GameConstants.tritiumBreedRate;
+                    PartResourceDefinition helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium);
+
+                    // calculate current maximum litlium consumption
+                    double breed_rate = thermal_power_received / TimeWarp.fixedDeltaTime / breedDivider / GameConstants.tritiumBreedRate;
                     double lith_rate = breed_rate * TimeWarp.fixedDeltaTime / lithium_def.density;
-                    double lith_used = ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, lith_rate);
-                    double lt_density_ratio = lithium_def.density / tritium_def.density;
-                    tritium_produced_f = (float)(-ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium,
-                        -lith_used * 3.0 / 7.0 * lt_density_ratio) / TimeWarp.fixedDeltaTime);
-                    //if (tritium_produced_f <= 0) breedtritium = false;
+
+                    // get spare room tritium
+                    var partsThatStoreTritium = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Tritium);
+                    var spareRoomTritiumAmount = partsThatStoreTritium.Sum(r => r.maxAmount - r.amount);
+
+                    // limit lithium consumption to maximum tritium storage
+                    var maximumTritiumProduction = lith_rate * tritium_molar_mass_ratio * lithium_def.density / tritium_def.density;
+                    var maximumLitiumConsumtionRatio = Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction;
+                    var lithium_request = lith_rate * maximumLitiumConsumtionRatio;
+
+                    // consume the lithium
+                    double lith_used = part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium, lithium_request);
+
+                    // caculate products
+                    var tritium_production = lith_used * tritium_molar_mass_ratio * lithium_def.density / tritium_def.density;
+                    var helium_production = lith_used * helium_molar_mass_ratio * lithium_def.density / helium_def.density;
+
+                    // produce tritium and helium
+                    tritium_produced_f = (float)(-part.RequestResource(InterstellarResourcesConfiguration.Instance.Tritium, -tritium_production) / TimeWarp.fixedDeltaTime);
+                    helium_produced_f = (float)(-part.RequestResource(InterstellarResourcesConfiguration.Instance.Helium, -helium_production) / TimeWarp.fixedDeltaTime);
                 }
 
                 if (Planetarium.GetUniversalTime() != 0)
@@ -919,7 +948,7 @@ namespace FNPlugin
                     fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label(fuel_use.ToString("0.0000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
+                    GUILayout.Label(fuel_use.ToString("0.000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                 }
 

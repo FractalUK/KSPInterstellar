@@ -18,28 +18,30 @@ namespace FNPlugin.Refinery
         protected Vessel _vessel;
         protected String _status = "";
         protected double _current_power;
+        protected double _fixedConsumptionRate;
 
-        protected double _oxygen_density;
+        protected double _carbondioxide_density;
         protected double _methane_density;
         protected double _hydrogen_density;
 
         protected double _hydrogen_consumption_rate;
+        protected double _carbondioxide_consumption_rate;
+
         protected double _methane_production_rate;
-        protected double _oxygen_production_rate;
         protected double _current_rate;
+        
 
         private GUIStyle _bold_label;
 
-        public String ActivityName { get { return "Sabatier ISRU"; } }
+        public String ActivityName { get { return "Sabatier Process"; } }
 
         public double CurrentPower { get { return _current_power; } }
 
         public bool HasActivityRequirements {
             get
             {
-                return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) &&
-                    _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.CarbonDioxide).Any(rs => rs.amount > 0);
-                //(FlightGlobals.getStaticPressure(_vessel.transform.position) / 100) * ORSAtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Carbon Dioxide") >= 0.01; }
+                return _part.GetConnectedResources(_hydrogen_resource_name).Any(rs => rs.amount > 0) &&
+                    _part.GetConnectedResources(_carbondioxide_resource_name).Any(rs => rs.amount > 0);
             }
         }
 
@@ -47,29 +49,81 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
+        protected string _carbondioxide_resource_name;
+        protected string _methane_resource_name;
+        protected string _hydrogen_resource_name;
+
         public SabatierReactor(Part part) 
         {
             _part = part;
             _vessel = part.vessel;
-            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
-            _methane_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Methane).density;
-            _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+
+            _carbondioxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
+            _hydrogen_resource_name = InterstellarResourcesConfiguration.Instance.Hydrogen;
+            _methane_resource_name = InterstellarResourcesConfiguration.Instance.Methane;
+
+            _carbondioxide_density = PartResourceLibrary.Instance.GetDefinition(_carbondioxide_resource_name).density;
+            _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(_hydrogen_resource_name).density;
+            _methane_density = PartResourceLibrary.Instance.GetDefinition(_methane_resource_name).density;
         }
+
+        protected double _maxCapacityCarbondioxideMass;
+        protected double _maxCapacityHydrogenMass;
+        protected double _maxCapacityMethaneMass;
+
+        protected double _availableCarbondioxideMass;
+        protected double _availableHydrogenMass;
+        protected double _spareRoomMethaneMass;
+
+        protected double _carbonDioxideMassByFraction = 44.01 / (44.01 + 8 * 1.008);
+        protected double _hydrogenMassByFraction = (8 * 1.008) / (44.01 + 8 * 1.008);
 
         public void UpdateFrame(double rateMultiplier, bool allowOverflow)
         {
             _current_power = PowerRequirements * rateMultiplier;
-            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon * _vessel.atmDensity;
+            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon; //* _vessel.atmDensity;
 
-            double h_rate_temp = _current_rate / (1 + GameConstants.electrolysisMassRatio);
-            double o_rate_temp = h_rate_temp * (GameConstants.electrolysisMassRatio - 1.0);
+            // determine how much resource we have
+            var partsThatContainCarbonDioxide = _part.GetConnectedResources(_carbondioxide_resource_name);
+            var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogen_resource_name);
+            var partsThatContainMethane = _part.GetConnectedResources(_methane_resource_name);
 
-            _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, h_rate_temp * TimeWarp.fixedDeltaTime / _hydrogen_density / 2);
-            
-            if (_hydrogen_consumption_rate > 0)
+            _maxCapacityCarbondioxideMass = partsThatContainCarbonDioxide.Sum(p => p.maxAmount) * _carbondioxide_density;
+            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogen_density;
+            _maxCapacityMethaneMass = partsThatContainMethane.Sum(p => p.maxAmount) * _methane_density;
+
+            _availableCarbondioxideMass = partsThatContainCarbonDioxide.Sum(r => r.amount) * _carbondioxide_density;
+            _availableHydrogenMass = partsThatContainHydrogen.Sum(r => r.amount) * _hydrogen_density;
+            _spareRoomMethaneMass = partsThatContainMethane.Sum(r => r.maxAmount - r.amount) * _methane_density;
+
+            var fixedMaxCarbondioxideConsumptionRate = _current_rate * _carbonDioxideMassByFraction * TimeWarp.fixedDeltaTime;
+            var carbondioxideConsumptionRatio = fixedMaxCarbondioxideConsumptionRate > 0 ? Math.Min(fixedMaxCarbondioxideConsumptionRate, _availableCarbondioxideMass) / fixedMaxCarbondioxideConsumptionRate : 0;
+
+            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * TimeWarp.fixedDeltaTime;
+            var hydrogenConsumptionRatio = fixedMaxHydrogenConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenConsumptionRate, _availableHydrogenMass) / fixedMaxHydrogenConsumptionRate : 0;
+
+            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * Math.Min(carbondioxideConsumptionRatio, hydrogenConsumptionRatio);
+
+            if (_fixedConsumptionRate > 0 && _spareRoomMethaneMass > 0)
             {
-                _oxygen_production_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -o_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime / _oxygen_density;
-                _methane_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Methane, -o_rate_temp * 2.0 / _oxygen_density * TimeWarp.fixedDeltaTime / _methane_density) * _methane_density / TimeWarp.fixedDeltaTime;
+                var fixedMaxPossibleMethaneRate = Math.Min(_spareRoomMethaneMass, _fixedConsumptionRate);
+
+                var carbonDioxide_consumption_rate = fixedMaxCarbondioxideConsumptionRate * _carbonDioxideMassByFraction;
+                var hydrogen_consumption_rate = fixedMaxHydrogenConsumptionRate * _hydrogenMassByFraction;
+
+                // consume the resource
+                _hydrogen_consumption_rate = _part.RequestResource(_hydrogen_resource_name, hydrogen_consumption_rate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
+                _carbondioxide_consumption_rate = _part.RequestResource(_carbondioxide_resource_name, carbonDioxide_consumption_rate / _carbondioxide_density) / TimeWarp.fixedDeltaTime * _carbondioxide_density;
+
+                var combined_consumption_rate = (_hydrogen_consumption_rate + _carbondioxide_consumption_rate) * TimeWarp.fixedDeltaTime / _methane_density;
+
+                _methane_production_rate = -_part.RequestResource(_methane_resource_name, -combined_consumption_rate) / TimeWarp.fixedDeltaTime * _methane_density;
+            }
+            else
+            {
+                _hydrogen_consumption_rate = 0;
+                _carbondioxide_consumption_rate = 0;
+                _methane_production_rate = 0;
             }
             updateStatusMessage();
         }
@@ -81,32 +135,52 @@ namespace FNPlugin.Refinery
                 _bold_label = new GUIStyle(GUI.skin.label);
                 _bold_label.fontStyle = FontStyle.Bold;
             }
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Overal Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(((_fixedConsumptionRate / TimeWarp.fixedDeltaTime * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Carbon Dioxide Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_availableCarbondioxideMass.ToString("0.0000") + " mT / " + _maxCapacityCarbondioxideMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Carbon Dioxid Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_carbondioxide_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Hydrogen Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_availableHydrogenMass.ToString("0.0000") + " mT / " + _maxCapacityHydrogenMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Methane Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_spareRoomMethaneMass.ToString("0.0000") + " mT / " + _maxCapacityMethaneMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Methane Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_methane_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_oxygen_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_methane_production_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
-            if (_methane_production_rate > 0 && _oxygen_production_rate > 0)
+            if (_methane_production_rate > 0)
                 _status = "Sabatier Process Ongoing";
-            else if (_oxygen_production_rate > 0)
-                _status = "Ongoing: Insufficient Oxygen Storage";
-            else if (_methane_production_rate > 0)
-                _status = "Ongoing: Insufficient Methane Storage";
             else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = "Insufficient Power";
             else

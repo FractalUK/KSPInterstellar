@@ -101,7 +101,7 @@ namespace FNPlugin
         {
             if (state != StartState.Editor)
             {
-                breedtritium = true;
+                //breedtritium = true;
 
                 if (allowJumpStart)
                 {

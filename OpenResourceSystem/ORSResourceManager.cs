@@ -189,7 +189,8 @@ namespace OpenResourceSystem {
 			return my_partmodule;
 		}
 
-        public void update() {
+        public void update() 
+        {
             stored_supply = powersupply;
 			stored_stable_supply = stable_supply;
             stored_resource_demand = current_resource_demand;
@@ -208,15 +209,18 @@ namespace OpenResourceSystem {
             List<PartResource> partresources = my_part.GetConnectedResources(resource_name).ToList();
             double currentmegajoules = 0;
 			double maxmegajoules = 0;
-            foreach (PartResource partresource in partresources) {
+
+            foreach (PartResource partresource in partresources) 
+            {
                 currentmegajoules += partresource.amount;
 				maxmegajoules += partresource.maxAmount;
             }
-			if (maxmegajoules > 0) {
+
+			if (maxmegajoules > 0) 
 				resource_bar_ratio = currentmegajoules / maxmegajoules;
-			} else {
+            else 
 				resource_bar_ratio = 0;
-			}
+
 			double missingmegajoules = maxmegajoules - currentmegajoules;
             powersupply += currentmegajoules;
 			//Debug.Log ("Current:" + currentmegajoules);
@@ -224,21 +228,20 @@ namespace OpenResourceSystem {
 			double demand_supply_ratio = 0;
 			double high_priority_demand_supply_ratio = 0;
 
-			if (high_priority_resource_demand > 0) {
+			if (high_priority_resource_demand > 0) 
 				high_priority_demand_supply_ratio = Math.Min ((powersupply-stored_current_charge_demand) / stored_current_hp_demand, 1.0);
-			} else {
+			else 
 				high_priority_demand_supply_ratio = 1.0;
-			}
+			
 
-			if (stored_current_demand > 0) {
+			if (stored_current_demand > 0) 
 				demand_supply_ratio = Math.Min ((powersupply-stored_current_charge_demand-stored_current_hp_demand) / stored_current_demand, 1.0);
-			} else {
+			else 
 				demand_supply_ratio = 1.0;
-			}
-
 
 			//Prioritise supplying stock ElectricCharge resource
-			if (String.Equals(this.resource_name, ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) {
+			if (String.Equals(this.resource_name, ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) 
+            {
 				List<PartResource> electric_charge_resources = my_part.GetConnectedResources ("ElectricCharge").ToList(); 
 				double stock_electric_charge_needed = 0;
 				foreach (PartResource partresource in electric_charge_resources) {
@@ -272,9 +275,10 @@ namespace OpenResourceSystem {
                     double power = power_kvp.Value;
 					current_resource_demand += power;
 					high_priority_resource_demand += power;
-					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
+
+					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
 						power = power * high_priority_demand_supply_ratio;
-					}
+					
                     double power_supplied = Math.Max(Math.Min(powersupply, power),0.0);
 					//Debug.Log (power + ", " + powersupply + "::: " + power_supplied);
                     powersupply -= power_supplied;
@@ -292,9 +296,10 @@ namespace OpenResourceSystem {
                 {
                     double power = power_kvp.Value;
 					current_resource_demand += power;
-					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
+
+					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
 						power = power * demand_supply_ratio;
-					}
+					
 					double power_supplied = Math.Max(Math.Min(powersupply, power),0.0);
                     powersupply -= power_supplied;
 

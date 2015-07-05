@@ -32,9 +32,9 @@ namespace FNPlugin
         public const double deuterium_abudance = 0.00015625;
         public const double deuterium_timescale = 0.0016667;
 
-        public const string deuterium_tritium_fuel_mode = "Deuterium/Tritium";
-        public const string deuterium_helium3_fuel_mode = "Deuterium/Helium-3";
-        public const string helium3_fuel_mode = "Helium-3";
+        //public const string deuterium_tritium_fuel_mode = "Deuterium/Tritium";
+        //public const string deuterium_helium3_fuel_mode = "Deuterium/Helium-3";
+        //public const string helium3_fuel_mode = "Helium-3";
 
         public const double baseReprocessingRate = 400;
         public const double baseScienceRate = 0.1f;

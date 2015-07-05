@@ -7,9 +7,11 @@ using System.Text;
 using UnityEngine;
 using ORSvKSPIE::OpenResourceSystem;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
     [KSPModule("Radioactive Decay")]
-    class ModuleElementRadioactiveDecay : PartModule {
+    class ModuleElementRadioactiveDecay : PartModule 
+    {
         // Persistent False
         [KSPField(isPersistant = false)]
         public float decayConstant;
@@ -25,51 +27,52 @@ namespace FNPlugin {
 
         protected double density_rat = 1;
 
-        PartResource decay_resource;
+        private PartResource decay_resource;
+        private bool resourceDefinitionsContainDecayProduct;
 
-        public override void OnStart(PartModule.StartState state) {
-            if (state == StartState.Editor) {
+        public override void OnStart(PartModule.StartState state)
+        {
+            double time_diff = lastActiveTime - Planetarium.GetUniversalTime();
+
+            if (state == StartState.Editor)
                 return;
-            }
+
             if (part.Resources.Contains(resourceName))
                 decay_resource = part.Resources[resourceName];
             else
+            {
                 decay_resource = null;
-
-            double time_diff = lastActiveTime - Planetarium.GetUniversalTime();
-            if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
-                density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
+                return;
             }
-            if(decay_resource != null && time_diff > 0) {
+
+            resourceDefinitionsContainDecayProduct = PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct);
+            if (resourceDefinitionsContainDecayProduct)
+                density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
+
+            if (decay_resource != null && time_diff > 0)
+            {
                 double n_0 = decay_resource.amount;
                 decay_resource.amount = n_0 * Math.Exp(-decayConstant * time_diff);
                 double n_change = n_0 - decay_resource.amount;
-                if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct)) {
+
+                if (resourceDefinitionsContainDecayProduct)
                     ORSHelper.fixedRequestResource(part, decayProduct, -n_change * density_rat);
-                }
             }
         }
 
-        public void FixedUpdate() {
-            if (part.Resources.Contains(resourceName))
-                decay_resource = part.Resources[resourceName];
-            else
-            {
-                decay_resource = null;
-                return;
-            }
+        public void FixedUpdate()
+        {
+            if (decay_resource == null) return;
 
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
-                decay_resource.amount -= decay_amount;
-                if (PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct))
-                {
-                    ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount * density_rat);
-                }
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                lastActiveTime = (float)Planetarium.GetUniversalTime();
-            }
+            lastActiveTime = (float)Planetarium.GetUniversalTime();
+
+            double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
+            decay_resource.amount -= decay_amount;
+
+            if (resourceDefinitionsContainDecayProduct)
+                ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount * density_rat);
         }
 
         public override string GetInfo()
