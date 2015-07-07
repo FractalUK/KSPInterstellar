@@ -13,7 +13,7 @@ namespace FNPlugin
     [KSPModule("Radiator")]
 	class FNRadiator : FNResourceSuppliableModule	
     {
-		[KSPField(isPersistant = true)]
+		[KSPField(isPersistant = true, guiActive = true)]
 		public bool radiatorIsEnabled;
         [KSPField(isPersistant = true)]
         public bool isupgraded;
@@ -56,6 +56,14 @@ namespace FNPlugin
 		public string thermalPowerConvStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
 		public string upgradeCostStr;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator Start Temp")]
+        public float radiator_temperature_temp_val;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Rad Temp")]
+        public float instantaneous_rad_temp;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "WasteHeat Ratio")]
+        public float wasteheatRatio;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Text")]
+        //public string wasteheatRatioStr;
 
         protected readonly static float rad_const_h = 1000;
         protected readonly static double alpha = 0.001998001998001998001998001998;
@@ -389,7 +397,9 @@ namespace FNPlugin
 
 			if (radiatorIsEnabled) 
             {
-				if (getResourceBarRatio (FNResourceManager.FNRESOURCE_WASTEHEAT) >= 1 && current_rad_temp >= radiatorTemp) 
+                wasteheatRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                if (wasteheatRatio >= 1 && current_rad_temp >= radiatorTemp) 
                 {
 					explode_counter ++;
 					if (explode_counter > 25) 
@@ -397,23 +407,19 @@ namespace FNPlugin
 				} 
                 else 
 					explode_counter = 0;
-				
 
-                double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
+                radiator_temperature_temp_val = radiatorTemp * (float)Math.Pow(wasteheatRatio, 0.25);
                 if (vessel.HasAnyActiveThermalSources()) 
-                    radiator_temperature_temp_val = Math.Min(vessel.GetTemperatureofColdestThermalSource() / 1.01, radiator_temperature_temp_val);
+                    radiator_temperature_temp_val = (float)Math.Min(vessel.GetTemperatureofColdestThermalSource() / 1.01, radiator_temperature_temp_val);
 
-                double thermal_power_dissip = (GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e6) * TimeWarp.fixedDeltaTime;
+                double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
-                radiatedThermalPower = consumeWasteHeat(thermal_power_dissip) / TimeWarp.fixedDeltaTime;
+                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip) / TimeWarp.fixedDeltaTime;
 
-                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e6 / (GameConstants.stefan_const * CurrentRadiatorArea), 0.25), radiatorTemp));
-                instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody) + 273.16, 2.7));
-                
-                if (current_rad_temp <= 0) 
-                    current_rad_temp = instantaneous_rad_temp;
-                else 
-                    current_rad_temp = instantaneous_rad_temp * alpha + (1.0 - alpha) * instantaneous_rad_temp;
+                instantaneous_rad_temp = (float)Math.Min(radiator_temperature_temp_val * 1.014, radiatorTemp);
+                instantaneous_rad_temp = (float)Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7));
+
+                current_rad_temp = instantaneous_rad_temp;
                 
 				if (isDeployable) 
                 {
@@ -444,20 +450,18 @@ namespace FNPlugin
 				if (isDeployable) 
 					pivot.transform.localEulerAngles = original_eulers;
 
-                double radiator_temperature_temp_val = radiatorTemp * Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
-				if (vessel.HasAnyActiveThermalSources()) radiator_temperature_temp_val = Math.Min (vessel.GetTemperatureofColdestThermalSource()/1.01, radiator_temperature_temp_val);
+                radiator_temperature_temp_val = radiatorTemp * (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 0.25);
+				if (vessel.HasAnyActiveThermalSources()) 
+                    radiator_temperature_temp_val = (float)Math.Min (vessel.GetTemperatureofColdestThermalSource()/1.01, radiator_temperature_temp_val);
 
-                double thermal_power_dissip = (GameConstants.stefan_const * CurrentRadiatorArea * Math.Pow(radiator_temperature_temp_val, 4) / 1e7) * TimeWarp.fixedDeltaTime;
+                double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e7 * TimeWarp.fixedDeltaTime;
 
-				radiatedThermalPower = consumeWasteHeat(thermal_power_dissip) / TimeWarp.fixedDeltaTime;
+                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip) / TimeWarp.fixedDeltaTime;
 
-                double instantaneous_rad_temp = (Math.Min(Math.Pow(radiatedThermalPower * 1e7 / (GameConstants.stefan_const * CurrentRadiatorArea), 0.25), radiatorTemp));
-                instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody) + 273.16, 2.7));
-                
-                if (current_rad_temp <= 0) 
-                    current_rad_temp = instantaneous_rad_temp;
-                else 
-                    current_rad_temp = instantaneous_rad_temp * alpha + (1.0 - alpha) * instantaneous_rad_temp;
+                instantaneous_rad_temp = (float)Math.Min(radiator_temperature_temp_val * 1.014, radiatorTemp);
+                instantaneous_rad_temp = (float)Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7));
+
+                current_rad_temp = instantaneous_rad_temp;
                 
 				part.maximum_drag = 0.2f;
 				part.minimum_drag = 0.2f;

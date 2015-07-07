@@ -41,6 +41,8 @@ namespace FNPlugin
         public float radius;
         [KSPField(isPersistant = false)]
         public string altUpgradedName;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
@@ -156,6 +158,16 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // calculate WasteHeat Capacity
+            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+            var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
+            if (wasteheatPowerResource != null)
+            {
+                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = partBaseWasteheat;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+            }
+
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT };
@@ -407,13 +419,13 @@ namespace FNPlugin
                         }
                     }
 
-                    PartResource wasteheatResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-                    if (wasteheatResource != null)
-                    {
-                        var previousMaxAmount = wasteheatResource.maxAmount;
-                        wasteheatResource.maxAmount = TimeWarp.fixedDeltaTime * part.mass * 1000;
-                        this.part.RequestResource(FNResourceManager.FNRESOURCE_WASTEHEAT, previousTimeWarp > TimeWarp.fixedDeltaTime ? previousMaxAmount - wasteheatResource.maxAmount : 0);
-                    }
+                    //PartResource wasteheatResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    //if (wasteheatResource != null)
+                    //{
+                    //    var previousMaxAmount = wasteheatResource.maxAmount;
+                    //    wasteheatResource.maxAmount = TimeWarp.fixedDeltaTime * part.mass * 1000;
+                    //    this.part.RequestResource(FNResourceManager.FNRESOURCE_WASTEHEAT, previousTimeWarp > TimeWarp.fixedDeltaTime ? previousMaxAmount - wasteheatResource.maxAmount : 0);
+                    //}
 
                     PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
                     if (electricChargeResource != null)

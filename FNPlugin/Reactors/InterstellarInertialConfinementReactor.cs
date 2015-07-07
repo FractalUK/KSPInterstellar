@@ -87,15 +87,15 @@ namespace FNPlugin
 				: (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); }
 	    }
 
-        [KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
-        public void SwapFuelMode() 
-        {
-            fuel_mode++;
-            if (fuel_mode >= fuel_modes.Count) 
-                fuel_mode = 0;
+        //[KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
+        //public void SwapFuelMode() 
+        //{
+        //    fuel_mode++;
+        //    if (fuel_mode >= fuel_modes.Count) 
+        //        fuel_mode = 0;
             
-            current_fuel_mode = fuel_modes[fuel_mode];
-        }
+        //    current_fuel_mode = fuel_modes[fuel_mode];
+        //}
         
         public override bool shouldScaleDownJetISP() 
         {

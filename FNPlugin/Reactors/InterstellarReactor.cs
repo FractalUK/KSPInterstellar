@@ -157,6 +157,8 @@ namespace FNPlugin
         protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
         protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
 
+        protected double partBaseWasteheat;
+
         public bool IsThermalSource
         {
             get { return true; }
@@ -399,6 +401,7 @@ namespace FNPlugin
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             PowerOutputBase = PowerOutput;
             upgradedPowerOutputBase = upgradedPowerOutput;
+            
 
             // initialise resource defenitions
             thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -406,10 +409,11 @@ namespace FNPlugin
             wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             // calculate WasteHeat Capacity
+            partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
             if (wasteheatPowerResource != null)
             {
                 var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.maxAmount = partBaseWasteheat;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
@@ -563,21 +567,20 @@ namespace FNPlugin
                             : Math.Max(0, Math.Min(requiredChargedCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredChargedCapacity));
                     }
 
-                    if (wasteheatPowerResource)
-                    {
-                        var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                        var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
-                        //var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
+                    //if (wasteheatPowerResource)
+                    //{
+                    //    var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
+                    //    var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
 
-                        var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                        wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                        wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
+                    //    var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
+                    //    wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                    //    //wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
 
-                        //wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                        //wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
-                        //	? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
-                        //	: Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
-                    }
+                    //    wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                    //    wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
+                    //        ? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
+                    //        : Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
+                    //}
                 }
                 else
                 {
