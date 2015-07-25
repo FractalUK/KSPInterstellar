@@ -6,7 +6,8 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin  {
-	class FNThermalHeatExchanger : FNResourceSuppliableModule, IThermalSource {
+	class FNThermalHeatExchanger : FNResourceSuppliableModule, IThermalSource 
+    {
         //Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
@@ -30,10 +31,25 @@ namespace FNPlugin  {
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
         protected float connectedRecieversSum;
 
-        public bool IsThermalSource
+        protected double storedIsThermalEnergyGenratorActive;
+        protected double currentIsThermalEnergyGenratorActive;
+
+        public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
+
+        public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }
+
+        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
         {
-            get { return true; }
+            currentIsThermalEnergyGenratorActive = efficency;
         }
+
+        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+
+        public bool IsThermalSource { get { return true; } }
+
+        public bool ShouldApplyBalance (ElectricGeneratorType generatorType) {  return false;  }
+
+        public double ChargedPowerRatio { get { return 0; } }
 
         public void AttachThermalReciever(Guid key, float radius)
         {
@@ -77,6 +93,12 @@ namespace FNPlugin  {
         public float PowerBufferBonus { get { return 0; } }
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
+        public float ThermalPropulsionEfficiency { get { return 1; } }
+
+        public float ThermalEnergyEfficiency { get { return 1; } }
+
+        public float ChargedParticleEnergyEfficiency { get { return 0; } }
+
         public bool IsSelfContained { get { return false; } }
 
         public float CoreTemperature { get { return 1500; } }
@@ -87,6 +109,8 @@ namespace FNPlugin  {
 
         public float MaximumThermalPower { get { return _thermalpower; } }
 
+        public virtual float MaximumChargedPower { get { return 0; } }
+
         public float MinimumPower { get { return 0; } }
 
         public bool IsVolatileSource { get { return false; } }
@@ -94,6 +118,9 @@ namespace FNPlugin  {
         public bool IsActive { get { return IsEnabled; } }
 
         public bool IsNuclear { get { return false; } }
+
+        
+
 
 		[KSPEvent(guiActive = true, guiName = "Activate Heat Exchanger", active = false)]
 		public void ActivateHeatExchanger() {
@@ -127,7 +154,8 @@ namespace FNPlugin  {
             _thermalpower = getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
 		}
 
-		public override void OnStart(PartModule.StartState state) {
+		public override void OnStart(PartModule.StartState state) 
+        {
 			Actions["ActivateHeatExchangerAction"].guiName = Events["ActivateHeatExchanger"].guiName = String.Format("Activate Heat Exchanger");
 			Actions["DeactivateHeatExchangerAction"].guiName = Events["DeactivateHeatExchanger"].guiName = String.Format("Deactivate Heat Exchanger");
 			Actions["ToggleHeatExchangerAction"].guiName = String.Format("Toggle Heat Exchanger");
@@ -150,8 +178,12 @@ namespace FNPlugin  {
             thermalpower = _thermalpower.ToString() + "MW";
 		}
 
-		public override void OnFixedUpdate() {
-			base.OnFixedUpdate ();
+		public override void OnFixedUpdate() 
+        {
+            storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
+            currentIsThermalEnergyGenratorActive = 0;
+            
+            base.OnFixedUpdate ();
 			setupThermalPower ();
 		}
 

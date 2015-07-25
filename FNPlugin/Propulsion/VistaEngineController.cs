@@ -28,6 +28,8 @@ namespace FNPlugin
         public float maxThrust = 300;
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded = 1200;
+        [KSPField(isPersistant = false)]
+        public float maxAtmosphereDensity = 0.001f;
 
         [KSPField(isPersistant = false)]
         public float efficiency = 0.19f;
@@ -44,6 +46,8 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public float maxTemp = 3200;
+
+        
 
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
@@ -219,7 +223,7 @@ namespace FNPlugin
 
             if (throttle > 0)
             {
-                if (vessel.atmDensity > 0.001)
+                if (vessel.atmDensity > maxAtmosphereDensity)
                     ShutDown("Inertial Fusion cannot operate in atmosphere!");
 
                 if (radhazard && rad_safety_features)
@@ -248,8 +252,6 @@ namespace FNPlugin
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_tritium_rate / throttle / throttle);
 
-                
-
                 // Update ISP
                 FloatCurve newISP = new FloatCurve();
                 var currentIsp = Math.Max(minISP * fusionRatio / throttle, minISP / 10);
@@ -265,9 +267,6 @@ namespace FNPlugin
                     if (plasma_ratio < 0.75 && recievedPower > 0)
                         curEngineT.status = "Insufficient Electricity";
                 }
-
-                //currentHeatProduction = FusionWasteHeat / throttle;
-                //curEngineT.heatProduction = currentHeatProduction;
             }
             else
             {
@@ -277,13 +276,9 @@ namespace FNPlugin
 
                 var maxFuelFlow = MaximumThrust / minISP / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-
-                //curEngineT.heatProduction = FusionWasteHeat; 
             }
 
             radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);
-            //part.emissiveConstant = Math.Max(4 * part.mass * radiatorPerformance, 0.95);
-
             partEmissiveConstant = (float)part.emissiveConstant;
         }
 

@@ -120,22 +120,22 @@ namespace FNPlugin
             return true;
         }
 
-        protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
-        {
-            if (!consumeGlobal)
-            {
-                if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.DepletedFuel))
-                {
-                    double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
-                    part.Resources[fuel.FuelName].amount -= amount;
-                    part.Resources[InterstellarResourcesConfiguration.Instance.DepletedFuel].amount += amount;
-                    return amount;
-                } 
-                else return 0;
-            } 
-            else
-                return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
-        }
+        //protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
+        //{
+        //    if (!consumeGlobal)
+        //    {
+        //        if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.DepletedFuel))
+        //        {
+        //            double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
+        //            part.Resources[fuel.FuelName].amount -= amount;
+        //            part.Resources[InterstellarResourcesConfiguration.Instance.DepletedFuel].amount += amount;
+        //            return amount;
+        //        } 
+        //        else return 0;
+        //    } 
+        //    else
+        //        return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
+        //}
 
         public override float GetCoreTempAtRadiatorTemp(float rad_temp)
         {

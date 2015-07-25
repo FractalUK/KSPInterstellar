@@ -24,13 +24,13 @@ namespace FNPlugin
 
         // Persistent False
         [KSPField(isPersistant = false)]
-        public float pCarnotEff;
+        public float pCarnotEff = 0.31f;
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public string originalName;
         [KSPField(isPersistant = false)]
-        public float upgradedpCarnotEff;
+        public float upgradedpCarnotEff = 0.6f;
         [KSPField(isPersistant = false)]
         public string animName;
         [KSPField(isPersistant = false)]
@@ -43,6 +43,10 @@ namespace FNPlugin
         public string altUpgradedName;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float directConversionEff = 0.5f;
+        [KSPField(isPersistant = false)]
+        public float upgradedDirectConversionEff = 0.865f;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
@@ -59,11 +63,15 @@ namespace FNPlugin
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Combined Power", guiUnits = " MW_e")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
         public float _totalMaximumPowerAllReactors;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
         public float heat_exchanger_thrust_divisor;
+
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiUnits = " MW")]
+        public float requestedPower_f;
 
         // Internal
         protected float coldBathTemp = 500;
@@ -84,6 +92,7 @@ namespace FNPlugin
         protected PartResource megajouleResource;
 
         private PowerStates _powerState;
+        
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -147,6 +156,7 @@ namespace FNPlugin
         {
             isupgraded = true;
             pCarnotEff = upgradedpCarnotEff;
+            directConversionEff = this.upgradedDirectConversionEff;
             generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
             //Events["EditorSwapType"].guiActiveEditor = true;
         }
@@ -159,6 +169,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             // calculate WasteHeat Capacity
+            
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
             if (wasteheatPowerResource != null)
@@ -323,13 +334,18 @@ namespace FNPlugin
 
         public float getMaxPowerOutput()
         {
-            if (!chargedParticleMode)
-            {
-                double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-                return maxThermalPower * (float)carnotEff * pCarnotEff;
-            }
+            //if (!chargedParticleMode)
+            //{
+            //    double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
+            //    return maxThermalPower * (float)carnotEff * pCarnotEff;
+            //}
+            //else
+            //    return maxChargedPower * 0.85f;
+
+            if (chargedParticleMode)
+                return maxChargedPower * (float)_totalEff;
             else
-                return maxChargedPower * 0.85f;
+                return maxThermalPower * (float)_totalEff;
         }
 
 
@@ -373,10 +389,10 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsEditor)
                 UpdateHeatExchangedThrustDivisor();
 
-            maxThermalPower = myAttachedReactor.MaximumPower * heat_exchanger_thrust_divisor;
-
-            maxChargedPower = (myAttachedReactor is IChargedParticleSource)
-                ? (myAttachedReactor as IChargedParticleSource).MaximumChargedPower * heat_exchanger_thrust_divisor : 0;
+            maxThermalPower = myAttachedReactor.MaximumThermalPower;
+            if (myAttachedReactor.EfficencyConnectedChargedEnergyGenrator == 0)
+                maxThermalPower += myAttachedReactor.MaximumChargedPower;
+            maxChargedPower = myAttachedReactor.MaximumChargedPower;
 
             coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
         }
@@ -448,26 +464,45 @@ namespace FNPlugin
                     powerDownFraction = 1;
                 }
 
-                var electrical_power_currently_needed = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES)
-                    + getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                double electrical_power_currently_needed;
+
+                if (myAttachedReactor.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal))
+                {
+                    var chargedPowerPerformance = myAttachedReactor.EfficencyConnectedChargedEnergyGenrator * myAttachedReactor.ChargedPowerRatio;
+                    var thermalPowerPerformance = myAttachedReactor.EfficencyConnectedThermalEnergyGenrator * (1 - myAttachedReactor.ChargedPowerRatio);
+
+                    var totalPerformance = chargedPowerPerformance + thermalPowerPerformance;
+                    var balancePerformanceRatio = (chargedParticleMode ? chargedPowerPerformance / totalPerformance : thermalPowerPerformance / totalPerformance);
+
+                    electrical_power_currently_needed = (getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) + getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES)) * balancePerformanceRatio;
+                }
+                else
+                    electrical_power_currently_needed = getCurrentUnfilledResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES)  + getSpareResourceCapacity(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
 
                 double electricdt = 0;
                 double electricdtps = 0;
                 double max_electricdtps = 0;
 
-                if (!chargedParticleMode)
+                if (!chargedParticleMode) // thermal mode
                 {
-                    var thermalTransportationEfficency = (2f + myAttachedReactor.ThermalTransportationEfficiency) / 3f;
                     double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
-                    _totalEff = carnotEff * pCarnotEff * thermalTransportationEfficency;
+                    _totalEff = carnotEff * pCarnotEff * myAttachedReactor.ThermalEnergyEfficiency;
+
+                    myAttachedReactor.NotifyActiveThermalEnergyGenrator(_totalEff, ElectricGeneratorType.thermal);
+
                     if (_totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) return;
 
-                    double thermal_power_currently_needed = electrical_power_currently_needed / _totalEff;
-                    double thermaldt = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
-                    double input_power = consumeFNResource(thermaldt, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    double thermal_power_currently_needed = electrical_power_currently_needed / _totalEff; // _totalEff;
 
-                    if (input_power < thermaldt)
-                        input_power += consumeFNResource(thermaldt - input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    double thermal_power_requested = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
+
+                    requestedPower_f = (float)thermal_power_requested / TimeWarp.fixedDeltaTime;
+
+                    double input_power = consumeFNResource(thermal_power_requested, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+                    if (!(myAttachedReactor.EfficencyConnectedChargedEnergyGenrator > 0) && input_power < thermal_power_requested)
+                        input_power += consumeFNResource(thermal_power_requested - input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     double wastedt = input_power * _totalEff;
 
@@ -476,11 +511,22 @@ namespace FNPlugin
                     electricdtps = Math.Max(electricdt / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxThermalPower * _totalEff;
                 }
-                else
+                else // charged particle mode
                 {
-                    _totalEff = 0.85;
-                    double charged_power_currently_needed = electrical_power_currently_needed / _totalEff;
-                    double input_power = consumeFNResource(Math.Max(charged_power_currently_needed * TimeWarp.fixedDeltaTime, 0), FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    _totalEff = directConversionEff * myAttachedReactor.ChargedParticleEnergyEfficiency;
+
+                    myAttachedReactor.NotifyActiveChargedEnergyGenrator(_totalEff, ElectricGeneratorType.charged_particle);
+
+                    if (_totalEff <= 0) return;
+
+                    double charged_power_currently_needed = electrical_power_currently_needed; // _totalEff / ;
+
+                    var charged_power_requested = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
+
+                    requestedPower_f = (float)charged_power_requested / TimeWarp.fixedDeltaTime;
+
+                    double input_power = consumeFNResource(charged_power_requested, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+
                     electricdt = input_power * _totalEff;
                     electricdtps = Math.Max(electricdt / TimeWarp.fixedDeltaTime, 0.0);
                     double wastedt = input_power * _totalEff;

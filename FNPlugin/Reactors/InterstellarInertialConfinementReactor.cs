@@ -12,8 +12,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         protected double accumulatedElectricChargeInMW;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
-        public float plasma_ratio = 1.0f;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
 
@@ -57,9 +56,9 @@ namespace FNPlugin
                 float laser_power_4 = plasma_ratio >= 1 ? 1 : 0.000000001f;   //Mathf.Pow(plasma_ratio, 4.0f);
                 return isupgraded 
                     ? upgradedPowerOutput != 0 
-                        ? laser_power_4 * upgradedPowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
-                            : laser_power_4 * PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor 
-                    : laser_power_4 * PowerOutput * (1.0f - ChargedParticleRatio) * thermal_fuel_factor;
+                        ? laser_power_4 * upgradedPowerOutput * (1.0f - (float)ChargedPowerRatio) * thermal_fuel_factor 
+                            : laser_power_4 * PowerOutput * (1.0f - (float)ChargedPowerRatio) * thermal_fuel_factor 
+                    : laser_power_4 * PowerOutput * (1.0f - (float)ChargedPowerRatio) * thermal_fuel_factor;
             }
         }
 
@@ -70,10 +69,10 @@ namespace FNPlugin
                 float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
                 float laser_power_4 = plasma_ratio >= 1 ? 1 : 0.000000001f;  //Mathf.Pow(plasma_ratio, 4.0f);
                 return isupgraded 
-					? upgradedPowerOutput != 0 
-						? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * ChargedParticleRatio 
-						: laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio 
-					: laser_power_4 * charged_fuel_factor * PowerOutput * ChargedParticleRatio; 
+					? upgradedPowerOutput != 0
+                        ? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * (float)ChargedPowerRatio
+                        : laser_power_4 * charged_fuel_factor * PowerOutput * (float)ChargedPowerRatio
+                    : laser_power_4 * charged_fuel_factor * PowerOutput * (float)ChargedPowerRatio; 
             } 
         }
 
@@ -86,16 +85,6 @@ namespace FNPlugin
 				? powerRequirements 
 				: (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); }
 	    }
-
-        //[KSPEvent(guiActive = true, guiName = "Switch Fuel Mode", active = false)]
-        //public void SwapFuelMode() 
-        //{
-        //    fuel_mode++;
-        //    if (fuel_mode >= fuel_modes.Count) 
-        //        fuel_mode = 0;
-            
-        //    current_fuel_mode = fuel_modes[fuel_mode];
-        //}
         
         public override bool shouldScaleDownJetISP() 
         {
@@ -111,8 +100,10 @@ namespace FNPlugin
             } 
             else 
                 fusion_alert = false;
-            
-            Events["SwapFuelMode"].active = isupgraded;
+
+            Events["SwapNextFuelMode"].active = true;
+            Events["SwapPreviousFuelMode"].active = true;
+
             Fields["accumulatedChargeStr"].guiActive = plasma_ratio < 1;
 
 
@@ -159,7 +150,12 @@ namespace FNPlugin
             }
 
 	        //plasma_ratio = power_consumed / LaserPowerRequirements;
-            if (jumpstartPowerTime > 0)
+            if (isSwappingFuelMode)
+            {
+                plasma_ratio = 1;
+                isSwappingFuelMode = false;
+            }
+            else if (jumpstartPowerTime > 0)
             {
                 plasma_ratio = 1;
                 jumpstartPowerTime--;

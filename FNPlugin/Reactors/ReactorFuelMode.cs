@@ -8,37 +8,48 @@ namespace FNPlugin
 	{
         protected int _reactor_type;
         protected string _mode_gui_name;
+        protected string _tech_requirement;
         protected List<ReactorFuel> _fuels;
-        protected bool _aneutronic;
+        protected List<ReactorProduct> _products;
         protected double _normreactionrate;
         protected double _normpowerrequirements;
         protected double _charged_power_ratio;
         protected double _mev_per_charged_product;
-        protected string _outputResourceName;
-        protected double _outputResourceFraction;
+        protected double _neutrons_ratio;
+        protected double _fuel_efficency_multiplier;
 
         public ReactorFuelMode(ConfigNode node) 
         {
             _reactor_type = Convert.ToInt32(node.GetValue("ReactorType"));
             _mode_gui_name = node.GetValue("GUIName");
-            _aneutronic = Boolean.Parse(node.GetValue("Aneutronic"));
+            _tech_requirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : String.Empty;
+
             _normreactionrate = Double.Parse(node.GetValue("NormalisedReactionRate"));
             _normpowerrequirements = Double.Parse(node.GetValue("NormalisedPowerConsumption"));
             _charged_power_ratio = Double.Parse(node.GetValue("ChargedParticleRatio"));
+
             _mev_per_charged_product = node.HasValue("MeVPerChargedProduct") ? Double.Parse(node.GetValue("MeVPerChargedProduct")) : 0;
-            _outputResourceName = node.HasValue("MeVPerChargedProduct") ? node.GetValue("OutputResourceName") : null;
-            _outputResourceFraction = node.HasValue("OutputResourceFraction") ? Double.Parse(node.GetValue("OutputResourceFraction")) : 0;
+            _neutrons_ratio = node.HasValue("NeutronsRatio") ? Double.Parse(node.GetValue("NeutronsRatio")) : 1;
+            _fuel_efficency_multiplier = node.HasValue("FuelEfficiencyMultiplier") ? Double.Parse(node.GetValue("FuelEfficiencyMultiplier")) : 1;
+
             ConfigNode[] fuel_nodes = node.GetNodes("FUEL");
             _fuels = fuel_nodes.Select(nd => new ReactorFuel(nd)).ToList();
+
+            ConfigNode[] products_nodes = node.GetNodes("PRODUCT");
+            _products = products_nodes.Select(nd => new ReactorProduct(nd)).ToList();
         }
 
         public int SupportedReactorTypes { get { return _reactor_type; } }
 
         public string ModeGUIName { get { return _mode_gui_name; } }
 
+        public string TechRequirement  { get { return _tech_requirement; } }
+
         public IList<ReactorFuel> ReactorFuels { get { return _fuels; } }
 
-        public bool Aneutronic { get { return _aneutronic; } }
+        public IList<ReactorProduct> ReactorProducts { get { return _products; } }
+
+        public bool Aneutronic { get { return _neutrons_ratio == 0; } }
 
         public double ChargedPowerRatio { get { return _charged_power_ratio; } }
 
@@ -48,9 +59,8 @@ namespace FNPlugin
 
         public double NormalisedPowerRequirements { get { return _normpowerrequirements; } }
 
-        public double OutputResourceFraction { get {  return _outputResourceFraction; } }
+        public double NeutronsRatio { get { return _neutrons_ratio; } }
 
-        public string OutputResourceName { get { return _outputResourceName; } }
-
+        public double FuelEfficencyMultiplier { get { return _fuel_efficency_multiplier; } }
     }
 }

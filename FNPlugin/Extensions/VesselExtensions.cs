@@ -20,7 +20,7 @@ namespace FNPlugin
 
         public static double GetTemperatureofColdestThermalSource(this Vessel vess)
         {
-            List<IThermalSource> active_reactors = vess.FindPartModulesImplementing<IThermalSource>().Where(ts => ts.IsActive).ToList();
+            List<IThermalSource> active_reactors = vess.FindPartModulesImplementing<IThermalSource>().Where(ts => ts.IsActive && ts.IsThermalSource).ToList();
             return active_reactors.Any() ? active_reactors.Min(ts => ts.CoreTemperature) : double.MaxValue;
         }
 

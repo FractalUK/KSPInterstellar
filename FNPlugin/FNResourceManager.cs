@@ -67,29 +67,29 @@ namespace FNPlugin
             GUILayout.Label("Power Demand", bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(stored_resource_demand), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
-            double demand_supply = stored_supply - stored_resource_demand;
-            double demand_stable_supply = stored_resource_demand / stored_stable_supply;
+            double new_power_supply = getDemandSupply(); //stored_supply - stored_resource_demand;
+            double net_utilisation_supply = getDemandStableSupply(); //stored_resource_demand / stored_stable_supply;
             
-            if (demand_supply < -0.001) 
+            if (new_power_supply < -0.001) 
                 net_style = red_label;
             else
                 net_style = green_label;
 
-            if (demand_stable_supply > 1) 
+            if (net_utilisation_supply > 1) 
                 net_style2 = red_label;
             else 
                 net_style2 = green_label;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Net Power", bold_label, GUILayout.ExpandWidth(true));
-            GUILayout.Label(getPowerFormatString(demand_supply), net_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            GUILayout.Label(getPowerFormatString(new_power_supply), net_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
 
-            if (!double.IsNaN(demand_stable_supply) && !double.IsInfinity(demand_stable_supply)) 
+            if (!double.IsNaN(net_utilisation_supply) && !double.IsInfinity(net_utilisation_supply)) 
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Utilisation", bold_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label((demand_stable_supply).ToString("P3"), net_style2, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+                GUILayout.Label((net_utilisation_supply).ToString("P3"), net_style2, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
                 GUILayout.EndHorizontal();
             }
 

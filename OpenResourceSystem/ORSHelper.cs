@@ -85,21 +85,30 @@ namespace OpenResourceSystem {
                 } 
                 else 
                 {
-                    foreach (PartResource local_part_resource in prl) {
-                        if (resource_amount > 0) {
+                    foreach (PartResource local_part_resource in prl) 
+                    {
+                        if (resource_amount > 0) 
+                        {
                             local_part_resource.amount = local_part_resource.amount - local_part_resource.amount * res_ratio;
                             total_resource_change += local_part_resource.amount * res_ratio;
-                        }else{
+                        }
+                        else
+                        {
                             local_part_resource.amount = local_part_resource.amount + (local_part_resource.maxAmount - local_part_resource.amount) * res_ratio;
                             total_resource_change -= (local_part_resource.maxAmount - local_part_resource.amount) * res_ratio;
                         }
                     }
                 }
                 return total_resource_change;
-            } else {
-                if (resource_amount > 0) {
+            } 
+            else 
+            {
+                if (resource_amount > 0) 
+                {
                     return part.RequestResource(resourcename, Math.Min(resource_amount, max_available));
-                } else {
+                } 
+                else 
+                {
                     return part.RequestResource(resourcename, Math.Max(-spare_capacity, resource_amount));
                 }
             }

@@ -23,6 +23,7 @@ namespace FNPlugin
         public string actinidesBuildup;
 
         private PartResourceDefinition resourceDefinitionActinides;
+        private PartResource partResourceAnticides;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
@@ -193,6 +194,7 @@ namespace FNPlugin
 
             // initialsie before onstart
             resourceDefinitionActinides = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Actinides);
+            partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
 
             // start as normal
             base.OnStart(state);
@@ -256,38 +258,57 @@ namespace FNPlugin
             return 0;
         }
 
+        private void UpDateRemainingFuel(ReactorFuel fuel)
+        {
+            var partResourceFuel = part.Resources[fuel.FuelName];
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
+            if (resourceDefinition != null && partResourceFuel != null)
+            {
+                remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.0000000") + " kg";
+                Fields["remainingFuel"].guiName = fuel.FuelName;
+            }
+            if (partResourceAnticides != null && resourceDefinitionActinides != null)
+            {
+                actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.0000000") + " kg";
+            }
+        }
+
         protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
         {
-                if (!consumeGlobal)
-                {
-                    if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
-                    {
+            var result = base.consumeReactorFuel(fuel, consume_amount);
+            UpDateRemainingFuel(fuel);
+            return result;
 
-                        var partResourceFuel = part.Resources[fuel.FuelName];
-                        var partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
+            //if (!consumeGlobal)
+            //{
+            //    if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
+            //    {
 
-                        double amount = Math.Min(consume_amount, partResourceFuel.amount / FuelEfficiency);
-                        partResourceFuel.amount -= amount;
-                        partResourceAnticides.amount += amount;
+            //        var partResourceFuel = part.Resources[fuel.FuelName];
+            //        var partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+            //        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
 
-                        if (resourceDefinition != null)
-                        {
-                            remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.0000000") + " kg";
-                            Fields["remainingFuel"].guiName = fuel.FuelName;
-                        }
+            //        double amount = Math.Min(consume_amount, partResourceFuel.amount / FuelEfficiency);
+            //        partResourceFuel.amount -= amount;
+            //        partResourceAnticides.amount += amount;
 
-                        if (resourceDefinitionActinides == null)
-                            UnityEngine.Debug.LogWarning("[KSPI] - InterstellarFissionMSRGC.consumeReactorFuel.resourceDefinitionActinides is null");
+            //        if (resourceDefinition != null)
+            //        {
+            //            remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.0000000") + " kg";
+            //            Fields["remainingFuel"].guiName = fuel.FuelName;
+            //        }
 
-                        actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.0000000") + " kg";
+            //        if (resourceDefinitionActinides == null)
+            //            UnityEngine.Debug.LogWarning("[KSPI] - InterstellarFissionMSRGC.consumeReactorFuel.resourceDefinitionActinides is null");
 
-                        return amount;
-                    }
-                    else return 0;
-                }
-                else
-                    return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
+            //        actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.0000000") + " kg";
+
+            //        return amount;
+            //    }
+            //    else return 0;
+            //}
+            //else
+            //    return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
 
         }
 

@@ -13,14 +13,14 @@ namespace FNPlugin
     [KSPModule("Radiator")]
 	class FNRadiator : FNResourceSuppliableModule	
     {
-		[KSPField(isPersistant = true, guiActive = true)]
+		[KSPField(isPersistant = true)]
 		public bool radiatorIsEnabled;
         [KSPField(isPersistant = true)]
         public bool isupgraded;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = false)]
         public string upgradeTechReq;
 		[KSPField(isPersistant = false)]
 		public bool isDeployable = true;
@@ -40,7 +40,8 @@ namespace FNPlugin
         public float upgradedRadiatorTemp;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
-	
+        [KSPField(isPersistant = false)]
+        public string colorHeat = "_EmissiveColor";
 
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
 		public string radiatorType;
@@ -358,16 +359,13 @@ namespace FNPlugin
                 last_draw_update = update_count;
             }
 
-            colorHeat();
+            ColorHeat();
 
             update_count++;
 		}
 
 		public override void OnFixedUpdate() 
         {
-			//float atmosphere_height = vessel.mainBody.maxAtmosphereAltitude;
-            //float atmosphere_height = (float)vessel.mainBody.atmosphereDepth;
-			//float vessel_height = (float) vessel.mainBody.GetAltitude (vessel.transform.position);
 			float conv_power_dissip = 0;
 
 			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) 
@@ -387,9 +385,6 @@ namespace FNPlugin
 				if (radiatorIsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-3 && isDeployable) 
                 {
 					part.deactivate();
-
-					//part.breakingForce = 1;
-					//part.breakingTorque = 1;
 					part.decouple (1);
 				}
 			}
@@ -414,7 +409,7 @@ namespace FNPlugin
 
                 double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
-                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip) / TimeWarp.fixedDeltaTime;
+                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
 
                 instantaneous_rad_temp = (float)Math.Min(radiator_temperature_temp_val * 1.014, radiatorTemp);
                 instantaneous_rad_temp = (float)Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7));
@@ -454,9 +449,9 @@ namespace FNPlugin
 				if (vessel.HasAnyActiveThermalSources()) 
                     radiator_temperature_temp_val = (float)Math.Min (vessel.GetTemperatureofColdestThermalSource()/1.01, radiator_temperature_temp_val);
 
-                double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e7 * TimeWarp.fixedDeltaTime;
+                double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 0.5e7 * TimeWarp.fixedDeltaTime;
 
-                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip) / TimeWarp.fixedDeltaTime;
+                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
 
                 instantaneous_rad_temp = (float)Math.Min(radiator_temperature_temp_val * 1.014, radiatorTemp);
                 instantaneous_rad_temp = (float)Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7));
@@ -510,13 +505,13 @@ namespace FNPlugin
             return 3;
         }
 
-        private void colorHeat()
+        private void ColorHeat()
         {
             const String KSPShader = "KSP/Emissive/Bumped Specular";
             float currentTemperature = getRadiatorTemperature();
-            float maxTemperature = (float)part.maxTemp;
+            //float maxTemperature = (float)part.maxTemp;
 
-            double temperatureRatio = currentTemperature / maxTemperature;
+            double temperatureRatio = Math.Min( currentTemperature / radiatorTemp * 1.05, 1);
             Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, 3)), 0.0f, 0.0f, 1.0f);
 
             Renderer[] array = part.FindModelComponents<Renderer>();
@@ -557,17 +552,20 @@ namespace FNPlugin
                     if (renderer.material.GetTexture("_BumpMap") == null)
                         renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/radtex_n", false));
 
-                } 
-                else if (part.name.StartsWith("radiator"))
-                {
-                    // radiators have already everything set up
-                } 
-                else // uknown raidator
-                {
-                    return;
                 }
+                //else if (part.name.StartsWith("radiator"))
+                //{
+                //    // radiators have already everything set up
+                //}
+                //else // uknown raidator
+                //{
+                //    return;
+                //}
 
-                renderer.material.SetColor("_EmissiveColor", emissiveColor);
+                if (colorHeat == "" || colorHeat == null)
+                    return;
+
+                renderer.material.SetColor(colorHeat, emissiveColor);
             }
         }
 

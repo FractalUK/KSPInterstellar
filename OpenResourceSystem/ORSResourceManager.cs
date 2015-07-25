@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace OpenResourceSystem {
-    public class ORSResourceManager {
+namespace OpenResourceSystem 
+{
+    public class ORSResourceManager 
+    {
         public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
@@ -44,7 +46,8 @@ namespace OpenResourceSystem {
         protected GUIStyle right_align;
         protected double internl_power_extract = 0;
 
-        public ORSResourceManager(PartModule pm,String resource_name) {
+        public ORSResourceManager(PartModule pm,String resource_name) 
+        {
             my_vessel = pm.vessel;
             my_part = pm.part;
             my_partmodule = pm;
@@ -52,57 +55,67 @@ namespace OpenResourceSystem {
             power_supplies = new Dictionary<ORSResourceSupplier, double>();
             this.resource_name = resource_name;
 
-			if (resource_name == FNRESOURCE_WASTEHEAT || resource_name == FNRESOURCE_THERMALPOWER) {
+			if (resource_name == FNRESOURCE_WASTEHEAT || resource_name == FNRESOURCE_THERMALPOWER) 
 				flow_type = FNRESOURCE_FLOWTYPE_EVEN;
-			} else {
+			else 
 				flow_type = FNRESOURCE_FLOWTYPE_SMALLEST_FIRST;
-			}
         }
 
-        public void powerDraw(ORSResourceSuppliable pm, double power_draw) {
-            if (power_draws.ContainsKey(pm)) {
+        public void powerDraw(ORSResourceSuppliable pm, double power_draw) 
+        {
+            if (power_draws.ContainsKey(pm)) 
+            {
                 power_draw = power_draw / TimeWarp.fixedDeltaTime + power_draws[pm];
                 power_draws[pm] = power_draw;
-            }else {
+            }
+            else 
+            {
                 power_draws.Add(pm, power_draw / TimeWarp.fixedDeltaTime);
             }
         }
 
-        public float powerSupply(ORSResourceSupplier pm, float power) {
+        public float powerSupply(ORSResourceSupplier pm, float power) 
+        {
             return (float) powerSupply (pm,(double)power);
         }
 
-        public double powerSupply(ORSResourceSupplier pm, double power) {
+        public double powerSupply(ORSResourceSupplier pm, double power) 
+        {
             powersupply += (power / TimeWarp.fixedDeltaTime);
 			stable_supply += (power / TimeWarp.fixedDeltaTime);
-            if (power_supplies.ContainsKey(pm)) {
+
+            if (power_supplies.ContainsKey(pm)) 
                 power_supplies[pm] += (power / TimeWarp.fixedDeltaTime);
-            } else {
+            else 
                 power_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
-            }
+            
             return power;
         }
 
-        public float powerSupplyFixedMax(ORSResourceSupplier pm, float power, float maxpower) {
+        public float powerSupplyFixedMax(ORSResourceSupplier pm, float power, float maxpower) 
+        {
 			return (float) powerSupplyFixedMax (pm, (double)power,(double)maxpower);
 		}
 
-        public double powerSupplyFixedMax(ORSResourceSupplier pm, double power, double maxpower) {
+        public double powerSupplyFixedMax(ORSResourceSupplier pm, double power, double maxpower) 
+        {
 			powersupply += (power / TimeWarp.fixedDeltaTime);
 			stable_supply += (maxpower / TimeWarp.fixedDeltaTime);
-            if (power_supplies.ContainsKey(pm)) {
+
+            if (power_supplies.ContainsKey(pm)) 
                 power_supplies[pm] += (power / TimeWarp.fixedDeltaTime);
-            } else {
+            else 
                 power_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
-            }
 			return power;
 		}
 
-        public float managedPowerSupply(ORSResourceSupplier pm, float power) {
+        public float managedPowerSupply(ORSResourceSupplier pm, float power) 
+        {
 			return managedPowerSupplyWithMinimum (pm, power, 0);
 		}
 
-        public double managedPowerSupply(ORSResourceSupplier pm, double power) {
+        public double managedPowerSupply(ORSResourceSupplier pm, double power) 
+        {
 			return managedPowerSupplyWithMinimum (pm, power, 0);
 		}
 
@@ -124,11 +137,13 @@ namespace OpenResourceSystem {
                 .Sum(partresource => partresource.maxAmount);
 		}
 
-        public float managedPowerSupplyWithMinimum(ORSResourceSupplier pm, float power, float rat_min) {
+        public float managedPowerSupplyWithMinimum(ORSResourceSupplier pm, float power, float rat_min) 
+        {
             return (float) managedPowerSupplyWithMinimum(pm, (double)power, (double)rat_min);
 		}
 
-        public double managedPowerSupplyWithMinimum(ORSResourceSupplier pm, double power, double rat_min) {
+        public double managedPowerSupplyWithMinimum(ORSResourceSupplier pm, double power, double rat_min) 
+        {
 			double power_seconds_units = power / TimeWarp.fixedDeltaTime;
 			double power_min_seconds_units = power_seconds_units * rat_min;
 			double managed_supply_val_add = 
@@ -137,36 +152,52 @@ namespace OpenResourceSystem {
                                    power_min_seconds_units));
 			powersupply += managed_supply_val_add;
 			stable_supply += power_seconds_units;
-            if (power_supplies.ContainsKey(pm)) {
+
+            if (power_supplies.ContainsKey(pm)) 
                 power_supplies[pm] += (power / TimeWarp.fixedDeltaTime);
-            } else {
+            else 
                 power_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
-            }
 			return managed_supply_val_add * TimeWarp.fixedDeltaTime;
 		}
 
-        public float getStableResourceSupply() {
+        public float getStableResourceSupply() 
+        {
             return (float) stored_stable_supply;
         }
 
-        public float getResourceSupply() {
+        public float getResourceSupply() 
+        {
             return (float)stored_supply;
         }
 
-        public float getResourceDemand() {
+        public double getDemandSupply()
+        {
+            return stored_supply - stored_resource_demand;
+        }
+
+        public double getDemandStableSupply()
+        {
+            return stored_resource_demand / stored_stable_supply;
+        }
+
+        public float getResourceDemand() 
+        {
             return (float)stored_resource_demand;
         }
 
-		public float getCurrentResourceDemand() {
+		public float getCurrentResourceDemand() 
+        {
 			return (float) current_resource_demand;
 		}
 
-        public float getCurrentHighPriorityResourceDemand() {
+        public float getCurrentHighPriorityResourceDemand() 
+        {
             return (float)stored_current_hp_demand;
 		}
         
 
-		public float getCurrentUnfilledResourceDemand() {
+		public float getCurrentUnfilledResourceDemand() 
+        {
 			return (float) (current_resource_demand - powersupply);
 		}
 
@@ -179,13 +210,15 @@ namespace OpenResourceSystem {
             return my_vessel;
         }
 
-		public void updatePartModule(PartModule pm) {
+		public void updatePartModule(PartModule pm) 
+        {
 			my_vessel = pm.vessel;
 			my_part = pm.part;
 			my_partmodule = pm;
 		}
 
-		public PartModule getPartModule() {
+		public PartModule getPartModule() 
+        {
 			return my_partmodule;
 		}
 
@@ -309,14 +342,16 @@ namespace OpenResourceSystem {
 
             }
 			// check radiators
-            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) {
+            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) 
+            {
 				ORSResourceSuppliable ms = power_kvp.Key;
-				if (ms.getPowerPriority() == 3) {
+				if (ms.getPowerPriority() == 3) 
+                {
 					double power = power_kvp.Value;
 					current_resource_demand += power;
-					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) {
+					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
 						power = power * demand_supply_ratio;
-					}
+
 					double power_supplied = Math.Max(Math.Min(powersupply, power), 0.0);
 					powersupply -= power_supplied;
 
@@ -345,20 +380,25 @@ namespace OpenResourceSystem {
             power_draws.Clear();
         }
 
-        protected virtual void pluginSpecificImpl() {
+        protected virtual void pluginSpecificImpl() 
+        {
 
         }
 
-        public void showWindow() {
+        public void showWindow() 
+        {
             render_window = true;
         }
 
-        public void hideWindow() {
+        public void hideWindow() 
+        {
             render_window = false;
         }
 
-        public void OnGUI() {
-            if (my_vessel == FlightGlobals.ActiveVessel && render_window) {
+        public void OnGUI() 
+        {
+            if (my_vessel == FlightGlobals.ActiveVessel && render_window) 
+            {
                 string title = resource_name + " Power Management Display";
                 windowPosition = GUILayout.Window(windowID, windowPosition, doWindow, title);
             }
@@ -368,22 +408,26 @@ namespace OpenResourceSystem {
            
         }
 
-        protected string getPowerFormatString(double power) {
-            if (Math.Abs(power) >= 1000) {
-                if (Math.Abs(power) > 20000) {
+        protected string getPowerFormatString(double power) 
+        {
+            if (Math.Abs(power) >= 1000) 
+            {
+                if (Math.Abs(power) > 20000) 
                     return (power / 1000).ToString("0.0") + " GW";
-                } else {
+                else 
                     return (power / 1000).ToString("0.00") + " GW";
-                }
-            } else {
-                if (Math.Abs(power) > 20) {
+            } 
+            else 
+            {
+                if (Math.Abs(power) > 20) 
                     return power.ToString("0.0") + " MW";
-                } else {
-                    if (Math.Abs(power) >= 1) {
+                else 
+                {
+                    if (Math.Abs(power) >= 1) 
                         return power.ToString("0.00") + " MW";
-                    } else {
-                        return (power * 1000).ToString("0.00") + " KW";
-                    }
+                    
+                    else 
+                        return (power * 1000).ToString("0.0") + " KW";
                 }
             }
         }

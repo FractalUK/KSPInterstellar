@@ -41,6 +41,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float receiverType = 0;
         [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
+
+        [KSPField(isPersistant = false)]
+        public float thermalPropulsionEfficiency = 1;
+        [KSPField(isPersistant = false)]
+        public float thermalEnergyEfficiency = 1;
+        [KSPField(isPersistant = false)]
+        public float chargedParticleEnergyEfficiency = 1;
+        [KSPField(isPersistant = false)]
         public float microwaveDishEfficiency = (float)GameConstants.microwave_dish_efficiency;
 
         //GUI
@@ -69,10 +78,26 @@ namespace FNPlugin
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
         protected float connectedRecieversSum;
 
+        protected double storedIsThermalEnergyGenratorActive;
+        protected double currentIsThermalEnergyGenratorActive;
+
+        public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
+
+        public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }
+
+        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
+        {
+            currentIsThermalEnergyGenratorActive = efficency;
+        }
+
+        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+
         public bool IsThermalSource
         {
             get { return this.isThermalReceiver; }
         }
+
+        public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
         public void AttachThermalReciever(Guid key, float radius)
         {
@@ -112,7 +137,9 @@ namespace FNPlugin
                 return 0;
         }
 
-        //
+        protected PartResource wasteheatResource;
+        
+        protected double partBaseWasteheat;
         protected Animation anim;
         protected Animation animT;
         protected bool play_down = false;
@@ -129,9 +156,15 @@ namespace FNPlugin
         static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
         double penaltyFreeDistance = 1;//should be set to proper value by OnStart method
 
+        public double ChargedPowerRatio { get { return 0; } }
+
         public float PowerBufferBonus { get { return 0; } }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
+
+        public float ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
+
+        public float ChargedParticleEnergyEfficiency { get { return 0; } }
 
         public bool IsSelfContained { get { return false; } }
 
@@ -150,6 +183,8 @@ namespace FNPlugin
 
         public float MaximumThermalPower { get { return ThermalPower; } }
 
+        public virtual float MaximumChargedPower { get {  return 0; } }
+
         public float MinimumPower { get { return 0; } }
 
         public bool IsVolatileSource { get { return true; } }
@@ -157,6 +192,8 @@ namespace FNPlugin
         public bool IsActive { get { return receiverIsEnabled; } }
 
         public bool IsNuclear { get { return false; } }
+
+        public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
 
         [KSPEvent(guiActive = true, guiName = "Activate Receiver", active = true)]
@@ -206,9 +243,21 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
+
+            wasteheatResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
             if (state == StartState.Editor) { return; }
+
+            // calculate WasteHeat Capacity
+            partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
+            if (wasteheatResource != null)
+            {
+                var ratio = wasteheatResource.amount / wasteheatResource.maxAmount;
+                wasteheatResource.maxAmount = partBaseWasteheat;
+                wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
+            }
 
             if (part.FindModulesImplementing<MicrowavePowerTransmitter>().Count == 1)
             {
@@ -308,6 +357,9 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
+            storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
+            currentIsThermalEnergyGenratorActive = 0;
+
             base.OnFixedUpdate();
             if (receiverIsEnabled)
             {
@@ -371,6 +423,14 @@ namespace FNPlugin
 
                     powerInputMegajoules = total_power / 1000.0 * microwaveDishEfficiency * atmosphericefficiency * receiptPower / 100.0f;
                     powerInput = powerInputMegajoules * 1000.0f;
+                }
+
+                if (powerInputMegajoules > 0 && wasteheatResource != null)
+                {
+                    var ratio = wasteheatResource.amount / wasteheatResource.maxAmount;
+
+                    wasteheatResource.maxAmount = partBaseWasteheat + powerInputMegajoules * 100;
+                    wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
                 }
 
                 float animateTemp = (float)powerInputMegajoules / 3000;

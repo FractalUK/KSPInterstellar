@@ -2,6 +2,8 @@ using System;
 
 namespace FNPlugin
 {
+    public enum ElectricGeneratorType { unknown = 0, thermal = 1, charged_particle = 2 };
+
     public interface IThermalReciever
     {
         void AttachThermalReciever(Guid key, float radius);
@@ -24,7 +26,11 @@ namespace FNPlugin
 
         float MinimumPower { get; }
 
+        double ChargedPowerRatio { get; }
+
         float MaximumThermalPower { get; }
+
+        float MaximumChargedPower { get; }
 
         float CoreTemperature { get; }
 
@@ -47,6 +53,22 @@ namespace FNPlugin
         float GetThermalPowerAtTemp(float temp);
 
         bool IsThermalSource { get; }
+
+        float ThermalPropulsionEfficiency { get; }
+
+        float ThermalEnergyEfficiency { get; }
+
+        float ChargedParticleEnergyEfficiency { get; }
+
+        double EfficencyConnectedThermalEnergyGenrator { get; }
+
+        double EfficencyConnectedChargedEnergyGenrator { get; }
+
+        void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
+
+        void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
+
+        bool ShouldApplyBalance(ElectricGeneratorType generatorType);
 	}
 }
 
