@@ -106,7 +106,7 @@ namespace FNPlugin
         public string requestedReactorThermalPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge")]
         public string requestedReactorChargedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved")]
         public string recievedReactorPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
@@ -138,7 +138,8 @@ namespace FNPlugin
         protected float maxPressureThresholdAtKerbinSurface;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
         protected float thermalRatio;
-
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Consumed")]
+        protected float consumedWasteHeat;
 
 		//Internal
         protected float _fuelToxicity;
@@ -313,9 +314,6 @@ namespace FNPlugin
             // if engine isn't already initialised, initialise it
             if (engineInit == false)
                 engineInit = true;
-
-            //if (myAttachedEngine != null)
-            //    baseHeatProduction = myAttachedEngine.heatProduction;
 
             // if we can upgrade, let's do so
             if (isupgraded && isJet)
@@ -753,7 +751,8 @@ namespace FNPlugin
 
             var thermal_modifiers = myAttachedEngine.currentThrottle * GetAtmosphericLimit() * _myAttachedReactor.GetFractionThermalReciever(id);
             var maximum_requested_thermal_power = _currentMaximumPower * thermal_modifiers;
-            var requested_thermal_power = Math.Min(_assThermalPower * thermal_modifiers, MyAttachedReactor.MaximumThermalPower);
+
+            var requested_thermal_power = Math.Min(_assThermalPower * thermal_modifiers, MyAttachedReactor.MaximumThermalPower * delayedThrottle);
             requestedReactorThermalPower = requested_thermal_power.ToString("0.000000") + " MW " + (this._myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
 
             var fixed_thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) * _myAttachedReactor.ThermalPropulsionEfficiency;
@@ -769,12 +768,18 @@ namespace FNPlugin
 
                 thermal_power_received += consumeFNResource(requested_charge_particles * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
             }
+
+
+
             recievedReactorPower = thermal_power_received.ToString("0.000000") + " MW ";
 
             UpdateSootAccumulation();
 
+            //consumedWasteHeat = (1f - (sootAccumulationPercentage / 150f)) * thermal_power_received;
+            consumedWasteHeat = (1f - (sootAccumulationPercentage / 150f)) * (float)MyAttachedReactor.ProducedWasteHeat;
+
             // consume wasteheat
-            consumeFNResource((1f - (sootAccumulationPercentage / 150f)) * thermal_power_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            consumeFNResource(consumedWasteHeat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             
             // calculate max thrust
             heatExchangerThrustDivisor = (float)GetHeatExchangerThrustDivisor();
@@ -825,7 +830,7 @@ namespace FNPlugin
             //prevent divide by zero
             max_fuel_flow_rate = Math.Max(0.00000001, max_fuel_flow_rate);
 
-            engineHeatProduction = baseHeatProduction / (float)max_fuel_flow_rate;
+            engineHeatProduction = (baseHeatProduction) / (float)max_fuel_flow_rate / (float)Math.Pow(_maxISP / 1000, 0.1) / (float)Math.Sqrt(radius);
             myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow

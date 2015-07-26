@@ -18,6 +18,8 @@ namespace FNPlugin
 
     public interface IThermalSource : IThermalReciever
     {
+        double ProducedWasteHeat { get; }
+
         float PowerBufferBonus { get; }
 
         float StableMaximumReactorPower { get; }

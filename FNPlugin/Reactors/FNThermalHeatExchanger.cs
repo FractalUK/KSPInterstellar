@@ -89,6 +89,8 @@ namespace FNPlugin  {
                 return 0;
         }
 
+        public double ProducedWasteHeat { get { return 0; } }
+
         //properties
         public float PowerBufferBonus { get { return 0; } }
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }

@@ -16,14 +16,8 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Remaining Fuel")]
-        public string remainingFuel;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides")]
-        public string actinidesBuildup;
-
-        private PartResourceDefinition resourceDefinitionActinides;
-        private PartResource partResourceAnticides;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides Modifier")]
+        public float actinidesModifer;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
@@ -46,6 +40,9 @@ namespace FNPlugin
         [KSPEvent(guiName = "Swap Fuel", guiActiveEditor = true, guiActiveUnfocused = false, guiActive = false)]
         public void EditorSwapFuel()
         {
+            if (fuel_modes.Count == 1)
+                return;
+
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
                 part.Resources[fuel.FuelName].amount = 0;
@@ -143,7 +140,8 @@ namespace FNPlugin
                         double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
                         double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
                         fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-                        return (float)(base.MaximumThermalPower * Math.Sqrt(fuel_actinide_mass_ratio));
+                        actinidesModifer = (float)Math.Sqrt(fuel_actinide_mass_ratio);
+                        return (float)(base.MaximumThermalPower * actinidesModifer);
                     }
                     return base.MaximumThermalPower;
                 }
@@ -183,19 +181,18 @@ namespace FNPlugin
             Events["ManualRestart"].active = Events["ManualRestart"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
             Events["ManualShutdown"].active = Events["ManualShutdown"].guiActiveUnfocused = IsEnabled;
             Events["Refuel"].active = Events["Refuel"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
-            Events["SwapFuelMode"].active = Events["SwapFuelMode"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
             Events["Refuel"].guiName = "Refuel " + (current_fuel_mode != null ? current_fuel_mode.ModeGUIName : "");
+            Events["SwapFuelMode"].active = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1 &&!IsEnabled && !decay_ongoing;
+
+            Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events["EditorSwapFuel"].guiActiveEditor = Events["EditorSwapFuel"].guiActiveUnfocused = fuel_modes.Count > 1;
+            
             base.OnUpdate();
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            //UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.OnStart begin");
-
-            // initialsie before onstart
-            resourceDefinitionActinides = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Actinides);
-            partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-
             // start as normal
             base.OnStart(state);
 
@@ -209,7 +206,9 @@ namespace FNPlugin
             }
             fuelModeStr = current_fuel_mode.ModeGUIName;
 
-            //UnityEngine.Debug.Log("[KSPI] - InterstellarFissionMSRGC.OnStart end");
+            Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events["EditorSwapFuel"].guiActiveEditor = Events["EditorSwapFuel"].guiActiveUnfocused = fuel_modes.Count > 1;
         }
 
         public override void OnFixedUpdate()
@@ -256,60 +255,6 @@ namespace FNPlugin
                 return actinides_change;
             }
             return 0;
-        }
-
-        private void UpDateRemainingFuel(ReactorFuel fuel)
-        {
-            var partResourceFuel = part.Resources[fuel.FuelName];
-            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
-            if (resourceDefinition != null && partResourceFuel != null)
-            {
-                remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.0000000") + " kg";
-                Fields["remainingFuel"].guiName = fuel.FuelName;
-            }
-            if (partResourceAnticides != null && resourceDefinitionActinides != null)
-            {
-                actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.0000000") + " kg";
-            }
-        }
-
-        protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
-        {
-            var result = base.consumeReactorFuel(fuel, consume_amount);
-            UpDateRemainingFuel(fuel);
-            return result;
-
-            //if (!consumeGlobal)
-            //{
-            //    if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
-            //    {
-
-            //        var partResourceFuel = part.Resources[fuel.FuelName];
-            //        var partResourceAnticides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-            //        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
-
-            //        double amount = Math.Min(consume_amount, partResourceFuel.amount / FuelEfficiency);
-            //        partResourceFuel.amount -= amount;
-            //        partResourceAnticides.amount += amount;
-
-            //        if (resourceDefinition != null)
-            //        {
-            //            remainingFuel = (resourceDefinition.density * partResourceFuel.amount * 1000).ToString("0.0000000") + " kg";
-            //            Fields["remainingFuel"].guiName = fuel.FuelName;
-            //        }
-
-            //        if (resourceDefinitionActinides == null)
-            //            UnityEngine.Debug.LogWarning("[KSPI] - InterstellarFissionMSRGC.consumeReactorFuel.resourceDefinitionActinides is null");
-
-            //        actinidesBuildup = (partResourceAnticides.amount * resourceDefinitionActinides.density * 1000).ToString("0.0000000") + " kg";
-
-            //        return amount;
-            //    }
-            //    else return 0;
-            //}
-            //else
-            //    return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
-
         }
 
         protected override void setDefaultFuelMode()

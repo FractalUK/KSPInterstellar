@@ -71,6 +71,7 @@ namespace FNPlugin
         public float receiptPower = 100;
 
         //Internal 
+        protected double waste_heat_production;
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
 
         // reference types
@@ -117,6 +118,8 @@ namespace FNPlugin
                 UnityEngine.Debug.LogError("[KSPI] - InterstellarReactor.ConnectReciever exception: " + error.Message);
             }
         }
+
+        public double ProducedWasteHeat { get { return (float)waste_heat_production; } }
 
         public void DetachThermalReciever(Guid key)
         {
@@ -446,7 +449,7 @@ namespace FNPlugin
                 if (!isThermalReceiver)
                 {
                     supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                    double waste_heat_production = powerInputMegajoules / microwaveDishEfficiency * (1.0f - microwaveDishEfficiency);
+                    waste_heat_production = powerInputMegajoules / microwaveDishEfficiency * (1.0f - microwaveDishEfficiency);
                     supplyFNResource(waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
                 else

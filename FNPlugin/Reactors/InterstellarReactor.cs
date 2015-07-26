@@ -137,6 +137,8 @@ namespace FNPlugin
         public float maximumThermalPowerFloat = 0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Gee Force Mod")]
         public float geeForceModifier;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Produced", guiUnits = " MW")]
+        public float ongoing_total_power_f;
 
         // value types
         protected bool hasrequiredupgrade = false;
@@ -151,7 +153,7 @@ namespace FNPlugin
         protected long last_draw_update;
         protected float ongoing_thermal_power_f;
         protected float ongoing_charged_power_f;
-        protected float ongoing_total_power_f;
+        
         protected double total_power_per_frame;
         protected bool decay_ongoing = false;
         protected Rect windowPosition = new Rect(20, 20, 300, 100);
@@ -205,10 +207,9 @@ namespace FNPlugin
             return generatorType == _firstGeneratorType && storedIsThermalEnergyGenratorActive > 0 && storedIsChargedEnergyGenratorActive > 0; 
         }
 
-        public bool IsThermalSource
-        {
-            get { return true; }
-        }
+        public bool IsThermalSource {  get { return true; }      }
+
+        public double ProducedWasteHeat { get { return ongoing_total_power_f ; } }
 
         public float PowerUpgradeTechnologyBonus { get { return _hasPowerUpgradeTechnology ? powerUpgradeTechMult : 1; } }
 
@@ -715,6 +716,8 @@ namespace FNPlugin
 
                 // Total
                 double total_power_received = thermal_power_received + charged_power_received;
+                ongoing_total_power_f = (float)total_power_received / TimeWarp.fixedDeltaTime;
+
                 total_power_per_frame = total_power_received;
                 double total_power_ratio = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
                 ongoing_consumption_rate = (float)total_power_ratio;
@@ -724,9 +727,9 @@ namespace FNPlugin
                 {
                     var fuel_request = total_power_received * fuel.FuelUsePerMJ * fuelUsePerMJMult;
 
-                    var fuel_recieved = fuel.FuelName != InterstellarResourcesConfiguration.Instance.Actinides
-                        ? consumeReactorFuel(fuel, fuel_request)
-                        : fuel_request; 
+                    var fuel_recieved = //fuel.FuelName != InterstellarResourcesConfiguration.Instance.Actinides ? 
+                        consumeReactorFuel(fuel, fuel_request);
+                        //: fuel_request; 
                 }
 
                 // produce reactor products
@@ -738,7 +741,7 @@ namespace FNPlugin
                 }
 
 
-                ongoing_total_power_f = ongoing_charged_power_f + ongoing_thermal_power_f;
+                
                 // Waste Heat
                 supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 
@@ -917,7 +920,7 @@ namespace FNPlugin
 
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
-                if (fuel.FuelName != InterstellarResourcesConfiguration.Instance.Actinides)
+                //if (fuel.FuelName != InterstellarResourcesConfiguration.Instance.Actinides)
                     consumeReactorFuel(fuel, time_diff * ongoing_consumption_rate * fuel.FuelUsePerMJ * fuelUsePerMJMult); // consume fuel
             }
 
@@ -975,19 +978,17 @@ namespace FNPlugin
 
         protected virtual double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
         {
-            //if (!consumeGlobal && !fuel.ConsumeGlobal)
             if (!fuel.ConsumeGlobal)
             {
                 if (part.Resources.Contains(fuel.FuelName))
                 {
-                    double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
+                    double amount = Math.Min(consume_amount / FuelEfficiency, part.Resources[fuel.FuelName].amount );
                     part.Resources[fuel.FuelName].amount -= amount;
                     return amount;
                 }
                 else
                     return 0;
             }
-            //return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
             return part.RequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
         }
 
@@ -997,7 +998,8 @@ namespace FNPlugin
             {
                 if (part.Resources.Contains(product.FuelName))
                 {
-                    double amount = Math.Min(produce_amount, part.Resources[product.FuelName].amount / FuelEfficiency);
+                    double availableStorage = part.Resources[product.FuelName].maxAmount - part.Resources[product.FuelName].amount;
+                    double amount = Math.Min(produce_amount / FuelEfficiency, availableStorage);
                     part.Resources[product.FuelName].amount += amount;
                     return amount;
                 }
@@ -1009,9 +1011,6 @@ namespace FNPlugin
 
         protected double getFuelAvailability(ReactorFuel fuel)
         {
-            if (fuel.FuelName == InterstellarResourcesConfiguration.Instance.Actinides)
-                return 1;
-
             if (!consumeGlobal)
             {
                 if (part.Resources.Contains(fuel.FuelName))
@@ -1022,11 +1021,8 @@ namespace FNPlugin
             return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
         }
 
-        protected double getResourceAvailability(string resourceName)
+        protected new double getResourceAvailability(string resourceName)
         {
-            if (resourceName == InterstellarResourcesConfiguration.Instance.Actinides)
-                return 1;
-
             if (!consumeGlobal)
             {
                 if (part.Resources.Contains(resourceName))
@@ -1081,7 +1077,7 @@ namespace FNPlugin
             if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
             {
                 if (IsNeutronRich && breedtritium)
-                    PrintToGUILayout("Tritium Breed Rate", 100*current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARH_DAY_SECONDS).ToString("0.00000") + " l/day ", bold_label);
+                    PrintToGUILayout("Tritium Breed Rate", 100*current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARH_DAY_SECONDS).ToString("0.000000") + " l/day ", bold_label);
                 else
                     PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
 
@@ -1097,14 +1093,14 @@ namespace FNPlugin
                     double availability = getFuelAvailability(fuel);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label((availability * fuel.Density * 1000).ToString("0.00000") + " kg", GUILayout.Width(150));
+                    GUILayout.Label((availability * fuel.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));
                     GUILayout.EndHorizontal();
 
                     double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
                     fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label(fuel_use.ToString("0.0000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
+                    GUILayout.Label(fuel_use.ToString("0.000000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                 }
 
@@ -1124,7 +1120,7 @@ namespace FNPlugin
                     fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label(fuel_use.ToString("0.0000") + " " + product.Unit + "/day", GUILayout.Width(150));
+                    GUILayout.Label(fuel_use.ToString("0.000000") + " " + product.Unit + "/day", GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                 }
 

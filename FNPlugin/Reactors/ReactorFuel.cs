@@ -55,9 +55,9 @@ namespace FNPlugin
         public ReactorProduct(ConfigNode node)
         {
             _fuel_name = node.GetValue("name");
+            _density = PartResourceLibrary.Instance.GetDefinition(_fuel_name).density;
             _product_usege_per_mw = Convert.ToDouble(node.GetValue("ProductionPerMW"));
             _unit = node.GetValue("Unit");
-            _density = PartResourceLibrary.Instance.GetDefinition(_fuel_name).density;
             _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : true;
         }
 
