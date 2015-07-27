@@ -243,7 +243,7 @@ namespace FNPlugin
 		public void upgradePartModule() 
         {
 			engineType = upgradedName;
-			propellants = FNNozzleController.getPropellantsHybrid();
+			propellants = getPropellantsHybrid();
 			isHybrid = true;
 			isupgraded = true;
 		}
@@ -699,6 +699,8 @@ namespace FNPlugin
                 requestedReactorChargedPower = String.Empty;
                 recievedReactorPower = String.Empty;
 
+                consumedWasteHeat = 0;
+
                 atmospheric_limit = GetAtmosphericLimit();
 
                 _maxISP = (float)(Math.Sqrt((double)MyAttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
@@ -828,9 +830,11 @@ namespace FNPlugin
                 max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
 
             //prevent divide by zero
-            max_fuel_flow_rate = Math.Max(0.00000001, max_fuel_flow_rate);
+            //max_fuel_flow_rate = Math.Max(0.00000001, max_fuel_flow_rate);
 
-            engineHeatProduction = (baseHeatProduction) / (float)max_fuel_flow_rate / (float)Math.Pow(_maxISP / 1000, 0.1) / (float)Math.Sqrt(radius);
+
+
+            engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction / (float)max_fuel_flow_rate / (float)Math.Pow(_maxISP / 1000, 0.1) / (float)Math.Sqrt(radius) : baseHeatProduction;
             myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow

@@ -757,15 +757,15 @@ namespace FNPlugin
                     }
 
 
-                    if (prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0)
-                    {
-                        available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
-                        available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.FirstOrDefault(modi => modi.moduleName == "FNNozzle Controller");
+                    //if (prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0)
+                    //{
+                    //    available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
+                    //    available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
+                    //    AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.FirstOrDefault(modi => modi.moduleName == "FNNozzle Controller");
 
-                        if (mod_info != null)
-                            mod_info.moduleName = "Thermal Nozzle";
-                    }
+                    //    if (mod_info != null)
+                    //        mod_info.moduleName = "Thermal Nozzle";
+                    //}
 
                     //if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)
                     //{

@@ -457,7 +457,7 @@ namespace FNPlugin
                     _attached_engine.maxFuelFlow = 0;
                 }
 
-                part.Effect(Current_propellant.ParticleFXName, Mathf.Min(_electrical_consumption_f / maxPower, _attached_engine.finalThrust / _attached_engine.maxThrust));
+                part.Effect(Current_propellant.ParticleFXName, Mathf.Min( (float)Math.Pow( _electrical_consumption_f / maxPower, 0.5), _attached_engine.finalThrust / _attached_engine.maxThrust));
             }
             else
             {

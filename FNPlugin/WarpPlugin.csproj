@@ -113,7 +113,6 @@
     <Compile Include="Refinery\FNModuleResourceExtraction.cs" />
     <Compile Include="Science\DTMagnetometer.cs" />
     <Compile Include="Reactors\FNAntimatterReactor.cs" />
-    <Compile Include="Propulsion\FNNozzleControllerFX.cs" />
     <Compile Include="FNResourceOvermanager.cs" />
     <Compile Include="Science\FNResourceScanner.cs" />
     <Compile Include="Science\FNSeismicProbe.cs" />
@@ -149,7 +148,6 @@
     <Compile Include="Refinery\UF4Ammonolysiser.cs" />
     <Compile Include="Toolbar\VABThermalUI.cs" />
     <Compile Include="Radiation\VanAllen.cs" />
-    <Compile Include="Propulsion\FNNozzleController.cs" />
     <Compile Include="FNGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Science\ComputerCore.cs" />
