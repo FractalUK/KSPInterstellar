@@ -37,7 +37,7 @@ namespace FNPlugin
         public float ispGears = 3;
         [KSPField(isPersistant = false)]
         public float exitArea = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor=true)]
         public float maxPower;
         [KSPField(isPersistant = false, guiName = "Power Thrust Multiplier")]
         public float powerThrustMultiplier = 1.0f;
@@ -49,6 +49,10 @@ namespace FNPlugin
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float baseEfficency = 0.3f;
+        [KSPField(isPersistant = false)]
+        public float variableEfficency = 0.3f;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -510,8 +514,22 @@ namespace FNPlugin
             }
         }
 
-        protected double CurrentPropellantThrustMultiplier {  get {  return type == (int)ElectricEngineType.ARCJET ? Current_propellant.ThrustMultiplier : 1; } }
-        protected double CurrentPropellantEfficiency { get { return type == (int)ElectricEngineType.ARCJET ? 0.87 : Current_propellant.Efficiency; } }
+        protected double CurrentPropellantThrustMultiplier 
+        {
+            get { return type == (int)ElectricEngineType.ARCJET || type == (int)ElectricEngineType.VASIMR  ? Current_propellant.ThrustMultiplier : 1; } 
+        }
+        protected double CurrentPropellantEfficiency 
+        { 
+            get 
+            {
+                if (type == (int)ElectricEngineType.ARCJET)
+                    return 0.87;
+                else if (type == (int)ElectricEngineType.VASIMR)
+                    return baseEfficency + ((1 - _attached_engine.currentThrottle) * variableEfficency);
+                else 
+                    return Current_propellant.Efficiency; 
+            } 
+        }
        
 
         public override string GetInfo()
@@ -524,8 +542,17 @@ namespace FNPlugin
             {
                 double ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (float)prop.IspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
                 double ispProp = _modifiedEngineBaseISP * ispPropellantModifier;
-                double efficiency = type == (int)ElectricEngineType.ARCJET ? 0.87 : prop.Efficiency;
-                double thrustProp = thrust_per_mw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET ? prop.ThrustMultiplier : 1);
+
+                double efficiency;
+                
+                if (type == (int)ElectricEngineType.ARCJET)
+                    efficiency = 0.87;
+                else if (type == (int)ElectricEngineType.VASIMR)
+                    efficiency = 0.55;
+                else 
+                    efficiency = prop.Efficiency;
+
+                double thrustProp = thrust_per_mw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET || type == (int)ElectricEngineType.VASIMR ? prop.ThrustMultiplier : 1);
                 return_str = return_str + "---" + prop.PropellantGUIName + "---\nThrust: " + thrustProp.ToString("0.000") + " kN per MW\nEfficiency: " + (efficiency * 100.0).ToString("0.00") + "%\nISP: " + ispProp.ToString("0.00") + "s\n";
             });
             return return_str;

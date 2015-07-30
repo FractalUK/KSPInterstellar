@@ -9,7 +9,7 @@ namespace FNPlugin
     {
         PLASMA = 1,
         ARCJET = 2,
-        ION = 4,
+        VASIMR = 4,
         VACUUMTHRUSTER = 8
     }
 
