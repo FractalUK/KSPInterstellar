@@ -15,16 +15,6 @@ namespace FNPlugin
         public int fusionAlertFrames = 0;
 
         // properties
-        public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
-
-        //public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
-        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
-
-        //public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio > 0.0f ? Mathf.Pow(plasma_ratio, 4.0f) : 0.0f); } }
-        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
-
-        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
-
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
         public float HeatingPowerRequirements 
@@ -39,17 +29,8 @@ namespace FNPlugin
         public override void OnUpdate() 
         {
             base.OnUpdate();
-            if (
-                //getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) * 1.2 > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)
-                //getDemandSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1
-                getDemandStableSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) > 1.01
-
-                // getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)
-                // && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 
-                && IsEnabled && !fusion_alert)
-            {
+            if (!isSwappingFuelMode && getDemandStableSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) > 1.01 && IsEnabled && !fusion_alert)
                 fusionAlertFrames++;
-            }
             else
             {
                 fusion_alert = false;
@@ -62,7 +43,6 @@ namespace FNPlugin
                 fusion_alert = true;
             }
 
-            //Events["SwapFuelMode"].active = isupgraded;
             Events["SwapNextFuelMode"].active = true;
             Events["SwapPreviousFuelMode"].active = true;
             tokomakPower = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
@@ -73,20 +53,7 @@ namespace FNPlugin
             base.OnFixedUpdate();
             if (IsEnabled) 
             {
-                //var fixedHeatingPowerRequirements = HeatingPowerRequirements * TimeWarp.fixedDeltaTime;
-
-                // don't try to start fusion is we don't have the power
-                //var availablePower = (float)getResourceAvailability(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                //if (availablePower >= fixedHeatingPowerRequirements)
-                //var stableSupply = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                //if (stableSupply > fixedHeatingPowerRequirements)
                 power_consumed = consumeFNResource(HeatingPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-                //else
-                //    power_consumed = stableSupply;
-
-                //if (power_consumed < HeatingPowerRequirements) 
-                //    power_consumed += part.RequestResource("ElectricCharge", (HeatingPowerRequirements - power_consumed) * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime / 1000.0;
-                //plasma_ratio= ((HeatingPowerRequirements != 0.0f) ? power_consumed / HeatingPowerRequirements : 1.0f);
 
                 if(isSwappingFuelMode)
                 {
@@ -113,10 +80,11 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            Events["SwapNextFuelMode"].active = true;
+            Events["SwapPreviousFuelMode"].active = true;
+
             if (state != StartState.Editor)
             {
-                //breedtritium = true;
-
                 if (allowJumpStart)
                 {
                     if (startDisabled)
@@ -128,6 +96,7 @@ namespace FNPlugin
                 }
             }
 
+            // call Interstellar Reactor Onstart
             base.OnStart(state);
         }
 

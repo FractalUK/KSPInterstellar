@@ -30,6 +30,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            Events["SwapNextFuelMode"].active = true;
+            Events["SwapPreviousFuelMode"].active = true;
+
             if (state != StartState.Editor && allowJumpStart)
             {
                 if (startDisabled)
@@ -42,41 +45,9 @@ namespace FNPlugin
             base.OnStart(state);
         }
 
-        public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
-
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
-
-        public override float MaximumThermalPower
-        {
-            get
-            {
-                float thermal_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
-                float laser_power_4 = plasma_ratio >= 1 ? 1 : 0.000000001f;   //Mathf.Pow(plasma_ratio, 4.0f);
-                return isupgraded 
-                    ? upgradedPowerOutput != 0 
-                        ? laser_power_4 * upgradedPowerOutput * (1.0f - (float)ChargedPowerRatio) * thermal_fuel_factor 
-                            : laser_power_4 * PowerOutput * (1.0f - (float)ChargedPowerRatio) * thermal_fuel_factor 
-                    : laser_power_4 * PowerOutput * (1.0f - (float)ChargedPowerRatio) * thermal_fuel_factor;
-            }
-        }
-
-        public override float MaximumChargedPower 
-        { 
-            get 
-            {
-                float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)Math.Sqrt(current_fuel_mode.NormalisedReactionRate);
-                float laser_power_4 = plasma_ratio >= 1 ? 1 : 0.000000001f;  //Mathf.Pow(plasma_ratio, 4.0f);
-                return isupgraded 
-					? upgradedPowerOutput != 0
-                        ? laser_power_4 * charged_fuel_factor * upgradedPowerOutput * (float)ChargedPowerRatio
-                        : laser_power_4 * charged_fuel_factor * PowerOutput * (float)ChargedPowerRatio
-                    : laser_power_4 * charged_fuel_factor * PowerOutput * (float)ChargedPowerRatio; 
-            } 
-        }
-
-        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
 	    [KSPField(isPersistant = false, guiActive = true, guiName = "HeatingPowerRequirements")]
 	    public float LaserPowerRequirements
@@ -93,7 +64,7 @@ namespace FNPlugin
 
         public override void OnUpdate() 
         {
-            if (getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert) 
+            if (!isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert) 
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 fusion_alert = true;

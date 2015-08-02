@@ -341,7 +341,7 @@ namespace FNPlugin
             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal source with distance " + partDistance);
         }
 
-        // Note: does not seem to be called while in edit mode
+        // Note: does not seem to be called while in vab mode
         public override void OnUpdate() 
         {
             // setup propellant after startup to allow InterstellarFuelSwitch to configure the propellant

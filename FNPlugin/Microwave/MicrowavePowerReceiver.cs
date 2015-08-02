@@ -171,14 +171,7 @@ namespace FNPlugin
 
         public bool IsSelfContained { get { return false; } }
 
-        public float CoreTemperature 
-        { 
-            get 
-            { 
-                //return PluginHelper.IsRecieverCoreTempTweaked ? 3500 : 1500; 
-                return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);
-            } 
-        }
+        public float CoreTemperature { get { return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);  } }
 
         public float StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 

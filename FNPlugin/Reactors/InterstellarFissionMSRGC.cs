@@ -94,7 +94,7 @@ namespace FNPlugin
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void ManualRestart()
         {
-            if (current_fuel_mode.ReactorFuels.All(fuel => getFuelAvailability(fuel) > 0.0001)) IsEnabled = true;
+            if (current_fuel_mode.ReactorFuels.All(fuel => GetFuelAvailability(fuel) > 0.0001)) IsEnabled = true;
         }
 
         [KSPEvent(guiName = "Manual Shutdown", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
@@ -136,7 +136,7 @@ namespace FNPlugin
                 {
                     if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
                     {
-                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => getFuelAvailability(fuel) * fuel.Density);
+                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.Density);
                         double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
                         double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
                         fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
@@ -280,7 +280,7 @@ namespace FNPlugin
 
         private bool isCurrentFuelDepleted()
         {
-            return current_fuel_mode.ReactorFuels.Any(fuel => getFuelAvailability(fuel) < 0.001);
+            return current_fuel_mode.ReactorFuels.Any(fuel => GetFuelAvailability(fuel) < 0.001);
         }
 
     }

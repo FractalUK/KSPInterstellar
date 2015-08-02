@@ -75,7 +75,7 @@ namespace FNPlugin
             else
                 net_style = green_label;
 
-            if (net_utilisation_supply > 1) 
+            if (net_utilisation_supply > 1.001) 
                 net_style2 = red_label;
             else 
                 net_style2 = green_label;
