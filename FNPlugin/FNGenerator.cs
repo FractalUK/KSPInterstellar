@@ -92,7 +92,6 @@ namespace FNPlugin
         protected PartResource megajouleResource;
 
         private PowerStates _powerState;
-        
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -154,7 +153,6 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             // calculate WasteHeat Capacity
-            
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
             if (wasteheatPowerResource != null)
@@ -319,14 +317,6 @@ namespace FNPlugin
 
         public float getMaxPowerOutput()
         {
-            //if (!chargedParticleMode)
-            //{
-            //    double carnotEff = 1.0f - coldBathTemp / hotBathTemp;
-            //    return maxThermalPower * (float)carnotEff * pCarnotEff;
-            //}
-            //else
-            //    return maxChargedPower * 0.85f;
-
             if (chargedParticleMode)
                 return maxChargedPower * (float)_totalEff;
             else
@@ -445,9 +435,7 @@ namespace FNPlugin
                     return;
                 }
                 else
-                {
                     powerDownFraction = 1;
-                }
 
                 double electrical_power_currently_needed;
 

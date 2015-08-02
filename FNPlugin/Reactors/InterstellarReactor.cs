@@ -103,7 +103,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float neutronEmbrittlementLifepointsMax = 100;
         [KSPField(isPersistant = false)]
-        public float neutronEmbrittlementDivider = 10000000;
+        public float neutronEmbrittlementDivider = 1e+9f;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade tech")]
@@ -314,7 +314,7 @@ namespace FNPlugin
             { 
                 var baseCoreTemperature = isupgraded ? upgradedReactorTemp != 0 ? upgradedReactorTemp : ReactorTemp : ReactorTemp;
 
-                var modifiedBaseCoreTemperature = baseCoreTemperature * ReactorEmbrittlemenConditionRatio;
+                var modifiedBaseCoreTemperature = baseCoreTemperature * (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2);
 
                 return _hasPowerUpgradeTechnology ? modifiedBaseCoreTemperature * powerUpgradeCoreTempMult : modifiedBaseCoreTemperature;
             } 
@@ -340,32 +340,15 @@ namespace FNPlugin
             get
             {
                 float normalised_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                return RawPowerOutput * normalised_fuel_factor * ReactorEmbrittlemenConditionRatio;
+                return RawPowerOutput * normalised_fuel_factor * (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2);
             }
         }
 
-        public virtual float MaximumThermalPower
-        {
-            get
-            {
-                return NormalisedMaximumPower * (1.0f - (float)ChargedPowerRatio);
-            }
-        }
+        public virtual float MaximumThermalPower { get { return NormalisedMaximumPower * (1.0f - (float)ChargedPowerRatio); } }
 
         public virtual float MinimumPower { get { return 0; } }
 
-        public virtual float MaximumChargedPower
-        {
-            get
-            {
-                float charged_fuel_factor = current_fuel_mode == null ? 1.0f : (float)current_fuel_mode.NormalisedReactionRate;
-                return isupgraded
-                    ? upgradedPowerOutput != 0
-                        ? charged_fuel_factor * upgradedPowerOutput * (float)ChargedPowerRatio
-                        : charged_fuel_factor * PowerOutput * (float)ChargedPowerRatio
-                    : charged_fuel_factor * PowerOutput * (float)ChargedPowerRatio;
-            }
-        }
+        public virtual float MaximumChargedPower { get { return NormalisedMaximumPower * (float)ChargedPowerRatio; } }
 
         public virtual bool IsNuclear { get { return false; } }
 
@@ -503,12 +486,13 @@ namespace FNPlugin
 
             // calculate WasteHeat Capacity
             partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
-            if (wasteheatPowerResource != null)
-            {
-                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = partBaseWasteheat;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
-            }
+            //partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 10);
+            //if (wasteheatPowerResource != null)
+            //{
+            //    var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+            //    wasteheatPowerResource.maxAmount = partBaseWasteheat;
+            //    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+            //}
 
             // Gui Fields
             Fields["partMass"].guiActiveEditor = partMass > 0;
@@ -649,8 +633,8 @@ namespace FNPlugin
                 {
                     if (thermalPowerResource != null)
                     {
-                        var requiredThermalCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
-                        var previousThermalCapacity = Math.Max(0.0001, previousTimeWarp * MaximumThermalPower + MaximumThermalPower);
+                        var requiredThermalCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumThermalPower);
+                        var previousThermalCapacity = Math.Max(0.0001, 10 * previousTimeWarp * MaximumThermalPower);
 
                         thermalPowerResource.maxAmount = requiredThermalCapacity;
                         thermalPowerResource.amount = requiredThermalCapacity > previousThermalCapacity
@@ -660,8 +644,8 @@ namespace FNPlugin
 
                     if (chargedPowerResource != null)
                     {
-                        var requiredChargedCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
-                        var previousChargedCapacity = Math.Max(0.0001, previousTimeWarp * MaximumChargedPower + MaximumChargedPower);
+                        var requiredChargedCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
+                        var previousChargedCapacity = Math.Max(0.0001, 10 * previousTimeWarp * MaximumChargedPower);
 
                         chargedPowerResource.maxAmount = requiredChargedCapacity;
                         chargedPowerResource.amount = requiredChargedCapacity > previousChargedCapacity
@@ -669,40 +653,42 @@ namespace FNPlugin
                             : Math.Max(0, Math.Min(requiredChargedCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredChargedCapacity));
                     }
 
-                    //if (wasteheatPowerResource)
-                    //{
-                    //    var requiredWasteheatCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
-                    //    var previousWasteheatCapacity = Math.Max(0.0001, previousTimeWarp * partBaseWasteheat + partBaseWasteheat);
+                    if (wasteheatPowerResource)
+                    {
+                        var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
+                        var previousWasteheatCapacity = Math.Max(0.0001, 10 * previousTimeWarp * partBaseWasteheat);
 
-                    //    var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                    //    wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                    //    //wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
+                        var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
+                        wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                        wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
 
-                    //    wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                    //    wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
-                    //        ? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
-                    //        : Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
-                    //}
+                        //wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                        //wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
+                        //    ? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
+                        //    : Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
+                    }
                 }
                 else
                 {
                     if (thermalPowerResource != null)
                     {
-                        thermalPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumThermalPower + MaximumThermalPower);
+                        thermalPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumThermalPower);
                         thermalPowerResource.amount = Math.Min(thermalPowerResource.amount, thermalPowerResource.maxAmount);
                     }
 
                     if (chargedPowerResource != null)
                     {
-                        chargedPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * MaximumChargedPower + MaximumChargedPower);
+                        chargedPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
                         chargedPowerResource.amount = Math.Min(chargedPowerResource.amount, chargedPowerResource.maxAmount);
                     }
 
-                    //if (wasteheatPowerResource != null)
-                    //{
-                    //    var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                    //    wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat + partBaseWasteheat);
-                    //}
+                    if (wasteheatPowerResource != null )
+                    {
+                        var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
+                        var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
+                        wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
+                        wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
+                    }
                 }
                 previousTimeWarp = TimeWarp.fixedDeltaTime;
 
@@ -1128,21 +1114,13 @@ namespace FNPlugin
             PrintToGUILayout("Core Temperature", coretempStr, bold_label);
             PrintToGUILayout("Status", statusStr, bold_label);
 
-            if (ChargedPowerRatio > 0)
-                PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower), bold_label);
+            //if (ChargedPowerRatio > 0)
+            PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.00") + " / " + PluginHelper.getFormattedPowerString(RawPowerOutput, "0.0", "0.00"), bold_label);
 
             if (ChargedPowerRatio < 1.0)
-            {
-                //PrintToGUILayout("Current Thermal Power", currentTPwr, bold_label);
-                //PrintToGUILayout("Max Thermal Power", PluginHelper.getFormattedPowerString(MaximumThermalPower) + "_th", bold_label);
                 PrintToGUILayout("Thermal Power", currentTPwr + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower) + "_th", bold_label);
-            }
             if (ChargedPowerRatio > 0)
-            {
-                //PrintToGUILayout("Current Charged Power", currentCPwr, bold_label);
-                //PrintToGUILayout("Max Charged Power", PluginHelper.getFormattedPowerString(MaximumChargedPower) + "_cp", bold_label);
                 PrintToGUILayout("Charged Power", currentCPwr + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower) + "_cp", bold_label);
-            }
             if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
             {
                 if (IsNeutronRich && breedtritium)

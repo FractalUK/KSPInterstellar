@@ -443,25 +443,25 @@ namespace FNPlugin
         //    return multiplier;
         //}
 
-        public static string getFormattedPowerString(double power)
+        public static string getFormattedPowerString(double power, string shortFormat = "0", string longFormat = "0.0")
         {
             if (power > 1000)
             {
                 if (power > 20000)
-                    return (power / 1000).ToString("0") + " GW";
+                    return (power / 1000).ToString(shortFormat) + " GW";
                 else
-                    return (power / 1000).ToString("0.0") + " GW";
+                    return (power / 1000).ToString(longFormat) + " GW";
             }
             else
             {
                 if (power > 20)
-                    return power.ToString("0") + " MW";
+                    return power.ToString(shortFormat) + " MW";
                 else
                 {
                     if (power > 1)
-                        return power.ToString("0.0") + " MW";
+                        return power.ToString(longFormat) + " MW";
                     else
-                        return (power * 1000).ToString("0.0") + " KW";
+                        return (power * 1000).ToString(longFormat) + " KW";
                 }
             }
         }

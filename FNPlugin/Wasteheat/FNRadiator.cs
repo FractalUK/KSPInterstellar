@@ -7,8 +7,10 @@ using UnityEngine;
 namespace FNPlugin 
 {
     [KSPModule("Radiator")]
-    class FlatFNRadiator : FNRadiator  {}
+    class StackFNRadiator : FNRadiator { }
 
+    [KSPModule("Radiator")]
+    class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
 	class FNRadiator : FNResourceSuppliableModule	
@@ -19,16 +21,20 @@ namespace FNPlugin
         public bool isupgraded;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
+        [KSPField(isPersistant = true)]
+        public bool isAutomated;
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        public float partMass;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Upgrade Tech")]
         public string upgradeTechReq;
 		[KSPField(isPersistant = false)]
 		public bool isDeployable = true;
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Converction Bonus", guiUnits = " K")]
 		public float convectiveBonus = 1.0f;
 		[KSPField(isPersistant = false)]
 		public string animName;
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radiator Temp", guiUnits = " K")]
 		public float radiatorTemp;
 		[KSPField(isPersistant = false)]
 		public string originalName;
@@ -36,20 +42,21 @@ namespace FNPlugin
 		public float upgradeCost = 100;
 		[KSPField(isPersistant = false)]
 		public string upgradedName;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radiator Temp Upgraded")]
         public float upgradedRadiatorTemp;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
-
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
+        public float pressureLoad;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
 		public string radiatorType;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
 		public string radiatorTempStr;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor= true, guiName = "Base Radiator Area")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor= true, guiName = "Radiator Area")]
         public float radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Upgraded Radiator Area")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Radiator Area Upgraded")]
         public float upgradedRadiatorArea = 1;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
@@ -157,27 +164,51 @@ namespace FNPlugin
         }
 
 
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Enable Automation", active = true)]
+        public void SwitchAutomation()
+        {
+            isAutomated = !isAutomated;
+
+            UpdateEnableAutomation();
+        }
+
+
 		[KSPEvent(guiActive = true, guiName = "Deploy Radiator", active = true)]
 		public void DeployRadiator() 
         {
-			if (!isDeployable) return;
-			
-			anim [animName].speed = 1f;
-			anim [animName].normalizedTime = 0f;
-			anim.Blend (animName, 2f);
-			radiatorIsEnabled = true;
+            isAutomated = false;
+
+            Deploy();
 		}
+
+        private void Deploy()
+        {
+            if (!isDeployable) return;
+
+            anim[animName].speed = 0.5f;
+            anim[animName].normalizedTime = 0f;
+            anim.Blend(animName, 2f);
+            radiatorIsEnabled = true;
+        }
 
 		[KSPEvent(guiActive = true, guiName = "Retract Radiator", active = false)]
 		public void RetractRadiator() 
         {
-			if (!isDeployable) return;
+            isAutomated = false;
 
-			anim [animName].speed = -1f;
-			anim [animName].normalizedTime = 1f;
-			anim.Blend (animName, 2f);
-			radiatorIsEnabled = false;
+            Retract();
 		}
+
+        private void Retract()
+        {
+            if (!isDeployable) return;
+
+            anim[animName].speed = -0.5f;
+            anim[animName].normalizedTime = 1f;
+            anim.Blend(animName, 2f);
+            radiatorIsEnabled = false;
+        }
 
 		[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
 		public void RetrofitRadiator() 
@@ -193,13 +224,21 @@ namespace FNPlugin
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
 		}
 
+        [KSPAction("Switch Automation")]
+        public void SwitchAutomationAction(KSPActionParam param)
+        {
+            SwitchAutomation();
+        }
+
 		[KSPAction("Deploy Radiator")]
-		public void DeployRadiatorAction(KSPActionParam param) {
-			DeployRadiator();
+		public void DeployRadiatorAction(KSPActionParam param) 
+        {
+            DeployRadiator();
 		}
 
 		[KSPAction("Retract Radiator")]
-		public void RetractRadiatorAction(KSPActionParam param) {
+		public void RetractRadiatorAction(KSPActionParam param) 
+        {
 			RetractRadiator();
 		}
 
@@ -227,6 +266,7 @@ namespace FNPlugin
             update_count = 0;
 		    hasrequiredupgrade = false;
 		    explode_counter = 0;
+            UpdateEnableAutomation();
 
             if (upgradedRadiatorArea == 1)
                 upgradedRadiatorArea = radiatorArea * 1.7f;
@@ -295,7 +335,6 @@ namespace FNPlugin
 
 			if (radiatorInit == false) 
 				radiatorInit = true;
-			
 
 			if (!isupgraded) 
 				radiatorType = originalName;
@@ -305,13 +344,20 @@ namespace FNPlugin
 				radiatorTemp = upgradedRadiatorTemp;
 			}
 
-
 			radiatorTempStr = radiatorTemp + "K";
             this.part.force_activate();
 		}
 
+        private void UpdateEnableAutomation()
+        {
+            Events["SwitchAutomation"].active = isDeployable;
+            Events["SwitchAutomation"].guiName = isAutomated ? "Disable Automation" : "Enable Automation";
+        }
+
 		public override void OnUpdate() 
         {
+            UpdateEnableAutomation();
+
 			Events["DeployRadiator"].active = !radiatorIsEnabled && isDeployable;
 			Events["RetractRadiator"].active = radiatorIsEnabled && isDeployable;
 
@@ -353,7 +399,6 @@ namespace FNPlugin
                     thermalPowerConvStr = "disabled";
                 }
 
-
                 radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + radiatorTemp.ToString("0.0") + "K";
 
                 last_draw_update = update_count;
@@ -363,6 +408,8 @@ namespace FNPlugin
 
             update_count++;
 		}
+
+        
 
 		public override void OnFixedUpdate() 
         {
@@ -382,12 +429,36 @@ namespace FNPlugin
 				
 				convectedThermalPower = consumeFNResource (conv_power_dissip, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
-				if (radiatorIsEnabled && dynamic_pressure > 1.4854428818159388107574636072046e-3 && isDeployable) 
+
+                if (isDeployable)
                 {
-					part.deactivate();
-					part.decouple (1);
-				}
+                    pressureLoad = (dynamic_pressure / 1.4854428818159e-3f) * 100;
+                    if (pressureLoad > 100)
+                    {
+                        if (radiatorIsEnabled)
+                        {
+                            if (isAutomated)
+                                Retract();
+                            else
+                            {
+                                part.deactivate();
+                                part.decouple(1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!radiatorIsEnabled && isAutomated)
+                            Deploy();
+                    }
+                }
 			}
+            else
+            {
+                pressureLoad = 0;
+                if (!radiatorIsEnabled && isAutomated)
+                    Deploy();
+            }
 
 
 			if (radiatorIsEnabled) 
