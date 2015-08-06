@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenResourceSystem {
-    public class ORSPlanetaryResourcePixel {
+namespace OpenResourceSystem 
+{
+    public class ORSPlanetaryResourcePixel 
+    {
         protected double quantity;
         protected string name;
         protected int body;
@@ -12,7 +14,8 @@ namespace OpenResourceSystem {
 
         public CelestialBody Body { get { return FlightGlobals.Bodies.Count > body ? FlightGlobals.Bodies[body] : null; } }
 
-        public ORSPlanetaryResourcePixel(string name, double quantity, int body) {
+        public ORSPlanetaryResourcePixel(string name, double quantity, int body) 
+        {
             this.name = name;
             this.quantity = quantity;
             this.body = body;
