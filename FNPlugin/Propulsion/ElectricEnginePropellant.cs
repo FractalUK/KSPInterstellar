@@ -24,6 +24,7 @@ namespace FNPlugin
         protected String propellantguiname;
         protected String effectname;
         protected double wasteheatMultiplier;
+        protected string techRquirement;
 
         public int SupportedEngines { get { return prop_type;} }
 
@@ -43,6 +44,8 @@ namespace FNPlugin
 
         public double WasteHeatMultiplier { get { return wasteheatMultiplier; } }
 
+        public string TechRequirement { get { return techRquirement; } }
+
         public ElectricEnginePropellant(ConfigNode node) 
         {
             propellantname = node.GetValue("name");
@@ -53,6 +56,7 @@ namespace FNPlugin
             efficiency = Convert.ToDouble(node.GetValue("efficiency"));
             prop_type = Convert.ToInt32(node.GetValue("type"));
             effectname = node.GetValue("effectName");
+            techRquirement = node.HasValue("techRequirement") ? node.GetValue("techRequirement") : String.Empty;
             ConfigNode propellantnode = node.GetNode("PROPELLANT");
             propellant = new Propellant();
             propellant.Load(propellantnode);

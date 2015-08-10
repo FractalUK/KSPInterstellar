@@ -51,10 +51,15 @@ namespace FNPlugin
 
             UpdateFuelMode();
 
-            if (!HasAllFuels() && fuel_mode != initial_fuel_mode)
+            if (!FullFuelRequirments() && fuel_mode != initial_fuel_mode)
                 SwitchToNextFuelMode(initial_fuel_mode);
 
             isSwappingFuelMode = true;
+        }
+
+        private bool FullFuelRequirments()
+        {
+            return HasAllFuels() && FuelRequiresLab(current_fuel_mode.RequiresLab);
         }
 
         private bool HasAllFuels()
@@ -90,7 +95,7 @@ namespace FNPlugin
 
             UpdateFuelMode();
 
-            if (!HasAllFuels() && fuel_mode != initial_fuel_mode)
+            if (!FullFuelRequirments() && fuel_mode != initial_fuel_mode)
                 SwitchToPreviousFuelMode(initial_fuel_mode);
 
             isSwappingFuelMode = true;

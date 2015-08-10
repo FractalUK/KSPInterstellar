@@ -92,8 +92,6 @@ namespace FNPlugin
             else
                 cryostat_resource = null;
 
-
-
             if (cryostat_resource != null)
             {
                 bool coolingIsRelevant = powerReqKW > 0 && cryostat_resource.amount > 0;

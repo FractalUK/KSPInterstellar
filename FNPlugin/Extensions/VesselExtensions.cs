@@ -12,6 +12,11 @@ namespace FNPlugin
 {
     public static class VesselExtensions
     {
+        public static bool HasAnyModulesImplementing<T>(this Vessel vessel) where T: class
+        {
+            return vessel.FindPartModulesImplementing<T>().Any();
+        }
+
         public static bool IsInAtmosphere(this Vessel vessel)
         {
             if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) return true;

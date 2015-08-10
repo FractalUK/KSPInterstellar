@@ -10,7 +10,7 @@ using TweakScale;
 
 namespace FNPlugin
 {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule, IRescalable<ThermalNozzleController>
+    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule , IRescalable<ThermalNozzleController>
     {
         public enum ReactorTypes
         {
@@ -45,7 +45,7 @@ namespace FNPlugin
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
         public float bonusBufferFactor = 0.05f;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Heat Transport Efficency")]
         public float heatTransportationEfficiency = 0.8f;
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
@@ -67,7 +67,7 @@ namespace FNPlugin
         public string originalName;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Radius")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Radius")]
         public float radius;
         [KSPField(isPersistant = false)]
         public float minimumThrottle = 0;
@@ -123,7 +123,7 @@ namespace FNPlugin
         // GUI strings
         [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
         public string reactorTypeStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Core Temp")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Core Temp")]
         public string coretempStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Status")]
         public string statusStr = String.Empty;
@@ -324,6 +324,9 @@ namespace FNPlugin
 
         public virtual void OnRescale(TweakScale.ScalingFactor factor)
         {
+            // rescale output in VAB
+            if (HighLogic.LoadedSceneIsFlight) return;
+
             if (PowerOutputBase > 0 && PowerOutputExponent > 0 && factor.absolute.linear > 0)
             {
                 PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
@@ -333,7 +336,7 @@ namespace FNPlugin
             maximumThermalPowerFloat = MaximumThermalPower;
         }
 
-        public virtual float ReactorEmbrittlemenConditionRatio { get { return (float)Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.01);  } }
+        public virtual float ReactorEmbrittlemenConditionRatio { get { return (float)Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.01), 1);  } }
 
         public virtual float NormalisedMaximumPower
         {
@@ -486,44 +489,40 @@ namespace FNPlugin
 
             // calculate WasteHeat Capacity
             partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
-            //partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 10);
-            //if (wasteheatPowerResource != null)
-            //{
-            //    var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-            //    wasteheatPowerResource.maxAmount = partBaseWasteheat;
-            //    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
-            //}
-
-            // Gui Fields
-            Fields["partMass"].guiActiveEditor = partMass > 0;
 
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
-            print("[KSP Interstellar] Configuring Reactor Fuel Modes");
-            fuel_modes = getReactorFuelModes();
-            setDefaultFuelMode();
-            UpdateFuelMode();
-            print("[KSP Interstellar] Configuration Complete");
+
             var rnd = new System.Random();
             windowID = rnd.Next(int.MaxValue);
             base.OnStart(state);
 
+            // check if we need to upgrade
             if (state == StartState.Editor)
             {
                 print("[KSPI] Checking for upgrade tech: " + UpgradeTechnology);
-
                 if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
                 {
                     print("[KSPI] Found required upgradeTech, Upgrading Reactor");
                     upgradePartModule();
                 }
+            }
 
+            // configure reactor modes
+            print("[KSP Interstellar] Configuring Reactor Fuel Modes");
+            fuel_modes = getReactorFuelModes();
+            setDefaultFuelMode();
+            UpdateFuelMode();
+            print("[KSP Interstellar] Configuration Reactor Fuels Complete");
+
+            if (state == StartState.Editor)
+            {
                 maximumThermalPowerFloat = MaximumThermalPower;
                 reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
                 coretempStr = CoreTemperature.ToString("0") + " K";
-
                 return;
             }
+
 
             if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
                 hasrequiredupgrade = true;
@@ -549,9 +548,7 @@ namespace FNPlugin
 
             this.part.force_activate();
             //RenderingManager.AddToPostDrawQueue(0, OnGUI);
-            print("[KSP Interstellar] Configuring Reactor");
-
-            maximumThermalPowerFloat = MaximumThermalPower;
+            print("[KSP Interstellar] Succesfully Completed Configuring Reactor");
         }
 
         public void Update()
@@ -974,12 +971,31 @@ namespace FNPlugin
         protected List<ReactorFuelMode> getReactorFuelModes()
         {
             ConfigNode[] fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
-            return fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & ReactorType) == ReactorType && HasTechRequirment(fm.TechRequirement)).ToList();
+            return fuelmodes.Select(node => new ReactorFuelMode(node))
+                .Where(fm => 
+                    (fm.SupportedReactorTypes & ReactorType) == ReactorType 
+                    && PluginHelper.HasTechRequirmentOrEmpty(fm.TechRequirement) 
+                    //&& VerifyLabWhenRequired(fm.RequiresLab)
+                    && VerifyUpfradedWhenNeeded(fm.RequiresUpgrade)
+                    ).ToList() ;
         }
 
-        private bool HasTechRequirment(string techName)
+        private bool VerifyUpfradedWhenNeeded(bool requiresUpgrade)
         {
-            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
+            return !requiresUpgrade || isupgraded;
+        }
+
+        protected bool FuelRequiresLab(bool requiresLab)
+        {
+            bool isConnectedToLab = part.IsConnectedToModule("ScienceModule", 10);
+
+            if (isConnectedToLab)
+                UnityEngine.Debug.Log("[KSPI] - found Lab:");
+            else
+                UnityEngine.Debug.Log("[KSPI] - no lab found:");
+
+            //return HighLogic.LoadedSceneIsEditor || !requiresLab || vessel.HasAnyModulesImplementing<ScienceModule>();
+            return !requiresLab || isConnectedToLab;
         }
 
         protected virtual void setDefaultFuelMode()
@@ -1041,34 +1057,8 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsFlight)
                 return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
             else
-                return FindAmountOfAvailableFuel(this.part, null, fuel.FuelName, 4);
+                return part.FindAmountOfAvailableFuel(fuel.FuelName, 4);
         }
-
-        private double FindAmountOfAvailableFuel(Part currentPart, Part previousPart, String resourcename, int maxChildDepth)
-        {
-            double amount = 0;
-
-            if (currentPart.Resources.Contains(resourcename))
-            {
-                var partResourceAmount = currentPart.Resources[resourcename].amount;
-                UnityEngine.Debug.Log("[KSPI] - found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
-                amount += partResourceAmount;
-            }
-
-            if (currentPart.parent != null && currentPart.parent != previousPart)
-                amount += FindAmountOfAvailableFuel(currentPart.parent, currentPart, resourcename, maxChildDepth);
-
-            if (maxChildDepth > 0)
-            {
-                foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
-                {
-                    amount += FindAmountOfAvailableFuel(child, currentPart, resourcename, (maxChildDepth - 1));
-                }
-            }
-
-            return amount;
-        }
-
 
         protected new double getResourceAvailability(string resourceName)
         {

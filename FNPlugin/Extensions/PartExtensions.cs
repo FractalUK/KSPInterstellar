@@ -47,5 +47,82 @@ namespace FNPlugin
 
             return uiPartActionWindows.FirstOrDefault(window => window != null && window.part == part);
         }
+
+        public static bool IsConnectedToModule(this Part currentPart, String partmodule, int maxChildDepth, Part previousPart = null)
+        {
+            bool found = currentPart.Modules.Contains(partmodule);
+            if (found)
+                return true;
+
+            if (currentPart.parent != null && currentPart.parent != previousPart)
+            {
+                bool foundPart = IsConnectedToModule(currentPart.parent, partmodule, maxChildDepth, currentPart);
+                if (foundPart)
+                    return true;
+            }
+
+            if (maxChildDepth > 0)
+            {
+                foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
+                {
+                    bool foundPart = IsConnectedToModule(child, partmodule, (maxChildDepth - 1), currentPart);
+                    if (foundPart)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsConnectedToPart(this Part currentPart, String partname, int maxChildDepth, Part previousPart = null)
+        {
+            bool found = currentPart.name == partname;
+            if (found)
+                return true;
+
+            if (currentPart.parent != null && currentPart.parent != previousPart)
+            {
+                bool foundPart = IsConnectedToPart(currentPart.parent, partname, maxChildDepth, currentPart);
+                if (foundPart)
+                    return true;
+            }
+
+            if (maxChildDepth > 0)
+            {
+                foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
+                {
+                    bool foundPart = IsConnectedToPart(child, partname, (maxChildDepth - 1), currentPart);
+                    if (foundPart)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static double FindAmountOfAvailableFuel(this Part currentPart, String resourcename, int maxChildDepth, Part previousPart = null)
+        {
+            double amount = 0;
+
+            if (currentPart.Resources.Contains(resourcename))
+            {
+                var partResourceAmount = currentPart.Resources[resourcename].amount;
+                //UnityEngine.Debug.Log("[KSPI] - found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
+                amount += partResourceAmount;
+            }
+
+            if (currentPart.parent != null && currentPart.parent != previousPart)
+                amount += FindAmountOfAvailableFuel(currentPart.parent, resourcename, maxChildDepth, currentPart);
+
+            if (maxChildDepth > 0)
+            {
+                foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
+                {
+                    amount += FindAmountOfAvailableFuel(child, resourcename, (maxChildDepth - 1), currentPart);
+                }
+            }
+
+            return amount;
+        }
     }
 }

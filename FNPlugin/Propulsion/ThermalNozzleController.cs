@@ -777,8 +777,10 @@ namespace FNPlugin
 
             UpdateSootAccumulation();
 
+            var extraWasteheatRedution = TimeWarp.fixedDeltaTime * getResourceAvailability(FNResourceManager.FNRESOURCE_WASTEHEAT) * myAttachedEngine.currentThrottle;
+
             //consumedWasteHeat = (1f - (sootAccumulationPercentage / 150f)) * thermal_power_received;
-            consumedWasteHeat = (1f - (sootAccumulationPercentage / 150f)) * (float)MyAttachedReactor.ProducedWasteHeat;
+            consumedWasteHeat = (1f - (sootAccumulationPercentage / 150f)) * (float)Math.Max(MyAttachedReactor.ProducedWasteHeat + extraWasteheatRedution, thermal_power_received);
 
             // consume wasteheat
             consumeFNResource(consumedWasteHeat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -832,7 +834,7 @@ namespace FNPlugin
             //prevent divide by zero
             //max_fuel_flow_rate = Math.Max(0.00000001, max_fuel_flow_rate);
 
-
+            
 
             engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction / (float)max_fuel_flow_rate / (float)Math.Pow(_maxISP / 1000, 0.1) / (float)Math.Sqrt(radius) : baseHeatProduction;
             myAttachedEngine.heatProduction = engineHeatProduction;

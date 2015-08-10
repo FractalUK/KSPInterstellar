@@ -17,6 +17,8 @@ namespace FNPlugin
         protected double _mev_per_charged_product;
         protected double _neutrons_ratio;
         protected double _fuel_efficency_multiplier;
+        protected bool _requires_lab;
+        protected bool _requires_upgrade;
 
         public ReactorFuelMode(ConfigNode node) 
         {
@@ -31,6 +33,8 @@ namespace FNPlugin
             _mev_per_charged_product = node.HasValue("MeVPerChargedProduct") ? Double.Parse(node.GetValue("MeVPerChargedProduct")) : 0;
             _neutrons_ratio = node.HasValue("NeutronsRatio") ? Double.Parse(node.GetValue("NeutronsRatio")) : 1;
             _fuel_efficency_multiplier = node.HasValue("FuelEfficiencyMultiplier") ? Double.Parse(node.GetValue("FuelEfficiencyMultiplier")) : 1;
+            _requires_lab = node.HasValue("RequiresLab") ? Boolean.Parse(node.GetValue("RequiresLab")) : false;
+            _requires_upgrade = node.HasValue("RequiresUpgrade") ? Boolean.Parse(node.GetValue("RequiresUpgrade")) : false;
 
             ConfigNode[] fuel_nodes = node.GetNodes("FUEL");
             _fuels = fuel_nodes.Select(nd => new ReactorFuel(nd)).ToList();
@@ -50,6 +54,10 @@ namespace FNPlugin
         public IList<ReactorProduct> ReactorProducts { get { return _products; } }
 
         public bool Aneutronic { get { return _neutrons_ratio == 0; } }
+
+        public bool RequiresLab { get { return _requires_lab; } }
+
+        public bool RequiresUpgrade { get { return _requires_upgrade; } }
 
         public double ChargedPowerRatio { get { return _charged_power_ratio; } }
 

@@ -635,9 +635,12 @@ namespace FNPlugin
             {
                 PluginHelper.showInstallationErrorMessage();
                 propellant_list = new List<ElectricEnginePropellant>();
-            } 
+            }
             else
-                propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop)).Where(eep => (eep.SupportedEngines & type) == type).ToList();
+            {
+                propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop))
+                    .Where(eep => (eep.SupportedEngines & type) == type && PluginHelper.HasTechRequirmentOrEmpty(eep.TechRequirement)).ToList();
+            }
 
             return propellant_list;
         }

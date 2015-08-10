@@ -29,7 +29,7 @@ namespace FNPlugin
         public string maxAmountStr;
 
 		bool charging = false;
-		bool should_charge = true;
+		bool should_charge = false;
 		float explosion_time = 0.35f;
 		bool exploding = false;
 		float explosion_size = 5000;
@@ -83,7 +83,12 @@ namespace FNPlugin
             antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
 
             if (state == StartState.Editor) return;
-            this.part.force_activate();
+            //this.part.force_activate();
+
+            // charge if there is any antimatter
+            should_charge = antimatter.amount > 0;
+
+            this.enabled = true;
 		}
 
 		public override void OnUpdate() 
@@ -146,7 +151,7 @@ namespace FNPlugin
                 mult = 0.5f;
 
             if (!should_charge && current_antimatter <= 0.00001 * antimatter.maxAmount) return;
-            
+
             float charge_to_add = consumeFNResource(mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
             chargestatus += charge_to_add;
 

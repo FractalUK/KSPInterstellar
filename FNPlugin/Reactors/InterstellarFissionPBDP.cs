@@ -8,9 +8,6 @@ using System.Text;
 namespace FNPlugin
 {
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionPBDPsmall : InterstellarFissionPBDP {}
-
-    [KSPModule("Fission Reactor")]
     class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
     {
         // Persistant False
@@ -21,7 +18,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradedOptimalPebbleTemp = 1000;
         [KSPField(isPersistant = false)]
-        private float upgradedTempZeroPower = 1250;
+        public float upgradedTempZeroPower = 1250;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiUnits= "%", guiName = "Overheating")]
+        public float overheatPercentage;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Wateheat Ratio")]
+        public float resourceBarRatio;
+        
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ManualRestart()
@@ -35,7 +37,6 @@ namespace FNPlugin
             IsEnabled = false;
         }
 
-        // Properties
         public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
         public override bool IsNeutronRich { get { return current_fuel_mode != null ? !current_fuel_mode.Aneutronic : false; } }
@@ -44,7 +45,7 @@ namespace FNPlugin
         { 
             get 
             {
-                return base.MaximumThermalPower * (float)OverheatingRatio; 
+                return base.MaximumThermalPower * (float)ThermalRatioEfficiency; 
             } 
         }
 
@@ -52,11 +53,11 @@ namespace FNPlugin
         {
             get
             {
-                return base.MaximumChargedPower * (float)OverheatingRatio;
+                return base.MaximumChargedPower * (float)ThermalRatioEfficiency;
             }
         }
 
-        private double OverheatingRatio
+        private double ThermalRatioEfficiency
         {
             get { return Math.Pow((ZeroPowerTemp - CoreTemperature) / (ZeroPowerTemp - OptimalTemp), 0.81); }
         }
@@ -75,21 +76,8 @@ namespace FNPlugin
             {
                 if (HighLogic.LoadedSceneIsFlight) 
                 {
-                    //var temp_scale = (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel)) 
-                    //    ? (float)FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel) 
-                    //    : optimalPebbleTemp;
-
-                    double resourceBarRatio;
-                    try
-                    {
-                        resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
-                    }
-                    catch (Exception error)
-                    {
-                        UnityEngine.Debug.Log("[KSPI] - InterstellarFissionPBDP.CoreTemperature getResourceBarRatio exception: " + error.Message + " returning 0");
-                        resourceBarRatio = 0;
-                    }
-                    var temperatureIncrease = Math.Pow(resourceBarRatio, 0.25) * (ZeroPowerTemp - OptimalTemp);
+                    resourceBarRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    var temperatureIncrease = Math.Max(Math.Pow(resourceBarRatio, 0.25) - 0.2, 0) * 1.25 * (ZeroPowerTemp - OptimalTemp);
 
                     return (float)Math.Min(Math.Max(OptimalTemp + temperatureIncrease, OptimalTemp), ZeroPowerTemp);
                 } 
@@ -105,11 +93,14 @@ namespace FNPlugin
                 upgradedTempZeroPower = upgradedReactorTemp * 1.25f;
 
             base.OnStart(state);
+
+            overheatPercentage = (float)(1 - ThermalRatioEfficiency) * 100;
         }
       
 
         public override void OnUpdate()
         {
+            overheatPercentage = (float)(1 - ThermalRatioEfficiency) * 100;
             Events["ManualRestart"].active = Events["ManualRestart"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
             Events["ManualShutdown"].active = Events["ManualShutdown"].guiActiveUnfocused = IsEnabled;
             base.OnUpdate();
@@ -119,23 +110,6 @@ namespace FNPlugin
         {
             return true;
         }
-
-        //protected override double consumeReactorFuel(ReactorFuel fuel, double consume_amount)
-        //{
-        //    if (!consumeGlobal)
-        //    {
-        //        if (part.Resources.Contains(fuel.FuelName) && part.Resources.Contains(InterstellarResourcesConfiguration.Instance.DepletedFuel))
-        //        {
-        //            double amount = Math.Min(consume_amount, part.Resources[fuel.FuelName].amount / FuelEfficiency);
-        //            part.Resources[fuel.FuelName].amount -= amount;
-        //            part.Resources[InterstellarResourcesConfiguration.Instance.DepletedFuel].amount += amount;
-        //            return amount;
-        //        } 
-        //        else return 0;
-        //    } 
-        //    else
-        //        return part.ImprovedRequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
-        //}
 
         public override float GetCoreTempAtRadiatorTemp(float rad_temp)
         {

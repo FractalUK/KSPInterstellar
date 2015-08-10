@@ -217,6 +217,11 @@ namespace FNPlugin
             }
         }
 
+        public static bool HasTechRequirmentOrEmpty(string techName)
+        {
+            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
+        }
+
         public static bool upgradeAvailable(string techid)
         {
             if (HighLogic.CurrentGame != null)
