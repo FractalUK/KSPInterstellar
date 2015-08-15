@@ -1,13 +1,12 @@
 ﻿extern alias ORSvKSPIE;
+using ORSvKSPIE::OpenResourceSystem;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using FNPlugin.Extensions;
-
 using UnityEngine;
-using ORSvKSPIE::OpenResourceSystem;
 
 namespace FNPlugin
 {
@@ -37,7 +36,7 @@ namespace FNPlugin
         public float ispGears = 3;
         [KSPField(isPersistant = false)]
         public float exitArea = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor=true)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Max Power Input", guiUnits = " MW")]
         public float maxPower;
         [KSPField(isPersistant = false, guiName = "Power Thrust Multiplier")]
         public float powerThrustMultiplier = 1.0f;
@@ -55,9 +54,9 @@ namespace FNPlugin
         public float variableEfficency = 0.3f;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Type")]
         public string engineTypeStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Propellant")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant")]
         public string propNameStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Share")]
         public string electricalPowerShareStr = "";
@@ -146,16 +145,28 @@ namespace FNPlugin
             get { return _attached_engine != null ? _attached_engine.isOperational : false; } 
         }
 
-        [KSPEvent(guiActive = true, guiName = "Toggle Propellant", active = true)]
-        public void TogglePropellant()
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Next Propellant", active = true)]
+        public void ToggleNextPropellantEvent()
         {
-            togglePropellants();
+            toggleNextPropellant();
         }
 
-        [KSPAction("Toggle Propellant")]
-        public void TogglePropellantAction(KSPActionParam param)
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Previous Propellant", active = true)]
+        public void TogglePreviousPropellantEvent()
         {
-            TogglePropellant();
+            togglePreviousPropellant();
+        }
+
+        [KSPAction("Next Propellant")]
+        public void ToggleNextPropellantAction(KSPActionParam param)
+        {
+            ToggleNextPropellantEvent();
+        }
+
+        [KSPAction("Previous Propellant")]
+        public void TogglePreviousPropellantAction(KSPActionParam param)
+        {
+            TogglePreviousPropellantEvent();
         }
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
@@ -168,105 +179,155 @@ namespace FNPlugin
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
+        private void UpdateEngineTypeString()
+        {
+            engineTypeStr = isupgraded ? upgradedName : originalName;
+        }
+
         public override void OnLoad(ConfigNode node)
         {
-            engineTypeStr = originalName;
             if (isupgraded)
                 upgradePartModule();
+            UpdateEngineTypeString();
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            _g0 = PluginHelper.GravityConstant;
-            _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
-            _modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
-
-            //_attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
-            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();
-
-            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-            // calculate WasteHeat Capacity
-            if (wasteheatPowerResource != null)
+            UnityEngine.Debug.Log("[KSPI] - Start Initializing ElectricEngineControllerFX");
+            try
             {
-                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
-            }
+                // initialise resources
+                this.resources_to_supply = new string[] { FNResourceManager.FNRESOURCE_WASTEHEAT };
+                base.OnStart(state);
+                AttachToEngine();
 
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
-            this.resources_to_supply = resources_to_supply;
-            _propellants = getPropellantsEngineType();
-            base.OnStart(state);
+                _g0 = PluginHelper.GravityConstant;
+                _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
+                _modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
+                _hasrequiredupgrade = this.HasTechsRequiredToUpgrade();
 
-            if (state == StartState.Editor)
-            {
-                if (this.HasTechsRequiredToUpgrade())
+                if (_hasrequiredupgrade && (isupgraded || state == StartState.Editor))
                     upgradePartModule();
+                UpdateEngineTypeString();
 
-                return;
+                // calculate WasteHeat Capacity
+                var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+                }
+
+                if (HighLogic.LoadedSceneIsFlight)
+                    fuel_gauge = part.stackIcon.DisplayInfo();
+
+                // initialize propellant
+                _propellants = getPropellantsEngineType();
+                SetupPropellants(true);
             }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error OnStart ElectricEngineControllerFX " + e.Message);
+            }
+            UnityEngine.Debug.Log("[KSPI] - End Initializing ElectricEngineControllerFX");
+        }
 
-            if (this.HasTechsRequiredToUpgrade())
-                _hasrequiredupgrade = true;
-
+        private void AttachToEngine()
+        {
+            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
-
-            fuel_gauge = part.stackIcon.DisplayInfo();
-            Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
-            setupPropellants();
         }
 
-        private void setupPropellants()
+        private void SetupPropellants(bool moveNext)
         {
-            List<Propellant> list_of_propellants = new List<Propellant>();
-            Propellant new_propellant = Current_propellant.Propellant;
-            if (new_propellant.drawStackGauge)
+            try
             {
-                new_propellant.drawStackGauge = false;
-                fuel_gauge.SetMessage(Current_propellant.PropellantGUIName);
-                fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
-                fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
-                fuel_gauge.SetProgressBarColor(XKCDColors.Yellow);
-                fuel_gauge.SetProgressBarBgColor(XKCDColors.DarkLime);
-                fuel_gauge.SetValue(0f);
-            }
-            list_of_propellants.Add(new_propellant);
+                Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
 
-            if (!list_of_propellants.Exists(prop => PartResourceLibrary.Instance.GetDefinition(prop.name) == null))
-            {
-                _attached_engine.propellants.Clear();
-                _attached_engine.propellants = list_of_propellants;
-                _attached_engine.SetupPropellant();
-            } 
-            else if (_rep < _propellants.Count)
-            {
-                _rep++;
-                togglePropellants();
-                return;
-            }
-
-            if (Current_propellant.SupportedEngines == 8 && vessel.IsInAtmosphere())
-            {
-                _rep++;
-                togglePropellants();
-                return;
-            }
-
-            if (HighLogic.LoadedSceneIsFlight)
-            { // you can have any fuel you want in the editor but not in flight
-                List<PartResource> totalpartresources = list_of_propellants.SelectMany(prop => part.GetConnectedResources(prop.name)).ToList();
-
-                if (!list_of_propellants.All(prop => totalpartresources.Select(pr => pr.resourceName).Contains(prop.name)) && _rep < _propellants.Count)
+                if ((Current_propellant.SupportedEngines & type) != type)
                 {
                     _rep++;
-                    togglePropellants();
+                    togglePropellant(moveNext);
                     return;
                 }
-            }
-            _rep = 0;
-        }
 
+                Propellant new_propellant = Current_propellant.Propellant;
+                if (fuel_gauge != null && new_propellant.drawStackGauge)
+                {
+                    new_propellant.drawStackGauge = false;
+                    fuel_gauge.SetMessage(Current_propellant.PropellantGUIName);
+                    fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
+                    fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
+                    fuel_gauge.SetProgressBarColor(XKCDColors.Yellow);
+                    fuel_gauge.SetProgressBarBgColor(XKCDColors.DarkLime);
+                    fuel_gauge.SetValue(0f);
+                }
+
+                List<Propellant> list_of_propellants = new List<Propellant>();
+                list_of_propellants.Add(new_propellant);
+                if (!list_of_propellants.Exists(prop => PartResourceLibrary.Instance.GetDefinition(prop.name) == null))
+                {
+                    _attached_engine.propellants.Clear();
+                    _attached_engine.propellants = list_of_propellants;
+                    _attached_engine.SetupPropellant();
+                }
+                else if (_rep < _propellants.Count)
+                {
+                    _rep++;
+                    togglePropellant(moveNext);
+                    return;
+                }
+
+                
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    // you can have any fuel you want in the editor but not in flight
+                    List<PartResource> totalpartresources = list_of_propellants.SelectMany(prop => part.GetConnectedResources(prop.name.Replace("LqdWater", "Water"))).ToList();
+
+                    if (!list_of_propellants.All(prop => totalpartresources.Select(pr => pr.resourceName).Contains(prop.name.Replace("LqdWater", "Water"))) && _rep < _propellants.Count)
+                    {
+                        _rep++;
+                        togglePropellant(moveNext);
+                        return;
+                    }
+                }
+
+                if (Current_propellant.Propellant.name == "LqdWater")
+                {
+                    if (fuel_gauge != null)
+                        fuel_gauge.SetMessage("Water");
+
+                    if (!part.Resources.Contains("LqdWater"))
+                    {
+                        ConfigNode node = new ConfigNode("RESOURCE");
+                        node.AddValue("name", "LqdWater");
+                        node.AddValue("maxAmount", this.maxPower / this.baseISP);
+                        node.AddValue("amount", 0);
+                        this.part.AddResource(node);
+                        this.part.Resources.UpdateList();
+                    }
+                }
+                else
+                {
+                    if (part.Resources.Contains("LqdWater"))
+                    {
+                        var partresource = part.Resources["LqdWater"];
+                        if (partresource.amount > 0 && HighLogic.LoadedSceneIsFlight)
+                            ORSHelper.fixedRequestResource(this.part, "Water", -partresource.amount);
+                        this.part.Resources.list.Remove(partresource);
+                        DestroyImmediate(partresource);
+                    }
+                }
+
+                _rep = 0;
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - SetupPropellants ElectricEngineControllerFX " + e.Message);
+            }
+        }
 
         // Format thrust into mN, N, kN
         public static string FormatThrust(double thrust)
@@ -308,8 +369,6 @@ namespace FNPlugin
                 Fields["upgradeCostStr"].guiActive = false;
             }
 
-            propNameStr = Current_propellant != null ? Current_propellant.PropellantGUIName : "";
-
             if (this.IsOperational)
             {
                 Fields["electricalPowerShareStr"].guiActive = true;
@@ -319,7 +378,13 @@ namespace FNPlugin
                 electricalPowerShareStr = (100.0 * _electrical_share_f).ToString("0.00") + "%";
                 electricalPowerConsumptionStr = _electrical_consumption_f.ToString("0.000") + " MW";
                 heatProductionStr = _heat_production_f.ToString("0.000") + " MW";
-                efficiencyStr = Current_propellant != null ? (CurrentPropellantEfficiency * 100.0).ToString("0.00") + "%" : "";
+
+                if (Current_propellant == null)
+                    efficiencyStr = "";
+                else if (Current_propellant.WasteHeatMultiplier != 1)
+                    efficiencyStr = ((1 - Current_propellant.WasteHeatMultiplier * (1 - CurrentPropellantEfficiency)) * 100).ToString("0.00") + "%";
+                else
+                    efficiencyStr = (CurrentPropellantEfficiency * 100.0).ToString("0.00") + "%";
             } 
             else
             {
@@ -331,6 +396,11 @@ namespace FNPlugin
             }
 
             updatePropellantBar();
+        }
+
+        public void Update()
+        {
+            propNameStr = Current_propellant != null ? Current_propellant.PropellantGUIName : "";
         }
 
         private float IspGears
@@ -352,13 +422,9 @@ namespace FNPlugin
         public static Vector3d CalculateLowThrustForce(Part part, float thrust, Vector3d up)
         {
             if (part != null)
-            {
                 return up * thrust;
-            }
             else
-            {
                 return Vector3d.zero;
-            }
         }
 
         public static double CalculateDeltaV(float Isp, float m0, float thrust, double dT)
@@ -447,8 +513,17 @@ namespace FNPlugin
 
             if (GetModifiedThrotte() > 0)
             {
+                if (part.Resources.Contains("LqdWater"))
+                {
+                    var lqdWaterResourse = part.Resources["LqdWater"];
+                    var lqdWaterShortage = lqdWaterResourse.maxAmount - lqdWaterResourse.amount;
+                    var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, "Water", lqdWaterShortage);
+                    lqdWaterResourse.amount += collectFlowGlobal;
+                }
+
                 double max_thrust_with_current_throttle = max_thrust_in_space * GetModifiedThrotte();
-                double actual_max_thrust = Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
+                double actual_max_thrust = Current_propellant.SupportedEngines == 8 ? max_thrust_with_current_throttle 
+                    : Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
 
                 if (actual_max_thrust > 0 && !double.IsNaN(actual_max_thrust) && max_thrust_with_current_throttle > 0 && !double.IsNaN(max_thrust_with_current_throttle))
                 {
@@ -489,9 +564,9 @@ namespace FNPlugin
                 double vacuum_plasma_needed = vacuum_resources.Sum(vc => vc.maxAmount - vc.amount);
                 double vacuum_plasma_current = vacuum_resources.Sum(vc => vc.amount);
 
-                if (vessel.IsInAtmosphere())
-                    part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, vacuum_plasma_current);
-                else
+                //if (vessel.IsInAtmosphere())
+                //    part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, vacuum_plasma_current);
+                //else
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuum_plasma_needed);
             }
         }
@@ -523,7 +598,7 @@ namespace FNPlugin
             get 
             {
                 if (type == (int)ElectricEngineType.ARCJET)
-                    return 0.87;
+                    return (0.87 + Current_propellant.Efficiency) / 2;
                 else if (type == (int)ElectricEngineType.VASIMR)
                     return baseEfficency + ((1 - _attached_engine.currentThrottle) * variableEfficency);
                 else 
@@ -544,7 +619,6 @@ namespace FNPlugin
                 double ispProp = _modifiedEngineBaseISP * ispPropellantModifier;
 
                 double efficiency;
-                
                 if (type == (int)ElectricEngineType.ARCJET)
                     efficiency = 0.87;
                 else if (type == (int)ElectricEngineType.VASIMR)
@@ -563,14 +637,32 @@ namespace FNPlugin
             return engineTypeStr + " Thruster" + (Current_propellant != null ? "(" + Current_propellant.PropellantGUIName + ")" : "");
         }
 
-        protected void togglePropellants()
+        protected void togglePropellant(bool next)
         {
+            if (next)
+                toggleNextPropellant();
+            else
+                togglePreviousPropellant();
+        }
+
+        protected void toggleNextPropellant()
+        {
+            UnityEngine.Debug.Log("[KSPI] - ElectricEngineControllerFX toggleNextPropellant");
             fuel_mode++;
             if (fuel_mode >= _propellants.Count)
                 fuel_mode = 0;
 
-            Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
-            setupPropellants();
+            SetupPropellants(true);
+        }
+
+        protected void togglePreviousPropellant()
+        {
+            UnityEngine.Debug.Log("[KSPI] - ElectricEngineControllerFX togglePreviousPropellant");
+            fuel_mode--;
+            if (fuel_mode < 0)
+                fuel_mode = _propellants.Count - 1;
+
+            SetupPropellants(false);
         }
 
         protected double EvaluateMaxThrust(double power_supply)

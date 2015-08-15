@@ -63,7 +63,11 @@ namespace OpenResourceSystem
             { // use our code
 
                 //List<PartResource> prl = part.GetConnectedResources(resourcename).ToList();
-                List<PartResource> prl = part.vessel.parts.Where(p => p.Resources.Contains(resourcename)).Select(p => p.Resources[resourcename]).ToList();
+                var partsWithResource = part.vessel.parts.Where(p => p.Resources.Contains(resourcename)); //.Select(p => p.Resources[resourcename]).ToList();
+
+                var partLookup = part.vessel.FindPartModulesImplementing<ORSPropellantControl>().ToDictionary( p => p.part);
+
+                List<PartResource> prl = partsWithResource.Where(p => !partLookup.ContainsKey(p) || ((ORSPropellantControl)partLookup[p]).isPropellant).Select(p => p.Resources[resourcename]).ToList();
 
                 prl = prl.Where(p => p.flowState == true).ToList();
                 double max_available = 0;

@@ -68,7 +68,7 @@ namespace OpenResourceSystem
                         List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
                         if (atmospheric_resource_list.Any())
                         {
-                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resources") ? orsc.GetValue("resources") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
                             if (bodyAtmosphericComposition.Any())
                             {
                                 bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();

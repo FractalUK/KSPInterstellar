@@ -78,7 +78,8 @@
     <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
     <Compile Include="Microwave\IElectricPowerSource.cs" />
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
-    <Compile Include="Propulsion\INoozle.cs" />
+    <Compile Include="Propulsion\Contract\INoozle.cs" />
+    <Compile Include="Propulsion\PropellantControl.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />

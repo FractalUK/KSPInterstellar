@@ -16,9 +16,10 @@ namespace FNPlugin.Extensions
         public float Cost { get; private set; }
         public IThermalSource Source { get; private set; }
 
-        public void IncreaseCost(float cost)
+        public ThermalSourceSearchResult IncreaseCost(float cost)
         {
             Cost += cost;
+            return this;
         }
 
         public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, int stackdepth, int parentdepth, bool skipSelfContained = false)
@@ -46,20 +47,14 @@ namespace FNPlugin.Extensions
                     return null;
             }
 
-            bool containsNonAndrogynous = currentpart.partInfo.title.Contains("Non-androgynous");
-            var containtDockingNode = currentpart.Modules.Contains("ModuleAdaptiveDockingNode");
-
-            int stackDepthCost = containsNonAndrogynous && containtDockingNode ? 0 : 1;
+            int stackDepthCost = currentpart.partInfo.title.Contains("Non-androgynous") && currentpart.Modules.Contains("ModuleAdaptiveDockingNode") ? 0 : 1;
 
             foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
             {
                 var source = FindThermalSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth, skipSelfContained);
 
                 if (source != null)
-                {
-                    source.IncreaseCost(stackDepthCost);
-                    return source;
-                }
+                    return source.IncreaseCost(stackDepthCost);
             }
 
             if (parentdepth > 0 && currentpart.parent != null)
@@ -67,10 +62,7 @@ namespace FNPlugin.Extensions
                 var source = FindThermalSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1), skipSelfContained);
 
                 if (source != null)
-                {
-                    source.IncreaseCost(2f);
-                    return source;
-                }
+                    return source.IncreaseCost(2f);
             }
 
             return null;

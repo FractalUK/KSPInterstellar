@@ -447,6 +447,33 @@ namespace FNPlugin
                     fuel_gauge.SetValue(0f);
                 }
                 list_of_propellants.Add(curprop);
+
+                if (curprop.name == "LqdWater")
+                {
+                    if (fuel_gauge != null)
+                        fuel_gauge.SetMessage("Water");
+
+                    if (!part.Resources.Contains("LqdWater"))
+                    {
+                        ConfigNode node = new ConfigNode("RESOURCE");
+                        node.AddValue("name", "LqdWater");
+                        node.AddValue("maxAmount", MyAttachedReactor.MaximumPower * powerTrustMultiplier / Math.Sqrt(MyAttachedReactor.CoreTemperature)); 
+                        node.AddValue("amount", 0);
+                        this.part.AddResource(node);
+                        this.part.Resources.UpdateList();
+                    }
+                }
+                else
+                {
+                    if (part.Resources.Contains("LqdWater"))
+                    {
+                        var partresource = part.Resources["LqdWater"];
+                        if (partresource.amount > 0 && HighLogic.LoadedSceneIsFlight)
+                            ORSHelper.fixedRequestResource(this.part, "Water", -partresource.amount);
+                        this.part.Resources.list.Remove(partresource);
+                        DestroyImmediate(partresource);
+                    }
+                }
             }
 
             // update the engine with the new propellants
@@ -469,6 +496,9 @@ namespace FNPlugin
 
                     if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                     {
+                        if ("LqdWater" == list_of_propellants[0].name)
+                            continue;
+
                         if (notifySwitching)
                             missingResources += curEngine_propellant.name + " ";
                         next_propellant = true;
@@ -690,6 +720,14 @@ namespace FNPlugin
             var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
             var tempRatio =  Math.Pow(part.temperature / part.maxTemp, 2);
             part.temperature = part.temperature - (0.05 * tempRatio * part.temperature * TimeWarp.fixedDeltaTime * (1 - Math.Pow(wasteheatRatio, 0.5)));
+
+            if (part.Resources.Contains("LqdWater"))
+            {
+                var lqdWaterResourse = part.Resources["LqdWater"];
+                var lqdWaterShortage = lqdWaterResourse.maxAmount - lqdWaterResourse.amount;
+                var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, "Water", lqdWaterShortage);
+                lqdWaterResourse.amount += collectFlowGlobal;
+            }
 
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
                 GenerateThrustFromReactorHeat();

@@ -55,7 +55,7 @@ namespace OpenResourceSystem {
                         List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
                         if (oceanic_resource_list.Any())
                         {
-                            bodyOceanicComposition = oceanic_resource_list.Select(orsc => new ORSOceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                            bodyOceanicComposition = oceanic_resource_list.Select(orsc => new ORSOceanicResource(orsc.HasValue("resources") ? orsc.GetValue("resources") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
                             if (bodyOceanicComposition.Any())
                             {
                                 bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();

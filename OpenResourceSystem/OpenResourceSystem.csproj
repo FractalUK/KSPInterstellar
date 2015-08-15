@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ORSPropellantControl.cs" />
     <Compile Include="ORSAtmosphericExtractor.cs" />
     <Compile Include="ORSAtmosphericResourceHandler.cs" />
     <Compile Include="ORSAtmosphericResource.cs" />
