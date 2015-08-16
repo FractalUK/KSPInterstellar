@@ -59,9 +59,9 @@ namespace OpenResourceSystem
                     if (body_resource_maps.ContainsKey(resource_gui_name)) continue; // skip duplicates
 
                     ORSPlanetaryResourceInfo resource_info = new ORSPlanetaryResourceInfo(resource_gui_name, map, body);
-                    if (planetary_resource_config_node.HasValue("resources")) 
+                    if (planetary_resource_config_node.HasValue("resourceName")) 
                     {
-                        string resource_name = planetary_resource_config_node.GetValue("resources");
+                        string resource_name = planetary_resource_config_node.GetValue("resourceName");
                         resource_info.setResourceName(resource_name);
                     }
                     if (planetary_resource_config_node.HasValue("resourceScale")) 

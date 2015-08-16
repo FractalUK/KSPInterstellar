@@ -492,13 +492,10 @@ namespace FNPlugin
                 string missingResources = String.Empty;
                 foreach (Propellant curEngine_propellant in myAttachedEngine.propellants)
                 {
-                    var partresources = part.GetConnectedResources(curEngine_propellant.name);
+                    var partresources = part.GetConnectedResources(curEngine_propellant.name.Replace("LqdWater", "Water"));
 
                     if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                     {
-                        if ("LqdWater" == list_of_propellants[0].name)
-                            continue;
-
                         if (notifySwitching)
                             missingResources += curEngine_propellant.name + " ";
                         next_propellant = true;
