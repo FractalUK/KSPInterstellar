@@ -9,8 +9,12 @@ namespace FNPlugin
     class ElectricRCSController : FNResourceSuppliableModule 
     {
         //persistant false
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Maximum Thrust", guiUnits = " kN")]
         public float maxThrust;
+        [KSPField(isPersistant = false)]
+        public float efficency = 0.8f;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
+        public float partMass;
 
         //Config settings settings
         protected double g0 = PluginHelper.GravityConstant;
@@ -60,12 +64,14 @@ namespace FNPlugin
                 double currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
                 //double currentIsp = attachedRCS.atmCurve.Evaluate(curve_eval_point); //ModuleRCS not compatible yet
 
-                double power_required = total_thrust * currentIsp * g0 * 0.5 / 1000.0;
+                double power_required = total_thrust * currentIsp * g0 * 0.5 / 1000.0 / efficency;
                 double power_received = consumeFNResource(power_required * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                double heat_to_produce = power_received * (1 - efficency);
+                heat_production_f = supplyFNResource((float)heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
                 electrical_consumption_f = (float)power_received;
                 double power_ratio = power_required > 0 ? Math.Min(power_received / power_required, 1.0) : 1;
                 attachedRCS.thrusterPower = Mathf.Max(maxThrust * ((float)power_ratio), 0.0001f);
-                float thrust_ratio = Mathf.Min(Mathf.Min((float)power_ratio, (float)(total_thrust / maxThrust)), 1.0f)*0.125f;
+                //float thrust_ratio = Mathf.Min(Mathf.Min((float)power_ratio, (float)(total_thrust / maxThrust)), 1.0f)*0.125f;
             }
         }
 

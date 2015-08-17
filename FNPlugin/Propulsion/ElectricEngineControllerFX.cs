@@ -52,8 +52,11 @@ namespace FNPlugin
         public float baseEfficency = 0.3f;
         [KSPField(isPersistant = false)]
         public float variableEfficency = 0.3f;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
+        public float partMass;
 
         // GUI
+
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Type")]
         public string engineTypeStr = "";
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant")]

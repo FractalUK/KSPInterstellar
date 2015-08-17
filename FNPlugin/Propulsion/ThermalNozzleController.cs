@@ -327,6 +327,7 @@ namespace FNPlugin
                 propellants = getPropellants(isJet);
             }
 
+            setupPropellants();
             maxPressureThresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel;
             hasstarted = true;
         }
@@ -419,13 +420,13 @@ namespace FNPlugin
         {
             ConfigNode chosenpropellant = propellants[fuel_mode];
             UpdatePropellantModeBehavior(chosenpropellant);
-            ConfigNode[] assprops = chosenpropellant.GetNodes("PROPELLANT");
+            ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
             List<Propellant> list_of_propellants = new List<Propellant>();
 
             // loop though propellants until we get to the selected one, then set it up
-            foreach (ConfigNode prop_node in assprops)
+            foreach (ConfigNode prop_node in propellantNodes)
             {
-                Propellant curprop = new Propellant();
+                ExtendedPropellant curprop = new ExtendedPropellant();
                 curprop.Load(prop_node);
                 if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
                 {
@@ -435,13 +436,14 @@ namespace FNPlugin
                         fuel_gauge.SetMessage("Atmosphere");
                     else
                     {
-                        fuel_gauge.SetMessage(curprop.name);
+                        fuel_gauge.SetMessage(curprop.StoragePropellantName);
                         myAttachedEngine.thrustPercentage = 100;
-                        //part.temperature = 1;
                     }
 
-                    fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
-                    fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
+                    //fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
+                    fuel_gauge.SetMsgBgColor(XKCDColors.White);
+                    //fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
+                    fuel_gauge.SetMsgTextColor(XKCDColors.Black);
                     fuel_gauge.SetProgressBarColor(XKCDColors.Yellow);
                     fuel_gauge.SetProgressBarBgColor(XKCDColors.DarkLime);
                     fuel_gauge.SetValue(0f);
@@ -450,13 +452,10 @@ namespace FNPlugin
 
                 if (curprop.name == "LqdWater")
                 {
-                    if (fuel_gauge != null)
-                        fuel_gauge.SetMessage("Water");
-
                     if (!part.Resources.Contains("LqdWater"))
                     {
                         ConfigNode node = new ConfigNode("RESOURCE");
-                        node.AddValue("name", "LqdWater");
+                        node.AddValue("name", curprop.name);
                         node.AddValue("maxAmount", MyAttachedReactor.MaximumPower * powerTrustMultiplier / Math.Sqrt(MyAttachedReactor.CoreTemperature)); 
                         node.AddValue("amount", 0);
                         this.part.AddResource(node);
@@ -492,7 +491,8 @@ namespace FNPlugin
                 string missingResources = String.Empty;
                 foreach (Propellant curEngine_propellant in myAttachedEngine.propellants)
                 {
-                    var partresources = part.GetConnectedResources(curEngine_propellant.name.Replace("LqdWater", "Water"));
+                    var extendedPropellant = curEngine_propellant as ExtendedPropellant;
+                    IEnumerable<PartResource> partresources = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
 
                     if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                     {
@@ -532,6 +532,8 @@ namespace FNPlugin
             switches = 0;
         }
 
+
+
         private void UpdatePropellantModeBehavior(ConfigNode chosenpropellant)
         {
             _fuelmode = chosenpropellant.GetValue("guiName");
@@ -551,8 +553,8 @@ namespace FNPlugin
             else
             {
                 _heatDecompositionFraction = 1;
-                _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
                 _thrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
+                _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
             }
         }
 
@@ -718,13 +720,24 @@ namespace FNPlugin
             var tempRatio =  Math.Pow(part.temperature / part.maxTemp, 2);
             part.temperature = part.temperature - (0.05 * tempRatio * part.temperature * TimeWarp.fixedDeltaTime * (1 - Math.Pow(wasteheatRatio, 0.5)));
 
-            if (part.Resources.Contains("LqdWater"))
+            var extendedPropellant = myAttachedEngine.propellants[0] as ExtendedPropellant;
+            if (extendedPropellant.name != extendedPropellant.StoragePropellantName)
             {
-                var lqdWaterResourse = part.Resources["LqdWater"];
-                var lqdWaterShortage = lqdWaterResourse.maxAmount - lqdWaterResourse.amount;
-                var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, "Water", lqdWaterShortage);
-                lqdWaterResourse.amount += collectFlowGlobal;
+                var propellantResourse = part.Resources[extendedPropellant.name];
+                var storageResourse = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
+                var propellantShortage = propellantResourse.maxAmount - propellantResourse.amount;
+                var totalAmount = storageResourse.Sum(r => r.amount) + propellantResourse.amount;
+                var totalMaxAmount = storageResourse.Sum(r => r.maxAmount);
+                var waterStorageRatio = totalMaxAmount > 0 ? totalAmount / totalMaxAmount : 0;
+                var message = (waterStorageRatio * 100).ToString("0") + "% " + extendedPropellant.StoragePropellantName + " " + totalAmount.ToString("0") + "/" + totalMaxAmount.ToString("0");
+                fuel_gauge.SetLength(5);
+                fuel_gauge.SetMessage(message);
+
+                var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, extendedPropellant.StoragePropellantName, propellantShortage);
+                propellantResourse.amount += collectFlowGlobal;
             }
+            else
+                fuel_gauge.SetLength(2.5f);
 
             if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
                 GenerateThrustFromReactorHeat();

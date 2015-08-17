@@ -23,6 +23,8 @@ namespace FNPlugin
         public bool radiatorInit;
         [KSPField(isPersistant = true)]
         public bool isAutomated;
+        [KSPField(isPersistant = true)]
+        public bool showColorHeat = true;
 
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass;
@@ -404,7 +406,8 @@ namespace FNPlugin
                 last_draw_update = update_count;
             }
 
-            ColorHeat();
+            if (showColorHeat)
+                ColorHeat();
 
             update_count++;
 		}
