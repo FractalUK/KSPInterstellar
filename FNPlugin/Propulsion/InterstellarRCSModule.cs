@@ -20,15 +20,14 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float maxThrust = 1;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
-        public float partMass;
-
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant")]
         public string propNameStr = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
         public float thrustLimiter = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Thrust")]
         public string thrustStr;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
+        public float partMass;
 
         private AnimationState[] rcsStates;
         private bool rcsIsOn;
@@ -90,7 +89,11 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            rcsStates = SetUpAnimation(AnimationName, this.part);
+            if (!String.IsNullOrEmpty(AnimationName))
+            {
+                rcsStates = SetUpAnimation(AnimationName, this.part);
+            }
+
             attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
 
             // initialize propellant
@@ -117,6 +120,7 @@ namespace FNPlugin
                 rcsPartActive = rcs.isEnabled;
             }
 
+            if (rcsStates == null) return;
 
             foreach (AnimationState anim in rcsStates)
             {
@@ -187,22 +191,22 @@ namespace FNPlugin
             return states.ToArray();
         }
 
-		public static float RoundToMultiple(float f, float multiple)
-		{
-			float factor = 1/multiple;
-			f *= factor;
-			f = Mathf.Round(f);
-			f /= factor;
-			return f;
-		}
+        //public static float RoundToMultiple(float f, float multiple)
+        //{
+        //    float factor = 1/multiple;
+        //    f *= factor;
+        //    f = Mathf.Round(f);
+        //    f /= factor;
+        //    return f;
+        //}
 
-		public static float SignedAngle(Vector3 fromDirection, Vector3 toDirection, Vector3 referenceRight)
-		{
-			float angle = Vector3.Angle(fromDirection, toDirection);
-			float sign = Mathf.Sign(Vector3.Dot(toDirection, referenceRight));
-			float finalAngle = sign * angle;
-			return finalAngle;
-		}
+        //public static float SignedAngle(Vector3 fromDirection, Vector3 toDirection, Vector3 referenceRight)
+        //{
+        //    float angle = Vector3.Angle(fromDirection, toDirection);
+        //    float sign = Mathf.Sign(Vector3.Dot(toDirection, referenceRight));
+        //    float finalAngle = sign * angle;
+        //    return finalAngle;
+        //}
 	}
 }
 
