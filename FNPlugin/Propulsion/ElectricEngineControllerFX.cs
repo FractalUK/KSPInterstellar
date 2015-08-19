@@ -226,7 +226,7 @@ namespace FNPlugin
                     fuel_gauge = part.stackIcon.DisplayInfo();
 
                 // initialize propellant
-                _propellants = getPropellantsEngineType();
+                _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
                 SetupPropellants(true);
             }
             catch (Exception e)
@@ -578,7 +578,7 @@ namespace FNPlugin
         {
             isupgraded = true;
             type = upgradedtype;
-            _propellants = getPropellantsEngineType();
+            _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             engineTypeStr = upgradedName;
 
             if (!vacplasmaadded && type == (int)ElectricEngineType.VACUUMTHRUSTER)
@@ -613,7 +613,7 @@ namespace FNPlugin
         public override string GetInfo()
         {
             double powerThrustModifier = GetPowerThrustModifier();
-            List<ElectricEnginePropellant> props = getPropellantsEngineType();
+            List<ElectricEnginePropellant> props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             string return_str = "Max Power Consumption: " + maxPower.ToString("") + " MW\n";
             double thrust_per_mw = (2e6 * powerThrustMultiplier) / _g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
@@ -722,23 +722,23 @@ namespace FNPlugin
             }
         }
 
-        protected List<ElectricEnginePropellant> getPropellantsEngineType()
-        { // propellants relevent to me
-            ConfigNode[] propellantlist = GameDatabase.Instance.GetConfigNodes("ELECTRIC_PROPELLANT");
-            List<ElectricEnginePropellant> propellant_list;
-            if (propellantlist.Length == 0)
-            {
-                PluginHelper.showInstallationErrorMessage();
-                propellant_list = new List<ElectricEnginePropellant>();
-            }
-            else
-            {
-                propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop))
-                    .Where(eep => (eep.SupportedEngines & type) == type && PluginHelper.HasTechRequirmentOrEmpty(eep.TechRequirement)).ToList();
-            }
+        //protected List<ElectricEnginePropellant> getPropellantsEngineType()
+        //{ // propellants relevent to me
+        //    ConfigNode[] propellantlist = GameDatabase.Instance.GetConfigNodes("ELECTRIC_PROPELLANT");
+        //    List<ElectricEnginePropellant> propellant_list;
+        //    if (propellantlist.Length == 0)
+        //    {
+        //        PluginHelper.showInstallationErrorMessage();
+        //        propellant_list = new List<ElectricEnginePropellant>();
+        //    }
+        //    else
+        //    {
+        //        propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop))
+        //            .Where(eep => (eep.SupportedEngines & type) == type && PluginHelper.HasTechRequirmentOrEmpty(eep.TechRequirement)).ToList();
+        //    }
 
-            return propellant_list;
-        }
+        //    return propellant_list;
+        //}
 
         protected static List<ElectricEnginePropellant> getAllPropellants()
         { // propellants available to any electric engine

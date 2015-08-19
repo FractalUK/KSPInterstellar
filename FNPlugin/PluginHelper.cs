@@ -667,14 +667,14 @@ namespace FNPlugin
             gdb = GameDatabase.Instance;
             plugin_init = true;
 
-            AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
-            if (kerbalRadiationPart.partPrefab.Modules != null)
-            {
-                if (kerbalRadiationPart.partPrefab.FindModulesImplementing<FNModuleRadiation>().Count == 0)
-                    kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
-            }
-            else
-                kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
+            //AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
+            //if (kerbalRadiationPart.partPrefab.Modules != null)
+            //{
+            //    if (kerbalRadiationPart.partPrefab.FindModulesImplementing<FNModuleRadiation>().Count == 0)
+            //        kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
+            //}
+            //else
+            //    kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
 
             List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
             foreach (AvailablePart available_part in available_parts)
