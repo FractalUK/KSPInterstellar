@@ -150,15 +150,25 @@ namespace FNPlugin
                     return;
                 }
                 Propellant new_propellant = Current_propellant.Propellant;
-                if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
-                    attachedRCS.SetResource(new_propellant.name);
-                else if (maxSwitching > 0)
-                {
-                    SwitchPropellant(moveNext, --maxSwitching);
-                    return;
-                }
+	            if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
+	            {
+		            //attachedRCS.SetResource(new_propellant.name);
+					List<Propellant> list_of_propellants = new List<Propellant>();
+					list_of_propellants.Add(new_propellant);
+					attachedRCS.propellants.Clear();
+		            attachedRCS.propellants = list_of_propellants;
+		            var newPropellantConfig = new ConfigNode("PROPELLANT");
+					newPropellantConfig.AddValue("name", new_propellant.name);
+					newPropellantConfig.AddValue("ratio", "1");
+		            attachedRCS.SetupPropellant(newPropellantConfig);
+	            }
+	            else if (maxSwitching > 0)
+	            {
+		            SwitchPropellant(moveNext, --maxSwitching);
+		            return;
+	            }
 
-                if (HighLogic.LoadedSceneIsFlight)
+	            if (HighLogic.LoadedSceneIsFlight)
                 {
                     // you can have any fuel you want in the editor but not in flight
                     List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
