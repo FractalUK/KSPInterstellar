@@ -18,7 +18,7 @@ namespace FNPlugin
     {
         protected int prop_type;
         protected double efficiency;
-        protected double ispMultiplier;
+        protected float ispMultiplier;
         protected double thrustMultiplier;
         protected Propellant propellant;
         protected String propellantname;
@@ -31,7 +31,7 @@ namespace FNPlugin
 
         public double Efficiency { get { return efficiency; } }
 
-        public double IspMultiplier { get { return ispMultiplier; } }
+        public float IspMultiplier { get { return ispMultiplier; } }
 
         public double ThrustMultiplier { get { return thrustMultiplier; } }
 
@@ -51,7 +51,7 @@ namespace FNPlugin
         {
             propellantname = node.GetValue("name");
             propellantguiname = node.GetValue("guiName");
-            ispMultiplier = Convert.ToDouble(node.GetValue("ispMultiplier"));
+            ispMultiplier = Convert.ToSingle(node.GetValue("ispMultiplier"));
             thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToDouble(node.GetValue("thrustMultiplier")) : 1;
             wasteheatMultiplier = node.HasValue("wasteheatMultiplier") ? Convert.ToDouble(node.GetValue("wasteheatMultiplier")) : 1;
             efficiency = Convert.ToDouble(node.GetValue("efficiency"));

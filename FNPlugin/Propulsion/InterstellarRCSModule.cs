@@ -31,6 +31,7 @@ namespace FNPlugin
 
         private AnimationState[] rcsStates;
         private bool rcsIsOn;
+
         private bool rcsPartActive;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
@@ -89,12 +90,12 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
+
             if (!String.IsNullOrEmpty(AnimationName))
             {
                 rcsStates = SetUpAnimation(AnimationName, this.part);
             }
-
-            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
 
             // initialize propellant
             _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
@@ -114,13 +115,13 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
+            if (rcsStates == null) return;
+
             rcsIsOn = this.vessel.ActionGroups.groups[3];
             foreach (ModuleRCS rcs in part.FindModulesImplementing<ModuleRCS>())
             {
                 rcsPartActive = rcs.isEnabled;
             }
-
-            if (rcsStates == null) return;
 
             foreach (AnimationState anim in rcsStates)
             {
@@ -152,8 +153,6 @@ namespace FNPlugin
                 Propellant new_propellant = Current_propellant.Propellant;
                 if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
                 {
-                    //attachedRCS.SetResource(new_propellant.name);
-                    // attachedRCS.SetResource(new_propellant.name);
                     List<Propellant> list_of_propellants = new List<Propellant>();
                     list_of_propellants.Add(new_propellant);
                     attachedRCS.propellants.Clear();
