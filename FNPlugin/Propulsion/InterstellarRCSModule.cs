@@ -151,17 +151,7 @@ namespace FNPlugin
                 }
                 Propellant new_propellant = Current_propellant.Propellant;
                 if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
-                {
-                   // attachedRCS.SetResource(new_propellant.name);
-                    List<Propellant> list_of_propellants = new List<Propellant>();
-                    list_of_propellants.Add(new_propellant);
-                    attachedRCS.propellants.Clear();
-                    attachedRCS.propellants = list_of_propellants;
-                    var newPropellantConfig = new ConfigNode("PROPELLANT");
-                    newPropellantConfig.AddValue("name", new_propellant.name);
-                    newPropellantConfig.AddValue("ratio", "1");
-                    attachedRCS.SetupPropellant(newPropellantConfig);
-                }
+                    attachedRCS.SetResource(new_propellant.name);
                 else if (maxSwitching > 0)
                 {
                     SwitchPropellant(moveNext, --maxSwitching);
