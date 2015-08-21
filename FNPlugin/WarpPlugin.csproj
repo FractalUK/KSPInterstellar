@@ -93,6 +93,7 @@
     <Compile Include="Refinery\ReverseWaterGasShift.cs" />
     <Compile Include="Refinery\WaterGasShift.cs" />
     <Compile Include="Refinery\CarbonDioxideElectroliser.cs" />
+    <Compile Include="Science\InterstellarResourceScienceModule.cs" />
     <Compile Include="Toolbar\InterstellarToolbar.cs" />
     <Compile Include="Microwave\MicrowaveSources.cs" />
     <Compile Include="Refinery\HaberProcess.cs" />
