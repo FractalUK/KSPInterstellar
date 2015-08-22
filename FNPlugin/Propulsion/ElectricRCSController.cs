@@ -14,23 +14,34 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public int fuel_mode;
         [KSPField(isPersistant = false)]
+        public string AnimationName = "";
+        [KSPField(isPersistant = false)]
         public float efficency = 0.8f;
         [KSPField(isPersistant = false)]
         public int type = 16;
         [KSPField(isPersistant = false)]
-        public float maxThrust = 0;
+        public float maxThrust = 1;
         [KSPField(isPersistant = false)]
         public float maxIsp = 2000;
+        [KSPField(isPersistant = false)]
+        public float minIsp = 250;
+        [KSPField(isPersistant = false)]
+        string displayName = "";
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool powerEnabled = true;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Max Thrust", guiUnits = " kN")]
         public float baseThrust = 0;
-
-        //Gui
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
+        public bool hasSufficientPower = true;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficency")]
         public string efficencyStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Name")]
         public string propNameStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum Isp")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Maximum Isp")]
         public float maxPropellantIsp;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Thrust Multiplier")]
+        public float currentThrustMultiplier;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
         public float thrustLimiter = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust")]
@@ -38,7 +49,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Current Thrust", guiUnits = " kN")]
         public float currentThrust;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
-        public float partMass;
+        public float partMass = 0;
 
         //Config settings settings
         protected double g0 = PluginHelper.GravityConstant;
@@ -50,6 +61,10 @@ namespace FNPlugin
         public string heatProductionStr = "";
 
         // internal
+        private AnimationState[] rcsStates;
+        private bool rcsIsOn;
+        private bool rcsPartActive;
+
         private float power_ratio = 1;
         private float power_requested_f = 0;
         private float power_recieved_f = 1;
@@ -59,10 +74,8 @@ namespace FNPlugin
         private float efficencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
+        private bool oldPowerEnabled;
         private int insufficientPowerTimout = 2;
-        private int sufficientPowerTimout = 2;
-
-        public float ElectricPowerModifier { get { return insufficientPowerTimout > 0 ? 1 : 0.0001f; } }
 
         public ElectricEnginePropellant Current_propellant { get; set; }
 
@@ -129,20 +142,23 @@ namespace FNPlugin
                 Propellant new_propellant = Current_propellant.Propellant;
                 if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
                 {
+                    currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+
                     var moduleConfig = new ConfigNode("MODULE");
                     moduleConfig.AddValue("name", "ModuleRCSFX");
-                    moduleConfig.AddValue("thrusterPower", (ElectricPowerModifier * (thrustLimiter / 100) * Math.Sqrt(Current_propellant.ThrustMultiplier) * baseThrust / Current_propellant.IspMultiplier).ToString("0.0"));
+                    moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
                     moduleConfig.AddValue("resourceName", new_propellant.name);
                     moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
 
+                    maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
+
                     var atmosphereCurve = new ConfigNode("atmosphereCurve");
-                    atmosphereCurve.AddValue("key", "0 " + (maxIsp * Current_propellant.IspMultiplier).ToString("0.000"));
-                    atmosphereCurve.AddValue("key", "1 " + (maxIsp * Current_propellant.IspMultiplier * 0.5).ToString("0.000"));
-                    atmosphereCurve.AddValue("key", "4 " + (maxIsp * Current_propellant.IspMultiplier * 0.00001).ToString("0.000"));
+                    atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
+                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
+                    atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
                     moduleConfig.AddNode(atmosphereCurve);
 
                     attachedRCS.Load(moduleConfig);
-                    
                 }
                 else if (maxSwitching > 0)
                 {
@@ -170,20 +186,32 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
+            // old legacy stuff
             if (baseThrust == 0 && maxThrust > 0)
                 baseThrust = maxThrust;
 
-            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
+            if (partMass == 0)
+                partMass = part.mass;
 
+            if (String.IsNullOrEmpty(displayName))
+                displayName = part.partInfo.title;
+
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
+
+            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
+            oldThrustLimiter = thrustLimiter;
+            oldPowerEnabled = powerEnabled;
+            efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
+            efficencyStr = (efficency * 100).ToString() + "%";
+
+            if (!String.IsNullOrEmpty(AnimationName))
+                rcsStates = SetUpAnimation(AnimationName, this.part);
 
             // initialize propellant
             _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             SetupPropellants(true, _propellants.Count);
-            efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
-            efficencyStr = (efficency * 100).ToString() + "%";
-            oldThrustLimiter = thrustLimiter;
+            currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
 
             base.OnStart(state);
          }
@@ -192,28 +220,22 @@ namespace FNPlugin
         {
             if (Current_propellant == null) return;
 
-            //if (power_ratio > 0.5f )
-            //{
-            //    sufficientPowerTimout--;
-            //    insufficientPowerTimout = 2;
-            //}
-            //else
-            //{
-            //    insufficientPowerTimout--;
-            //    sufficientPowerTimout = 2;
-            //}
-
-            if (oldThrustLimiter != thrustLimiter || insufficientPowerTimout == 0 || sufficientPowerTimout == 0)
+            if (oldThrustLimiter != thrustLimiter)
             {
                 SetupPropellants(true, 0);
                 oldThrustLimiter = thrustLimiter;
             }
 
+            if (oldPowerEnabled != powerEnabled)
+            {
+                hasSufficientPower = powerEnabled;
+                SetupPropellants(true, 0);
+                oldPowerEnabled = powerEnabled;
+            }
+
             propNameStr = Current_propellant.PropellantGUIName;
 
-            maxPropellantIsp = maxIsp * (float)Current_propellant.IspMultiplier;
-
-            currentMaxThrust = baseThrust / (float)Current_propellant.IspMultiplier * (float)Math.Sqrt(Current_propellant.ThrustMultiplier);
+            currentMaxThrust = baseThrust / (float)Current_propellant.IspMultiplier * currentThrustMultiplier;
 
             thrustStr = attachedRCS.thrusterPower.ToString("0.000") + " / " + currentMaxThrust.ToString("0.000") + " kN";
         }
@@ -232,6 +254,30 @@ namespace FNPlugin
                 Fields["electricalPowerConsumptionStr"].guiActive = false;
                 Fields["heatProductionStr"].guiActive = false;
             }
+
+            if (rcsStates == null) return;
+
+            rcsIsOn = this.vessel.ActionGroups.groups[3];
+            foreach (ModuleRCS rcs in part.FindModulesImplementing<ModuleRCS>())
+            {
+                rcsPartActive = rcs.isEnabled;
+            }
+
+            foreach (AnimationState anim in rcsStates)
+            {
+                if (attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive && anim.normalizedTime < 1) { anim.speed = 1; }
+                if (attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive && anim.normalizedTime >= 1)
+                {
+                    anim.speed = 0;
+                    anim.normalizedTime = 1;
+                }
+                if ((!attachedRCS.rcsEnabled || !rcsIsOn || !rcsPartActive) && anim.normalizedTime > 0) { anim.speed = -1; }
+                if ((!attachedRCS.rcsEnabled || !rcsIsOn || !rcsPartActive) && anim.normalizedTime <= 0)
+                {
+                    anim.speed = 0;
+                    anim.normalizedTime = 0;
+                }
+            }
         }
 
         public void FixedUpdate()
@@ -245,24 +291,60 @@ namespace FNPlugin
             if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
 
             currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
-            float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
-            float currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
 
-            power_requested_f = currentThrust * currentIsp * efficencyModifier / (float)Math.Sqrt(Current_propellant.ThrustMultiplier);
-            power_recieved_f = consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-            float heat_to_produce = power_recieved_f * (1 - efficency);
-            heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
-            power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
+            if (powerEnabled)
+            {
+                float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
+                float currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
 
+                power_requested_f = currentThrust * currentIsp * efficencyModifier / currentThrustMultiplier;
+                power_recieved_f = consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                float heat_to_produce = power_recieved_f * (1 - efficency);
+                heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
+            }
+            else
+            {
+                power_ratio = 0;
+                insufficientPowerTimout = 0;
+            }
 
+            if (hasSufficientPower && power_ratio < 0.9 && power_recieved_f < 0.01 )
+            {
+                if (insufficientPowerTimout < 1)
+                {
+                    hasSufficientPower = false;
+                    SetupPropellants(true, 0);
+                }
+                else
+                    insufficientPowerTimout--;
+            }
+            else if (!hasSufficientPower && power_ratio > 0.9 && power_recieved_f > 0.01)
+            {
+                insufficientPowerTimout = 2;
+                hasSufficientPower = true;
+                SetupPropellants(true, 0);
+            }
+        }
 
-            //attachedRCS.thrusterPower = Mathf.Max(currentMaxThrust * power_ratio * (thrustLimiter / 100), 0.0001f);
-            //float thrust_ratio = Mathf.Min(Mathf.Min((float)power_ratio, (float)(total_thrust / maxThrust)), 1.0f)*0.125f;
+        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in part.FindModelAnimators(animationName))
+            {
+                var animationState = animation[animationName];
+                animationState.speed = 0;
+                animationState.enabled = true;
+                animationState.wrapMode = WrapMode.ClampForever;
+                animation.Blend(animationName);
+                states.Add(animationState);
+            }
+            return states.ToArray();
         }
 
         public override string getResourceManagerDisplayName() 
         {
-            return "Electrical Reaction Control System";
+            return displayName;
         }
     }
 }

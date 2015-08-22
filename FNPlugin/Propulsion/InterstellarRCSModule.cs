@@ -31,8 +31,8 @@ namespace FNPlugin
 
         private AnimationState[] rcsStates;
         private bool rcsIsOn;
-
         private bool rcsPartActive;
+
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
 
@@ -93,9 +93,7 @@ namespace FNPlugin
             attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
 
             if (!String.IsNullOrEmpty(AnimationName))
-            {
                 rcsStates = SetUpAnimation(AnimationName, this.part);
-            }
 
             // initialize propellant
             _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);

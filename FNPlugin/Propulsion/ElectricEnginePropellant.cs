@@ -19,7 +19,8 @@ namespace FNPlugin
         protected int prop_type;
         protected double efficiency;
         protected float ispMultiplier;
-        protected double thrustMultiplier;
+        protected float thrustMultiplier;
+        protected float thrustMultiplierCold;
         protected Propellant propellant;
         protected String propellantname;
         protected String propellantguiname;
@@ -33,7 +34,9 @@ namespace FNPlugin
 
         public float IspMultiplier { get { return ispMultiplier; } }
 
-        public double ThrustMultiplier { get { return thrustMultiplier; } }
+        public float ThrustMultiplier { get { return thrustMultiplier; } }
+
+        public float ThrustMultiplierCold { get { return thrustMultiplierCold; } }
 
         public Propellant Propellant {  get { return propellant; } }
 
@@ -52,7 +55,8 @@ namespace FNPlugin
             propellantname = node.GetValue("name");
             propellantguiname = node.GetValue("guiName");
             ispMultiplier = Convert.ToSingle(node.GetValue("ispMultiplier"));
-            thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToDouble(node.GetValue("thrustMultiplier")) : 1;
+            thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToSingle(node.GetValue("thrustMultiplier")) : 1;
+            thrustMultiplierCold = node.HasValue("thrustMultiplierCold") ? Convert.ToSingle(node.GetValue("thrustMultiplierCold")) : thrustMultiplier;
             wasteheatMultiplier = node.HasValue("wasteheatMultiplier") ? Convert.ToDouble(node.GetValue("wasteheatMultiplier")) : 1;
             efficiency = Convert.ToDouble(node.GetValue("efficiency"));
             prop_type = Convert.ToInt32(node.GetValue("type"));
