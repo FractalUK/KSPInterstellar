@@ -22,7 +22,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
         [KSPField(isPersistant = true)]
-        public bool isAutomated;
+        public bool isAutomated = true;
         [KSPField(isPersistant = true)]
         public bool showColorHeat = true;
 

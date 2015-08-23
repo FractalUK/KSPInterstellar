@@ -111,9 +111,8 @@ namespace FNPlugin
         {
             generatorActive = true;
             PlayAnimation("Deploy", false, false, false);
-
-
         }
+
         [KSPEvent(guiName = "Activate Generator", active = true, guiActive = true)]
         public void deActivateGenerator()
         {
@@ -123,7 +122,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-
             //this.Events["Deploy"].guiActive = false;
             Events["activateGenerator"].guiName = generatorActivateName;
             Events["deActivateGenerator"].guiName = generatorDeactivateName;
@@ -179,12 +177,16 @@ namespace FNPlugin
             string biome = BiomeCheck();
             if (biome != currentBiome || lcrewCount != crewCount)
             {
+                if (biome != currentBiome)
+                    UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - reseting research because biome " + biome + " != biome " + currentBiome);
+                else
+                    UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - reseting research because lcrewCount " + lcrewCount + " !=  crewCount " + crewCount);
+
                 print("biome change " + biome);
                 currentBiome = biome;
                 crewCount = lcrewCount;
                 //reset collected data
                 part.RequestResource(resourceName, resourceAmount);
-
 
             }
             if (loopingAnimation != "")

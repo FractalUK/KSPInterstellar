@@ -12,6 +12,8 @@ namespace FNPlugin
     class ElectricRCSController : FNResourceSuppliableModule 
     {
         [KSPField(isPersistant = true)]
+        bool isInitialised = false;
+        [KSPField(isPersistant = true)]
         public int fuel_mode;
         [KSPField(isPersistant = false)]
         public string AnimationName = "";
@@ -28,25 +30,36 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         string displayName = "";
 
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Full Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool fullThrustEnabled;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "FT Threshold", guiUnits = "%"), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 0)]
+        public float fullThrustMinLimiter;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Throtle"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool useThrotleEnabled;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Lever"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool useLeverEnabled;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Precision"), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 5)]
+        public float precisionFactorLimiter;
+
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool powerEnabled = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Max Thrust", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
         public float baseThrust = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
-        public bool hasSufficientPower = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficency")]
-        public string efficencyStr = "";
+
+
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Name")]
         public string propNameStr = "";
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Maximum Isp")]
         public float maxPropellantIsp;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Thrust Multiplier")]
         public float currentThrustMultiplier;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
         public float thrustLimiter = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust")]
         public string thrustStr;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Current Thrust", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Forces")]
+        public string thrustForcesStr;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Current Total Thrust", guiUnits = " kN")]
         public float currentThrust;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
@@ -55,9 +68,13 @@ namespace FNPlugin
         protected double g0 = PluginHelper.GravityConstant;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
+        public bool hasSufficientPower = true;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Production")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficency")]
+        public string efficencyStr = "";
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Heat Production")]
         public string heatProductionStr = "";
 
         // internal
@@ -71,6 +88,7 @@ namespace FNPlugin
         private float heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
+        private ModuleRCSFX attachedModuleRCSFX;
         private float efficencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
@@ -131,61 +149,158 @@ namespace FNPlugin
 
         private void SetupPropellants(bool moveNext, int maxSwitching)
         {
-            try
+            Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
+            if ((Current_propellant.SupportedEngines & type) != type)
             {
-                Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
-                if ((Current_propellant.SupportedEngines & type) != type)
+                SwitchPropellant(moveNext, --maxSwitching);
+                return;
+            }
+
+            Propellant new_propellant = Current_propellant.Propellant;
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                // you can have any fuel you want in the editor but not in flight
+                List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
+
+                if (!totalpartresources.Any() && maxSwitching > 0)
                 {
+                    UnityEngine.Debug.Log("[KSPI] - InterstellarRCSModule SetupPropellants switching because " + new_propellant.name + " has no connected resources");
                     SwitchPropellant(moveNext, --maxSwitching);
                     return;
                 }
-                Propellant new_propellant = Current_propellant.Propellant;
-                if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
-                {
-                    currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-
-                    var moduleConfig = new ConfigNode("MODULE");
-                    moduleConfig.AddValue("name", "ModuleRCSFX");
-                    moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
-                    moduleConfig.AddValue("resourceName", new_propellant.name);
-                    moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
-
-                    maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
-
-                    var atmosphereCurve = new ConfigNode("atmosphereCurve");
-                    atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
-                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
-                    atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
-                    moduleConfig.AddNode(atmosphereCurve);
-
-                    attachedRCS.Load(moduleConfig);
-                }
-                else if (maxSwitching > 0)
-                {
-                    SwitchPropellant(moveNext, --maxSwitching);
-                    return;
-                }
-
-                if (HighLogic.LoadedSceneIsFlight)
-                {
-                    // you can have any fuel you want in the editor but not in flight
-                    List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
-
-                    if (!totalpartresources.Any() && maxSwitching > 0)
-                    {
-                        SwitchPropellant(moveNext, --maxSwitching);
-                        return;
-                    }
-                }
             }
-            catch (Exception e)
+
+            if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
             {
-                UnityEngine.Debug.LogError("[KSPI] - InterstellarRCSModule SetupPropellants " + e.Message);
+                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+
+                var moduleConfig = new ConfigNode("MODULE");
+                moduleConfig.AddValue("name", "ModuleRCSFX");
+                moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
+                moduleConfig.AddValue("resourceName", new_propellant.name);
+                moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
+
+                maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
+
+                var atmosphereCurve = new ConfigNode("atmosphereCurve");
+                atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
+                atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
+                atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
+                moduleConfig.AddNode(atmosphereCurve);
+
+                attachedRCS.Load(moduleConfig);
             }
+            else if (maxSwitching > 0)
+            {
+                SwitchPropellant(moveNext, --maxSwitching);
+                return;
+            }
+        }
+
+        [KSPAction("Toggle Yaw")]
+        public void ToggleYawAction(KSPActionParam param)
+        {
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.enableYaw = !attachedModuleRCSFX.enableYaw;
+        }
+
+        [KSPAction("Toggle Pitch")]
+        public void TogglePitchAction(KSPActionParam param)
+        {
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.enablePitch = !attachedModuleRCSFX.enablePitch;
+        }
+
+        [KSPAction("Toggle Roll")]
+        public void ToggleRollAction(KSPActionParam param)
+        {
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.enableRoll = !attachedModuleRCSFX.enableRoll;
+        }
+
+        [KSPAction("Toggle Enable X")]
+        public void ToggleEnableXAction(KSPActionParam param)
+        {
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.enableX = !attachedModuleRCSFX.enableX;
+        }
+
+        [KSPAction("Toggle Enable Y")]
+        public void ToggleEnableYAction(KSPActionParam param)
+        {
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.enableY = !attachedModuleRCSFX.enableY;
+        }
+
+        [KSPAction("Toggle Enable Z")]
+        public void ToggleEnableZAction(KSPActionParam param)
+        {
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.enableZ = !attachedModuleRCSFX.enableZ;
+        }
+
+        [KSPAction("Toggle Full Thrust")]
+        public void ToggleFullThrustAction(KSPActionParam param)
+        {
+            fullThrustEnabled = !fullThrustEnabled;
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.fullThrust = fullThrustEnabled;
+        }
+
+        [KSPAction("Toggle Use Throtle")]
+        public void ToggleUseThrotleEnabledAction(KSPActionParam param)
+        {
+            useThrotleEnabled = !useThrotleEnabled;
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.useThrottle = useThrotleEnabled;
+        }
+
+        [KSPAction("Toggle Use Lever")]
+        public void ToggleUseLeverAction(KSPActionParam param)
+        {
+            useLeverEnabled = !useLeverEnabled;
+            if (attachedModuleRCSFX != null)
+                attachedModuleRCSFX.useLever = useLeverEnabled;
+        }
+
+        [KSPAction("Toggle Power")]
+        public void TogglePowerAction(KSPActionParam param)
+        {
+            powerEnabled = !powerEnabled;
         }
 
         public override void OnStart(PartModule.StartState state) 
         {
+            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
+            attachedModuleRCSFX = attachedRCS as ModuleRCSFX;
+
+            if (!isInitialised)
+            {
+                if (attachedModuleRCSFX != null)
+                {
+                    useLeverEnabled = attachedModuleRCSFX.useLever;
+                    precisionFactorLimiter = attachedModuleRCSFX.precisionFactor * 100;
+                    fullThrustMinLimiter = attachedModuleRCSFX.fullThrustMin * 100;
+                    fullThrustEnabled = attachedModuleRCSFX.fullThrust;
+                    useThrotleEnabled = attachedModuleRCSFX.useThrottle;
+                }
+            }
+
+            if (attachedModuleRCSFX != null)
+            {
+                attachedModuleRCSFX.Fields["RCS"].guiActive = true; 
+                attachedModuleRCSFX.Fields["enableYaw"].guiActive = true;
+                attachedModuleRCSFX.Fields["enablePitch"].guiActive = true;
+                attachedModuleRCSFX.Fields["enableRoll"].guiActive = true;
+                attachedModuleRCSFX.Fields["enableX"].guiActive = true;
+                attachedModuleRCSFX.Fields["enableY"].guiActive = true;
+                attachedModuleRCSFX.Fields["enableZ"].guiActive = true;
+                attachedModuleRCSFX.fullThrust = fullThrustEnabled;
+                attachedModuleRCSFX.fullThrustMin = fullThrustMinLimiter / 100;
+                attachedModuleRCSFX.useLever = useLeverEnabled;
+                attachedModuleRCSFX.precisionFactor = precisionFactorLimiter / 100;
+            }
+
             // old legacy stuff
             if (baseThrust == 0 && maxThrust > 0)
                 baseThrust = maxThrust;
@@ -199,7 +314,6 @@ namespace FNPlugin
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
 
-            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
             oldThrustLimiter = thrustLimiter;
             oldPowerEnabled = powerEnabled;
             efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
@@ -231,6 +345,13 @@ namespace FNPlugin
                 hasSufficientPower = powerEnabled;
                 SetupPropellants(true, 0);
                 oldPowerEnabled = powerEnabled;
+            }
+
+            if (attachedModuleRCSFX != null)
+            {
+                attachedModuleRCSFX.fullThrustMin = fullThrustMinLimiter;
+                attachedModuleRCSFX.fullThrust = fullThrustEnabled;
+                attachedModuleRCSFX.useThrottle = useThrotleEnabled;
             }
 
             propNameStr = Current_propellant.PropellantGUIName;
@@ -286,11 +407,21 @@ namespace FNPlugin
 
             if (attachedRCS == null) return;
 
+            thrustForcesStr = String.Empty;
+
+            if (attachedModuleRCSFX != null)
+                currentThrust = attachedModuleRCSFX.curThrust;
+            else
+                currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
+
+            foreach (var force in attachedRCS.thrustForces)
+            {
+                thrustForcesStr += force.ToString("0.00") + "kN ";
+            }
+
             if (!HighLogic.LoadedSceneIsFlight) return;
 
             if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
-
-            currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
 
             if (powerEnabled)
             {
