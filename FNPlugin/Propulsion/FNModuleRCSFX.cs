@@ -5,21 +5,102 @@ using KSP;
 
 namespace FNPlugin
 {
-    public class FNModuleRCSFX : ModuleRCSFX
+    public class FNModuleRCSFX : ModuleRCS
     {
-        // FNModuleRCSFX is a clone of ModuleRCSFX with a small fix in Update where y is switch by x
+        // FNModuleRCSFX is a clone of ModuleRCSFX 0.4.2
 
+        /// <summary>
+        /// Always use the full thrust of the thruster, don't decrease it when off-alignment
+        /// </summary>
+        [KSPField]
+        public bool fullThrust = false; // always use full thrust
+
+        /// <summary>
+        /// If fullThrust = true, if thrust ratio is < this, do not apply full thrust (leave thrust unchanged)
+        /// </summary>
+        [KSPField]
+        public float fullThrustMin = 0.2f; // if thrust amount from dots < this, don't do full thrust
+
+        [KSPField]
+        public bool useEffects = false;
+
+        [KSPField]
+        string runningEffectName = "";
+        [KSPField]
+        string engageEffectName = "";
+        [KSPField]
+        string disengageEffectName = "";
+        [KSPField]
+        string flameoutEffectName = "";
+
+        public bool rcs_active;
+
+        [KSPField]
+        public bool useZaxis = false;
+
+        [KSPField(guiActiveEditor = true)]
+        public string RCS = "Enable/Disable for:";
+
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Yaw"),  UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool enableYaw = true;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Pitch"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool enablePitch = true;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Roll"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool enableRoll = true;
+
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Port/Stbd"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool enableX = true;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Dorsal/Ventral"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool enableY = true;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Fore/Aft"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool enableZ = true;
+
+        [KSPField]
+        public bool useThrottle = false;
+
+        /// <summary>
+        /// Stock KSP lever compensation in precision mode (instead of just reduced thrsut
+        /// Defaults to false (reduce thrust uniformly
+        /// </summary>
+        [KSPField]
+        public bool useLever = false;
+
+        /// <summary>
+        /// The factor by which thrust is multiplied in precision mode (if lever compensation is off
+        /// </summary>
+        [KSPField]
+        public float precisionFactor = 0.1f;
+
+        //[KSPField(guiActive = true)]
+        public float curThrust = 0f;
+
+        /// <summary>
+        /// Fuel flow in tonnes/sec
+        /// </summary>
+        public double fuelFlow = 0f;
+
+
+        //[KSPField(guiActive = true)]
         float inputAngularX;
+        //[KSPField(guiActive = true)]
         float inputAngularY;
+        //[KSPField(guiActive = true)]
         float inputAngularZ;
+        //[KSPField(guiActive = true)]
         float inputLinearX;
+        //[KSPField(guiActive = true)]
         float inputLinearY;
+        //[KSPField(guiActive = true)]
         float inputLinearZ;
 
         private Vector3 inputLinear;
         private Vector3 inputAngular;
         private bool precision;
         private double exhaustVel = 0d;
+
+        public double flowMult = 1d;
+        public double ispMult = 1d;
+
         private double invG = 1d / 9.80665d;
 
         /// <summary>
@@ -28,20 +109,60 @@ namespace FNPlugin
         [KSPField]
         float EPSILON = 0.05f; // 5% control actuation
 
+        public float mixtureFactor;
+
+        public override void OnLoad(ConfigNode node)
+        {
+            if (!node.HasNode("PROPELLANT") && node.HasValue("resourceName"))
+            {
+                ConfigNode c = new ConfigNode("PROPELLANT");
+                c.AddValue("name", node.GetValue("resourceName"));
+                c.AddValue("ratio", "1.0");
+                if (node.HasValue("resourceFlowMode"))
+                    c.AddValue("resourceFlowMode", node.GetValue("resourceFlowMode"));
+                node.AddNode(c);
+            }
+            base.OnLoad(node);
+            G = 9.80665f;
+            fuelFlow = (double)thrusterPower / (double)atmosphereCurve.Evaluate(0f) * invG;
+        }
+
+        public override string GetInfo()
+        {
+            string text = base.GetInfo();
+            return text;
+        }
+
+        public override void OnStart(StartState state)
+        {
+            if (useEffects) // use EFFECTS so don't do the base startup. That means we have to do this ourselves.
+            {
+                part.stackIcon.SetIcon(DefaultIcons.RCS_MODULE);
+                part.stackIconGrouping = StackIconGrouping.SAME_TYPE;
+                thrusterTransforms = new List<Transform>(part.FindModelTransforms(thrusterTransformName));
+                if (thrusterTransforms == null || thrusterTransforms.Count == 0)
+                {
+                    Debug.Log("RCS module unable to find any transforms in part named " + thrusterTransformName);
+                }
+
+            }
+            else
+                base.OnStart(state);
+        }
+
         new public void Update()
         {
             if (this.part.vessel == null)
                 return;
 
-            inputLinear = vessel.ReferenceTransform.rotation * new Vector3(enableX ? vessel.ctrlState.X : 0f, enableZ ? vessel.ctrlState.Z : 0f, enableY ? vessel.ctrlState.Y : 0f);
-            inputAngular = vessel.ReferenceTransform.rotation * new Vector3(enablePitch ? vessel.ctrlState.pitch : 0f, enableRoll ? vessel.ctrlState.roll : 0f, enableYaw ? vessel.ctrlState.yaw : 0);
-            if (useThrottle)
+            float ctrlZ = vessel.ctrlState.Z;
+            if (useThrottle && ctrlZ < EPSILON && ctrlZ > -EPSILON) // only do this if not specifying axial thrust.
             {
-                //inputLinear.y -= vessel.ctrlState.mainThrottle;
-                inputLinear.x -= vessel.ctrlState.mainThrottle;
-                //inputLinear.y = Mathf.Clamp(inputLinear.y, -1f, 1f);
-                inputLinear.x = Mathf.Clamp(inputLinear.x, -1f, 1f);
+                ctrlZ -= vessel.ctrlState.mainThrottle;
+                ctrlZ = Mathf.Clamp(ctrlZ, -1f, 1f);
             }
+            inputLinear = vessel.ReferenceTransform.rotation * new Vector3(enableX ? vessel.ctrlState.X : 0f, enableZ ? ctrlZ : 0f, enableY ? vessel.ctrlState.Y : 0f);
+            inputAngular = vessel.ReferenceTransform.rotation * new Vector3(enablePitch ? vessel.ctrlState.pitch : 0f, enableRoll ? vessel.ctrlState.roll : 0f, enableYaw ? vessel.ctrlState.yaw : 0);
 
             // Epsilon checks (min values)
             float EPSILON2 = EPSILON * EPSILON;
@@ -120,7 +241,7 @@ namespace FNPlugin
                         if (xform.position != Vector3.zero)
                         {
                             Vector3 position = xform.position;
-                            Vector3 torque = Vector3.Cross(inputAngular.normalized, (position - CoM).normalized);
+                            Vector3 torque = Vector3.Cross(inputAngular, (position - CoM).normalized);
 
                             Vector3 thruster;
                             if (useZaxis)
@@ -128,7 +249,7 @@ namespace FNPlugin
                             else
                                 thruster = xform.up;
                             float thrust = Mathf.Max(Vector3.Dot(thruster, torque), 0f);
-                            thrust += Mathf.Max(Vector3.Dot(thruster, inputLinear.normalized), 0f);
+                            thrust += Mathf.Max(Vector3.Dot(thruster, inputLinear), 0f);
 
                             // thrust should now be normalized 0-1.
 
@@ -214,6 +335,7 @@ namespace FNPlugin
                     propellants[i].UpdateConnectedResources(part);
             }
         }
+
         new public float CalculateThrust(float totalForce, out bool success)
         {
             double massFlow = flowMult * fuelFlow * (double)totalForce;
@@ -228,6 +350,5 @@ namespace FNPlugin
             success = (propAvailable > 0f); // had some fuel
             return totalForce;
         }
-
     }
 }

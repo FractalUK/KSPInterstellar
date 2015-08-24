@@ -32,8 +32,11 @@ namespace FNPlugin
         public string generatorDeactivateName;
 
 
-        [KSPField(isPersistant = true, guiActive = false)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Biodome" )]
         public string currentBiome = "";
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
+        public float research;
+
         [KSPField(isPersistant = false, guiActive = false)]
         public bool needSubjects = false;
         [KSPField(isPersistant = false, guiActive = false)]

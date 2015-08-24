@@ -53,9 +53,6 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="ModuleRCSFX">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\ModuleRCSFX\Plugins\ModuleRCSFX.dll</HintPath>
-    </Reference>
     <Reference Include="Scale_Redist, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\TweakScale\plugins\Scale_Redist.dll</HintPath>
@@ -82,7 +79,7 @@
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\Contract\INoozle.cs" />
     <Compile Include="Propulsion\ExtendedPropellant.cs" />
-    <Compile Include="Propulsion\FNModuleRCS.cs" />
+    <Compile Include="Propulsion\FNModuleRCSFX.cs" />
     <Compile Include="Propulsion\PropellantControl.cs" />
     <Compile Include="Propulsion\ThermalEnginePropellant.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />

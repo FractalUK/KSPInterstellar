@@ -34,19 +34,14 @@ namespace FNPlugin
         public bool fullThrustEnabled;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "FT Threshold", guiUnits = "%"), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 0)]
         public float fullThrustMinLimiter;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Throtle"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Throttle"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool useThrotleEnabled;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Lever"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool useLeverEnabled;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Precision"), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 5)]
         public float precisionFactorLimiter;
-
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool powerEnabled = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
-        public float baseThrust = 0;
-
-
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Name")]
         public string propNameStr = "";
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Maximum Isp")]
@@ -55,6 +50,8 @@ namespace FNPlugin
         public float currentThrustMultiplier;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
         public float thrustLimiter = 100;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
+        public float baseThrust = 0;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust")]
         public string thrustStr;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Forces")]
@@ -88,7 +85,7 @@ namespace FNPlugin
         private float heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
-        private ModuleRCSFX attachedModuleRCSFX;
+        private FNModuleRCSFX attachedModuleRCSFX;
         private float efficencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
@@ -164,7 +161,6 @@ namespace FNPlugin
 
                 if (!totalpartresources.Any() && maxSwitching > 0)
                 {
-                    UnityEngine.Debug.Log("[KSPI] - InterstellarRCSModule SetupPropellants switching because " + new_propellant.name + " has no connected resources");
                     SwitchPropellant(moveNext, --maxSwitching);
                     return;
                 }
@@ -175,7 +171,7 @@ namespace FNPlugin
                 currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
 
                 var moduleConfig = new ConfigNode("MODULE");
-                moduleConfig.AddValue("name", "ModuleRCSFX");
+                moduleConfig.AddValue("name", "FNModuleRCSFX");
                 moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
@@ -272,7 +268,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state) 
         {
             attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
-            attachedModuleRCSFX = attachedRCS as ModuleRCSFX;
+            attachedModuleRCSFX = attachedRCS as FNModuleRCSFX;
 
             if (!isInitialised)
             {
