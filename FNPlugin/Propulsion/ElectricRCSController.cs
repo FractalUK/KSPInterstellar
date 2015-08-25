@@ -422,9 +422,9 @@ namespace FNPlugin
             if (powerEnabled)
             {
                 float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
-                float currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
+                //float currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
 
-                power_requested_f = currentThrust * currentIsp * efficencyModifier / currentThrustMultiplier;
+                power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
                 power_recieved_f = consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                 float heat_to_produce = power_recieved_f * (1 - efficency);
                 heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;

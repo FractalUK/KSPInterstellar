@@ -148,11 +148,13 @@ namespace FNPlugin
                 return;
             }
 
-            // verify that an electric engine is present
-            var plasmaEngine = part.vessel.parts.Find(p => p.FindModulesImplementing<ElectricEngineControllerFX>().Any());
-            if (plasmaEngine == null)
+            // verify that an electric or Thermal engine is avaialbe with high enough ISP 
+            var highIspEngine = part.vessel.parts.Find(p =>
+                p.FindModulesImplementing<ElectricEngineControllerFX>().Any(e => e.baseISP > 4200) ||
+                p.FindModulesImplementing<ThermalNozzleController>().Any(e => e.MyAttachedReactor.CoreTemperature > 40000));
+            if (highIspEngine == null)
             {
-                ScreenMessages.PostScreenMessage("No electric engine available to balance atmospheric drag", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("No engine available, with high enough and propelant switch ability to compensate for atmospheric drag", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
