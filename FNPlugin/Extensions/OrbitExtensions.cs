@@ -39,8 +39,15 @@ namespace FNPlugin.Extensions
                     orbit.Init();
                     orbit.UpdateFromUT(UT);
                 }
+                else
+                {
+                    orbit.UpdateFromStateVectors(position, orbit.getOrbitalVelocityAtUT(UT) + deltaVV_orbit, orbit.referenceBody, UT);
+                    orbit.Init();
+                    orbit.UpdateFromUT(UT);
+                }
             }
         }
-
     }
+
 }
+

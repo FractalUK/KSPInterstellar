@@ -37,9 +37,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private float _engineMaxThrust;
 
-		//External
-		public bool static_updating = true;
-		public bool static_updating2 = true;
+		//remove then possible
+        public bool static_updating = true;
+        public bool static_updating2 = true;
 
 		//Internal
 		protected ModuleEnginesFX _attached_engine;
@@ -59,7 +59,7 @@ namespace FNPlugin
             
             if (state == StartState.Editor) return;
 
-			_attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();  //this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
 
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
