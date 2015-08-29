@@ -19,6 +19,7 @@ namespace FNPlugin
         protected string Throttle = "";
 
         // Numeric display values
+        [KSPField(guiActive = true, guiName = "Warp Thrust Raw")]
         protected double thrust_d = 0;
         protected double isp_d = 0;
         protected double throttle_d = 0;
@@ -86,7 +87,9 @@ namespace FNPlugin
                     {
                         IspPersistent = realIsp;
                         ThrottlePersistent = vessel.ctrlState.mainThrottle;
-                        ThrustPersistent = this.CalculateThrust();
+                        //ThrustPersistent = this.CalculateThrust();
+                        this.CalculateThrust();
+                        ThrustPersistent = this.finalThrust;
                     }
                 }
                 else

@@ -190,9 +190,14 @@ namespace FNPlugin
 
         protected ElectricGeneratorType _firstGeneratorType;
 
+        public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
+
+        public virtual double UseProductForPropulsion(double ratio) { return 0; }
+
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
 
         public double EfficencyConnectedChargedEnergyGenrator { get { return storedIsChargedEnergyGenratorActive; } }
+
 
         public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
         {
@@ -737,12 +742,16 @@ namespace FNPlugin
                     var fuel_recieved = consumeReactorFuel(fuel, fuel_request);
                 }
 
+                // refresh production list
+                reactorProduction.Clear();
+
                 // produce reactor products
                 foreach (ReactorProduct product in current_fuel_mode.ReactorProducts)
                 {
                     var product_supply = total_power_received * product.ProductUsePerMJ * fuelUsePerMJMult;
+                    var massProduced = produceReactorProduct(product, product_supply);
 
-                    var resource_produced = produceReactorProduct(product, product_supply);
+                    reactorProduction.Add(new ReactorProduction(){fuelmode = product, mass = massProduced});
                 }
 
                 // Waste Heat
@@ -1026,27 +1035,30 @@ namespace FNPlugin
 
         protected virtual double produceReactorProduct(ReactorProduct product, double produce_amount)
         {
+            var effectiveAmount = produce_amount / FuelEfficiency;
             if (!product.ProduceGlobal)
             {
                 if (part.Resources.Contains(product.FuelName))
                 {
                     double availableStorage = part.Resources[product.FuelName].maxAmount - part.Resources[product.FuelName].amount;
-                    double amount = Math.Min(produce_amount / FuelEfficiency, availableStorage);
+                    double amount = Math.Min(effectiveAmount, availableStorage);
                     part.Resources[product.FuelName].amount += amount;
-                    return amount;
+                    return effectiveAmount * product.Density;
                 }
                 else
                     return 0;
             }
-            return part.RequestResource(product.FuelName, -(produce_amount / FuelEfficiency));
+
+            part.RequestResource(product.FuelName, -effectiveAmount);
+            return effectiveAmount * product.Density;
         }
 
         protected double GetFuelAvailability(ReactorFuel fuel)
         {
             if (fuel == null)
-                UnityEngine.Debug.LogError("[KSPI] - GetConnectedResourcesOnVessel fuel null");
+                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability fuel null");
 
-            if (!consumeGlobal)
+            if (!fuel.ConsumeGlobal)
             {
                 if (part.Resources.Contains(fuel.FuelName))
                     return part.Resources[fuel.FuelName].amount;
@@ -1060,16 +1072,23 @@ namespace FNPlugin
                 return part.FindAmountOfAvailableFuel(fuel.FuelName, 4);
         }
 
-        protected new double getResourceAvailability(string resourceName)
+        protected double GetFuelAvailability(ReactorProduct product)
         {
-            if (!consumeGlobal)
+            if (product == null)
+                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability product null");
+
+            if (!product.ProduceGlobal)
             {
-                if (part.Resources.Contains(resourceName))
-                    return part.Resources[resourceName].amount;
+                if (part.Resources.Contains(product.FuelName))
+                    return part.Resources[product.FuelName].amount;
                 else
                     return 0;
             }
-            return part.GetConnectedResources(resourceName).Sum(rs => rs.amount);
+
+            if (HighLogic.LoadedSceneIsFlight)
+                return part.GetConnectedResources(product.FuelName).Sum(rs => rs.amount);
+            else
+                return part.FindAmountOfAvailableFuel(product.FuelName, 4);
         }
 
         public void OnGUI()
@@ -1147,7 +1166,7 @@ namespace FNPlugin
 
                 foreach (var product in current_fuel_mode.ReactorProducts)
                 {
-                    double availability = getResourceAvailability(product.FuelName);
+                    double availability = GetFuelAvailability(product);
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
                     GUILayout.Label((availability * product.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));

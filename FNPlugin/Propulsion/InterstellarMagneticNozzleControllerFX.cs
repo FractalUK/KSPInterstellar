@@ -22,8 +22,8 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
 
         // Visible Non Persistant
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
-        private float _max_reactor_power;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
+        //private float _max_reactor_power;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Charge", guiUnits = " MW")]
         private float _max_charged_particles_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
@@ -36,6 +36,8 @@ namespace FNPlugin
         private float _recievedElectricPower;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private float _engineMaxThrust;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Free Propellant")]
+        private float _hydrogenProduction;
 
 		//remove then possible
         public bool static_updating = true;
@@ -134,6 +136,10 @@ namespace FNPlugin
                 _max_charged_particles_power = _attached_reactor.MaximumChargedPower * (float)exchanger_thrust_divisor;
                 _charged_particles_requested = throttle > 0  ? _max_charged_particles_power : 0 ; 
                 _charged_particles_received = consumeFNResource(_charged_particles_requested * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
+
+                // convert reactor product into propellants when possible
+                var chargedParticleRatio = _attached_reactor.MaximumChargedPower > 0 ? _charged_particles_received / _attached_reactor.MaximumChargedPower : 0;
+                _hydrogenProduction = chargedParticleRatio > 0 ? (float)_attached_reactor.UseProductForPropulsion(chargedParticleRatio) / TimeWarp.fixedDeltaTime : 0;
                 
                 consumeFNResource(_charged_particles_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 _requestedElectricPower = _charged_particles_received * (0.01f * Math.Max(_attached_reactor_distance, 1));
@@ -156,8 +162,7 @@ namespace FNPlugin
                         : (float)Math.Max(max_theoretical_thrust, 0.000000001);
                 }
 
-
-                double max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && current_isp > 0 
+                var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && current_isp > 0 
                     ? _engineMaxThrust / current_isp / PluginHelper.GravityConstant / (throttle > 0 ? throttle : 1)
                     : 0;
 

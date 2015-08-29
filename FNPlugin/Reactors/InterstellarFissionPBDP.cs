@@ -23,7 +23,7 @@ namespace FNPlugin
         public float overheatPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Wateheat Ratio")]
         public float resourceBarRatio;
-        
+     
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ManualRestart()
@@ -106,6 +106,11 @@ namespace FNPlugin
             base.OnUpdate();
         }
 
+        public override void OnFixedUpdate()
+        {
+            base.OnFixedUpdate();
+        }
+
         public override bool shouldScaleDownJetISP()
         {
             return true;
@@ -132,6 +137,34 @@ namespace FNPlugin
                 rel_temp_diff = 1;
 
             return MaximumPower * rel_temp_diff;
+        }
+
+
+
+        public override double UseProductForPropulsion(double ratio)
+        {
+            var hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+
+            double hydrogenMassSum = 0;
+
+            foreach (var product in reactorProduction)
+            {
+                if (product.mass == 0) continue;
+
+                // create propellant
+                var newHydrogenMass = ratio * product.mass;
+                hydrogenMassSum += newHydrogenMass;
+                var hydrogenAmount = newHydrogenMass / hydrogenDefinition.density;
+                part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
+
+                // remove product from store
+                var fuelAmount = product.fuelmode.Density > 0 ? (product.mass / product.fuelmode.Density) : 0;
+                if (fuelAmount == 0) continue;
+
+                part.RequestResource(product.fuelmode.FuelName, fuelAmount);
+            }
+            return hydrogenMassSum;
+
         }
 
 

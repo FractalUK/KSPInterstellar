@@ -4,6 +4,13 @@ using System.Linq;
 
 namespace FNPlugin 
 {
+    class ReactorProduction
+    {
+        public ReactorProduct fuelmode;
+        public double mass;
+    }
+
+
     class ReactorFuelMode 
 	{
         protected int _reactor_type;
