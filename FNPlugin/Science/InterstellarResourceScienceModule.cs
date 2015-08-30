@@ -273,7 +273,7 @@ namespace FNPlugin
             if (vesselHasEnoughResource(resourceName, resourceAmount))
             {
 
-                print("Has the amount!!");
+                print("Has the possibleAmount!!");
                 double res = part.RequestResource(resourceName, resourceAmount, ResourceFlowMode.ALL_VESSEL);
                 print("got " + res.ToString() + "resources");
 
@@ -291,7 +291,7 @@ namespace FNPlugin
                 print("not enough data stored");
             }
             print("Deploying Experiment");
-            print("resourcename, resource amount " + resourceName + " " + resourceAmount.ToString());
+            print("resourcename, resource possibleAmount " + resourceName + " " + resourceAmount.ToString());
 
 
         }
@@ -303,7 +303,7 @@ namespace FNPlugin
             if (vesselHasEnoughResource(resourceName, resourceAmount))
             {
 
-                print("Has the amount!!");
+                print("Has the possibleAmount!!");
                 double res = part.RequestResource(resourceName, resourceAmount, ResourceFlowMode.ALL_VESSEL);
                 print("got " + res.ToString() + "resources");
 
@@ -321,7 +321,7 @@ namespace FNPlugin
                 print("not enough data stored");
             }
             print("Deploying Experiment");
-            print("resourcename, resource amount " + resourceName + " " + resourceAmount.ToString());
+            print("resourcename, resource possibleAmount " + resourceName + " " + resourceAmount.ToString());
 
 
         }

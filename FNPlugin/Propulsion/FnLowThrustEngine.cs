@@ -9,6 +9,9 @@ namespace FNPlugin
     {
         // GUI display values
         // Thrust
+        [KSPField(isPersistant = true)]
+        bool IsForceActivated;
+
         [KSPField(guiActive = true, guiName = "Warp Thrust")]
         protected string Thrust = "";
         // Isp
@@ -19,7 +22,6 @@ namespace FNPlugin
         protected string Throttle = "";
 
         // Numeric display values
-        [KSPField(guiActive = true, guiName = "Warp Thrust Raw")]
         protected double thrust_d = 0;
         protected double isp_d = 0;
         protected double throttle_d = 0;
@@ -59,12 +61,17 @@ namespace FNPlugin
             Thrust = FormatThrust(thrust_d);
             Isp = Math.Round(isp_d, 2).ToString() + " s";
             Throttle = Math.Round(throttle_d * 100).ToString() + "%";
+
+            if (!IsForceActivated && isEnabled && isOperational)
+            {
+                IsForceActivated = true;
+                part.force_activate();
+            }
         }
 
         // Initialization
         public override void OnLoad(ConfigNode node)
         {
-
             // Run base OnLoad method
             base.OnLoad(node);
 
@@ -75,56 +82,55 @@ namespace FNPlugin
         // Physics update
         public override void OnFixedUpdate()
         {
+            if (FlightGlobals.fetch == null || !isEnabled) return;
 
-            if (FlightGlobals.fetch != null && isEnabled)
+            // Realtime mode
+            if (!this.vessel.packed)
             {
-                // Realtime mode
-                if (!this.vessel.packed)
+                // if not transitioning from warp to real
+                // Update values to use during timewarp
+                if (!warpToReal)
                 {
-                    // if not transitioning from warp to real
-                    // Update values to use during timewarp
-                    if (!warpToReal)
-                    {
-                        IspPersistent = realIsp;
-                        ThrottlePersistent = vessel.ctrlState.mainThrottle;
-                        //ThrustPersistent = this.CalculateThrust();
-                        this.CalculateThrust();
-                        ThrustPersistent = this.finalThrust;
-                    }
+                    IspPersistent = realIsp;
+                    ThrottlePersistent = vessel.ctrlState.mainThrottle;
+                    //ThrustPersistent = this.CalculateThrust();
+                    this.CalculateThrust();
+                    ThrustPersistent = this.finalThrust;
                 }
-                else
-                { // Timewarp mode: perturb orbit using thrust
-                    warpToReal = true; // Set to true for transition to realtime
-                    double UT = Planetarium.GetUniversalTime(); // Universal time
-                    double dT = TimeWarp.fixedDeltaTime; // Time step size
-                    double vesselMass = this.vessel.GetTotalMass(); // Current mass
-                    double mdot = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                    double dm = mdot * dT; // Change in mass over dT
-                    double demand = dm / density; // Resource demand
-                    // Update vessel resource
-                    double demandOut = part.RequestResource(resourceDeltaV, demand);
-                    // Calculate thrust and deltaV if demand output > 0
-                    // TODO test if dm exceeds remaining propellant mass
-                    if (demandOut > 0)
-                    {
-                        double m1 = vesselMass - dm; // Mass at end of burn
-                        double deltaV = IspPersistent * 9.81 * Math.Log(vesselMass / m1); // Delta V from burn
-                        Vector3d thrustV = this.part.transform.up; // Thrust direction
-                        Vector3d deltaVV = deltaV * thrustV; // DeltaV vector
-                        vessel.orbit.Perturb(deltaVV, UT, dT); // Update vessel orbit
-                    }
-                    // Otherwise, if throttle is turned on, and demand out is 0, show warning
-                    else if (ThrottlePersistent > 0)
-                    {
-                        Debug.Log("Propellant depleted");
-                    }
-                }
-
-                // Update display numbers
-                thrust_d = ThrustPersistent;
-                isp_d = IspPersistent;
-                throttle_d = ThrottlePersistent;
             }
+            else
+            { // Timewarp mode: perturb orbit using thrust
+                warpToReal = true; // Set to true for transition to realtime
+                double UT = Planetarium.GetUniversalTime(); // Universal time
+                double dT = TimeWarp.fixedDeltaTime; // Time step size
+                double vesselMass = this.vessel.GetTotalMass(); // Current mass
+                double mdot = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
+                double dm = mdot * dT; // Change in mass over dT
+                double demand = dm / density; // Resource demand
+                // Update vessel resource
+                double demandOut = part.RequestResource(resourceDeltaV, demand);
+                // Calculate thrust and deltaV if demand output > 0
+                // TODO test if dm exceeds remaining propellant mass
+                if (demandOut > 0)
+                {
+                    double m1 = vesselMass - dm; // Mass at end of burn
+                    double deltaV = IspPersistent * 9.81 * Math.Log(vesselMass / m1); // Delta V from burn
+                    Vector3d thrustV = this.part.transform.up; // Thrust direction
+                    Vector3d deltaVV = deltaV * thrustV; // DeltaV vector
+                    vessel.orbit.Perturb(deltaVV, UT, dT); // Update vessel orbit
+                }
+                // Otherwise, if throttle is turned on, and demand out is 0, show warning
+                else if (ThrottlePersistent > 0)
+                {
+                    Debug.Log("Propellant depleted");
+                }
+            }
+
+            // Update display numbers
+            thrust_d = ThrustPersistent;
+            isp_d = IspPersistent;
+            throttle_d = ThrottlePersistent;
+
         }
 
         // Format thrust into mN, N, kN

@@ -192,7 +192,34 @@ namespace FNPlugin
 
         public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
 
-        public virtual double UseProductForPropulsion(double ratio) { return 0; }
+        public double UseProductForPropulsion(double ratio)
+        {
+            if (ratio == 0) return 0;
+
+            var hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+
+            double hydrogenMassSum = 0;
+
+            foreach (var product in reactorProduction)
+            {
+                if (product.mass == 0) continue;
+
+                var effectiveMass = ratio * product.mass;
+
+                // create propellant
+                hydrogenMassSum += effectiveMass;
+                var hydrogenAmount = effectiveMass / hydrogenDefinition.density;
+                part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
+
+                // remove product from store
+                var fuelAmount = product.fuelmode.Density > 0 ? (effectiveMass / product.fuelmode.Density) : 0;
+                if (fuelAmount == 0) continue;
+
+                part.RequestResource(product.fuelmode.FuelName, fuelAmount);
+            }
+            return hydrogenMassSum;
+
+        }
 
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
 
@@ -1041,8 +1068,8 @@ namespace FNPlugin
                 if (part.Resources.Contains(product.FuelName))
                 {
                     double availableStorage = part.Resources[product.FuelName].maxAmount - part.Resources[product.FuelName].amount;
-                    double amount = Math.Min(effectiveAmount, availableStorage);
-                    part.Resources[product.FuelName].amount += amount;
+                    double possibleAmount = Math.Min(effectiveAmount, availableStorage);
+                    part.Resources[product.FuelName].amount += possibleAmount;
                     return effectiveAmount * product.Density;
                 }
                 else

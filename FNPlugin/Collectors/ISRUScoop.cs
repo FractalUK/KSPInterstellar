@@ -21,10 +21,12 @@ namespace FNPlugin
         public float last_power_percentage ;
 
         // part proterties
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Scooped Air")]
         public float scoopair = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
         public float powerReqMult = 1;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        public float partMass = 0;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Density")]

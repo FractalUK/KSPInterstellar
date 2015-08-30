@@ -307,7 +307,7 @@ namespace FNPlugin
                         ConfigNode node = new ConfigNode("RESOURCE");
                         node.AddValue("name", "LqdWater");
                         node.AddValue("maxAmount", this.maxPower / this.baseISP);
-                        node.AddValue("amount", 0);
+                        node.AddValue("possibleAmount", 0);
                         this.part.AddResource(node);
                         this.part.Resources.UpdateList();
                     }
@@ -587,7 +587,7 @@ namespace FNPlugin
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
                 node.AddValue("maxAmount", maxPower / 100);
-                node.AddValue("amount", maxPower / 100);
+                node.AddValue("possibleAmount", maxPower / 100);
                 part.AddResource(node);
             }
         }

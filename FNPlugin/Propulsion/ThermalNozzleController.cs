@@ -94,7 +94,7 @@ namespace FNPlugin
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 80;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Heat Production")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
         public float engineHeatProduction;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Static Presure")]
         public string staticPresure;
@@ -104,7 +104,9 @@ namespace FNPlugin
         public float atmospheric_limit;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Thermal")]
         public string requestedReactorThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Power")]
+        public float requested_thermal_power;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Req CP")]
         public string requestedReactorChargedPower;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved")]
         public string recievedReactorPower;
@@ -124,13 +126,13 @@ namespace FNPlugin
         protected float engineMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected float max_thrust_in_space;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Thrust")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Thrust Space")]
         protected float final_max_engine_thrust_in_space;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
         protected float _maxISP;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
         protected float _minISP;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat="0.000000")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "0.000000")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
         protected float current_isp = 0;
@@ -138,8 +140,10 @@ namespace FNPlugin
         protected float maxPressureThresholdAtKerbinSurface;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
         protected float thermalRatio;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Consumed")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Consumed")]
         protected float consumedWasteHeat;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Expected Max Thrust")]
+        protected float expectedMaxThrust;
 
 		//Internal
         protected float _fuelToxicity;
@@ -457,7 +461,7 @@ namespace FNPlugin
                         ConfigNode node = new ConfigNode("RESOURCE");
                         node.AddValue("name", curprop.name);
                         node.AddValue("maxAmount", AttachedReactor.MaximumPower * powerTrustMultiplier / Math.Sqrt(AttachedReactor.CoreTemperature)); 
-                        node.AddValue("amount", 0);
+                        node.AddValue("possibleAmount", 0);
                         this.part.AddResource(node);
                         this.part.Resources.UpdateList();
                     }
@@ -696,11 +700,15 @@ namespace FNPlugin
 
         private float delayedThrottle = 0;
 
-		public override void OnFixedUpdate() 
+		public override void OnFixedUpdate() // note: does not seem to be called in edit mode
         {
-            // note: does not seem to be called in edit mode
             if (AttachedReactor == null)
             {
+                if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
+                {
+                    myAttachedEngine.Events["Shutdown"].Invoke();
+                    ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                }
                 myAttachedEngine.maxFuelFlow = 0;
                 return;
             }
@@ -753,7 +761,7 @@ namespace FNPlugin
 
                 _maxISP = (float)(Math.Sqrt((double)AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
                 
-                var expectedMaxThrust = AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP;
+                expectedMaxThrust = (float)(AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
 
                 expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f);
 
@@ -780,11 +788,7 @@ namespace FNPlugin
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
 
-                if (AttachedReactor == null && myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
-                {
-                    myAttachedEngine.Events["Shutdown"].Invoke();
-                    ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                }
+
             }
 
             //tell static helper methods we are currently updating things
@@ -802,24 +806,20 @@ namespace FNPlugin
             var thermal_modifiers = myAttachedEngine.currentThrottle * GetAtmosphericLimit() * _myAttachedReactor.GetFractionThermalReciever(id);
             var maximum_requested_thermal_power = _currentMaximumPower * thermal_modifiers;
 
-            var requested_thermal_power = Math.Min(_assThermalPower * thermal_modifiers, AttachedReactor.MaximumThermalPower * delayedThrottle);
+            requested_thermal_power = Math.Min(_assThermalPower * thermal_modifiers, AttachedReactor.MaximumThermalPower * delayedThrottle);
             requestedReactorThermalPower = requested_thermal_power.ToString("0.000000") + " MW " + (this._myAttachedReactor.GetFractionThermalReciever(id) * 100).ToString("0.0") + "%";
 
-            var fixed_thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) * _myAttachedReactor.ThermalPropulsionEfficiency;
-            var thermal_power_received = fixed_thermal_power_received / TimeWarp.fixedDeltaTime;
-            
+            var thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) * _myAttachedReactor.ThermalPropulsionEfficiency / TimeWarp.fixedDeltaTime;
 
             if (thermal_power_received < maximum_requested_thermal_power)
             {
                 var chargedParticleRatio = (float)Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES), 2);
-                var requested_charge_particles = Math.Min((maximum_requested_thermal_power - thermal_power_received) * delayedThrottle, AttachedReactor.MaximumChargedPower * delayedThrottle) * chargedParticleRatio;
+                var requested_charge_particles = Math.Min((maximum_requested_thermal_power - thermal_power_received), AttachedReactor.MaximumChargedPower) * chargedParticleRatio;
 
                 requestedReactorChargedPower = requested_charge_particles.ToString("0.000") + " MW / " + AttachedReactor.MaximumChargedPower.ToString("0.000") + " MW";
 
                 thermal_power_received += consumeFNResource(requested_charge_particles * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
             }
-
-
 
             recievedReactorPower = thermal_power_received.ToString("0.000000") + " MW ";
 
@@ -866,7 +866,7 @@ namespace FNPlugin
             if (_maxISP <= 0) return;
             
 			// calculate maximum fuel flow rate
-            max_fuel_flow_rate = final_max_engine_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
+            max_fuel_flow_rate = final_max_engine_thrust_in_space / _maxISP / PluginHelper.GravityConstant / myAttachedEngine.currentThrottle;
 
             if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
             {
@@ -879,12 +879,7 @@ namespace FNPlugin
             if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
                 max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
 
-            //prevent divide by zero
-            //max_fuel_flow_rate = Math.Max(0.00000001, max_fuel_flow_rate);
-
-            
-
-            engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction / (float)max_fuel_flow_rate / (float)Math.Pow(_maxISP / 1000, 0.1) / (float)Math.Sqrt(radius) : baseHeatProduction;
+            engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction / (float)(max_fuel_flow_rate / Math.Pow(_maxISP / 1200, 0.1) / Math.Sqrt(radius)) : baseHeatProduction;
             myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow

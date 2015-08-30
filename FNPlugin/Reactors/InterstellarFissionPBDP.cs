@@ -140,33 +140,5 @@ namespace FNPlugin
         }
 
 
-
-        public override double UseProductForPropulsion(double ratio)
-        {
-            var hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
-
-            double hydrogenMassSum = 0;
-
-            foreach (var product in reactorProduction)
-            {
-                if (product.mass == 0) continue;
-
-                // create propellant
-                var newHydrogenMass = ratio * product.mass;
-                hydrogenMassSum += newHydrogenMass;
-                var hydrogenAmount = newHydrogenMass / hydrogenDefinition.density;
-                part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
-
-                // remove product from store
-                var fuelAmount = product.fuelmode.Density > 0 ? (product.mass / product.fuelmode.Density) : 0;
-                if (fuelAmount == 0) continue;
-
-                part.RequestResource(product.fuelmode.FuelName, fuelAmount);
-            }
-            return hydrogenMassSum;
-
-        }
-
-
     }
 }

@@ -706,7 +706,7 @@ namespace FNPlugin
                                 ConfigNode node = new ConfigNode("RESOURCE");
                                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
                                 node.AddValue("maxAmount", intake_air_resource.maxAmount);
-                                node.AddValue("amount", intake_air_resource.amount);
+                                node.AddValue("possibleAmount", intake_air_resource.amount);
                                 prefab_available_part.AddResource(node);
                             }
                         }
@@ -735,7 +735,7 @@ namespace FNPlugin
                                 ConfigNode node = new ConfigNode("RESOURCE");
                                 node.AddValue("name", "WasteHeat");
                                 node.AddValue("maxAmount", panel.chargeRate * 100);
-                                node.AddValue("amount", 0);
+                                node.AddValue("possibleAmount", 0);
 
                                 PartResource pr = prefab_available_part.AddResource(node);
 
