@@ -10,8 +10,6 @@ namespace FNPlugin
 {
     class AlcubierreDrive : FNResourceSuppliableModule 
     {
-        [KSPField(isPersistant = false)]
-        public string AnimationName = "";
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
 		[KSPField(isPersistant = true)]
@@ -22,13 +20,10 @@ namespace FNPlugin
         public string originalName;
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
-        [KSPField(isPersistant = false)]
+		[KSPField(isPersistant = false)]
 		public float effectSize1;
-        [KSPField(isPersistant = false)]
+		[KSPField(isPersistant = false)]
 		public float effectSize2;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass")]
-        public float partMass;
-
         private Vector3d heading_act;
 
 		[KSPField(isPersistant = true)]
@@ -74,9 +69,6 @@ namespace FNPlugin
         protected float tex_count;
         const float warp_size = 50000;
 		protected bool hasrequiredupgrade;
-
-        //private ModuleAnimateGeneric _foldingAnination;
-        private AnimationState[] animationState;
 
 		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
 		public void StartCharging() 
@@ -266,10 +258,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            //_foldingAnination = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
-            if (!String.IsNullOrEmpty(AnimationName))
-                animationState = SetUpAnimation(AnimationName, this.part);
-
 			Actions["StartChargingAction"].guiName = Events["StartCharging"].guiName = String.Format("Start Charging");
 			Actions["StopChargingAction"].guiName = Events["StopCharging"].guiName = String.Format("Stop Charging");
 			Actions["ToggleChargingAction"].guiName = String.Format("Toggle Charging");
@@ -438,25 +426,6 @@ namespace FNPlugin
 
 			if (ResearchAndDevelopment.Instance != null) 
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
-
-            if (animationState != null)
-            {
-                foreach (AnimationState anim in animationState)
-                {
-                    if ((IsEnabled || IsCharging) && anim.normalizedTime < 1) { anim.speed = 1; }
-                    if ((IsEnabled || IsCharging) && anim.normalizedTime >= 1)
-                    {
-                        anim.speed = 0;
-                        anim.normalizedTime = 1;
-                    }
-                    if (!IsEnabled && !IsCharging && anim.normalizedTime > 0) { anim.speed = -1; }
-                    if (!IsEnabled && !IsCharging && anim.normalizedTime <= 0)
-                    {
-                        anim.speed = 0;
-                        anim.normalizedTime = 0;
-                    }
-                }
-            }
         }
 
         public override void OnFixedUpdate() 
@@ -628,21 +597,6 @@ namespace FNPlugin
         public override string getResourceManagerDisplayName() 
         {
             return "Alcubierre Drive";
-        }
-
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
-        {
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators(animationName))
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
         }
 
     }

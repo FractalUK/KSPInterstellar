@@ -91,7 +91,7 @@ namespace FNPlugin
         protected double _modifiedEngineBaseISP;
         protected List<ElectricEnginePropellant> _propellants;
         protected VInfoBox fuel_gauge;
-        protected ModuleEngines _attached_engine;
+        protected ModuleEnginesFX _attached_engine;
         protected float _electrical_share_f = 0;
         protected float _electrical_consumption_f = 0;
         protected double _previousAvailablePower = 0;
@@ -238,7 +238,7 @@ namespace FNPlugin
 
         private void AttachToEngine()
         {
-            _attached_engine = this.part.FindModuleImplementing<ModuleEngines>();
+            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
         }
@@ -486,9 +486,8 @@ namespace FNPlugin
         public void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
-
-            if (_attached_engine is ModuleEnginesFX)
-                ElectricEngineControllerFX.getAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0)); // set all FX to zero
+            
+            ElectricEngineControllerFX.getAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0)); // set all FX to zero
 
             if (Current_propellant == null || _attached_engine == null) return;
 
@@ -540,8 +539,7 @@ namespace FNPlugin
                     _attached_engine.maxFuelFlow = 0;
                 }
 
-                if (_attached_engine is ModuleEnginesFX)
-                    part.Effect(Current_propellant.ParticleFXName, Mathf.Min( (float)Math.Pow( _electrical_consumption_f / maxPower, 0.5), _attached_engine.finalThrust / _attached_engine.maxThrust));
+                part.Effect(Current_propellant.ParticleFXName, Mathf.Min( (float)Math.Pow( _electrical_consumption_f / maxPower, 0.5), _attached_engine.finalThrust / _attached_engine.maxThrust));
             }
             else
             {
@@ -560,8 +558,7 @@ namespace FNPlugin
                 }
                 
                 //_attached_engine.maxThrust = _avrageragedLastActualMaxThrustWithTrottle > 1 ? _avrageragedLastActualMaxThrustWithTrottle : 1;
-                if (_attached_engine is ModuleEnginesFX)
-                    part.Effect(Current_propellant.ParticleFXName, 0);
+                part.Effect(Current_propellant.ParticleFXName, 0);
             }
 
             if (isupgraded)
