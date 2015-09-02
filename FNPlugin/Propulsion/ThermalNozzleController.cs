@@ -133,7 +133,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
         protected float _minISP;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "0.000000")]
-        protected double max_fuel_flow_rate = 0;
+        protected float max_fuel_flow_rate = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp")]
         protected float current_isp = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
@@ -765,7 +765,7 @@ namespace FNPlugin
 
                 expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f);
 
-                max_fuel_flow_rate = expectedMaxThrust / _maxISP / PluginHelper.GravityConstant;
+                max_fuel_flow_rate = (float)(expectedMaxThrust / _maxISP / PluginHelper.GravityConstant);
 
                 pressureTreshold = _currentpropellant_is_jet ? 0 : exitArea * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
 
@@ -782,7 +782,7 @@ namespace FNPlugin
                     double vcurve_at_current_velocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
 
                     if (vcurve_at_current_velocity > 0 && !double.IsInfinity(vcurve_at_current_velocity) && !double.IsNaN(vcurve_at_current_velocity))
-                        max_fuel_flow_rate = max_fuel_flow_rate / vcurve_at_current_velocity;
+                        max_fuel_flow_rate = (float)(max_fuel_flow_rate / vcurve_at_current_velocity);
                 }
 
                 // set engines maximum fuel flow
@@ -866,24 +866,24 @@ namespace FNPlugin
             if (_maxISP <= 0) return;
             
 			// calculate maximum fuel flow rate
-            max_fuel_flow_rate = final_max_engine_thrust_in_space / _maxISP / PluginHelper.GravityConstant / myAttachedEngine.currentThrottle;
+            max_fuel_flow_rate = (float)(final_max_engine_thrust_in_space / _maxISP / PluginHelper.GravityConstant / myAttachedEngine.currentThrottle);
 
             if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
             {
                 double vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
 
                 if (vcurveAtCurrentVelocity > 0 && !double.IsInfinity(vcurveAtCurrentVelocity) && !double.IsNaN(vcurveAtCurrentVelocity))
-                    max_fuel_flow_rate = max_fuel_flow_rate / vcurveAtCurrentVelocity;
+                    max_fuel_flow_rate = (float)(max_fuel_flow_rate / vcurveAtCurrentVelocity);
             }
 
             if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
                 max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
 
-            engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction / (float)(max_fuel_flow_rate / Math.Pow(_maxISP / 1200, 0.1) / Math.Sqrt(radius)) : baseHeatProduction;
+            engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction * 350 / max_fuel_flow_rate /(float)Math.Pow(_maxISP, 0.8)  : baseHeatProduction;
             myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow
-	        myAttachedEngine.maxFuelFlow = Math.Min(1, (float)max_fuel_flow_rate);
+	        myAttachedEngine.maxFuelFlow = Math.Min(1, max_fuel_flow_rate);
 
             if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
             {

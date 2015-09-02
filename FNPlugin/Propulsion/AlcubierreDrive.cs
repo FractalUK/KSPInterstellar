@@ -28,6 +28,12 @@ namespace FNPlugin
 		public float effectSize2;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass")]
         public float partMass;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
+        public float magnitudeDiff;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Change")]
+        public float magnitudeChange;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp Requirement", guiUnits= " MW")]
+        protected double megajoules_required = 1000;
 
         private Vector3d heading_act;
 
@@ -36,17 +42,16 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public string upgradeTechReq;
         
-        //private float warpspeed = 30000000.0f;
-        //public const float warpspeed = 29979245.8f;
-        protected double megajoules_required = 1000;
-                
-        private float[] warp_factors = {0.1f,0.25f,0.5f,0.75f,1.0f,2.0f,3.0f,4.0f,5.0f,7.5f,10.0f,15f,20.0f};
 		[KSPField(isPersistant = true)]
         public int selected_factor = 0;
-        protected float mass_divisor = 10f;
+
+        public int old_selected_factor = 0;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string warpdriveType;
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Warp Engine Throttle")]
+        public string WarpEngineThrottle;
         
         [KSPField(isPersistant = false, guiActive = true, guiName = "Light Speed Factor")]
         public string LightSpeedFactor;
@@ -66,6 +71,8 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool isDeactivatingWarpDrive = false;
 
+        private float[] engine_throtle = { 0.01f, 0.02f, 0.03f, 0.05f, 0.08f, 0.13f, 0.21f, 0.34f, 0.55f, 0.89f, 1.0f};
+        protected float mass_divisor = 10f;
         protected GameObject warp_effect;
         protected GameObject warp_effect2;
         protected Texture[] warp_textures;
@@ -75,12 +82,18 @@ namespace FNPlugin
         const float warp_size = 50000;
 		protected bool hasrequiredupgrade;
 
+        //private float warpspeed = 30000000.0f;
+        //public const float warpspeed = 29979245.8f;
+        
+
         //private ModuleAnimateGeneric _foldingAnination;
         private AnimationState[] animationState;
 
 		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
 		public void StartCharging() 
         {
+            if (IsEnabled) return;
+
 			IsCharging = true;
 		}
 
@@ -88,6 +101,11 @@ namespace FNPlugin
 		public void StopCharging() 
         {
 			IsCharging = false;
+
+            // flush all exotic matter
+            List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
+            float exotic_matter_available = (float) resources.Sum(res => res.amount);
+            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_matter_available);
 		}
 
 		[KSPAction("Start Charging")]
@@ -127,37 +145,49 @@ namespace FNPlugin
 
             List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
             float exotic_matter_available = (float) resources.Sum(res => res.amount);
-            var powerRequiredForWarp = megajoules_required * warp_factors[selected_factor];
+            //var powerRequiredForWarp = megajoules_required; //* warp_factors[selected_factor];
 
-            if (exotic_matter_available < powerRequiredForWarp)
+            if (exotic_matter_available < megajoules_required)
             {
                 ScreenMessages.PostScreenMessage("Warp drive isn't fully charged yet for Warp!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
-            var totalConsumedPower = PluginHelper.LimitedWarpTravel
-                ? (0.5 * powerRequiredForWarp) + (exotic_matter_available - powerRequiredForWarp)
-                : powerRequiredForWarp;
+            var totalConsumedPower = megajoules_required;
+                //PluginHelper.LimitedWarpTravel ? (0.5 * powerRequiredForWarp) + (exotic_matter_available - powerRequiredForWarp) : 
+                
 
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, totalConsumedPower);
             warp_sound.Play();
             warp_sound.loop = true;
             
             //Orbit planetOrbit = vessel.orbit.referenceBody.orbit;
-            Vector3d heading = part.transform.up;
-            double temp1 = heading.y;
-            heading.y = heading.z;
-            heading.z = temp1;
+            //Vector3d part_heading = part.transform.up;
+            //Vector3d heading = initial_part_transform_up;
+            //double old_heading_y = heading.y;
+            //heading.y = heading.z;
+            //heading.z = old_heading_y;
+            active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
             
-            Vector3d position = vessel.orbit.pos;
-            heading = heading * GameConstants.warpspeed * warp_factors[selected_factor];
-            heading_act = heading;
-            serialisedwarpvector = ConfigNode.WriteVector(heading);
+            //Vector3d position = vessel.orbit.pos;
+
+            float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+            float power_returned = consumeFNResource(engine_throtle[selected_factor] * available_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            double new_warpfactor = 10 * power_returned / megajoules_required;
+
+            LightSpeedFactor = new_warpfactor.ToString("0.000") + "c";
+
+            heading_act = active_part_heading * GameConstants.warpspeed * new_warpfactor;
+            serialisedwarpvector = ConfigNode.WriteVector(heading_act);
             
             vessel.GoOnRails();
-            vessel.orbit.UpdateFromStateVectors(position, vessel.orbit.vel + heading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
             vessel.GoOffRails();
+
             IsEnabled = true;
+            existing_warpfactor = 0;
+            previous_Frame_heading = active_part_heading;
+            StopCharging();
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Warp Drive", active = false)]
@@ -166,29 +196,31 @@ namespace FNPlugin
 			if (!IsEnabled) 
                 return;
 
-            if (PluginHelper.LimitedWarpTravel)
-            {
-                // retrieve current strength of warpfield
-                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-                float warpFieldStrenth = (float)resources.Sum(res => res.amount);
+            //if (PluginHelper.LimitedWarpTravel)
+            //{
+            //    // retrieve current strength of warpfield
+            //    List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
+            //    float warpFieldStrenth = (float)resources.Sum(res => res.amount);
 
-                // wait untill warp field has collapsed
-                if (warpFieldStrenth > 0)
-                {
-                    isDeactivatingWarpDrive = true;
-                    return;
-                }
-                // deactive charging
-                IsCharging = false;
-                isDeactivatingWarpDrive = false;
-            }
+            //    // wait untill warp field has collapsed
+            //    if (warpFieldStrenth > 0)
+            //    {
+            //        isDeactivatingWarpDrive = true;
+            //        return;
+            //    }
+            //    // deactive charging
+            //    IsCharging = false;
+            //    isDeactivatingWarpDrive = false;
+            //}
 
             //float atmosphere_height = this.vessel.mainBody.maxAtmosphereAltitude;
             float atmosphere_height = (float)this.vessel.mainBody.atmosphereDepth;
-            if (this.vessel.altitude <= atmosphere_height && vessel.mainBody.flightGlobalsIndex != 0) {
+            if (this.vessel.altitude <= atmosphere_height && vessel.mainBody.flightGlobalsIndex != 0) 
+            {
 				ScreenMessages.PostScreenMessage("Cannot deactivate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
+
             IsEnabled = false;
             warp_sound.Stop();
             
@@ -196,34 +228,37 @@ namespace FNPlugin
             heading.x = -heading.x;
             heading.y = -heading.y;
             heading.z = -heading.z;
+
             vessel.GoOnRails();
-            //PatchedConicSolver.
-            //this.vessel.ChangeWorldVelocity(heading);
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + heading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
             vessel.GoOffRails();
-
-            //CheatOptions.UnbreakableJoints = false;
-            //CheatOptions.NoCrashDamage = false;           
+        
         }
 
-        [KSPEvent(guiActive = true, guiName = "Warp Speed (+)", active = true)]
-        public void ToggleWarpSpeed() 
+        [KSPEvent(guiActive = true, guiName = "Warp Throttle (+)", active = true)]
+        public void ToggleWarpSpeedUp() 
         {
-            if (IsEnabled) return;
+            //if (IsEnabled) return;
 
             selected_factor++;
-            if (selected_factor >= warp_factors.Length) 
-                selected_factor = 0;
+            if (selected_factor >= engine_throtle.Length)
+                selected_factor = engine_throtle.Length - 1;
+
+            if (!IsEnabled)
+                old_selected_factor = selected_factor;
         }
 
-		[KSPEvent(guiActive = true, guiName = "Warp Speed (-)", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Warp Throttle (-)", active = true)]
 		public void ToggleWarpSpeedDown() 
         {
-			if (IsEnabled) return;
+			//if (IsEnabled) return;
 
 			selected_factor-=1;
 			if (selected_factor < 0) 
-				selected_factor = warp_factors.Length-1;
+				selected_factor = 0;
+
+            if (!IsEnabled)
+                old_selected_factor = selected_factor;
 		}
 
         [KSPAction("Activate Warp Drive")]
@@ -241,7 +276,7 @@ namespace FNPlugin
         [KSPAction("Warp Speed (+)")]
         public void ToggleWarpSpeedAction(KSPActionParam param) 
         {
-            ToggleWarpSpeed();
+            ToggleWarpSpeedUp();
         }
 
 		[KSPAction("Warp Speed (-)")]
@@ -275,31 +310,36 @@ namespace FNPlugin
 			Actions["ToggleChargingAction"].guiName = String.Format("Toggle Charging");
 			Actions["ActivateWarpDriveAction"].guiName = Events["ActivateWarpDrive"].guiName = String.Format("Activate Warp Drive");
             Actions["DeactivateWarpDriveAction"].guiName = Events["DeactivateWarpDrive"].guiName = String.Format("Deactivate Warp Drive");
-			Actions["ToggleWarpSpeedAction"].guiName = Events["ToggleWarpSpeed"].guiName = String.Format("Warp Speed (+)");
+			Actions["ToggleWarpSpeedAction"].guiName = Events["ToggleWarpSpeedUp"].guiName = String.Format("Warp Speed (+)");
 			Actions["ToggleWarpSpeedDownAction"].guiName = Events["ToggleWarpSpeedDown"].guiName = String.Format("Warp Speed (-)");
-            
+
             if (state == StartState.Editor) return;
  
             this.part.force_activate();
             if (serialisedwarpvector != null) 
                 heading_act = ConfigNode.ParseVector3D(serialisedwarpvector);
-            
-            warp_effect2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+
             warp_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            warp_effect2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            
             warp_effect.collider.enabled = false;
             warp_effect2.collider.enabled = false;
+
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
             Vector3 end_beam_pos = ship_pos + transform.up * warp_size;
             Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
+
 			warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
             warp_effect.transform.position = new Vector3(mid_pos.x, ship_pos.y+mid_pos.y, mid_pos.z);
             warp_effect.transform.rotation = part.transform.rotation;
+
 			warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
             warp_effect2.transform.position = new Vector3(mid_pos.x, ship_pos.y + mid_pos.y, mid_pos.z);
             warp_effect2.transform.rotation = part.transform.rotation;
+
             //warp_effect.layer = LayerMask.NameToLayer("Ignore Raycast");
             //warp_effect.renderer.material = new Material(KSP.IO.File.ReadAllText<AlcubierreDrive>("AlphaSelfIllum.shader"));
-            //KSP.IO.File.
+
             warp_effect.renderer.material.shader = Shader.Find("Unlit/Transparent");
             warp_effect2.renderer.material.shader = Shader.Find("Unlit/Transparent");
 
@@ -418,7 +458,12 @@ namespace FNPlugin
 
             // disable charging at startup
             IsCharging = false;
+
+            previous_Frame_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
+            active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
+            existing_warpfactor = engine_throtle[selected_factor];
         }
+
 
         public override void OnUpdate() 
         {
@@ -426,15 +471,23 @@ namespace FNPlugin
 			Events["StopCharging"].active = IsCharging;
             Events["ActivateWarpDrive"].active = !IsEnabled;
             Events["DeactivateWarpDrive"].active = IsEnabled;
-            Events["ToggleWarpSpeed"].active = !IsEnabled;
+            //Events["ToggleWarpSpeed"].active = !IsEnabled;
+            //Events["ToggleWarpSpeedDown"].active = true; 
 			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
 
 			if (ResearchAndDevelopment.Instance != null) 
 				Events ["RetrofitDrive"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
             else 
 				Events ["RetrofitDrive"].active = false;
-			
-            LightSpeedFactor = warp_factors[selected_factor].ToString("0.00") + "c";
+
+            WarpEngineThrottle = (engine_throtle[selected_factor] * 100).ToString("0") + "%";
+            if (!IsEnabled)
+            {
+                float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                double new_warpfactor = 10 * available_power / megajoules_required;
+
+                LightSpeedFactor = new_warpfactor.ToString("0.000") + "c";
+            }
 
 			if (ResearchAndDevelopment.Instance != null) 
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
@@ -457,37 +510,162 @@ namespace FNPlugin
                     }
                 }
             }
+
+            megajoules_required = GameConstants.initial_alcubierre_megajoules_required * vessel.GetTotalMass() / part.mass;
         }
 
-        public override void OnFixedUpdate() 
+        public override void OnFixedUpdate()
         {
             //if (!IsEnabled) { return; }
-            megajoules_required =  GameConstants.initial_alcubierre_megajoules_required * vessel.GetTotalMass() / mass_divisor;
+            megajoules_required = GameConstants.initial_alcubierre_megajoules_required * vessel.GetTotalMass() / part.mass;
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
             Vector3 end_beam_pos = ship_pos + part.transform.up * warp_size;
-            Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f ;
+            Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
+
             warp_effect.transform.rotation = part.transform.rotation;
-			warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
+            warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
             warp_effect.transform.position = new Vector3(ship_pos.x + mid_pos.x, ship_pos.y + mid_pos.y, ship_pos.z + mid_pos.z);
             warp_effect.transform.rotation = part.transform.rotation;
+
             warp_effect2.transform.rotation = part.transform.rotation;
-			warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
+            warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
             warp_effect2.transform.position = new Vector3(ship_pos.x + mid_pos.x, ship_pos.y + mid_pos.y, ship_pos.z + mid_pos.z);
             warp_effect2.transform.rotation = part.transform.rotation;
-            
+
             //if (tex_count < warp_textures.Length) {
-            warp_effect.renderer.material.mainTexture = warp_textures[((int)tex_count)%warp_textures.Length];
-            warp_effect2.renderer.material.mainTexture = warp_textures2[((int)tex_count+8) % warp_textures.Length];
-            tex_count+=1f*warp_factors[selected_factor];
+            warp_effect.renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
+            warp_effect2.renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures.Length];
+            tex_count += 1f * engine_throtle[selected_factor];
             //}else {
             //    tex_count = 0;
             //}
 
-            if (PluginHelper.LimitedWarpTravel)
-                LimitedWarpDriveCharging();
-            else
-                SimpleWarpdriveCharging();
+            //if (PluginHelper.LimitedWarpTravel)
+            //    LimitedWarpDriveCharging();
+            //else
+            SimpleWarpdriveCharging();
+
+
+            if (IsEnabled && megajoules_required > 0)
+            {
+                //var current_part_heading = part.transform.up;
+                //var difference_with_old = current_part_heading - old_part_transform_up;
+
+                float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                float power_returned = consumeFNResource(engine_throtle[selected_factor] * available_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                supplyFNResource(-power_returned * 0.8 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                double new_warpfactor = 10 * power_returned / megajoules_required;
+
+                Vector3d new_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
+
+                magnitudeDiff = (float)(active_part_heading - new_part_heading).magnitude;
+                magnitudeChange = (float)(previous_Frame_heading - new_part_heading).magnitude;
+                previous_Frame_heading = new_part_heading;
+
+                if (new_warpfactor > existing_warpfactor * 1.01 || new_warpfactor < existing_warpfactor * 0.99 || (magnitudeDiff > 0.01 && magnitudeChange < 0.0001))
+                {
+                    existing_warpfactor = new_warpfactor;
+                    LightSpeedFactor = new_warpfactor.ToString("0.000") + "c";
+
+                    old_selected_factor = selected_factor;
+                    Vector3d reverse_heading = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
+
+                    heading_act = new_part_heading * GameConstants.warpspeed * new_warpfactor; 
+                    active_part_heading = new_part_heading;
+                    serialisedwarpvector = ConfigNode.WriteVector(heading_act);
+
+                    vessel.GoOnRails();
+                    vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_heading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+                    vessel.GoOffRails();
+                    
+                }
+            }
+           
         }
+        private Vector3d previous_Frame_heading; 
+        private Vector3d active_part_heading; 
+        private double existing_warpfactor;
+
+
+
+        private void UpdateWarpDriveStatus(float currentExoticMatter, double lostWarpFieldForWarp)
+        {
+            double TimeLeftInSec = Math.Ceiling(currentExoticMatter / lostWarpFieldForWarp);
+            DriveStatus = "Warp for " + (int)(TimeLeftInSec / 60) + " min " + (int)(TimeLeftInSec % 60) + " sec";
+        }
+
+        private void SimpleWarpdriveCharging()
+        {
+            float currentExoticMatter = 0;
+            float maxExoticMatter = 0;
+            List<PartResource> partresources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
+            foreach (PartResource partresource in partresources)
+            {
+                currentExoticMatter += (float)partresource.amount;
+                maxExoticMatter += (float)partresource.maxAmount;
+            }
+
+            if (IsCharging)
+            {
+                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
+                float exotic_matter_available = (float)resources.Sum(res => res.amount);
+
+                float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * GameConstants.BaseMaxPowerDrawForExoticMatter * PluginHelper.MaxPowerDrawForExoticMatterMult;
+                float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                float power_returned = consumeFNResource(Math.Min(maxPowerDrawForExoticMatter * TimeWarp.fixedDeltaTime, available_power * TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
+                if (exotic_matter_available < megajoules_required)
+                    part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned / (GameConstants.BaseMaxPowerDrawForExoticMatter * PluginHelper.MaxPowerDrawForExoticMatterMult));
+
+                supplyFNResource(-power_returned * 0.8 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            }
+
+            if (!IsEnabled)
+            {
+                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
+                float exotic_matter_available = (float)resources.Sum(res => res.amount);
+
+                if (exotic_matter_available < megajoules_required)
+                {
+                    float electrical_current_pct = (float)(100.0f * exotic_matter_available / megajoules_required);
+                    DriveStatus = String.Format("Charging: ") + electrical_current_pct.ToString("0.00") + String.Format("%");
+                }
+                else
+                    DriveStatus = "Ready.";
+
+                //light.intensity = 0;
+                warp_effect2.renderer.enabled = false;
+                warp_effect.renderer.enabled = false;
+            }
+            else
+            {
+                DriveStatus = "Active.";
+                warp_effect2.renderer.enabled = true;
+                warp_effect.renderer.enabled = true;
+            }
+        }
+
+        public override string getResourceManagerDisplayName() 
+        {
+            return "Alcubierre Drive";
+        }
+
+        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in part.FindModelAnimators(animationName))
+            {
+                var animationState = animation[animationName];
+                animationState.speed = 0;
+                animationState.enabled = true;
+                animationState.wrapMode = WrapMode.ClampForever;
+                animation.Blend(animationName);
+                states.Add(animationState);
+            }
+            return states.ToArray();
+        }
+
+        /*
 
         private void LimitedWarpDriveCharging()
         {
@@ -573,77 +751,7 @@ namespace FNPlugin
                 }
             }
         }
-
-        private void UpdateWarpDriveStatus(float currentExoticMatter, double lostWarpFieldForWarp)
-        {
-            double TimeLeftInSec = Math.Ceiling(currentExoticMatter / lostWarpFieldForWarp);
-            DriveStatus = "Warp for " + (int)(TimeLeftInSec / 60) + " min " + (int)(TimeLeftInSec % 60) + " sec";
-        }
-
-        private void SimpleWarpdriveCharging()
-        {
-            float currentExoticMatter = 0;
-            float maxExoticMatter = 0;
-            List<PartResource> partresources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-            foreach (PartResource partresource in partresources)
-            {
-                currentExoticMatter += (float)partresource.amount;
-                maxExoticMatter += (float)partresource.maxAmount;
-            }
-
-            if (IsCharging)
-            {
-                float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * GameConstants.BaseMaxPowerDrawForExoticMatter * PluginHelper.MaxPowerDrawForExoticMatterMult;
-                float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                float power_returned = consumeFNResource(Math.Min(maxPowerDrawForExoticMatter * TimeWarp.fixedDeltaTime, available_power * TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
-                part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned / (GameConstants.BaseMaxPowerDrawForExoticMatter * PluginHelper.MaxPowerDrawForExoticMatterMult));
-            }
-
-            if (!IsEnabled)
-            {
-                //ChargeStatus = "";
-                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-                float exotic_matter_available = (float)resources.Sum(res => res.amount);
-
-                if (exotic_matter_available < megajoules_required * warp_factors[selected_factor])
-                {
-                    float electrical_current_pct = (float)(100.0f * exotic_matter_available / (megajoules_required * warp_factors[selected_factor]));
-                    DriveStatus = String.Format("Charging: ") + electrical_current_pct.ToString("0.00") + String.Format("%");
-                }
-                else
-                    DriveStatus = "Ready.";
-
-                //light.intensity = 0;
-                warp_effect2.renderer.enabled = false;
-                warp_effect.renderer.enabled = false;
-            }
-            else
-            {
-                DriveStatus = "Active.";
-                warp_effect2.renderer.enabled = true;
-                warp_effect.renderer.enabled = true;
-            }
-        }
-
-        public override string getResourceManagerDisplayName() 
-        {
-            return "Alcubierre Drive";
-        }
-
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
-        {
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators(animationName))
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
-        }
+         */ 
 
     }
 
