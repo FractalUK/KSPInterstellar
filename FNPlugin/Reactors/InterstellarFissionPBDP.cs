@@ -57,9 +57,9 @@ namespace FNPlugin
             }
         }
 
-        private double ThermalRatioEfficiency
+        private double ThermalRatioEfficiency       
         {
-            get { return Math.Pow((ZeroPowerTemp - CoreTemperature) / (ZeroPowerTemp - OptimalTemp), 0.81); }
+            get { return reactorType == 2 ? Math.Pow((ZeroPowerTemp - CoreTemperature) / (ZeroPowerTemp - OptimalTemp), 0.81) : 1; }
         }
 
         public float OptimalTemp { get { return isupgraded ? upgradedOptimalPebbleTemp : optimalPebbleTemp; } }
@@ -74,7 +74,7 @@ namespace FNPlugin
         {
             get
             {
-                if (HighLogic.LoadedSceneIsFlight) 
+                if (HighLogic.LoadedSceneIsFlight && reactorType == 2 ) 
                 {
                     resourceBarRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
                     var temperatureIncrease = Math.Max(Math.Pow(resourceBarRatio, 0.25) - 0.2, 0) * 1.25 * (ZeroPowerTemp - OptimalTemp);
@@ -118,25 +118,34 @@ namespace FNPlugin
 
         public override float GetCoreTempAtRadiatorTemp(float rad_temp)
         {
-            float pfr_temp = 0;
+            if (reactorType == 2)
+            {
 
-            if (!double.IsNaN(rad_temp) && !double.IsInfinity(rad_temp))
-                pfr_temp = (float)Math.Min(Math.Max(rad_temp * 1.5, OptimalTemp), ZeroPowerTemp);
-            else
-                pfr_temp = OptimalTemp;
+                float pfr_temp = 0;
 
-            return pfr_temp;
+                if (!double.IsNaN(rad_temp) && !double.IsInfinity(rad_temp))
+                    pfr_temp = (float)Math.Min(Math.Max(rad_temp * 1.5, OptimalTemp), ZeroPowerTemp);
+                else
+                    pfr_temp = OptimalTemp;
+
+                return pfr_temp;
+            }
+            return base.GetCoreTempAtRadiatorTemp(rad_temp);
         }
 
         public override float GetThermalPowerAtTemp(float temp)
         {
-            float rel_temp_diff = 0;
-            if (temp > OptimalTemp && temp < ZeroPowerTemp) 
-                rel_temp_diff = (float)Math.Pow((ZeroPowerTemp - temp) / (ZeroPowerTemp - OptimalTemp), 0.81);
-            else
-                rel_temp_diff = 1;
+            if (reactorType == 2)
+            {
+                float rel_temp_diff = 0;
+                if (temp > OptimalTemp && temp < ZeroPowerTemp)
+                    rel_temp_diff = (float)Math.Pow((ZeroPowerTemp - temp) / (ZeroPowerTemp - OptimalTemp), 0.81);
+                else
+                    rel_temp_diff = 1;
 
-            return MaximumPower * rel_temp_diff;
+                return MaximumPower * rel_temp_diff;
+            }
+            return base.GetThermalPowerAtTemp(temp);
         }
 
 

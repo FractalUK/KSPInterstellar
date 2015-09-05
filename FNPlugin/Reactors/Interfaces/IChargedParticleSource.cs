@@ -13,6 +13,6 @@ namespace FNPlugin
 
         double CurrentMeVPerChargedProduct { get; }
 
-        double  UseProductForPropulsion(double ratio);
+        double  UseProductForPropulsion(double ratio, double consumedAmount);
     }
 }

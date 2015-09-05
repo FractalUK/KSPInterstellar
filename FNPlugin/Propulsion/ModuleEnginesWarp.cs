@@ -5,9 +5,9 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-    public class ModuleEnginesWarp: WarpModuleEnginesFX  {}
+    //public class ModuleEnginesWarp: WarpModuleEnginesFX  {}
 
-    public class WarpModuleEnginesFX : ModuleEnginesFX
+    public class ModuleEnginesWarp : ModuleEnginesFX
     {
         // GUI display values
         // Thrust
@@ -23,6 +23,15 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Warp Throttle")]
         protected string Throttle = "";
 
+        [KSPField(guiActive = true, guiName = "Demand")]
+        public double propellantUsed;
+
+        //[KSPField(guiActive = false, guiName = "Calc Flow")]
+        //public double calcualtedFlow;
+
+        [KSPField(guiActive = true, guiName = "Mass Flow")]
+        public double requestedFlow;
+
         // Numeric display values
         protected double thrust_d = 0;
         protected double isp_d = 0;
@@ -32,6 +41,7 @@ namespace FNPlugin
         float IspPersistent = 0;
         float ThrustPersistent = 0;
         float ThrottlePersistent = 0;
+        float previousThrottle = 0;
 
         // Are we transitioning from timewarp to reatime?
         [KSPField]
@@ -88,15 +98,23 @@ namespace FNPlugin
             // Realtime mode
             if (!this.vessel.packed)
             {
+                //double mdot = requestedMassFlow;
+                requestedFlow = this.requestedMassFlow;
+                //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
+                double dm = requestedFlow * TimeWarp.fixedDeltaTime; 
+                propellantUsed = dm / density; // Resource demand
+
                 // if not transitioning from warp to real
                 // Update values to use during timewarp
-                if (!warpToReal)
+                if (!warpToReal) //&& vessel.ctrlState.mainThrottle == previousThrottle)
                 {
                     IspPersistent = realIsp;
                     ThrottlePersistent = vessel.ctrlState.mainThrottle;
-                    //ThrustPersistent = this.CalculateThrust();
+
                     this.CalculateThrust();
-                    ThrustPersistent = this.finalThrust;
+                    // verify we have thrust
+                    if ((vessel.ctrlState.mainThrottle > 0 && finalThrust > 0) || (vessel.ctrlState.mainThrottle == 0 && finalThrust == 0))
+                        ThrustPersistent = finalThrust;
                 }
             }
             else if (part.vessel.situation != Vessel.Situations.SUB_ORBITAL)
@@ -104,22 +122,24 @@ namespace FNPlugin
                 // Timewarp mode: perturb orbit using thrust
                 warpToReal = true; // Set to true for transition to realtime
                 double UT = Planetarium.GetUniversalTime(); // Universal time
-                double dT = TimeWarp.fixedDeltaTime; // Time step size
-                double vesselMass = this.vessel.GetTotalMass(); // Current mass
-                double mdot = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                double dm = mdot * dT; // Change in mass over dT
-                double demand = dm / density; // Resource demand
+
+                requestedFlow = this.requestedMassFlow;
+                //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
+                double dm = requestedFlow * TimeWarp.fixedDeltaTime; // Change in mass over dT
+                double demandReq = dm / density; // Resource demand
                 // Update vessel resource
-                double demandOut = part.RequestResource(resourceDeltaV, demand);
+                propellantUsed = part.RequestResource(resourceDeltaV, demandReq);
                 // Calculate thrust and deltaV if demand output > 0
                 // TODO test if dm exceeds remaining propellant mass
-                if (demandOut > 0)
+                if (propellantUsed > 0)
                 {
+                    double vesselMass = this.vessel.GetTotalMass(); // Current mass
                     double m1 = vesselMass - dm; // Mass at end of burn
                     double deltaV = IspPersistent * 9.81 * Math.Log(vesselMass / m1); // Delta V from burn
+
                     Vector3d thrustV = this.part.transform.up; // Thrust direction
                     Vector3d deltaVV = deltaV * thrustV; // DeltaV vector
-                    vessel.orbit.Perturb(deltaVV, UT, dT); // Update vessel orbit
+                    vessel.orbit.Perturb(deltaVV, UT, TimeWarp.fixedDeltaTime); // Update vessel orbit
                 }
                 // Otherwise, if throttle is turned on, and demand out is 0, show warning
                 else if (ThrottlePersistent > 0)
@@ -127,16 +147,17 @@ namespace FNPlugin
                     Debug.Log("Propellant depleted");
                 }
             }
-            else if (vessel.ctrlState.mainThrottle > 0)
+            else //if (vessel.ctrlState.mainThrottle > 0)
             {
-                vessel.ctrlState.mainThrottle = 0;
                 ScreenMessages.PostScreenMessage("Cannot accelerate and timewarp durring sub orbital spaceflight!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
             }
+            
 
             // Update display numbers
             thrust_d = ThrustPersistent;
             isp_d = IspPersistent;
             throttle_d = ThrottlePersistent;
+            previousThrottle = vessel.ctrlState.mainThrottle;
         }
 
         // Format thrust into mN, N, kN

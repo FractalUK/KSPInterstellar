@@ -192,7 +192,7 @@ namespace FNPlugin
 
         public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
 
-        public double UseProductForPropulsion(double ratio)
+        public double UseProductForPropulsion(double ratio, double consumedAmount)
         {
             if (ratio == 0) return 0;
 
@@ -206,10 +206,8 @@ namespace FNPlugin
 
                 var effectiveMass = ratio * product.mass;
 
-                // create propellant
+                // sum product mass
                 hydrogenMassSum += effectiveMass;
-                var hydrogenAmount = effectiveMass / hydrogenDefinition.density;
-                part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
 
                 // remove product from store
                 var fuelAmount = product.fuelmode.Density > 0 ? (effectiveMass / product.fuelmode.Density) : 0;
@@ -217,8 +215,14 @@ namespace FNPlugin
 
                 part.RequestResource(product.fuelmode.FuelName, fuelAmount);
             }
-            return hydrogenMassSum;
 
+            var hydrogenAmount = Math.Min(hydrogenMassSum / hydrogenDefinition.density, consumedAmount);
+
+            // at real time we need twise
+            if (!this.vessel.packed)
+                hydrogenAmount *= 2;
+
+            return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
         }
 
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
