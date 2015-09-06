@@ -42,7 +42,9 @@ namespace FNPlugin
 		public string originalName;
 		[KSPField(isPersistant = false)]
 		public float upgradeCost = 100;
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false)]
+        public float emissiveColorPower = 3;
+        [KSPField(isPersistant = false)]
 		public string upgradedName;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radiator Temp Upgraded")]
         public float upgradedRadiatorTemp;
@@ -581,19 +583,18 @@ namespace FNPlugin
 
         private void ColorHeat()
         {
-            const String KSPShader = "KSP/Emissive/Bumped Specular";
+            const String kspShader = "KSP/Emissive/Bumped Specular";
             float currentTemperature = getRadiatorTemperature();
-            //float maxTemperature = (float)part.maxTemp;
 
             double temperatureRatio = Math.Min( currentTemperature / radiatorTemp * 1.05, 1);
-            Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, 3)), 0.0f, 0.0f, 1.0f);
+            Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, emissiveColorPower)), 0.0f, 0.0f, 1.0f);
 
             Renderer[] array = part.FindModelComponents<Renderer>();
             
             foreach (Renderer renderer in array) 
             {
-                if (renderer.material.shader.name != KSPShader)
-                    renderer.material.shader = Shader.Find(KSPShader);
+                if (renderer.material.shader.name != kspShader)
+                    renderer.material.shader = Shader.Find(kspShader);
 
                 if (part.name.StartsWith("circradiator"))
                 {
@@ -617,8 +618,8 @@ namespace FNPlugin
                 else if (part.name.StartsWith("LargeFlatRadiator"))
                 {
 
-                    if (renderer.material.shader.name != KSPShader)
-                        renderer.material.shader = Shader.Find(KSPShader);
+                    if (renderer.material.shader.name != kspShader)
+                        renderer.material.shader = Shader.Find(kspShader);
 
                     if (renderer.material.GetTexture("_Emissive") == null)
                         renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/glow", false));

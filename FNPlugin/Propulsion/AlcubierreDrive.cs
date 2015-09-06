@@ -20,6 +20,10 @@ namespace FNPlugin
 		
         // non persistant
         [KSPField(isPersistant = false)]
+        public int InstanceID;
+        [KSPField(isPersistant = false)]
+        public bool IsSlave;
+        [KSPField(isPersistant = false)]
         public string AnimationName = "";
         [KSPField(isPersistant = false)]
         public string upgradedName;
@@ -38,7 +42,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Change")]
         public float magnitudeChange;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp Req", guiUnits= " MW", guiFormat= "F2")]
-        protected double megajoules_required = 1000;
+        protected float megajoules_required = 1000;
 
         
 
@@ -52,7 +56,7 @@ namespace FNPlugin
 
         public int old_selected_factor = 0;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
         public string warpdriveType = "Alcubierre Drive";
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Warp Engine Throttle")]
@@ -64,7 +68,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string DriveStatus;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Upgrade")]
         public string upgradeCostStr;
 
         [KSPField(isPersistant = true)]
@@ -90,6 +94,8 @@ namespace FNPlugin
         private Vector3d heading_act;
         private Vector3d previous_Frame_heading;
         private Vector3d active_part_heading;
+
+        protected float sumOfAlcubierreDrives;
         
 
 		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
@@ -254,7 +260,7 @@ namespace FNPlugin
         }
 
         [KSPAction("Warp Speed (+)")]
-        public void ToggleWarpSpeedAction(KSPActionParam param) 
+        public void ToggleWarpSpeedUpAction(KSPActionParam param) 
         {
             ToggleWarpSpeedUp();
         }
@@ -277,179 +283,226 @@ namespace FNPlugin
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
+
+
         public override void OnStart(PartModule.StartState state) 
         {
-            //_foldingAnination = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
-            if (!String.IsNullOrEmpty(AnimationName))
-                animationState = SetUpAnimation(AnimationName, this.part);
-
-			Actions["StartChargingAction"].guiName = Events["StartCharging"].guiName = String.Format("Start Charging");
-			Actions["StopChargingAction"].guiName = Events["StopCharging"].guiName = String.Format("Stop Charging");
-			Actions["ToggleChargingAction"].guiName = String.Format("Toggle Charging");
-			Actions["ActivateWarpDriveAction"].guiName = Events["ActivateWarpDrive"].guiName = String.Format("Activate Warp Drive");
-            Actions["DeactivateWarpDriveAction"].guiName = Events["DeactivateWarpDrive"].guiName = String.Format("Deactivate Warp Drive");
-			Actions["ToggleWarpSpeedAction"].guiName = Events["ToggleWarpSpeedUp"].guiName = String.Format("Warp Speed (+)");
-			Actions["ToggleWarpSpeedDownAction"].guiName = Events["ToggleWarpSpeedDown"].guiName = String.Format("Warp Speed (-)");
-
-            warpdriveType = originalName;
-            if (state == StartState.Editor) return;
- 
-            this.part.force_activate();
-            if (serialisedwarpvector != null) 
-                heading_act = ConfigNode.ParseVector3D(serialisedwarpvector);
-
-            warp_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            warp_effect2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            
-            warp_effect.collider.enabled = false;
-            warp_effect2.collider.enabled = false;
-
-            Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
-            Vector3 end_beam_pos = ship_pos + transform.up * warp_size;
-            Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
-
-			warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
-            warp_effect.transform.position = new Vector3(mid_pos.x, ship_pos.y+mid_pos.y, mid_pos.z);
-            warp_effect.transform.rotation = part.transform.rotation;
-
-			warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
-            warp_effect2.transform.position = new Vector3(mid_pos.x, ship_pos.y + mid_pos.y, mid_pos.z);
-            warp_effect2.transform.rotation = part.transform.rotation;
-
-            //warp_effect.layer = LayerMask.NameToLayer("Ignore Raycast");
-            //warp_effect.renderer.material = new Material(KSP.IO.File.ReadAllText<AlcubierreDrive>("AlphaSelfIllum.shader"));
-
-            warp_effect.renderer.material.shader = Shader.Find("Unlit/Transparent");
-            warp_effect2.renderer.material.shader = Shader.Find("Unlit/Transparent");
-
-            warp_textures = new Texture[33];
-
-            const string warp_tecture_path = "WarpPlugin/ParticleFX/warp";
-            for (int i = 0; i < 11; i++)
+            try
             {
-                warp_textures[i] = GameDatabase.Instance.GetTexture((i > 0)
-                    ? warp_tecture_path + (i + 1).ToString()
-                    : warp_tecture_path, false);
-            }
+                InstanceID = GetInstanceID();
 
-            warp_textures[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp10", false);
-            for (int i = 12; i < 33; i++)
-            {
-                int j = i > 17 ? 34 - i : i;
-                warp_textures[i] = GameDatabase.Instance.GetTexture(j > 1 ?
-                    warp_tecture_path + (j + 1).ToString() : warp_tecture_path, false);
-            }
-
-            warp_textures2 = new Texture[33];
-
-            const string warpr_tecture_path = "WarpPlugin/ParticleFX/warpr";
-            for (int i = 0; i < 11; i++)
-            {
-                warp_textures2[i] = GameDatabase.Instance.GetTexture((i > 0)
-                    ? warpr_tecture_path + (i + 1).ToString() 
-                    : warpr_tecture_path, false);
-            }
-
-            warp_textures2[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warpr10", false);
-            for (int i = 12; i < 33; i++)
-            {
-                int j = i > 17 ? 34 - i : i;
-                warp_textures2[i] = GameDatabase.Instance.GetTexture(j > 1 ?
-                    warpr_tecture_path + (j + 1).ToString() : warpr_tecture_path, false);
-            }           
-
-            warp_effect.renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
-            warp_effect2.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 0.1f);
-            warp_effect.renderer.material.mainTexture = warp_textures[0];
-            warp_effect.renderer.receiveShadows = false;
-			//warp_effect.layer = LayerMask.NameToLayer ("Ignore Raycast");
-			//warp_effect.collider.isTrigger = true;
-			warp_effect2.renderer.material.mainTexture = warp_textures2[0];
-            warp_effect2.renderer.receiveShadows = false;
-            warp_effect2.renderer.material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
-			//warp_effect2.layer = LayerMask.NameToLayer ("Ignore Raycast");
-			//warp_effect2.collider.isTrigger = true;
-            warp_effect2.renderer.material.renderQueue = 1000;
-            warp_effect.renderer.material.renderQueue = 1001;
-            /*gameObject.AddComponent<Light>();
-            gameObject.light.color = Color.cyan;
-            gameObject.light.intensity = 1f;
-            gameObject.light.range = 4000f;
-            gameObject.light.type = LightType.Spot;
-            gameObject.light.transform.position = end_beam_pos;
-            gameObject.light.cullingMask = ~0;*/
-            
-            //light.
-
-            warp_sound = gameObject.AddComponent<AudioSource>();
-            warp_sound.clip = GameDatabase.Instance.GetAudioClip("WarpPlugin/Sounds/warp_sound");
-            warp_sound.volume = GameSettings.SHIP_VOLUME;
-            warp_sound.panLevel = 0;
-            warp_sound.rolloffMode = AudioRolloffMode.Linear;
-            warp_sound.Stop();
-
-            if (IsEnabled) 
-            {
-                warp_sound.Play();
-                warp_sound.loop = true;
-            }
-
-			bool manual_upgrade = false;
-			if(HighLogic.CurrentGame.Mode == Game.Modes.CAREER) 
-            {
-				if(upgradeTechReq != null) 
-                {
-					if (PluginHelper.hasTech(upgradeTechReq)) 
-						hasrequiredupgrade = true;
-					else if(upgradeTechReq == "none") 
-						manual_upgrade = true;
-				}
+                if (IsSlave)
+                    UnityEngine.Debug.Log("KSPI - AlcubierreDrive Slave " + InstanceID + " Started");
                 else
-					manual_upgrade = true;
-			}
-            else
-				hasrequiredupgrade = true;
+                    UnityEngine.Debug.Log("KSPI - AlcubierreDrive Master " + InstanceID + " Started");
 
-			if (warpInit == false) 
-            {
-				warpInit = true;
-				if(hasrequiredupgrade) 
-					isupgraded = true;
-			}
 
-			if(manual_upgrade) 
-				hasrequiredupgrade = true;
-			
+                Events["StartCharging"].active = !IsSlave;
+                Events["StopCharging"].active = !IsSlave;
+                Events["ActivateWarpDrive"].active = !IsSlave;
+                Events["DeactivateWarpDrive"].active = !IsSlave;
+                Events["ToggleWarpSpeedUp"].active = !IsSlave;
+                Events["ToggleWarpSpeedDown"].active = !IsSlave;
 
-            if (isupgraded) 
-            {
-                warpdriveType = upgradedName;
-                mass_divisor = 40f;
-            }
-            else 
-            {
+                Fields["megajoules_required"].guiActive = !IsSlave;
+                Fields["WarpEngineThrottle"].guiActive = !IsSlave;
+                Fields["LightSpeedFactor"].guiActive = !IsSlave;
+                Fields["DriveStatus"].guiActive = !IsSlave;
+
+                if (!String.IsNullOrEmpty(AnimationName))
+                    animationState = SetUpAnimation(AnimationName, this.part);
+
+                Actions["StartChargingAction"].guiName = Events["StartCharging"].guiName = String.Format("Start Charging");
+                Actions["StopChargingAction"].guiName = Events["StopCharging"].guiName = String.Format("Stop Charging");
+                Actions["ToggleChargingAction"].guiName = String.Format("Toggle Charging");
+                Actions["ActivateWarpDriveAction"].guiName = Events["ActivateWarpDrive"].guiName = String.Format("Activate Warp Drive");
+                Actions["DeactivateWarpDriveAction"].guiName = Events["DeactivateWarpDrive"].guiName = String.Format("Deactivate Warp Drive");
+                Actions["ToggleWarpSpeedUpAction"].guiName = Events["ToggleWarpSpeedUp"].guiName = String.Format("Warp Speed (+)");
+                Actions["ToggleWarpSpeedDownAction"].guiName = Events["ToggleWarpSpeedDown"].guiName = String.Format("Warp Speed (-)");
+
                 warpdriveType = originalName;
-                mass_divisor = 10f;
-            }
-            
-            //warp_effect.transform.localScale.y = 2.5f;
-            //warp_effect.transform.localScale.z = 200f;
 
-            // disable charging at startup
-            IsCharging = false;
+                
+
+                if (state == StartState.Editor) return;
+
+                if (!IsSlave)
+                {
+                    UnityEngine.Debug.Log("KSPI - AlcubierreDrive Create Slaves");
+                    var alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
+                    foreach (var drive in alcubierreDrives)
+                    {
+                        var driveId = drive.GetInstanceID();
+                        if (driveId != InstanceID)
+                        {
+                            drive.IsSlave = true;
+                            UnityEngine.Debug.Log("KSPI - AlcubierreDrive " + driveId  + " != " + InstanceID);
+                        }
+                    }
+                    sumOfAlcubierreDrives = alcubierreDrives.Sum(p => p.partMass);
+                }
+
+                this.part.force_activate();
+                if (serialisedwarpvector != null)
+                    heading_act = ConfigNode.ParseVector3D(serialisedwarpvector);
+
+                warp_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                warp_effect2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+
+                warp_effect.collider.enabled = false;
+                warp_effect2.collider.enabled = false;
+
+                Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
+                Vector3 end_beam_pos = ship_pos + transform.up * warp_size;
+                Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
+
+                warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
+                warp_effect.transform.position = new Vector3(mid_pos.x, ship_pos.y + mid_pos.y, mid_pos.z);
+                warp_effect.transform.rotation = part.transform.rotation;
+
+                warp_effect2.transform.localScale = new Vector3(effectSize2, mid_pos.magnitude, effectSize2);
+                warp_effect2.transform.position = new Vector3(mid_pos.x, ship_pos.y + mid_pos.y, mid_pos.z);
+                warp_effect2.transform.rotation = part.transform.rotation;
+
+                //warp_effect.layer = LayerMask.NameToLayer("Ignore Raycast");
+                //warp_effect.renderer.material = new Material(KSP.IO.File.ReadAllText<AlcubierreDrive>("AlphaSelfIllum.shader"));
+
+                warp_effect.renderer.material.shader = Shader.Find("Unlit/Transparent");
+                warp_effect2.renderer.material.shader = Shader.Find("Unlit/Transparent");
+
+                warp_textures = new Texture[33];
+
+                const string warp_tecture_path = "WarpPlugin/ParticleFX/warp";
+                for (int i = 0; i < 11; i++)
+                {
+                    warp_textures[i] = GameDatabase.Instance.GetTexture((i > 0)
+                        ? warp_tecture_path + (i + 1).ToString()
+                        : warp_tecture_path, false);
+                }
+
+                warp_textures[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp10", false);
+                for (int i = 12; i < 33; i++)
+                {
+                    int j = i > 17 ? 34 - i : i;
+                    warp_textures[i] = GameDatabase.Instance.GetTexture(j > 1 ?
+                        warp_tecture_path + (j + 1).ToString() : warp_tecture_path, false);
+                }
+
+                warp_textures2 = new Texture[33];
+
+                const string warpr_tecture_path = "WarpPlugin/ParticleFX/warpr";
+                for (int i = 0; i < 11; i++)
+                {
+                    warp_textures2[i] = GameDatabase.Instance.GetTexture((i > 0)
+                        ? warpr_tecture_path + (i + 1).ToString()
+                        : warpr_tecture_path, false);
+                }
+
+                warp_textures2[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warpr10", false);
+                for (int i = 12; i < 33; i++)
+                {
+                    int j = i > 17 ? 34 - i : i;
+                    warp_textures2[i] = GameDatabase.Instance.GetTexture(j > 1 ?
+                        warpr_tecture_path + (j + 1).ToString() : warpr_tecture_path, false);
+                }
+
+                warp_effect.renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
+                warp_effect2.renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 0.1f);
+                warp_effect.renderer.material.mainTexture = warp_textures[0];
+                warp_effect.renderer.receiveShadows = false;
+                //warp_effect.layer = LayerMask.NameToLayer ("Ignore Raycast");
+                //warp_effect.collider.isTrigger = true;
+                warp_effect2.renderer.material.mainTexture = warp_textures2[0];
+                warp_effect2.renderer.receiveShadows = false;
+                warp_effect2.renderer.material.mainTextureOffset = new Vector2(-0.2f, -0.2f);
+                //warp_effect2.layer = LayerMask.NameToLayer ("Ignore Raycast");
+                //warp_effect2.collider.isTrigger = true;
+                warp_effect2.renderer.material.renderQueue = 1000;
+                warp_effect.renderer.material.renderQueue = 1001;
+                /*gameObject.AddComponent<Light>();
+                gameObject.light.color = Color.cyan;
+                gameObject.light.intensity = 1f;
+                gameObject.light.range = 4000f;
+                gameObject.light.type = LightType.Spot;
+                gameObject.light.transform.position = end_beam_pos;
+                gameObject.light.cullingMask = ~0;*/
+
+                //light.
+
+                warp_sound = gameObject.AddComponent<AudioSource>();
+                warp_sound.clip = GameDatabase.Instance.GetAudioClip("WarpPlugin/Sounds/warp_sound");
+                warp_sound.volume = GameSettings.SHIP_VOLUME;
+                warp_sound.panLevel = 0;
+                warp_sound.rolloffMode = AudioRolloffMode.Linear;
+                warp_sound.Stop();
+
+                if (IsEnabled)
+                {
+                    warp_sound.Play();
+                    warp_sound.loop = true;
+                }
+
+                bool manual_upgrade = false;
+                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+                {
+                    if (upgradeTechReq != null)
+                    {
+                        if (PluginHelper.hasTech(upgradeTechReq))
+                            hasrequiredupgrade = true;
+                        else if (upgradeTechReq == "none")
+                            manual_upgrade = true;
+                    }
+                    else
+                        manual_upgrade = true;
+                }
+                else
+                    hasrequiredupgrade = true;
+
+                if (warpInit == false)
+                {
+                    warpInit = true;
+                    if (hasrequiredupgrade)
+                        isupgraded = true;
+                }
+
+                if (manual_upgrade)
+                    hasrequiredupgrade = true;
+
+
+                if (isupgraded)
+                {
+                    warpdriveType = upgradedName;
+                    mass_divisor = 40f;
+                }
+                else
+                {
+                    warpdriveType = originalName;
+                    mass_divisor = 10f;
+                }
+
+                //warp_effect.transform.localScale.y = 2.5f;
+                //warp_effect.transform.localScale.z = 200f;
+
+                // disable charging at startup
+                IsCharging = false;
+            }
+            catch (Exception e )
+            {
+                UnityEngine.Debug.LogError("KSPI - AlcubierreDrive Exception " + e.Message);
+            }
         }
 
 
         public override void OnUpdate() 
         {
-			Events["StartCharging"].active = !IsCharging;
-			Events["StopCharging"].active = IsCharging;
-            Events["ActivateWarpDrive"].active = !IsEnabled;
-            Events["DeactivateWarpDrive"].active = IsEnabled;
-			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
+			Events["StartCharging"].active = !IsSlave &&  !IsCharging;
+            Events["StopCharging"].active = !IsSlave && IsCharging;
+            Events["ActivateWarpDrive"].active = !IsSlave && !IsEnabled;
+            Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
+            Fields["upgradeCostStr"].guiActive = !IsSlave && !isupgraded && hasrequiredupgrade;
 
-			if (ResearchAndDevelopment.Instance != null) 
-				Events ["RetrofitDrive"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+			if (ResearchAndDevelopment.Instance != null)
+                Events["RetrofitDrive"].active = !IsSlave && !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
             else 
 				Events ["RetrofitDrive"].active = false;
 
@@ -488,7 +541,8 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            megajoules_required = GameConstants.initial_alcubierre_megajoules_required * vessel.GetTotalMass() / part.mass;
+            megajoules_required = (float)(GameConstants.initial_alcubierre_megajoules_required * vessel.GetTotalMass() / sumOfAlcubierreDrives); 
+
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
             Vector3 end_beam_pos = ship_pos + part.transform.up * warp_size;
             Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
@@ -520,6 +574,7 @@ namespace FNPlugin
 
         private void WarpdriveCharging()
         {
+            List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
             float currentExoticMatter = 0;
             float maxExoticMatter = 0;
             List<PartResource> partresources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
@@ -531,14 +586,11 @@ namespace FNPlugin
 
             if (IsCharging)
             {
-                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-                float exotic_matter_available = (float)resources.Sum(res => res.amount);
-
                 float maxPowerDrawForExoticMatter = (maxExoticMatter - currentExoticMatter) * GameConstants.BaseMaxPowerDrawForExoticMatter * PluginHelper.MaxPowerDrawForExoticMatterMult;
                 float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 float power_returned = consumeFNResource(Math.Min(maxPowerDrawForExoticMatter * TimeWarp.fixedDeltaTime, available_power * TimeWarp.fixedDeltaTime), FNResourceManager.FNRESOURCE_MEGAJOULES);
-                if (exotic_matter_available < megajoules_required)
+                if (resources.Sum(res => res.amount) < megajoules_required)
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned / (GameConstants.BaseMaxPowerDrawForExoticMatter * PluginHelper.MaxPowerDrawForExoticMatterMult));
 
                 supplyFNResource(-power_returned * 0.8 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -546,7 +598,6 @@ namespace FNPlugin
 
             if (!IsEnabled)
             {
-                List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
                 float exotic_matter_available = (float)resources.Sum(res => res.amount);
 
                 if (exotic_matter_available < megajoules_required)
