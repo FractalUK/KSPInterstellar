@@ -382,12 +382,12 @@ namespace FNPlugin
             {
                 if (Double.IsNaN(radiatedThermalPower) || Double.IsNaN(convectedThermalPower) || Double.IsNaN(current_rad_temp))
                 {
-                    if (Double.IsNaN(radiatedThermalPower))
-                        Debug.Log("Double.IsNaN detected in radiatedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
-                    if (Double.IsNaN(convectedThermalPower))
-                        Debug.Log("Double.IsNaN detected in convectedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
-                    if (Double.IsNaN(current_rad_temp))
-                        Debug.Log("Double.IsNaN detected in current_rad_temp, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    //if (Double.IsNaN(radiatedThermalPower))
+                    //    Debug.Log("Double.IsNaN detected in radiatedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    //if (Double.IsNaN(convectedThermalPower))
+                    //    Debug.Log("Double.IsNaN detected in convectedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    //if (Double.IsNaN(current_rad_temp))
+                    //    Debug.Log("Double.IsNaN detected in current_rad_temp, attepting to reinistialise Radiator. Report if this is called repeatedly");
 
                     OnStart(PartModule.StartState.None);
                 }
@@ -485,7 +485,13 @@ namespace FNPlugin
 
                 double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
+                if (Double.IsNaN(fixed_thermal_power_dissip))
+                    Debug.LogWarning("FNRadiator: OnFixedUpdate Double.IsNaN detected in fixed_thermal_power_dissip");
+
                 radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
+
+                if (Double.IsNaN(radiatedThermalPower))
+                    Debug.LogError("Double.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
 
                 instantaneous_rad_temp = (float)Math.Min(radiator_temperature_temp_val * 1.014, radiatorTemp);
                 instantaneous_rad_temp = (float)Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7));
@@ -543,7 +549,15 @@ namespace FNPlugin
         private float consumeWasteHeat(double wasteheatToConsume)
         {
             if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
-                return consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+            {
+                var consumedWasteheat = consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                if (Single.IsNaN(consumedWasteheat))
+                    return 0;
+                    //Debug.LogWarning("FNRadiator: consumeWasteHeat Single.IsNaN detected after call consumeFNResource");
+                    
+                return consumedWasteheat / TimeWarp.fixedDeltaTime;
+            }
 
             return 0;
         }

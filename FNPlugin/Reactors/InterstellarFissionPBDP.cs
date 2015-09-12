@@ -19,9 +19,9 @@ namespace FNPlugin
         public float upgradedOptimalPebbleTemp = 1000;
         [KSPField(isPersistant = false)]
         public float upgradedTempZeroPower = 1250;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiUnits= "%", guiName = "Overheating")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiUnits= "%", guiName = "Overheating")]
         public float overheatPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Wateheat Ratio")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
         public float resourceBarRatio;
      
 
