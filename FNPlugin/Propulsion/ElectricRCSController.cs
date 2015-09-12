@@ -15,6 +15,8 @@ namespace FNPlugin
         bool isInitialised = false;
         [KSPField(isPersistant = true)]
         public int fuel_mode;
+        [KSPField(isPersistant = true)]
+        public string fuel_mode_name;
         [KSPField(isPersistant = false)]
         public string AnimationName = "";
         [KSPField(isPersistant = false)]
@@ -28,7 +30,10 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float minIsp = 250;
         [KSPField(isPersistant = false)]
-        string displayName = "";
+        public string displayName = "";
+
+        [KSPField(isPersistant = false)]
+        public bool showConsumption = true;
 
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Full Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool fullThrustEnabled;
@@ -44,10 +49,12 @@ namespace FNPlugin
         public bool powerEnabled = true;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Name")]
         public string propNameStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Maximum Isp")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Propellant Maximum Isp")]
         public float maxPropellantIsp;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Thrust Multiplier")]
-        public float currentThrustMultiplier;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Propellant Thrust Multiplier")]
+        public float currentThrustMultiplier = 1;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust / ISP Mult")]
+        public string thrustIspMultiplier = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
         public float thrustLimiter = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
@@ -65,14 +72,12 @@ namespace FNPlugin
         protected double g0 = PluginHelper.GravityConstant;
 
         // GUI
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Is Powered")]
         public bool hasSufficientPower = true;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficency")]
         public string efficencyStr = "";
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Heat Production")]
-        public string heatProductionStr = "";
 
         // internal
         private AnimationState[] rcsStates;
@@ -91,6 +96,7 @@ namespace FNPlugin
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
         private int insufficientPowerTimout = 2;
+        private bool delayedVerificationPropellant; 
 
         public ElectricEnginePropellant Current_propellant { get; set; }
 
@@ -147,6 +153,8 @@ namespace FNPlugin
         private void SetupPropellants(bool moveNext, int maxSwitching)
         {
             Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
+            fuel_mode_name = Current_propellant.PropellantName;
+
             if ((Current_propellant.SupportedEngines & type) != type)
             {
                 SwitchPropellant(moveNext, --maxSwitching);
@@ -188,6 +196,7 @@ namespace FNPlugin
             }
             else if (maxSwitching > 0)
             {
+                Debug.Log("ElectricRCSController SetupPropellants switching mode because no definition found for " + new_propellant.name);
                 SwitchPropellant(moveNext, --maxSwitching);
                 return;
             }
@@ -267,63 +276,85 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
-            attachedModuleRCSFX = attachedRCS as FNModuleRCSFX;
-
-            if (!isInitialised)
+            try
             {
+
+                attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
+                attachedModuleRCSFX = attachedRCS as FNModuleRCSFX;
+
+                if (!isInitialised)
+                {
+                    if (attachedModuleRCSFX != null)
+                    {
+                        useLeverEnabled = attachedModuleRCSFX.useLever;
+                        precisionFactorLimiter = attachedModuleRCSFX.precisionFactor * 100;
+                        fullThrustMinLimiter = attachedModuleRCSFX.fullThrustMin * 100;
+                        fullThrustEnabled = attachedModuleRCSFX.fullThrust;
+                        useThrotleEnabled = attachedModuleRCSFX.useThrottle;
+                    }
+                }
+
                 if (attachedModuleRCSFX != null)
                 {
-                    useLeverEnabled = attachedModuleRCSFX.useLever;
-                    precisionFactorLimiter = attachedModuleRCSFX.precisionFactor * 100;
-                    fullThrustMinLimiter = attachedModuleRCSFX.fullThrustMin * 100;
-                    fullThrustEnabled = attachedModuleRCSFX.fullThrust;
-                    useThrotleEnabled = attachedModuleRCSFX.useThrottle;
+                    attachedModuleRCSFX.Fields["RCS"].guiActive = true;
+                    attachedModuleRCSFX.Fields["enableYaw"].guiActive = true;
+                    attachedModuleRCSFX.Fields["enablePitch"].guiActive = true;
+                    attachedModuleRCSFX.Fields["enableRoll"].guiActive = true;
+                    attachedModuleRCSFX.Fields["enableX"].guiActive = true;
+                    attachedModuleRCSFX.Fields["enableY"].guiActive = true;
+                    attachedModuleRCSFX.Fields["enableZ"].guiActive = true;
+                    attachedModuleRCSFX.fullThrust = fullThrustEnabled;
+                    attachedModuleRCSFX.fullThrustMin = fullThrustMinLimiter / 100;
+                    attachedModuleRCSFX.useLever = useLeverEnabled;
+                    attachedModuleRCSFX.precisionFactor = precisionFactorLimiter / 100;
                 }
-            }
 
-            if (attachedModuleRCSFX != null)
+                // old legacy stuff
+                if (baseThrust == 0 && maxThrust > 0)
+                    baseThrust = maxThrust;
+
+                if (partMass == 0)
+                    partMass = part.mass;
+
+                if (String.IsNullOrEmpty(displayName))
+                    displayName = part.partInfo.title;
+
+                String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
+                this.resources_to_supply = resources_to_supply;
+
+                oldThrustLimiter = thrustLimiter;
+                oldPowerEnabled = powerEnabled;
+                efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
+                efficencyStr = (efficency * 100).ToString() + "%";
+
+                if (!String.IsNullOrEmpty(AnimationName))
+                    rcsStates = SetUpAnimation(AnimationName, this.part);
+
+                // initialize propellant
+                _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
+
+                delayedVerificationPropellant = true;
+                // find correct fuel mode index
+                if (!String.IsNullOrEmpty(fuel_mode_name))
+                {
+                    Debug.Log("ElectricRCSController OnStart loaded fuelmode " + fuel_mode_name);
+                    Current_propellant = _propellants.FirstOrDefault(p => p.PropellantName == fuel_mode_name);
+                }
+                if (Current_propellant != null && _propellants.Contains(Current_propellant))
+                {
+                    fuel_mode = _propellants.IndexOf(Current_propellant);
+                    Debug.Log("ElectricRCSController OnStart index of fuelmode " + Current_propellant.PropellantGUIName + " = " + fuel_mode);
+                }
+
+                base.OnStart(state);
+
+                Fields["electricalPowerConsumptionStr"].guiActive = showConsumption;
+            }
+            catch (Exception e)
             {
-                attachedModuleRCSFX.Fields["RCS"].guiActive = true; 
-                attachedModuleRCSFX.Fields["enableYaw"].guiActive = true;
-                attachedModuleRCSFX.Fields["enablePitch"].guiActive = true;
-                attachedModuleRCSFX.Fields["enableRoll"].guiActive = true;
-                attachedModuleRCSFX.Fields["enableX"].guiActive = true;
-                attachedModuleRCSFX.Fields["enableY"].guiActive = true;
-                attachedModuleRCSFX.Fields["enableZ"].guiActive = true;
-                attachedModuleRCSFX.fullThrust = fullThrustEnabled;
-                attachedModuleRCSFX.fullThrustMin = fullThrustMinLimiter / 100;
-                attachedModuleRCSFX.useLever = useLeverEnabled;
-                attachedModuleRCSFX.precisionFactor = precisionFactorLimiter / 100;
+                Debug.LogError("ElectricRCSController OnStart Error: " + e.Message);
+                throw;
             }
-
-            // old legacy stuff
-            if (baseThrust == 0 && maxThrust > 0)
-                baseThrust = maxThrust;
-
-            if (partMass == 0)
-                partMass = part.mass;
-
-            if (String.IsNullOrEmpty(displayName))
-                displayName = part.partInfo.title;
-
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
-            this.resources_to_supply = resources_to_supply;
-
-            oldThrustLimiter = thrustLimiter;
-            oldPowerEnabled = powerEnabled;
-            efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
-            efficencyStr = (efficency * 100).ToString() + "%";
-
-            if (!String.IsNullOrEmpty(AnimationName))
-                rcsStates = SetUpAnimation(AnimationName, this.part);
-
-            // initialize propellant
-            _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
-            SetupPropellants(true, _propellants.Count);
-            currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-
-            base.OnStart(state);
          }
 
         public void Update()
@@ -355,22 +386,26 @@ namespace FNPlugin
             currentMaxThrust = baseThrust / (float)Current_propellant.IspMultiplier * currentThrustMultiplier;
 
             thrustStr = attachedRCS.thrusterPower.ToString("0.000") + " / " + currentMaxThrust.ToString("0.000") + " kN";
+
+            thrustIspMultiplier = maxPropellantIsp + " / " + currentThrustMultiplier;
         }
 
         public override void OnUpdate() 
         {
+            if (delayedVerificationPropellant)
+            {
+                delayedVerificationPropellant = false;
+                SetupPropellants(true, _propellants.Count);
+                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+            }
+
             if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) 
             {
                 Fields["electricalPowerConsumptionStr"].guiActive = true;
-                Fields["heatProductionStr"].guiActive = true;
                 electricalPowerConsumptionStr = power_recieved_f.ToString("0.00") + " MW / " + power_requested_f.ToString("0.00") + " MW";
-                heatProductionStr = heat_production_f.ToString("0.00") + " MW";
             } 
             else 
-            {
                 Fields["electricalPowerConsumptionStr"].guiActive = false;
-                Fields["heatProductionStr"].guiActive = false;
-            }
 
             if (rcsStates == null) return;
 
@@ -422,8 +457,6 @@ namespace FNPlugin
             if (powerEnabled)
             {
                 float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
-                //float currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
-
                 power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
                 power_recieved_f = consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
                 float heat_to_produce = power_recieved_f * (1 - efficency);
