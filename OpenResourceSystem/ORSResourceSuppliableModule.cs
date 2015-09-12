@@ -23,7 +23,7 @@ namespace OpenResourceSystem
         {
             power = Math.Max(power, 0);
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
@@ -50,7 +50,7 @@ namespace OpenResourceSystem
         {
             supply = Math.Max(supply, 0);
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.powerSupply(this, supply);
@@ -65,9 +65,8 @@ namespace OpenResourceSystem
         {
             supply = Math.Max(supply, 0);
             maxsupply = Math.Max(maxsupply, 0);
-
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.powerSupplyFixedMax(this, supply, maxsupply);
@@ -81,9 +80,8 @@ namespace OpenResourceSystem
         public double supplyManagedFNResource(double supply, String resourcename)
         {
             supply = Math.Max(supply, 0);
-
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.managedPowerSupply(this, supply);
@@ -100,7 +98,7 @@ namespace OpenResourceSystem
             rat_min = Math.Max(rat_min, 0);
 
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.managedPowerSupplyWithMinimum(this, supply, rat_min);
@@ -109,7 +107,7 @@ namespace OpenResourceSystem
         public float getCurrentResourceDemand(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getCurrentResourceDemand();
@@ -118,7 +116,7 @@ namespace OpenResourceSystem
         public float getStableResourceSupply(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getStableResourceSupply();
@@ -127,7 +125,7 @@ namespace OpenResourceSystem
         public float getCurrentHighPriorityResourceDemand(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getCurrentHighPriorityResourceDemand();
@@ -136,7 +134,7 @@ namespace OpenResourceSystem
         public float getResourceSupply(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getResourceSupply();
@@ -145,7 +143,7 @@ namespace OpenResourceSystem
         public double getDemandSupply(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getDemandSupply();
@@ -154,7 +152,7 @@ namespace OpenResourceSystem
         public double getDemandStableSupply(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getDemandStableSupply();
@@ -163,7 +161,7 @@ namespace OpenResourceSystem
         public float getResourceDemand(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getResourceDemand();
@@ -172,7 +170,7 @@ namespace OpenResourceSystem
         public float getCurrentUnfilledResourceDemand(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getCurrentUnfilledResourceDemand();
@@ -180,9 +178,7 @@ namespace OpenResourceSystem
 
         public double getResourceBarRatio(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
-
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getResourceBarRatio();
@@ -191,7 +187,7 @@ namespace OpenResourceSystem
         public double getSpareResourceCapacity(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getSpareResourceCapacity();
@@ -200,7 +196,7 @@ namespace OpenResourceSystem
         public double getResourceAvailability(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getResourceAvailability();
@@ -210,7 +206,7 @@ namespace OpenResourceSystem
         public double getTotalResourceCapacity(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                getOvermanagerForResource(resourcename).createManagerForVessel(this);
+                return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getTotalResourceCapacity();

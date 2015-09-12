@@ -158,6 +158,12 @@ namespace FNPlugin
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
 
+            if (state == PartModule.StartState.Docked)
+            {
+                base.OnStart(state);
+                return;
+            }
+
             // calculate WasteHeat Capacity
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             if (wasteheatPowerResource != null)

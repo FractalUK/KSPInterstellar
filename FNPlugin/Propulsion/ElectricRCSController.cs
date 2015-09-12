@@ -86,7 +86,11 @@ namespace FNPlugin
 
         private float power_ratio = 1;
         private float power_requested_f = 0;
+        private float power_requested_raw = 0;
         private float power_recieved_f = 1;
+        private float power_recieved_raw = 0;
+        private float power_remainer_raw;
+
         private float heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
@@ -432,6 +436,8 @@ namespace FNPlugin
             }
         }
 
+        
+
         public void FixedUpdate()
         {
             currentThrust = 0;
@@ -458,13 +464,19 @@ namespace FNPlugin
             {
                 float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
                 power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
-                power_recieved_f = consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                power_requested_raw = power_requested_f * TimeWarp.fixedDeltaTime;
+                power_recieved_raw = consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES) + power_remainer_raw;
+                power_remainer_raw = 0;
+                power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
+                
+
                 float heat_to_produce = power_recieved_f * (1 - efficency);
                 heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
                 power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
             }
             else
             {
+                power_recieved_raw = 0;
                 power_ratio = 0;
                 insufficientPowerTimout = 0;
             }
@@ -485,6 +497,13 @@ namespace FNPlugin
                 hasSufficientPower = true;
                 SetupPropellants(true, 0);
             }
+
+            // process remainder
+            if (hasSufficientPower)
+                power_recieved_raw -= power_requested_raw;
+
+            power_remainer_raw += power_recieved_raw;
+            power_recieved_raw = 0;
         }
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
