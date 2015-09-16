@@ -32,10 +32,14 @@ namespace FNPlugin
 
 
 		//Persistent False
+        [KSPField(isPersistant = false)]
+        public int buildInPrecoolers = 0;
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float powerTrustMultiplierJet = 1;
         [KSPField(isPersistant = false)]
         public float IspTempMultOffset = 0;
         [KSPField(isPersistant = false)]
@@ -88,7 +92,7 @@ namespace FNPlugin
         //public float heatProductionExtra;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust / ISP Mult")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "ISP / Thrust Mult")]
         public string thrustIspMultiplier = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
         public float _thrustPropellantMultiplier = 1;
@@ -146,6 +150,8 @@ namespace FNPlugin
         protected float consumedWasteHeat;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Expected Max Thrust")]
         protected float expectedMaxThrust;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is LFO")]
+        protected bool _propellantIsLFO = false;
 
 		//Internal
         protected float _fuelToxicity;
@@ -164,6 +170,7 @@ namespace FNPlugin
         protected bool hasSetupPropellant = false;
 		protected ModuleEngines myAttachedEngine;
 		protected bool _currentpropellant_is_jet = false;
+
 		protected int thrustLimitRatio = 0;
 		protected double old_intake = 0;
         protected int partDistance = 0;
@@ -467,7 +474,7 @@ namespace FNPlugin
                     {
                         ConfigNode node = new ConfigNode("RESOURCE");
                         node.AddValue("name", curprop.name);
-                        node.AddValue("maxAmount", AttachedReactor.MaximumPower * powerTrustMultiplier / Math.Sqrt(AttachedReactor.CoreTemperature)); 
+                        node.AddValue("maxAmount", AttachedReactor.MaximumPower * (_propellantIsLFO ? powerTrustMultiplierJet : powerTrustMultiplier) / Math.Sqrt(AttachedReactor.CoreTemperature)); 
                         node.AddValue("possibleAmount", 0);
                         this.part.AddResource(node);
                         this.part.Resources.UpdateList();
@@ -558,14 +565,16 @@ namespace FNPlugin
             _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
 
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
+            _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
 
             if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
             else
             {
                 _heatDecompositionFraction = 1;
-                _thrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
                 _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
+                var rawthrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
+                _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2.0f);
             }
         }
 
@@ -573,8 +582,9 @@ namespace FNPlugin
         {
             var linearFraction = Math.Max(0, Math.Min(1, (AttachedReactor.CoreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp)));
             _heatDecompositionFraction = (float)Math.Pow(0.36, Math.Pow(3 - linearFraction * 3, 2) / 2);
-            _thrustPropellantMultiplier = (float)Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04f + 1;
-            _ispPropellantMultiplier = _baseIspMultiplier * _thrustPropellantMultiplier;
+            var thrustPropellantMultiplier = (float)Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04f + 1;
+            _ispPropellantMultiplier = _baseIspMultiplier * thrustPropellantMultiplier;
+            _thrustPropellantMultiplier = _propellantIsLFO ? thrustPropellantMultiplier : thrustPropellantMultiplier + 1 / 2;
         }
 
         public void updateIspEngineParams(double atmosphere_isp_efficiency = 1, double max_thrust_in_space = 0) 
@@ -794,8 +804,6 @@ namespace FNPlugin
 
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
-
-
             }
 
             //tell static helper methods we are currently updating things
@@ -951,7 +959,7 @@ namespace FNPlugin
             {
                 updateIspEngineParams();
                 this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
-                int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Sum(prc => prc.ValidAttachedIntakes);
+                int pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Sum(prc => prc.ValidAttachedIntakes) + buildInPrecoolers;
                 int intakes_open = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.intakeEnabled).Count();
 
                 double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
@@ -1138,7 +1146,7 @@ namespace FNPlugin
 
         private double GetPowerThrustModifier()
         {
-            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * powerTrustMultiplier;
+            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * (_propellantIsLFO ? powerTrustMultiplierJet : powerTrustMultiplier);
         }
 
         private void UpdateRadiusModifier()

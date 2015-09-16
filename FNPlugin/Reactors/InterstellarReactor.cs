@@ -42,6 +42,8 @@ namespace FNPlugin
 
         // Persistent False
         [KSPField(isPersistant = false)]
+        public bool canBeCombinedWithLab = false;
+        [KSPField(isPersistant = false)]
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
         public float bonusBufferFactor = 0.05f;
@@ -90,6 +92,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
 
+        [KSPField(isPersistant = false)]
+        public float alternatorPowerKW = 0;
         [KSPField(isPersistant = false)]
         public float thermalPropulsionEfficiency = 1;
         [KSPField(isPersistant = false)]
@@ -658,6 +662,10 @@ namespace FNPlugin
             base.OnFixedUpdate();
             if (IsEnabled && MaximumPower > 0)
             {
+                // add alternator power
+                if (alternatorPowerKW != 0)
+                    part.RequestResource("ElectricCharge", -alternatorPowerKW * TimeWarp.fixedDeltaTime);
+
                 if (reactorIsOverheating())
                 {
                     if (FlightGlobals.ActiveVessel == vessel)
@@ -1042,7 +1050,7 @@ namespace FNPlugin
                 UnityEngine.Debug.Log("[KSPI] - no lab found:");
 
             //return HighLogic.LoadedSceneIsEditor || !requiresLab || vessel.HasAnyModulesImplementing<ScienceModule>();
-            return !requiresLab || isConnectedToLab;
+            return !requiresLab || isConnectedToLab && canBeCombinedWithLab;
         }
 
         protected virtual void setDefaultFuelMode()

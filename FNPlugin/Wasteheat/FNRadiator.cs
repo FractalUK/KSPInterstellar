@@ -52,21 +52,21 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
         public float pressureLoad;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
 		public string radiatorType;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Rad Temp")]
 		public string radiatorTempStr;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor= true, guiName = "Radiator Area")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radiator Area")]
         public float radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Radiator Area Upgraded")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radiator Area Upgraded")]
         public float upgradedRadiatorArea = 1;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
 		public string thermalPowerConvStr;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Rad Upgrade Cost")]
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator Start Temp")]
         public float radiator_temperature_temp_val;
@@ -349,7 +349,10 @@ namespace FNPlugin
 			}
 
 			radiatorTempStr = radiatorTemp + "K";
-            this.part.force_activate();
+
+            var engine = part.FindModuleImplementing<ModuleEngines>();
+            if (engine == null)
+                this.part.force_activate();
 		}
 
         private void UpdateEnableAutomation()

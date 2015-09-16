@@ -14,20 +14,20 @@ namespace FNPlugin
         protected Vector3 _intake_direction;
         protected PartResourceDefinition _resourceAtmosphere;
 
-        [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true)]
+        [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = false)]
         protected float _intake_speed;
-        [KSPField(guiName = "Atm Flow", guiUnits = "U", guiFormat = "F2", isPersistant = false, guiActive = true)]
+        [KSPField(guiName = "Atm Flow", guiUnits = "U", guiFormat = "F2", isPersistant = false, guiActive = false)]
         public float airFlow;
-        [KSPField(guiName = "Atm Speed", guiUnits = "M/s", guiFormat = "F2", isPersistant = false, guiActive = true)]
+        [KSPField(guiName = "Atm Speed", guiUnits = "M/s", guiFormat = "F2", isPersistant = false, guiActive = false)]
         public float airSpeed;
-        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true)]
+        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = false)]
         public float airThisUpdate;
         [KSPField(guiName = "intake Angle", isPersistant = false, guiActive = false)]
         public float intakeAngle = 0;
 
         [KSPField(guiName = "AoA TreshHold", isPersistant = false, guiActive = false)]
         public float aoaThreshold = 0.1f;
-        [KSPField(isPersistant = false, guiName = "Area", guiActive = true, guiActiveEditor=true)]
+        [KSPField(isPersistant = false, guiName = "Area", guiActiveEditor = true, guiActive = false)]
         public float area;
         [KSPField(isPersistant = false)]
         public string intakeTransformName;
@@ -39,7 +39,7 @@ namespace FNPlugin
         public bool useIntakeCompensation = true;
         [KSPField(isPersistant = false)]
         public bool storesResource = false;
-        [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActiveEditor = true, guiActive = false)]
         public float intakeExposure = 0;
 
         public override void OnStart(PartModule.StartState state)
