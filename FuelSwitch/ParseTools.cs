@@ -36,7 +36,7 @@ namespace InterstellarFuelSwitch
 				if (Double.TryParse(arrayItem.Trim(), out item))
 					list.Add(item);
 				else
-					Debug.Log("InsterstellarFuelSwitch parseDoubles: invalid float: " + errorDisplayName +  " [len:" + arrayItem.Length + "] '" + arrayItem + "']");
+					Debug.Log("InsterstellarFuelSwitch: parseDoubles error in '" + stringOfDoubles + "', invalid float: " + errorDisplayName +  " [len:" + arrayItem.Length + "] '" + arrayItem + "']");
 			}
 			return list;
 		}
@@ -51,7 +51,7 @@ namespace InterstellarFuelSwitch
                 if (int.TryParse(valueArray[i], out newValue))
                     newIntList.Add(newValue);
                 else
-                    Debug.Log("invalid integer: " + valueArray[i]);
+                    Debug.Log("InsterstellarFuelSwitch: error in '" + stringOfInts + "',  invalid integer: " + valueArray[i]);
             }
             return newIntList;
         }

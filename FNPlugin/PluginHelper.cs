@@ -7,6 +7,60 @@ using System.Reflection;
 
 namespace FNPlugin
 {
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    public class GameEventSubscriber : MonoBehaviour
+    {
+        void Start()
+        {
+            GameEvents.onVesselChange.Add(OnVesselChange);
+            GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
+            Debug.Log("[KSP Interstellar] GameEventSubscriber Initialised");
+        }
+        void OnDestroy()
+        {
+            GameEvents.onVesselChange.Remove(OnVesselChange);
+            Debug.Log("[KSP Interstellar] GameEventSubscriber Deinitialised");
+        }
+
+        void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
+        {
+            Debug.Log("[KSP Interstellar] OnVesselSituationChange is called with situation " + change.from.ToString() + " to " + change.to.ToString() + " on vessel " + change.host.name);
+
+            bool shouldReinitialise = false;
+
+            if (change.from == Vessel.Situations.DOCKED)
+            {
+                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed from Docked");
+
+                shouldReinitialise = true;
+            }
+
+            if (change.to == Vessel.Situations.DOCKED)
+            {
+                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed to Docked");
+
+                shouldReinitialise = true;
+            }
+
+            if (shouldReinitialise)
+            {
+                var generators = change.host.FindPartModulesImplementing<FNGenerator>();
+
+                generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
+            }
+
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange is finished");
+        }
+
+        void OnVesselChange(Vessel v)
+        {
+            Debug.Log("[KSP Interstellar] OnVesselChange is called");
+        }
+    }
+
+
+
+
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
     {

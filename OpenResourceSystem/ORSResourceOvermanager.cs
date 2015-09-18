@@ -48,7 +48,8 @@ namespace OpenResourceSystem
             managers.Remove(manager.getVessel());
         }
 
-        public virtual ORSResourceManager createManagerForVessel(PartModule pm) {
+        public virtual ORSResourceManager createManagerForVessel(PartModule pm) 
+        {
             ORSResourceManager megamanager = new ORSResourceManager(pm, resource_name);
             managers.Add(pm.vessel, megamanager);
             return megamanager;

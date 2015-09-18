@@ -42,7 +42,9 @@ namespace FNPlugin
 		public string originalName;
 		[KSPField(isPersistant = false)]
 		public float upgradeCost = 100;
-		[KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false)]
+        public float emissiveColorPower = 3;
+        [KSPField(isPersistant = false)]
 		public string upgradedName;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radiator Temp Upgraded")]
         public float upgradedRadiatorTemp;
@@ -380,12 +382,12 @@ namespace FNPlugin
             {
                 if (Double.IsNaN(radiatedThermalPower) || Double.IsNaN(convectedThermalPower) || Double.IsNaN(current_rad_temp))
                 {
-                    if (Double.IsNaN(radiatedThermalPower))
-                        Debug.Log("Double.IsNaN detected in radiatedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
-                    if (Double.IsNaN(convectedThermalPower))
-                        Debug.Log("Double.IsNaN detected in convectedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
-                    if (Double.IsNaN(current_rad_temp))
-                        Debug.Log("Double.IsNaN detected in current_rad_temp, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    //if (Double.IsNaN(radiatedThermalPower))
+                    //    Debug.Log("Double.IsNaN detected in radiatedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    //if (Double.IsNaN(convectedThermalPower))
+                    //    Debug.Log("Double.IsNaN detected in convectedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
+                    //if (Double.IsNaN(current_rad_temp))
+                    //    Debug.Log("Double.IsNaN detected in current_rad_temp, attepting to reinistialise Radiator. Report if this is called repeatedly");
 
                     OnStart(PartModule.StartState.None);
                 }
@@ -483,7 +485,13 @@ namespace FNPlugin
 
                 double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
+                if (Double.IsNaN(fixed_thermal_power_dissip))
+                    Debug.LogWarning("FNRadiator: OnFixedUpdate Double.IsNaN detected in fixed_thermal_power_dissip");
+
                 radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
+
+                if (Double.IsNaN(radiatedThermalPower))
+                    Debug.LogError("Double.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
 
                 instantaneous_rad_temp = (float)Math.Min(radiator_temperature_temp_val * 1.014, radiatorTemp);
                 instantaneous_rad_temp = (float)Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7));
@@ -541,7 +549,15 @@ namespace FNPlugin
         private float consumeWasteHeat(double wasteheatToConsume)
         {
             if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
-                return consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+            {
+                var consumedWasteheat = consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                if (Single.IsNaN(consumedWasteheat))
+                    return 0;
+                    //Debug.LogWarning("FNRadiator: consumeWasteHeat Single.IsNaN detected after call consumeFNResource");
+                    
+                return consumedWasteheat / TimeWarp.fixedDeltaTime;
+            }
 
             return 0;
         }
@@ -581,19 +597,18 @@ namespace FNPlugin
 
         private void ColorHeat()
         {
-            const String KSPShader = "KSP/Emissive/Bumped Specular";
+            const String kspShader = "KSP/Emissive/Bumped Specular";
             float currentTemperature = getRadiatorTemperature();
-            //float maxTemperature = (float)part.maxTemp;
 
             double temperatureRatio = Math.Min( currentTemperature / radiatorTemp * 1.05, 1);
-            Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, 3)), 0.0f, 0.0f, 1.0f);
+            Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, emissiveColorPower)), 0.0f, 0.0f, 1.0f);
 
             Renderer[] array = part.FindModelComponents<Renderer>();
             
             foreach (Renderer renderer in array) 
             {
-                if (renderer.material.shader.name != KSPShader)
-                    renderer.material.shader = Shader.Find(KSPShader);
+                if (renderer.material.shader.name != kspShader)
+                    renderer.material.shader = Shader.Find(kspShader);
 
                 if (part.name.StartsWith("circradiator"))
                 {
@@ -617,8 +632,8 @@ namespace FNPlugin
                 else if (part.name.StartsWith("LargeFlatRadiator"))
                 {
 
-                    if (renderer.material.shader.name != KSPShader)
-                        renderer.material.shader = Shader.Find(KSPShader);
+                    if (renderer.material.shader.name != kspShader)
+                        renderer.material.shader = Shader.Find(kspShader);
 
                     if (renderer.material.GetTexture("_Emissive") == null)
                         renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Electrical/LargeFlatRadiator/glow", false));

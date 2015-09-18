@@ -63,8 +63,8 @@ namespace FNPlugin
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
-        public float _totalMaximumPowerAllReactors;
+        //[KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
+        //public float _totalMaximumPowerAllReactors;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
         public float heat_exchanger_thrust_divisor;
@@ -90,6 +90,7 @@ namespace FNPlugin
         protected long update_count = 0;
         protected int partDistance;
         protected PartResource megajouleResource;
+        protected int startcount = 0;
 
         private PowerStates _powerState;
 
@@ -152,20 +153,29 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            print("[KSP Interstellar]  Generator OnStart Begin " + startcount);
+
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT };
+            this.resources_to_supply = resources_to_supply;
+
+            if (state == PartModule.StartState.Docked)
+            {
+                base.OnStart(state);
+                return;
+            }
+
             // calculate WasteHeat Capacity
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-            var partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier;
             if (wasteheatPowerResource != null)
             {
                 var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = partBaseWasteheat;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT };
-            this.resources_to_supply = resources_to_supply;
+
             base.OnStart(state);
             generatorType = originalName;
 
@@ -219,9 +229,7 @@ namespace FNPlugin
 
             UpdateHeatExchangedThrustDivisor();
 
-            UpdateMaximumPowerAllReactors();
-
-            print("[KSP Interstellar] Configuring Generator");
+            print("[KSP Interstellar]  Generator OnStart Finished");
         }
 
         private void FindAttachedThermalSource()
@@ -233,7 +241,8 @@ namespace FNPlugin
             if (myAttachedReactor != null) return;
 
             // otherwise look for other non selfcontained thermal sources
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 3, 0, true);
+            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 0, true);
+            //var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 3, 0, true);
             if (source == null) return;
 
             // verify cost is not higher than 1
@@ -243,16 +252,8 @@ namespace FNPlugin
             myAttachedReactor = source.Source;
         }
 
-        private void UpdateMaximumPowerAllReactors()
-        {
-            //_totalMaximumPowerAllReactors = part.vessel.FindPartModulesImplementing<IThermalSource>().Where(t => t.IsActive).Sum(t => t.MaximumPower);
-            _totalMaximumPowerAllReactors = (float)part.vessel.FindPartModulesImplementing<IElectricPowerSource>().Sum(t => t.MaxStableMegaWattPower);
-        }
-
         public override void OnUpdate()
         {
-            UpdateMaximumPowerAllReactors();
-
             Events["ActivateGenerator"].active = !IsEnabled;
             Events["DeactivateGenerator"].active = IsEnabled;
             Fields["OverallEfficiency"].guiActive = IsEnabled;

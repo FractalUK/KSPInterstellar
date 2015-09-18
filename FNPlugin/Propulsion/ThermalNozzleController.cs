@@ -71,11 +71,11 @@ namespace FNPlugin
 		public bool static_updating2 = true;
 
 		//GUI
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
 		public string engineType = ":";
 		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Mode")]
 		public string _fuelmode;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Isp Multiplier")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fuel Isp Multiplier")]
         public float _ispPropellantMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Soot")]
         public float _propellantSootFactorFullThrotle;
@@ -88,9 +88,11 @@ namespace FNPlugin
         //public float heatProductionExtra;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust / ISP Mult")]
+        public string thrustIspMultiplier = "";
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier")]
         public float _thrustPropellantMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Upgrade Cost")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
 		public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 80;
@@ -108,7 +110,7 @@ namespace FNPlugin
         public float requested_thermal_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Req CP")]
         public string requestedReactorChargedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved")]
         public string recievedReactorPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
@@ -338,7 +340,8 @@ namespace FNPlugin
 
         private void FindAttachedThermalSource()
         {
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 10, 1);
+            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 1);
+            //var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 10, 1);
             if (source == null) return;
 
             AttachedReactor = source.Source;
@@ -360,6 +363,10 @@ namespace FNPlugin
             staticPresure = (FlightGlobals.getStaticPressure(vessel.transform.position)).ToString("0.0000") + " kPa";
             pressureTreshold = exitArea * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
 
+            Fields["sootAccumulationPercentage"].guiActive = sootAccumulationPercentage > 0;
+
+            thrustIspMultiplier = _ispPropellantMultiplier + " / " + _thrustPropellantMultiplier;
+
 			Fields["engineType"].guiActive = isJet;
 			if (ResearchAndDevelopment.Instance != null && isJet) 
             {
@@ -373,10 +380,10 @@ namespace FNPlugin
 
 			if (myAttachedEngine != null) 
             {
-				if (myAttachedEngine.isOperational && !IsEnabled) 
+                if (myAttachedEngine.isOperational && !IsEnabled) 
                 {
-					IsEnabled = true;
-					part.force_activate ();
+                    IsEnabled = true;
+                    part.force_activate();
 				}
 				updatePropellantBar ();
 			}
