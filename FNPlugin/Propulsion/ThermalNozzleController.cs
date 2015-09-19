@@ -340,9 +340,6 @@ namespace FNPlugin
             else
                 UpdateRadiusModifier();
 
-
-
-
             fuel_gauge = part.stackIcon.DisplayInfo();
 
             // if engine isn't already initialised, initialise it
@@ -364,8 +361,33 @@ namespace FNPlugin
             setupPropellants();
 
             maxPressureThresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel;
-            hasstarted = true;
 
+            hasstarted = true;
+        }
+
+        private void ConfigEffects()
+        {
+            if (myAttachedEngine is ModuleEnginesFX)
+            {
+                if (!String.IsNullOrEmpty(EffectNameLFO))
+                    part.Effect(EffectNameLFO, 0);
+
+                if (!String.IsNullOrEmpty(EffectNameNonLFO))
+                    part.Effect(EffectNameNonLFO, 0);
+
+                if (!String.IsNullOrEmpty(EffectNameThrustMult))
+                    part.Effect(EffectNameThrustMult, 0);
+
+                if (_propellantIsLFO)
+                    _particleFXName = EffectNameLFO;
+                else
+                    _particleFXName = EffectNameNonLFO;
+
+                if (_thrustPropellantMultiplier > 1)
+                    _currentAudioFX = EffectNameThrustMult;
+                else
+                    _currentAudioFX = String.Empty;
+            }
         }
 
         private void FindAttachedThermalSource()
@@ -807,33 +829,17 @@ namespace FNPlugin
 
         private float delayedThrottle = 0;
 
-        //public override void OnFixedUpdate() // note: OnFixedUpdate does not seem to be called in edit mode
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            if (myAttachedEngine is ModuleEnginesFX)
-            {
-                if (!String.IsNullOrEmpty(EffectNameLFO))
-                    part.Effect(EffectNameLFO, 0);
+            if (this.myAttachedEngine.isOperational) return;
+                ConfigEffects();
+        }
 
-                if (!String.IsNullOrEmpty(EffectNameNonLFO))
-                    part.Effect(EffectNameNonLFO , 0);
-
-                if (!String.IsNullOrEmpty(EffectNameThrustMult))
-                    part.Effect(EffectNameThrustMult , 0);
-
-                if (_propellantIsLFO)
-                    _particleFXName = EffectNameLFO;
-                else
-                    _particleFXName = EffectNameNonLFO;
-
-                if (_thrustPropellantMultiplier > 1)
-                    _currentAudioFX = EffectNameThrustMult;
-                else
-                    _currentAudioFX = String.Empty;
-            }
-
+        public override void OnFixedUpdate() // OnFixedUpdate does not seem to be called in edit mode
+        {
+            ConfigEffects();
 
             if (AttachedReactor == null)
             {
