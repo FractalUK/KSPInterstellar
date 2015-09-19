@@ -117,10 +117,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade Core temp Mult")]
         public float powerUpgradeCoreTempMult = 1;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power output", guiUnits = " MW")]
         public float PowerOutput;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgraded Power Output", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Upgraded Power output", guiUnits = " MW")]
         public float upgradedPowerOutput;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Final upgraded output", guiUnits = " MW")]
+        public float finalPowerOutput;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade")]
         public string upgradeTechReq = String.Empty;
 
@@ -374,6 +376,7 @@ namespace FNPlugin
             {
                 PowerOutput = PowerOutputBase * (float)Math.Pow(factor.absolute.linear, PowerOutputExponent);
                 upgradedPowerOutput = upgradedPowerOutputBase * (float)Math.Pow(factor.absolute.linear, upgradedPowerOutputExponent);
+                finalPowerOutput = upgradedPowerOutput * powerUpgradeTechMult;
             }
 
             maximumThermalPowerFloat = MaximumThermalPower;
@@ -524,6 +527,7 @@ namespace FNPlugin
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             PowerOutputBase = PowerOutput;
             upgradedPowerOutputBase = upgradedPowerOutput;
+            finalPowerOutput = upgradedPowerOutput * powerUpgradeTechMult;
 
             // initialise resource defenitions
             thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);

@@ -34,6 +34,8 @@ namespace FNPlugin
 		//Persistent False
         [KSPField(isPersistant = false)]
         public int buildInPrecoolers = 0;
+        [KSPField(isPersistant = false)]
+        public bool canUseLFO = false;
 		[KSPField(isPersistant = false)]
 		public bool isJet = false;
         [KSPField(isPersistant = false)]
@@ -62,6 +64,12 @@ namespace FNPlugin
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public string upgradeTechReq = null;
+        [KSPField(isPersistant = false)]
+        public string EffectNameLFO = String.Empty;
+        [KSPField(isPersistant = false)]
+        public string EffectNameNonLFO = String.Empty;
+        [KSPField(isPersistant = false)]
+        public string EffectNameThrustMult = String.Empty;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
         public float radius;
@@ -154,6 +162,10 @@ namespace FNPlugin
         protected bool _propellantIsLFO = false;
 
 		//Internal
+        protected string _particleFXName;
+        protected string _currentAudioFX;
+        protected bool _fuelRequiresUpgrade;
+        protected string _techRequirement;
         protected float _fuelToxicity;
         protected float _savedReputationCost;
         protected float _heatDecompositionFraction;
@@ -256,9 +268,15 @@ namespace FNPlugin
 		public void upgradePartModule() 
         {
 			engineType = upgradedName;
-			propellants = getPropellantsHybrid();
-			isHybrid = true;
 			isupgraded = true;
+
+            if (isJet)
+            {
+                propellants = getPropellantsHybrid();
+                isHybrid = true;
+            }
+            else
+                propellants = getPropellants(isJet);
 		}
 
 		public ConfigNode[] getPropellants() 
@@ -287,7 +305,7 @@ namespace FNPlugin
             // make sure max temp is correct
             part.maxTemp = maxTemp;
 
-            PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT]; 
+            PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
 
             // calculate WasteHeat Capacity
             if (wasteheatPowerResource != null)
@@ -310,7 +328,7 @@ namespace FNPlugin
                 part.OnEditorDetach += OnEditorDetach;
 
                 propellants = getPropellants(isJet);
-                if (this.HasTechsRequiredToUpgrade() && isJet)
+                if (this.HasTechsRequiredToUpgrade())
                 {
                     isupgraded = true;
                     upgradePartModule();
@@ -322,6 +340,9 @@ namespace FNPlugin
             else
                 UpdateRadiusModifier();
 
+
+
+
             fuel_gauge = part.stackIcon.DisplayInfo();
 
             // if engine isn't already initialised, initialise it
@@ -329,11 +350,11 @@ namespace FNPlugin
                 engineInit = true;
 
             // if we can upgrade, let's do so
-            if (isupgraded && isJet)
+            if (isupgraded)
                 upgradePartModule();
             else
             {
-                if (this.HasTechsRequiredToUpgrade() && isJet)
+                if (this.HasTechsRequiredToUpgrade())
                     hasrequiredupgrade = true;
 
                 // if not, use basic propellants
@@ -341,8 +362,10 @@ namespace FNPlugin
             }
 
             setupPropellants();
+
             maxPressureThresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel;
             hasstarted = true;
+
         }
 
         private void FindAttachedThermalSource()
@@ -434,119 +457,174 @@ namespace FNPlugin
             setupPropellants(true, true);
         }
 
-		public void setupPropellants(bool forward = true,  bool notifySwitching = false)
+        public static bool HasTechRequirmentOrEmpty(string techName)
         {
-            ConfigNode chosenpropellant = propellants[fuel_mode];
-            UpdatePropellantModeBehavior(chosenpropellant);
-            ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
-            List<Propellant> list_of_propellants = new List<Propellant>();
+            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
+        }
 
-            // loop though propellants until we get to the selected one, then set it up
-            foreach (ConfigNode prop_node in propellantNodes)
+        public void setupPropellants(bool forward = true, bool notifySwitching = false)
+        {
+            try
             {
-                ExtendedPropellant curprop = new ExtendedPropellant();
-                curprop.Load(prop_node);
-                if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
-                {
-                    curprop.drawStackGauge = false;
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - OnStart 0");
 
-                    if (_currentpropellant_is_jet)
-                        fuel_gauge.SetMessage("Atmosphere");
-                    else
+                ConfigNode chosenpropellant = propellants[fuel_mode];
+
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - OnStart 1");
+
+                UpdatePropellantModeBehavior(chosenpropellant);
+
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - OnStart 2");
+
+                ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
+
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - OnStart 3");
+
+                List<Propellant> list_of_propellants = new List<Propellant>();
+
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - OnStart 4");
+
+                // loop though propellants until we get to the selected one, then set it up
+                foreach (ConfigNode prop_node in propellantNodes)
+                {
+                    ExtendedPropellant curprop = new ExtendedPropellant();
+
+
+                    curprop.Load(prop_node);
+
+                    if (curprop == null)
+                        UnityEngine.Debug.LogWarning("[KSPI] - ThermalNozzleController - OnStart curprop ia null");
+
+
+                    if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
                     {
-                        fuel_gauge.SetMessage(curprop.StoragePropellantName);
-                        myAttachedEngine.thrustPercentage = 100;
+
+                        curprop.drawStackGauge = false;
+
+                        if (_currentpropellant_is_jet)
+                            fuel_gauge.SetMessage("Atmosphere");
+                        else
+                        {
+                            fuel_gauge.SetMessage(curprop.StoragePropellantName);
+                            myAttachedEngine.thrustPercentage = 100;
+                        }
+
+                        //fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
+                        fuel_gauge.SetMsgBgColor(XKCDColors.White);
+                        //fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
+                        fuel_gauge.SetMsgTextColor(XKCDColors.Black);
+                        fuel_gauge.SetProgressBarColor(XKCDColors.Yellow);
+                        fuel_gauge.SetProgressBarBgColor(XKCDColors.DarkLime);
+                        fuel_gauge.SetValue(0f);
+
+
                     }
 
-                    //fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
-                    fuel_gauge.SetMsgBgColor(XKCDColors.White);
-                    //fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
-                    fuel_gauge.SetMsgTextColor(XKCDColors.Black);
-                    fuel_gauge.SetProgressBarColor(XKCDColors.Yellow);
-                    fuel_gauge.SetProgressBarBgColor(XKCDColors.DarkLime);
-                    fuel_gauge.SetValue(0f);
-                }
-                list_of_propellants.Add(curprop);
+                    if (list_of_propellants == null)
+                        UnityEngine.Debug.LogWarning("[KSPI] - ThermalNozzleController - setupPropellants list_of_propellants ia null");
 
-                if (curprop.name == "LqdWater")
-                {
-                    if (!part.Resources.Contains("LqdWater"))
+                    list_of_propellants.Add(curprop);
+
+                    if (curprop.name == "LqdWater")
                     {
-                        ConfigNode node = new ConfigNode("RESOURCE");
-                        node.AddValue("name", curprop.name);
-                        node.AddValue("maxAmount", AttachedReactor.MaximumPower * (_propellantIsLFO ? powerTrustMultiplierJet : powerTrustMultiplier) / Math.Sqrt(AttachedReactor.CoreTemperature)); 
-                        node.AddValue("possibleAmount", 0);
-                        this.part.AddResource(node);
-                        this.part.Resources.UpdateList();
+                        if (!part.Resources.Contains("LqdWater"))
+                        {
+                            ConfigNode node = new ConfigNode("RESOURCE");
+                            node.AddValue("name", curprop.name);
+                            node.AddValue("maxAmount", AttachedReactor.MaximumPower * (_propellantIsLFO ? powerTrustMultiplierJet : powerTrustMultiplier) / Math.Sqrt(AttachedReactor.CoreTemperature));
+                            node.AddValue("possibleAmount", 0);
+                            this.part.AddResource(node);
+                            this.part.Resources.UpdateList();
+                        }
+                    }
+                    else
+                    {
+                        if (part.Resources.Contains("LqdWater"))
+                        {
+                            var partresource = part.Resources["LqdWater"];
+                            if (partresource.amount > 0 && HighLogic.LoadedSceneIsFlight)
+                                ORSHelper.fixedRequestResource(this.part, "Water", -partresource.amount);
+                            this.part.Resources.list.Remove(partresource);
+                            DestroyImmediate(partresource);
+                        }
+                    }
+
+                }
+
+                // update the engine with the new propellants
+                if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null)
+                {
+                    myAttachedEngine.propellants.Clear();
+                    myAttachedEngine.propellants = list_of_propellants;
+                    myAttachedEngine.SetupPropellant();
+                }
+
+                if (HighLogic.LoadedSceneIsFlight)
+                { // you can have any fuel you want in the editor but not in flight
+                    // should we switch to another propellant because we have none of this one?
+                    bool next_propellant = false;
+
+                    string missingResources = String.Empty;
+                    foreach (Propellant curEngine_propellant in myAttachedEngine.propellants)
+                    {
+                        var extendedPropellant = curEngine_propellant as ExtendedPropellant;
+                        IEnumerable<PartResource> partresources = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
+
+                        if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
+                        {
+                            if (notifySwitching)
+                                missingResources += curEngine_propellant.name + " ";
+                            next_propellant = true;
+                        }
+                        else if (!HasTechRequirmentOrEmpty(_techRequirement))
+                        {
+                            next_propellant = true;
+                        }
+                        else if (_fuelRequiresUpgrade && !isupgraded)
+                        {
+                            next_propellant = true;
+                        }
+                        else if (_propellantIsLFO && !canUseLFO)
+                        {
+                            next_propellant = true;
+                        }
+                    }
+
+                    // do the switch if needed
+                    if (next_propellant && (switches <= propellants.Length || fuel_mode != 0))
+                    {// always shows the first fuel mode when all fuel mods are tested at least once
+                        ++switches;
+                        if (notifySwitching)
+                            ScreenMessages.PostScreenMessage("Switching Propellant, missing resource " + missingResources, 5.0f, ScreenMessageStyle.LOWER_CENTER);
+
+                        if (forward)
+                            NextPropellant();
+                        else
+                            PreviousPropellant();
                     }
                 }
                 else
                 {
-                    if (part.Resources.Contains("LqdWater"))
+                    // Still ignore propellants that don't exist
+                    if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && (switches <= propellants.Length || fuel_mode != 0))
                     {
-                        var partresource = part.Resources["LqdWater"];
-                        if (partresource.amount > 0 && HighLogic.LoadedSceneIsFlight)
-                            ORSHelper.fixedRequestResource(this.part, "Water", -partresource.amount);
-                        this.part.Resources.list.Remove(partresource);
-                        DestroyImmediate(partresource);
+                        ++switches;
+                        if (forward)
+                            NextPropellant();
+                        else
+                            PreviousPropellant();
                     }
+
+                    estimateEditorPerformance(); // update editor estimates
                 }
             }
-
-            // update the engine with the new propellants
-            if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null)
+            catch (Exception e)
             {
-                myAttachedEngine.propellants.Clear();
-                myAttachedEngine.propellants = list_of_propellants;
-                myAttachedEngine.SetupPropellant();
+                UnityEngine.Debug.LogError("[KSPI] - ThermalNozzleController - OnStart 1/2 Exception: " + e.Message);
+                throw;
             }
 
-            if (HighLogic.LoadedSceneIsFlight)
-            { // you can have any fuel you want in the editor but not in flight
-                // should we switch to another propellant because we have none of this one?
-                bool next_propellant = false;
 
-                string missingResources = String.Empty;
-                foreach (Propellant curEngine_propellant in myAttachedEngine.propellants)
-                {
-                    var extendedPropellant = curEngine_propellant as ExtendedPropellant;
-                    IEnumerable<PartResource> partresources = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
-
-                    if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
-                    {
-                        if (notifySwitching)
-                            missingResources += curEngine_propellant.name + " ";
-                        next_propellant = true;
-                    }
-                }
-
-                // do the switch if needed
-                if (next_propellant && (switches <= propellants.Length || fuel_mode != 0))
-                {// always shows the first fuel mode when all fuel mods are tested at least once
-                    ++switches;
-                    if (notifySwitching)
-                        ScreenMessages.PostScreenMessage("Switching Propellant, missing resource " + missingResources, 5.0f, ScreenMessageStyle.LOWER_CENTER);
-
-                    if (forward)
-                        NextPropellant();
-                    else
-                        PreviousPropellant();
-                }
-            }
-            else
-            {
-                // Still ignore propellants that don't exist
-                if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && (switches <= propellants.Length || fuel_mode != 0))
-                {
-                    ++switches;
-                    if (forward)
-                        NextPropellant();
-                    else
-                        PreviousPropellant();
-                }
-
-                estimateEditorPerformance(); // update editor estimates
-            }
             switches = 0;
         }
 
@@ -562,7 +640,19 @@ namespace FNPlugin
             _maxDecompositionTemp = chosenpropellant.HasValue("MaxDecompositionTemp") ? float.Parse(chosenpropellant.GetValue("MaxDecompositionTemp")) : 0;
             _decompositionEnergy = chosenpropellant.HasValue("DecompositionEnergy") ? float.Parse(chosenpropellant.GetValue("DecompositionEnergy")) : 0;
             _baseIspMultiplier = chosenpropellant.HasValue("BaseIspMultiplier") ? float.Parse(chosenpropellant.GetValue("BaseIspMultiplier")) : 0;
+            _techRequirement = chosenpropellant.HasValue("TechRequirement") ? chosenpropellant.GetValue("TechRequirement") : String.Empty;
             _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
+            _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") ? Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade")) : false;
+
+            //_particleFXName = chosenpropellant.HasValue("ParticleFXName") ? chosenpropellant.GetValue("ParticleFXName") : String.Empty;
+            //_currentAudioFX = chosenpropellant.HasValue("AudioFXName") ? chosenpropellant.GetValue("AudioFXName") : String.Empty;
+
+            //if (_propellantIsLFO)
+            //    _particleFXName = "power_open";
+            //else
+            //    _particleFXName = "running_closed";
+
+            //_currentAudioFX = "running_open";
 
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
             _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
@@ -717,8 +807,34 @@ namespace FNPlugin
 
         private float delayedThrottle = 0;
 
-		public override void OnFixedUpdate() // note: does not seem to be called in edit mode
+        //public override void OnFixedUpdate() // note: OnFixedUpdate does not seem to be called in edit mode
+        public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
+            if (myAttachedEngine is ModuleEnginesFX)
+            {
+                if (!String.IsNullOrEmpty(EffectNameLFO))
+                    part.Effect(EffectNameLFO, 0);
+
+                if (!String.IsNullOrEmpty(EffectNameNonLFO))
+                    part.Effect(EffectNameNonLFO , 0);
+
+                if (!String.IsNullOrEmpty(EffectNameThrustMult))
+                    part.Effect(EffectNameThrustMult , 0);
+
+                if (_propellantIsLFO)
+                    _particleFXName = EffectNameLFO;
+                else
+                    _particleFXName = EffectNameNonLFO;
+
+                if (_thrustPropellantMultiplier > 1)
+                    _currentAudioFX = EffectNameThrustMult;
+                else
+                    _currentAudioFX = String.Empty;
+            }
+
+
             if (AttachedReactor == null)
             {
                 if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle > 0)
@@ -780,7 +896,7 @@ namespace FNPlugin
                 
                 expectedMaxThrust = (float)(AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
 
-                expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 150f);
+                expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 200f);
 
                 max_fuel_flow_rate = (float)(expectedMaxThrust / _maxISP / PluginHelper.GravityConstant);
 
@@ -804,6 +920,14 @@ namespace FNPlugin
 
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
+
+                if (myAttachedEngine is ModuleEnginesFX)
+                {
+                    if (!String.IsNullOrEmpty(_particleFXName))
+                        part.Effect(_particleFXName, 0);
+                    if (!String.IsNullOrEmpty(_currentAudioFX))
+                        part.Effect(_currentAudioFX, 0);
+                }
             }
 
             //tell static helper methods we are currently updating things
@@ -860,6 +984,8 @@ namespace FNPlugin
 
             max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100;
 
+
+
             var vesselStaticPresure = FlightGlobals.getStaticPressure(vessel.transform.position);
             
             // update engine thrust/ISP for thermal noozle
@@ -894,11 +1020,19 @@ namespace FNPlugin
             if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
                 max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
 
-            engineHeatProduction = (max_fuel_flow_rate >= 0.000001) ? baseHeatProduction * 350 / max_fuel_flow_rate /(float)Math.Pow(_maxISP, 0.8)  : baseHeatProduction;
+            engineHeatProduction = (max_fuel_flow_rate >= 0.0001) ? baseHeatProduction * 350 / max_fuel_flow_rate /(float)Math.Pow(_maxISP, 0.8)  : baseHeatProduction;
             myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow
 	        myAttachedEngine.maxFuelFlow = Math.Min(1, max_fuel_flow_rate);
+
+            if (myAttachedEngine is ModuleEnginesFX)
+            {
+                if (!String.IsNullOrEmpty(_currentAudioFX))
+                    part.Effect(_currentAudioFX, delayedThrottle);
+                if (!String.IsNullOrEmpty(_particleFXName))
+                    part.Effect(_particleFXName, Mathf.Min((float)Math.Pow(thermal_power_received / requested_thermal_power, 0.5), delayedThrottle));
+            }
 
             if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
             {

@@ -8,7 +8,7 @@ using System.Text;
 namespace FNPlugin 
 {
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionMSRGCsmall : InterstellarFissionMSRGC { }
+    class InterstellarFissionNTR : InterstellarFissionMSRGC { }
 
 
     [KSPModule("Fission Reactor")]
@@ -30,7 +30,9 @@ namespace FNPlugin
             if (isCurrentFuelDepleted())
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+                if (fuel_mode >= fuel_modes.Count) 
+                    fuel_mode = 0;
+
                 current_fuel_mode = fuel_modes[fuel_mode];
                 fuelModeStr = current_fuel_mode.ModeGUIName;
                 Refuel();
