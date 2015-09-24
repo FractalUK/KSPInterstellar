@@ -136,6 +136,9 @@ namespace FNPlugin
             {
                 try
                 {
+                    if (!HighLogic.LoadedSceneIsFlight)
+                        return base.MaximumThermalPower;
+
                     if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
                     {
                         double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.Density);
@@ -202,7 +205,8 @@ namespace FNPlugin
             if (isCurrentFuelDepleted())
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+                if (fuel_mode >= fuel_modes.Count) 
+                    fuel_mode = 0;
                 
                 current_fuel_mode = fuel_modes[fuel_mode];
             }
@@ -259,6 +263,7 @@ namespace FNPlugin
             return 0;
         }
 
+        // This Methods loads the correct fuel mode
         protected override void setDefaultFuelMode()
         {
             current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();

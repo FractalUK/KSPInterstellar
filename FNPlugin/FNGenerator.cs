@@ -37,7 +37,7 @@ namespace FNPlugin
         public string upgradeTechReq;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Radius")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius")]
         public float radius;
         [KSPField(isPersistant = false)]
         public string altUpgradedName;

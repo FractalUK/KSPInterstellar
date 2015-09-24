@@ -89,6 +89,7 @@ namespace InterstellarFuelSwitch
         public string previousTankSetupText = "Previous tank setup";
 
         // Gui
+
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Temp")]
         public string partTemperatureStr = String.Empty;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Specific Heat")]
@@ -102,6 +103,8 @@ namespace InterstellarFuelSwitch
         public float addedCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Dry mass", guiUnits = " t")]
+        public float currentPartMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
         public string currentBoiloffTempStr = "";
 
@@ -841,6 +844,8 @@ namespace InterstellarFuelSwitch
 
         public override void OnFixedUpdate()
         {
+            currentPartMass = part.mass;
+            
             ProcessBoiloff();
 
             partTemperatureStr = part.temperature + " K";

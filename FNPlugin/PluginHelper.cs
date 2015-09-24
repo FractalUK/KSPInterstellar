@@ -123,8 +123,8 @@ namespace FNPlugin
         private static double _minAtmosphericAirDensity = 0;
         public static double MinAtmosphericAirDensity { get { return _minAtmosphericAirDensity; } }
 
-		private static double _gravityConstant = GameConstants.STANDARD_GRAVITY; 
-        public static double GravityConstant { get { return _gravityConstant; } }
+		private static float _gravityConstant = GameConstants.STANDARD_GRAVITY; 
+        public static float GravityConstant { get { return _gravityConstant; } }
 
 		private static double _ispCoreTempMult = GameConstants.IspCoreTemperatureMultiplier;
         public static double IspCoreTempMult { get { return _ispCoreTempMult; } }
@@ -599,16 +599,14 @@ namespace FNPlugin
                         PluginHelper._matchDemandWithSupply = bool.Parse(plugin_settings.GetValue("MatchDemandWithSupply"));
                         Debug.Log("[KSP Interstellar] Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
                     }
-
                     if (plugin_settings.HasValue("MaxPowerDrawForExoticMatterMult"))
                     {
                         PluginHelper._maxPowerDrawForExoticMatterMult = float.Parse(plugin_settings.GetValue("MaxPowerDrawForExoticMatterMult"));
                         Debug.Log("[KSP Interstellar] Max Power Draw For Exotic Matter Multiplier set to: " + PluginHelper.MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
                     }
-
                     if (plugin_settings.HasValue("GravityConstant"))
                     {
-                        PluginHelper._gravityConstant = double.Parse(plugin_settings.GetValue("GravityConstant"));
+                        PluginHelper._gravityConstant = Single.Parse(plugin_settings.GetValue("GravityConstant"));
                         Debug.Log("[KSP Interstellar] Gravity constant set to: " + PluginHelper.GravityConstant.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("IspCoreTempMult"))

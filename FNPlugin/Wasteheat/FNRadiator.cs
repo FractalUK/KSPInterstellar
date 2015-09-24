@@ -350,9 +350,9 @@ namespace FNPlugin
 
 			radiatorTempStr = radiatorTemp + "K";
 
-            var engine = part.FindModuleImplementing<ModuleEngines>();
-            if (engine == null)
-                this.part.force_activate();
+            //var engine = part.FindModuleImplementing<ModuleEngines>();
+            //if (engine == null)
+            //    this.part.force_activate();
 		}
 
         private void UpdateEnableAutomation()
@@ -376,7 +376,8 @@ namespace FNPlugin
             Fields["upgradeTechReq"].guiActive = !isupgraded;
 			Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
             Fields["radiatorArea"].guiActive = !isupgraded;
-            Fields["upgradedRadiatorArea"].guiActive = isupgraded;
+
+            //Fields["upgradedRadiatorArea"].guiActive = isupgraded;
 
 			if (ResearchAndDevelopment.Instance != null) 
 				upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString ("0") + " Science";
@@ -395,10 +396,12 @@ namespace FNPlugin
                     OnStart(PartModule.StartState.None);
                 }
 
+                Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
                 if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
                 {
                     thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
                     thermalPowerConvStr = convectedThermalPower.ToString("0.000") + "MW";
+                    
                 }
                 else
                 {
@@ -419,8 +422,11 @@ namespace FNPlugin
 
         
 
-		public override void OnFixedUpdate() 
+		//public override void OnFixedUpdate() 
+        public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
 			float conv_power_dissip = 0;
 
 			if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) 
