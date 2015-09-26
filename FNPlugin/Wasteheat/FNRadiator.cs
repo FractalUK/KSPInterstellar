@@ -26,13 +26,13 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool showColorHeat = true;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass", guiUnits = " t")]
         public float partMass;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Upgrade Tech")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Upgrade Tech")]
         public string upgradeTechReq;
 		[KSPField(isPersistant = false)]
 		public bool isDeployable = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Converction Bonus", guiUnits = " K")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Converction Bonus", guiUnits = " K")]
 		public float convectiveBonus = 1.0f;
 		[KSPField(isPersistant = false)]
 		public string animName;
@@ -46,7 +46,7 @@ namespace FNPlugin
         public float emissiveColorPower = 3;
         [KSPField(isPersistant = false)]
 		public string upgradedName;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radiator Temp Upgraded")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Radiator Temp Upgraded")]
         public float upgradedRadiatorTemp;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
@@ -74,8 +74,6 @@ namespace FNPlugin
         public float instantaneous_rad_temp;
         [KSPField(isPersistant = false, guiActive = false, guiName = "WasteHeat Ratio")]
         public float wasteheatRatio;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Text")]
-        //public string wasteheatRatioStr;
 
         protected readonly static float rad_const_h = 1000;
         protected readonly static double alpha = 0.001998001998001998001998001998;
@@ -350,9 +348,14 @@ namespace FNPlugin
 
 			radiatorTempStr = radiatorTemp + "K";
 
-            //var engine = part.FindModuleImplementing<ModuleEngines>();
-            //if (engine == null)
-            //    this.part.force_activate();
+            var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+            if (myAttachedEngine == null)
+            {
+                Fields["partMass"].guiActiveEditor = true;
+                Fields["upgradeTechReq"].guiActiveEditor = true;
+                Fields["convectiveBonus"].guiActiveEditor = true;
+                Fields["upgradedRadiatorTemp"].guiActiveEditor = true;
+            }
 		}
 
         private void UpdateEnableAutomation()
