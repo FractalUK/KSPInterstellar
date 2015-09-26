@@ -1,12 +1,9 @@
-﻿extern alias ORSvKSPIE;
-
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSvKSPIE::OpenResourceSystem;
-
 using FNPlugin.Refinery; 
 
 namespace FNPlugin 

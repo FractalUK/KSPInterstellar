@@ -1,21 +1,22 @@
-﻿extern alias ORSvKSPIE;
-
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ORSvKSPIE::OpenResourceSystem;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class FlightUIStarter :  MonoBehaviour{
+    public class FlightUIStarter :  MonoBehaviour
+    {
         protected Rect button_position;
         protected Texture2D guibuttontexture;
         protected bool hide_button = false;
         public static bool show_window = false;
 
-        public void Start() {
+        public void Start() 
+        {
             guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/UITextures/megajoule_click", false);
             if (!PluginHelper.using_toolbar) {
                 button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
@@ -23,7 +24,8 @@ namespace FNPlugin {
             RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
-        public void Update() {
+        public void Update() 
+        {
             if (Input.GetKeyDown(KeyCode.F2)) {
                 hide_button = !hide_button;
             }
