@@ -152,7 +152,7 @@ namespace FNPlugin
             SetupPropellants(false, maxSwitching);
         }
 
-        private void SetupPropellants(bool moveNext, int maxSwitching)
+        private void SetupPropellants(bool moveNext = true, int maxSwitching = 0)
         {
             Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
             fuel_mode_name = Current_propellant.PropellantName;
@@ -274,13 +274,17 @@ namespace FNPlugin
         public void TogglePowerAction(KSPActionParam param)
         {
             powerEnabled = !powerEnabled;
+
+            power_recieved_f = powerEnabled ? consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
+            hasSufficientPower = power_recieved_f > 0.01;
+            SetupPropellants();
+            currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
         }
 
         public override void OnStart(PartModule.StartState state) 
         {
             try
             {
-
                 attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
                 attachedModuleRCSFX = attachedRCS as FNModuleRCSFX;
 
@@ -396,6 +400,10 @@ namespace FNPlugin
         {
             if (delayedVerificationPropellant)
             {
+                // test is we got any megajoules
+                power_recieved_f = consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                hasSufficientPower = power_recieved_f > 0.01;
+
                 delayedVerificationPropellant = false;
                 SetupPropellants(true, _propellants.Count);
                 currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
@@ -466,7 +474,6 @@ namespace FNPlugin
                 power_recieved_raw = consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES) + power_remainer_raw;
                 power_remainer_raw = 0;
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
-                
 
                 float heat_to_produce = power_recieved_f * (1 - efficency);
                 heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
@@ -484,7 +491,7 @@ namespace FNPlugin
                 if (insufficientPowerTimout < 1)
                 {
                     hasSufficientPower = false;
-                    SetupPropellants(true, 0);
+                    SetupPropellants();
                 }
                 else
                     insufficientPowerTimout--;
@@ -493,7 +500,7 @@ namespace FNPlugin
             {
                 insufficientPowerTimout = 2;
                 hasSufficientPower = true;
-                SetupPropellants(true, 0);
+                SetupPropellants();
             }
 
             // process remainder

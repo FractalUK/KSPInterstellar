@@ -22,14 +22,15 @@ namespace FNPlugin
 		public bool engineInit = false;
 		[KSPField(isPersistant = true)]
 		public int fuel_mode = 0;
-        [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1; // hidden setting used by ballance mods
-
         [KSPField(isPersistant = true, guiActive = true, guiName = "Soot Accumulation", guiUnits = " %")]
         public float sootAccumulationPercentage;
 
 
 		//Persistent False
+        [KSPField(isPersistant = false)]
+        public int jetPerformanceProfile = 0;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1; // hidden setting used by ballance mods
         [KSPField(isPersistant = false)]
         public int buildInPrecoolers = 0;
         [KSPField(isPersistant = false)]
@@ -44,6 +45,7 @@ namespace FNPlugin
         public float IspTempMultOffset = 0;
         [KSPField(isPersistant = false)]
         public float sootHeatDivider = 150;
+
         //[KSPField(isPersistant = false)]
         //public float heatProduction = 1;
         //[KSPField(isPersistant = false)]
@@ -162,6 +164,8 @@ namespace FNPlugin
         protected float expectedMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is LFO")]
         protected bool _propellantIsLFO = false;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Velocity Modifier")]
+        protected float vcurveAtCurrentVelocity;
 
 		//Internal
         protected string _particleFXName;
@@ -194,9 +198,7 @@ namespace FNPlugin
 
         protected List<FNModulePreecooler> _vesselPrecoolers;
         protected List<ModuleResourceIntake> _vesselResourceIntake;
-        
-
-
+        protected List<INoozle> _vesselThermalNozzles;
 
         public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
         public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
@@ -362,9 +364,10 @@ namespace FNPlugin
             else
                 UpdateRadiusModifier();
 
-            // presearch all avialble precoolers on the vessel
+            // presearch all avaialble precoolers, intakes and nozzles on the vessel
             _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
             _vesselResourceIntake = vessel.FindPartModulesImplementing<ModuleResourceIntake>();
+            _vesselThermalNozzles = vessel.FindPartModulesImplementing<INoozle>();
 
             fuel_gauge = part.stackIcon.DisplayInfo();
 
@@ -689,6 +692,7 @@ namespace FNPlugin
         public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1) // , double max_thrust_in_space = 0) 
         {
             // recaculate ISP based on power and core temp available
+            FloatCurve atmCurve = new FloatCurve();
             FloatCurve atmosphereCurve = new FloatCurve();
             FloatCurve velCurve = new FloatCurve();
 
@@ -709,42 +713,66 @@ namespace FNPlugin
                 //atmosphereCurve.Add(0, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp), 0, 0);
                 //atmosphereCurve.Add((float)atmosphere_isp_efficiency, Mathf.Min(_maxISP * (float)atmosphere_isp_efficiency, PluginHelper.MaxThermalNozzleIsp), 0, 0);
 
+                myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
                 myAttachedEngine.useEngineResponseTime = false;
             }
             else
             {
-                //atmosphereCurve.Add(0, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
-                //atmosphereCurve.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                //atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
-                //atmosphereCurve.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
+                if (jetPerformanceProfile == 0)
+                {
+                    atmosphereCurve.Add(0, Mathf.Min(_maxISP * 5.0f / 4.0f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
 
-                atmosphereCurve.Add(0, Mathf.Min(_maxISP * 5.0f / 4.0f, PluginHelper.MaxThermalNozzleIsp));
-                atmosphereCurve.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
-                atmosphereCurve.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
+                    velCurve.Add(0, 0.2f);
+                    velCurve.Add(2f, 1f);
 
-                //velCurve.Add(0, 1.0f);
-                //velCurve.Add((_maxISP * PluginHelper.GravityConstant * 1.0f / 3.0f), 1.0f);
-                //velCurve.Add((_maxISP * PluginHelper.GravityConstant), 1.0f);
-                //velCurve.Add((_maxISP * PluginHelper.GravityConstant * 4.0f / 3.0f), 0);
+                    // configure atmCurve
+                    atmCurve.Add(0, 0, 0, 0);
+                    atmCurve.Add(0.045f, 0.166f, 4.304647f, 4.304647f);
+                    atmCurve.Add(0.16f, 0.5f, 0.5779132f, 5779132f);
+                    atmCurve.Add(0.5f, 0.6f, 0.4809403f, 4809403f);
+                    atmCurve.Add(1f, 1f, 1.013946f, 0f);
 
-                //velCurve.Add(0, 1.0f, 0, -0.01591885f);
-                //velCurve.Add(1, 0.85f, -0.3977894f, -0.3977894f);
-                //velCurve.Add(4, 0, 0, 0);
+                    myAttachedEngine.atmCurve = atmCurve;
+                    myAttachedEngine.useAtmCurve = true;
+                }
+                else if (jetPerformanceProfile == 1)
+                {
+                    atmosphereCurve.Add(0, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(1, Mathf.Min(_maxISP * 2.0f / 3.0f, PluginHelper.MaxThermalNozzleIsp));
 
-                velCurve.Add(0, 0.2f);
-                velCurve.Add(1.5f, 1f);
+                    velCurve.Add(0, 0.5f);
+                    velCurve.Add(1f, 1f);
+                    velCurve.Add(2f, 0.8f);
+                    velCurve.Add(3f, 0.6f);
+                    velCurve.Add(4f, 0.3f);
+                    velCurve.Add(5.5f, 0f);
 
-                myAttachedEngine.useVelCurve = true;
-                myAttachedEngine.useEngineResponseTime = true;
+                    //velCurve.Add(0, 1f, 0, 0);
+                    //velCurve.Add(0.2f, 0.98f, 0, 0);
+                    //velCurve.Add(0.72f, 1.716f, 2.433527f, 2.433527f);
+                    //velCurve.Add(1.36f, 3.2f, 1.986082f, 1.986082f);
+                    //velCurve.Add(2.15f, 4.9f, 1.452677f, 1.452677f);
+                    //velCurve.Add(3f, 5.8f, 0.0005786046f, 0.0005786046f);
+                    //velCurve.Add(4.5f, 3f, -4.279616f, -4.279616f);
+                    //velCurve.Add(5.5f, 0f, -0.02420209f, 0f);
+
+                    myAttachedEngine.useAtmCurve = false;
+                }
+
                 myAttachedEngine.ignitionThreshold = 0.01f;
+                myAttachedEngine.useVelCurve = true;
+                myAttachedEngine.velCurve = velCurve;
+                myAttachedEngine.useEngineResponseTime = true;
             }
 
+            
             myAttachedEngine.atmosphereCurve = atmosphereCurve;
-            //myAttachedEngine.atmCurve
-            myAttachedEngine.velCurve = velCurve;
-
             //thermalRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
             //_assThermalPower = MyAttachedReactor.MaximumPower * thermalRatio;
 
@@ -761,12 +789,12 @@ namespace FNPlugin
             {
                 string resourcename = myAttachedEngine.propellants[0].name;
                 currentintakeatm = getIntakeAvailable(vessel, resourcename);
-                var fuelRateThermalJetsForVessel = getFuelRateThermalJetsForVessel(vessel, resourcename);
+                var fuelRateThermalJets = GetFuelRateThermalJets(resourcename);
 
-                if (fuelRateThermalJetsForVessel > 0)
+                if (fuelRateThermalJets > 0)
                 {
                     // divide current available intake resource by fuel useage across all engines
-                    var intakeFuelRate = (float)Math.Min(currentintakeatm / fuelRateThermalJetsForVessel, 1.0);
+                    var intakeFuelRate = (float)Math.Min(currentintakeatm / fuelRateThermalJets, 1.0);
 
                     atmospheric_limit = intakeFuelRate; //getEnginesRunningOfTypeForVessel(vessel, resourcename);
                 }
@@ -1030,10 +1058,13 @@ namespace FNPlugin
 
             if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
             {
-                double vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+                //vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+                vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)(vessel.speed / vessel.speedOfSound));
 
                 if (vcurveAtCurrentVelocity > 0 && !double.IsInfinity(vcurveAtCurrentVelocity) && !double.IsNaN(vcurveAtCurrentVelocity))
-                    max_fuel_flow_rate = (float)(max_fuel_flow_rate / vcurveAtCurrentVelocity);
+                    max_fuel_flow_rate = (float)(max_fuel_flow_rate * vcurveAtCurrentVelocity);
+                else
+                    max_fuel_flow_rate = 0.000001f;
             }
 
             if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
@@ -1222,12 +1253,11 @@ namespace FNPlugin
 		}
 
 		// enumeration of the fuel useage rates of all jets on a vessel
-		public static double getFuelRateThermalJetsForVessel (Vessel vess, string resourcename) 
+		public double GetFuelRateThermalJets (string resourcename) 
         {
-            List<INoozle> nozzles = vess.FindPartModulesImplementing<INoozle>();
 			int engines = 0;
 			bool updating = true;
-            foreach (INoozle nozzle in nozzles) 
+            foreach (INoozle nozzle in _vesselThermalNozzles) 
             {
 				ConfigNode[] prop_node = nozzle.getPropellants ();
 
@@ -1247,7 +1277,7 @@ namespace FNPlugin
 			if (updating) 
             {
 				double enum_rate = 0;
-                foreach (INoozle nozzle in nozzles) 
+                foreach (INoozle nozzle in _vesselThermalNozzles) 
                 {
 					ConfigNode[] prop_node = nozzle.getPropellants ();
 
