@@ -36,6 +36,8 @@ namespace FNPlugin
 		public float convectiveBonus = 1.0f;
 		[KSPField(isPersistant = false)]
 		public string animName;
+        [KSPField(isPersistant = false)]
+        public string thermalAnim;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radiator Temp", guiUnits = " K")]
 		public float radiatorTemp;
 		[KSPField(isPersistant = false)]
@@ -74,11 +76,17 @@ namespace FNPlugin
         public float instantaneous_rad_temp;
         [KSPField(isPersistant = false, guiActive = false, guiName = "WasteHeat Ratio")]
         public float wasteheatRatio;
+        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Color Fraction")]
+        public float colorRatio;
+
+        //[KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Heat"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        // public bool powerEnabled = true;
 
         protected readonly static float rad_const_h = 1000;
         protected readonly static double alpha = 0.001998001998001998001998001998;
 
-		protected Animation anim;
+        protected Animation heatAnim;
+		protected Animation deployAnim;
 		protected float radiatedThermalPower;
 		protected float convectedThermalPower;
 		protected double current_rad_temp;
@@ -91,10 +99,13 @@ namespace FNPlugin
 		protected bool hasrequiredupgrade;
 		protected int explode_counter = 0;
 
+        
+
         ModuleDeployableRadiator _moduleDeployableRadiator;
 
 		protected static List<FNRadiator> list_of_radiators = new List<FNRadiator>();
 
+        private AnimationState[] heatStates;
 
 		public static List<FNRadiator> getRadiatorsForVessel(Vessel vess) 
         {
@@ -188,9 +199,9 @@ namespace FNPlugin
         {
             if (!isDeployable) return;
 
-            anim[animName].speed = 0.5f;
-            anim[animName].normalizedTime = 0f;
-            anim.Blend(animName, 2f);
+            deployAnim[animName].speed = 0.5f;
+            deployAnim[animName].normalizedTime = 0f;
+            deployAnim.Blend(animName, 2f);
             radiatorIsEnabled = true;
         }
 
@@ -206,9 +217,9 @@ namespace FNPlugin
         {
             if (!isDeployable) return;
 
-            anim[animName].speed = -0.5f;
-            anim[animName].normalizedTime = 1f;
-            anim.Blend(animName, 2f);
+            deployAnim[animName].speed = -0.5f;
+            deployAnim[animName].normalizedTime = 1f;
+            deployAnim.Blend(animName, 2f);
             radiatorIsEnabled = false;
         }
 
@@ -286,6 +297,15 @@ namespace FNPlugin
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
+            var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+            if (myAttachedEngine == null)
+            {
+                Fields["partMass"].guiActiveEditor = true;
+                Fields["upgradeTechReq"].guiActiveEditor = true;
+                Fields["convectiveBonus"].guiActiveEditor = true;
+                Fields["upgradedRadiatorTemp"].guiActiveEditor = true;
+            }
+
             if (state == StartState.Editor) 
             {
                 if (hasTechsRequiredToUpgrade()) 
@@ -298,17 +318,17 @@ namespace FNPlugin
 
 			FNRadiator.list_of_radiators.Add (this);
 
-			anim = part.FindModelAnimators (animName).FirstOrDefault ();
+			deployAnim = part.FindModelAnimators (animName).FirstOrDefault ();
 			//orig_emissive_colour = part.renderer.material.GetTexture (emissive_property_name);
-			if (anim != null) 
+			if (deployAnim != null) 
             {
-				anim [animName].layer = 1;
+				deployAnim [animName].layer = 1;
 
 				if (radiatorIsEnabled) 
                 {
-					anim[animName].normalizedTime = 1.0f;
-					anim[animName].enabled = true;
-					anim.Sample();
+					deployAnim[animName].normalizedTime = 1.0f;
+					deployAnim[animName].enabled = true;
+					deployAnim.Sample();
 				} 
                 else 
                 {
@@ -316,6 +336,11 @@ namespace FNPlugin
 				}
 				//anim.Play ();
 			}
+
+            if (!String.IsNullOrEmpty(thermalAnim))
+            {
+                heatStates = SetUpAnimation(thermalAnim, this.part);
+            }
 
 			if (isDeployable) 
             {
@@ -348,15 +373,23 @@ namespace FNPlugin
 
 			radiatorTempStr = radiatorTemp + "K";
 
-            var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
-            if (myAttachedEngine == null)
-            {
-                Fields["partMass"].guiActiveEditor = true;
-                Fields["upgradeTechReq"].guiActiveEditor = true;
-                Fields["convectiveBonus"].guiActiveEditor = true;
-                Fields["upgradedRadiatorTemp"].guiActiveEditor = true;
-            }
+
 		}
+
+        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in part.FindModelAnimators(animationName))
+            {
+                var animationState = animation[animationName];
+                animationState.speed = 0;
+                animationState.enabled = true;
+                animationState.wrapMode = WrapMode.ClampForever;
+                animation.Blend(animationName);
+                states.Add(animationState);
+            }
+            return states.ToArray();
+        }
 
         private void UpdateEnableAutomation()
         {
@@ -367,6 +400,8 @@ namespace FNPlugin
 		public override void OnUpdate() 
         {
             UpdateEnableAutomation();
+
+
 
 			Events["DeployRadiator"].active = !radiatorIsEnabled && isDeployable;
 			Events["RetractRadiator"].active = radiatorIsEnabled && isDeployable;
@@ -491,9 +526,9 @@ namespace FNPlugin
                 else 
 					explode_counter = 0;
 
-                radiator_temperature_temp_val = radiatorTemp * (float)Math.Pow(wasteheatRatio, 0.25);
-                if (vessel.HasAnyActiveThermalSources()) 
-                    radiator_temperature_temp_val = (float)Math.Min(vessel.GetTemperatureofColdestThermalSource() / 1.01, radiator_temperature_temp_val);
+                radiator_temperature_temp_val = radiatorTemp * Mathf.Pow(wasteheatRatio, 0.25f);
+                if (vessel.HasAnyActiveThermalSources())
+                    radiator_temperature_temp_val = Math.Min(vessel.GetAverageTemperatureofOfThermalSource() / 1.01f, radiator_temperature_temp_val);
 
                 double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * CurrentRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
@@ -612,8 +647,22 @@ namespace FNPlugin
             const String kspShader = "KSP/Emissive/Bumped Specular";
             float currentTemperature = getRadiatorTemperature();
 
-            double temperatureRatio = Math.Min( currentTemperature / radiatorTemp * 1.05, 1);
-            Color emissiveColor = new Color((float)(Math.Pow(temperatureRatio, emissiveColorPower)), 0.0f, 0.0f, 1.0f);
+            float partTempRatio = Mathf.Min((float)part.temperature / (float)part.maxTemp, 1);
+
+            float radiatorTempRatio = Mathf.Min(currentTemperature / radiatorTemp * 1.05f, 1);
+
+            colorRatio = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio), emissiveColorPower);
+
+            if (heatStates != null)
+            {
+                foreach (AnimationState anim in heatStates)
+                {
+                    anim.normalizedTime = colorRatio;
+                }
+                return;
+            }
+
+            Color emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 1.0f);
 
             Renderer[] array = part.FindModelComponents<Renderer>();
             

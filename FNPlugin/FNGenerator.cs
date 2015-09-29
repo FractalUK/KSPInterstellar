@@ -74,8 +74,11 @@ namespace FNPlugin
         public float requestedPower_f;
 
         // Internal
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath")]
         protected float coldBathTemp = 500;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath")]
         protected float hotBathTemp = 1;
+
         protected float outputPower;
         protected double _totalEff;
         protected float sectracker = 0;
@@ -360,7 +363,7 @@ namespace FNPlugin
         {
             if (myAttachedReactor == null) return;
 
-            hotBathTemp = myAttachedReactor.CoreTemperature;
+            hotBathTemp = myAttachedReactor.HotBathTemperature;
 
             if (HighLogic.LoadedSceneIsEditor)
                 UpdateHeatExchangedThrustDivisor();

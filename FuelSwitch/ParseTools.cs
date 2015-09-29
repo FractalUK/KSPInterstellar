@@ -21,6 +21,9 @@ namespace InterstellarFuelSwitch
 
         public static List<double> ParseDoubles<T>(string stringOfDoubles, Expression<Func<T>> expr)
         {
+            if (String.IsNullOrEmpty(stringOfDoubles))
+                return new List<double>();
+
             var body = (MemberExpression)expr.Body;
 
             return ParseDoubles(stringOfDoubles, body.Member.Name);

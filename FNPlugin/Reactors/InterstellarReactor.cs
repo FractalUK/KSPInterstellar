@@ -108,6 +108,8 @@ namespace FNPlugin
         public float neutronEmbrittlementLifepointsMax = 100;
         [KSPField(isPersistant = false)]
         public float neutronEmbrittlementDivider = 1e+9f;
+        [KSPField(isPersistant = false)]
+        public float hotBathModifier = 1;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Bimodel upgrade tech")]
@@ -350,6 +352,14 @@ namespace FNPlugin
             }
         }
 
+        public float HotBathTemperature 
+        { 
+            get
+            {
+                return CoreTemperature * hotBathModifier;
+            }
+        }
+
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
         public virtual void OnRescale(TweakScale.ScalingFactor factor)
@@ -531,6 +541,8 @@ namespace FNPlugin
             var rnd = new System.Random();
             windowID = rnd.Next(int.MaxValue);
             base.OnStart(state);
+
+            print("[KSP Interstellar] WindowID = " + windowID);
 
             // check if we need to upgrade
             if (state == StartState.Editor)
@@ -1155,107 +1167,117 @@ namespace FNPlugin
 
         private void Window(int windowID)
         {
-            bold_label = new GUIStyle(GUI.skin.label);
-            bold_label.fontStyle = FontStyle.Bold;
-
-            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
-                render_window = false;
-
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(TypeName, bold_label, GUILayout.ExpandWidth(true));
-            GUILayout.EndHorizontal();
-
-            PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000") + "%", bold_label);
-            PrintToGUILayout("Radius", radius.ToString() + "m", bold_label);
-            PrintToGUILayout("Core Temperature", coretempStr, bold_label);
-            PrintToGUILayout("Status", statusStr, bold_label);
-
-            //if (ChargedPowerRatio > 0)
-            PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.00") + " / " + PluginHelper.getFormattedPowerString(RawPowerOutput, "0.0", "0.00"), bold_label);
-
-            if (ChargedPowerRatio < 1.0)
-                PrintToGUILayout("Thermal Power", currentTPwr + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower) + "_th", bold_label);
-            if (ChargedPowerRatio > 0)
-                PrintToGUILayout("Charged Power", currentCPwr + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower) + "_cp", bold_label);
-            if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
+            try
             {
-                if (IsNeutronRich && breedtritium)
-                    PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARH_DAY_SECONDS).ToString("0.000000") + " l/day ", bold_label);
+
+                bold_label = new GUIStyle(GUI.skin.label);
+                bold_label.fontStyle = FontStyle.Bold;
+
+                if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+                    render_window = false;
+
+                GUILayout.BeginVertical();
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(TypeName, bold_label, GUILayout.ExpandWidth(true));
+                GUILayout.EndHorizontal();
+
+                PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000") + "%", bold_label);
+                PrintToGUILayout("Radius", radius.ToString() + "m", bold_label);
+                PrintToGUILayout("Core Temperature", coretempStr, bold_label);
+                PrintToGUILayout("Status", statusStr, bold_label);
+
+                //if (ChargedPowerRatio > 0)
+                PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.00") + " / " + PluginHelper.getFormattedPowerString(RawPowerOutput, "0.0", "0.00"), bold_label);
+
+                if (ChargedPowerRatio < 1.0)
+                    PrintToGUILayout("Thermal Power", currentTPwr + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower) + "_th", bold_label);
+                if (ChargedPowerRatio > 0)
+                    PrintToGUILayout("Charged Power", currentCPwr + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower) + "_cp", bold_label);
+                if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
+                {
+                    if (IsNeutronRich && breedtritium)
+                        PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARH_DAY_SECONDS).ToString("0.000000") + " l/day ", bold_label);
+                    else
+                        PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
+
+                    PrintToGUILayout("Fuel Mode", fuelModeStr, bold_label);
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Fuel", bold_label, GUILayout.Width(150));
+                    GUILayout.EndHorizontal();
+
+                    double fuel_lifetime_d = double.MaxValue;
+                    foreach (var fuel in current_fuel_mode.ReactorFuels)
+                    {
+                        double availability = GetFuelAvailability(fuel);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
+                        GUILayout.Label((availability * fuel.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));
+                        GUILayout.EndHorizontal();
+
+                        double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
+                        fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
+                        GUILayout.Label(fuel_use.ToString("0.000000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
+                        GUILayout.EndHorizontal();
+                    }
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Products", bold_label, GUILayout.Width(150));
+                    GUILayout.EndHorizontal();
+
+                    foreach (var product in current_fuel_mode.ReactorProducts)
+                    {
+                        double availability = GetFuelAvailability(product);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
+                        GUILayout.Label((availability * product.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));
+                        GUILayout.EndHorizontal();
+
+                        double fuel_use = total_power_per_frame * product.ProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
+                        fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
+                        GUILayout.Label(fuel_use.ToString("0.000000") + " " + product.Unit + "/day", GUILayout.Width(150));
+                        GUILayout.EndHorizontal();
+                    }
+
+                    PrintToGUILayout("Current Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_label);
+                }
+
+                if (!IsNuclear)
+                {
+                    GUILayout.BeginHorizontal();
+
+                    if (IsEnabled && GUILayout.Button("Deactivate", GUILayout.ExpandWidth(true)))
+                        DeactivateReactor();
+                    if (!IsEnabled && GUILayout.Button("Activate", GUILayout.ExpandWidth(true)))
+                        ActivateReactor();
+
+                    GUILayout.EndHorizontal();
+                }
                 else
-                    PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
-
-                PrintToGUILayout("Fuel Mode", fuelModeStr, bold_label);
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Fuel", bold_label, GUILayout.Width(150));
-                GUILayout.EndHorizontal();
-
-                double fuel_lifetime_d = double.MaxValue;
-                foreach (var fuel in current_fuel_mode.ReactorFuels)
                 {
-                    double availability = GetFuelAvailability(fuel);
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label((availability * fuel.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));
-                    GUILayout.EndHorizontal();
+                    if (IsEnabled)
+                    {
+                        GUILayout.BeginHorizontal();
 
-                    double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
-                    fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(fuel.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label(fuel_use.ToString("0.000000") + " " + fuel.Unit + "/day", GUILayout.Width(150));
-                    GUILayout.EndHorizontal();
+                        if (GUILayout.Button("Shutdown", GUILayout.ExpandWidth(true)))
+                            IsEnabled = false;
+
+                        GUILayout.EndHorizontal();
+                    }
                 }
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Products", bold_label, GUILayout.Width(150));
-                GUILayout.EndHorizontal();
-
-                foreach (var product in current_fuel_mode.ReactorProducts)
-                {
-                    double availability = GetFuelAvailability(product);
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label((availability * product.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));
-                    GUILayout.EndHorizontal();
-
-                    double fuel_use = total_power_per_frame * product.ProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
-                    fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
-                    GUILayout.Label(fuel_use.ToString("0.000000") + " " + product.Unit + "/day", GUILayout.Width(150));
-                    GUILayout.EndHorizontal();
-                }
-
-                PrintToGUILayout("Current Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_label);
+                GUILayout.EndVertical();
+                GUI.DragWindow();
             }
 
-            if (!IsNuclear)
+            catch (Exception e)
             {
-                GUILayout.BeginHorizontal();
-
-                if (IsEnabled && GUILayout.Button("Deactivate", GUILayout.ExpandWidth(true)))
-                    DeactivateReactor();
-                if (!IsEnabled && GUILayout.Button("Activate", GUILayout.ExpandWidth(true)))
-                    ActivateReactor();
-
-                GUILayout.EndHorizontal();
+                Debug.LogError("ElectricRCSController Window(" + windowID + "): " + e.Message);
+                throw;
             }
-            else
-            {
-                if (IsEnabled)
-                {
-                    GUILayout.BeginHorizontal();
-
-                    if (GUILayout.Button("Shutdown", GUILayout.ExpandWidth(true)))
-                        IsEnabled = false;
-
-                    GUILayout.EndHorizontal();
-                }
-            }
-            GUILayout.EndVertical();
-            GUI.DragWindow();
         }
     }
 }
