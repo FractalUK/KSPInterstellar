@@ -33,7 +33,8 @@ namespace FNPlugin
             return active_reactors.Any() ? active_reactors.Sum(r => r.HotBathTemperature) / active_reactors.Count : 0;
         }
 
-        public static bool HasAnyActiveThermalSources(this Vessel vess) {
+        public static bool HasAnyActiveThermalSources(this Vessel vess) 
+        {
             return vess.FindPartModulesImplementing<IThermalSource>().Where(ts => ts.IsActive).Any();
         }
 

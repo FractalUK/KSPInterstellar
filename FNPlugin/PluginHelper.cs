@@ -24,37 +24,43 @@ namespace FNPlugin
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
         {
-            Debug.Log("[KSP Interstellar] OnVesselSituationChange is called with situation " + change.from.ToString() + " to " + change.to.ToString() + " on vessel " + change.host.name);
+            //Debug.Log("[KSP Interstellar] OnVesselSituationChange is called with situation " + change.from.ToString() + " to " + change.to.ToString() + " on vessel " + change.host.name);
 
             bool shouldReinitialise = false;
 
             if (change.from == Vessel.Situations.DOCKED)
             {
-                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed from Docked");
+                //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed from Docked");
 
                 shouldReinitialise = true;
             }
 
             if (change.to == Vessel.Situations.DOCKED)
             {
-                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed to Docked");
+                //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed to Docked");
 
                 shouldReinitialise = true;
             }
 
             if (shouldReinitialise)
             {
+                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange reinitialising");
+
                 var generators = change.host.FindPartModulesImplementing<FNGenerator>();
 
                 generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
+
+                var radiators = change.host.FindPartModulesImplementing<FNRadiator>();
+
+                radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
             }
 
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange is finished");
+            //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange is finished");
         }
 
         void OnVesselChange(Vessel v)
         {
-            Debug.Log("[KSP Interstellar] OnVesselChange is called");
+            //Debug.Log("[KSP Interstellar] OnVesselChange is called");
         }
     }
 

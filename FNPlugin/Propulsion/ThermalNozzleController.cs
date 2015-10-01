@@ -169,7 +169,7 @@ namespace FNPlugin
 
 		//Internal
         protected string _particleFXName;
-        protected string _currentAudioFX;
+        //protected string _currentAudioFX;
         protected bool _fuelRequiresUpgrade;
         protected string _fuelTechRequirement;
         protected float _fuelToxicity;
@@ -726,8 +726,9 @@ namespace FNPlugin
                     atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
                     atmosphereCurve.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
 
-                    velCurve.Add(0, 0.2f);
+                    velCurve.Add(0, 0.1f);
                     velCurve.Add(2f, 1f);
+                    velCurve.Add(4f, 1f);
 
                     // configure atmCurve
                     atmCurve.Add(0, 0, 0, 0);
@@ -748,10 +749,18 @@ namespace FNPlugin
 
                     velCurve.Add(0, 0.5f);
                     velCurve.Add(1f, 1f);
-                    velCurve.Add(2f, 0.8f);
-                    velCurve.Add(3f, 0.6f);
-                    velCurve.Add(4f, 0.3f);
-                    velCurve.Add(5.5f, 0f);
+                    velCurve.Add(2f, 0.85f);
+                    velCurve.Add(3f, 0.65f);
+                    velCurve.Add(4f, 0.45f);
+                    velCurve.Add(5f, 0.25f);
+                    velCurve.Add(6f, 0f);
+
+                    // configure atmCurve
+                    atmCurve.Add(0, 0, 0, 0);
+                    atmCurve.Add(0.045f, 0.166f, 4.304647f, 4.304647f);
+                    atmCurve.Add(0.16f, 0.5f, 0.5779132f, 5779132f);
+                    atmCurve.Add(0.5f, 0.6f, 0.4809403f, 4809403f);
+                    atmCurve.Add(1f, 1f, 1.013946f, 0f);
 
                     //velCurve.Add(0, 1f, 0, 0);
                     //velCurve.Add(0.2f, 0.98f, 0, 0);
@@ -762,7 +771,8 @@ namespace FNPlugin
                     //velCurve.Add(4.5f, 3f, -4.279616f, -4.279616f);
                     //velCurve.Add(5.5f, 0f, -0.02420209f, 0f);
 
-                    myAttachedEngine.useAtmCurve = false;
+                    myAttachedEngine.atmCurve = atmCurve;
+                    myAttachedEngine.useAtmCurve = true;
                 }
 
                 myAttachedEngine.ignitionThreshold = 0.01f;
@@ -972,8 +982,8 @@ namespace FNPlugin
                 {
                     if (!String.IsNullOrEmpty(_particleFXName))
                         part.Effect(_particleFXName, 0);
-                    if (!String.IsNullOrEmpty(_currentAudioFX))
-                        part.Effect(_currentAudioFX, 0);
+                    //if (!String.IsNullOrEmpty(_currentAudioFX))
+                    //    part.Effect(_currentAudioFX, 0);
                 }
             }
 
@@ -1074,12 +1084,12 @@ namespace FNPlugin
             myAttachedEngine.heatProduction = engineHeatProduction;
 
 			// set engines maximum fuel flow
-	        myAttachedEngine.maxFuelFlow = Math.Min(1, max_fuel_flow_rate);
+	        myAttachedEngine.maxFuelFlow = Math.Min(1000, max_fuel_flow_rate);
 
             if (myAttachedEngine is ModuleEnginesFX)
             {
-                if (!String.IsNullOrEmpty(_currentAudioFX))
-                    part.Effect(_currentAudioFX, delayedThrottle);
+                //if (!String.IsNullOrEmpty(_currentAudioFX))
+                //    part.Effect(_currentAudioFX, delayedThrottle);
                 if (!String.IsNullOrEmpty(_particleFXName))
                     part.Effect(_particleFXName, Mathf.Min((float)Math.Pow(thermal_power_received / requested_thermal_power, 0.5), delayedThrottle));
             }
