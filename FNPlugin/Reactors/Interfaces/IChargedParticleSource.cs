@@ -12,5 +12,7 @@ namespace FNPlugin
         double ChargedPowerRatio { get; }
 
         double CurrentMeVPerChargedProduct { get; }
+
+        double  UseProductForPropulsion(double ratio, double consumedAmount);
     }
 }

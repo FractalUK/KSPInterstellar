@@ -7,6 +7,66 @@ using System.Reflection;
 
 namespace FNPlugin
 {
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    public class GameEventSubscriber : MonoBehaviour
+    {
+        void Start()
+        {
+            GameEvents.onVesselChange.Add(OnVesselChange);
+            GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
+            Debug.Log("[KSP Interstellar] GameEventSubscriber Initialised");
+        }
+        void OnDestroy()
+        {
+            GameEvents.onVesselChange.Remove(OnVesselChange);
+            Debug.Log("[KSP Interstellar] GameEventSubscriber Deinitialised");
+        }
+
+        void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
+        {
+            //Debug.Log("[KSP Interstellar] OnVesselSituationChange is called with situation " + change.from.ToString() + " to " + change.to.ToString() + " on vessel " + change.host.name);
+
+            bool shouldReinitialise = false;
+
+            if (change.from == Vessel.Situations.DOCKED)
+            {
+                //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed from Docked");
+
+                shouldReinitialise = true;
+            }
+
+            if (change.to == Vessel.Situations.DOCKED)
+            {
+                //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed to Docked");
+
+                shouldReinitialise = true;
+            }
+
+            if (shouldReinitialise)
+            {
+                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange reinitialising");
+
+                var generators = change.host.FindPartModulesImplementing<FNGenerator>();
+
+                generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
+
+                var radiators = change.host.FindPartModulesImplementing<FNRadiator>();
+
+                radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
+            }
+
+            //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange is finished");
+        }
+
+        void OnVesselChange(Vessel v)
+        {
+            //Debug.Log("[KSP Interstellar] OnVesselChange is called");
+        }
+    }
+
+
+
+
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
     {
@@ -69,8 +129,8 @@ namespace FNPlugin
         private static double _minAtmosphericAirDensity = 0;
         public static double MinAtmosphericAirDensity { get { return _minAtmosphericAirDensity; } }
 
-		private static double _gravityConstant = GameConstants.STANDARD_GRAVITY; 
-        public static double GravityConstant { get { return _gravityConstant; } }
+		private static float _gravityConstant = GameConstants.STANDARD_GRAVITY; 
+        public static float GravityConstant { get { return _gravityConstant; } }
 
 		private static double _ispCoreTempMult = GameConstants.IspCoreTemperatureMultiplier;
         public static double IspCoreTempMult { get { return _ispCoreTempMult; } }
@@ -545,16 +605,14 @@ namespace FNPlugin
                         PluginHelper._matchDemandWithSupply = bool.Parse(plugin_settings.GetValue("MatchDemandWithSupply"));
                         Debug.Log("[KSP Interstellar] Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
                     }
-
                     if (plugin_settings.HasValue("MaxPowerDrawForExoticMatterMult"))
                     {
                         PluginHelper._maxPowerDrawForExoticMatterMult = float.Parse(plugin_settings.GetValue("MaxPowerDrawForExoticMatterMult"));
                         Debug.Log("[KSP Interstellar] Max Power Draw For Exotic Matter Multiplier set to: " + PluginHelper.MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
                     }
-
                     if (plugin_settings.HasValue("GravityConstant"))
                     {
-                        PluginHelper._gravityConstant = double.Parse(plugin_settings.GetValue("GravityConstant"));
+                        PluginHelper._gravityConstant = Single.Parse(plugin_settings.GetValue("GravityConstant"));
                         Debug.Log("[KSP Interstellar] Gravity constant set to: " + PluginHelper.GravityConstant.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("IspCoreTempMult"))
@@ -706,7 +764,7 @@ namespace FNPlugin
                                 ConfigNode node = new ConfigNode("RESOURCE");
                                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
                                 node.AddValue("maxAmount", intake_air_resource.maxAmount);
-                                node.AddValue("amount", intake_air_resource.amount);
+                                node.AddValue("possibleAmount", intake_air_resource.amount);
                                 prefab_available_part.AddResource(node);
                             }
                         }
@@ -735,7 +793,7 @@ namespace FNPlugin
                                 ConfigNode node = new ConfigNode("RESOURCE");
                                 node.AddValue("name", "WasteHeat");
                                 node.AddValue("maxAmount", panel.chargeRate * 100);
-                                node.AddValue("amount", 0);
+                                node.AddValue("possibleAmount", 0);
 
                                 PartResource pr = prefab_available_part.AddResource(node);
 

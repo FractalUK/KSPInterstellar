@@ -36,6 +36,8 @@ namespace FNPlugin
 
         float CoreTemperature { get; }
 
+        float HotBathTemperature { get; }
+
         bool IsSelfContained { get; }
 
         bool IsActive { get; }

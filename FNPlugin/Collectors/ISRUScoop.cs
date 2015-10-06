@@ -1,10 +1,8 @@
-﻿extern alias ORSvKSPIE;
-
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSvKSPIE::OpenResourceSystem;
 
 namespace FNPlugin 
 {
@@ -21,10 +19,12 @@ namespace FNPlugin
         public float last_power_percentage ;
 
         // part proterties
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Scooped Air")]
         public float scoopair = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
         public float powerReqMult = 1;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        public float partMass = 0;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Density")]
@@ -148,11 +148,13 @@ namespace FNPlugin
                 return;
             }
 
-            // verify that an electric engine is present
-            var plasmaEngine = part.vessel.parts.Find(p => p.FindModulesImplementing<ElectricEngineControllerFX>().Any());
-            if (plasmaEngine == null)
+            // verify that an electric or Thermal engine is available with high enough ISP 
+            var highIspEngine = part.vessel.parts.Find(p =>
+                p.FindModulesImplementing<ElectricEngineControllerFX>().Any(e => e.baseISP > 4200) ||
+                p.FindModulesImplementing<ThermalNozzleController>().Any(e => e.AttachedReactor.CoreTemperature > 40000));
+            if (highIspEngine == null)
             {
-                ScreenMessages.PostScreenMessage("No electric engine available to balance atmospheric drag", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("No engine available, with high enough Isp and propelant switch ability to compensate for atmospheric drag", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
@@ -300,7 +302,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName() 
         {
-            return "Atmospheric Scoop";
+            return part.partInfo.title;
         }
 
     }

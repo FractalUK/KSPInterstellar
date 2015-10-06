@@ -1,6 +1,4 @@
-extern alias ORSvKSPIE;
-using ORSvKSPIE::OpenResourceSystem;
-
+using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +20,8 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
 
         // Visible Non Persistant
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
-        private float _max_reactor_power;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
+        //private float _max_reactor_power;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Charge", guiUnits = " MW")]
         private float _max_charged_particles_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
@@ -37,14 +35,19 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private float _engineMaxThrust;
 
-		//External
-		public bool static_updating = true;
-		public bool static_updating2 = true;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Free")]
+        private double _hydrogenProduction;
+
+		//remove then possible
+        public bool static_updating = true;
+        public bool static_updating2 = true;
 
 		//Internal
 		protected ModuleEnginesFX _attached_engine;
+        protected ModuleEnginesWarp _attached_warpable_engine;
 		protected IChargedParticleSource _attached_reactor;
         protected int _attached_reactor_distance;
+        protected float exchanger_thrust_divisor;
 
 		public override void OnStart(PartModule.StartState state) 
         {
@@ -59,7 +62,8 @@ namespace FNPlugin
             
             if (state == StartState.Editor) return;
 
-			_attached_engine = this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();  //this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+            _attached_warpable_engine = _attached_engine as ModuleEnginesWarp;
 
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
@@ -70,6 +74,10 @@ namespace FNPlugin
 
             if (_attached_reactor == null)
                 UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
+
+            exchanger_thrust_divisor = radius > _attached_reactor.getRadius()
+                ? _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius
+                : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
 		}
 
         private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
@@ -115,15 +123,11 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null)
             {
-                double exchanger_thrust_divisor = radius > _attached_reactor.getRadius()
-                    ? _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius
-                    : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
-
                 double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
                 double minimum_isp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
 
                 var throttle = _attached_engine.currentThrottle;
-                var maximum_isp = minimum_isp * 100;
+                var maximum_isp = minimum_isp * 114; //113.835;
                 var current_isp = throttle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / throttle / throttle);
 
                 // update Isp
@@ -131,9 +135,15 @@ namespace FNPlugin
                 new_isp.Add(0, (float)current_isp, 0, 0);
                 _attached_engine.atmosphereCurve = new_isp;
 
-                _max_charged_particles_power = _attached_reactor.MaximumChargedPower * (float)exchanger_thrust_divisor;
+                _max_charged_particles_power = _attached_reactor.MaximumChargedPower * exchanger_thrust_divisor;
                 _charged_particles_requested = throttle > 0  ? _max_charged_particles_power : 0 ; 
                 _charged_particles_received = consumeFNResource(_charged_particles_requested * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
+
+                // convert reactor product into propellants when possible
+                var chargedParticleRatio = _attached_reactor.MaximumChargedPower > 0 ? _charged_particles_received / _attached_reactor.MaximumChargedPower : 0;
+
+                var consumedByEngine = _attached_warpable_engine != null ? _attached_warpable_engine.propellantUsed : 0;
+                _hydrogenProduction = chargedParticleRatio > 0 ? (float)_attached_reactor.UseProductForPropulsion(chargedParticleRatio, consumedByEngine) : 0;
                 
                 consumeFNResource(_charged_particles_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 _requestedElectricPower = _charged_particles_received * (0.01f * Math.Max(_attached_reactor_distance, 1));
@@ -156,8 +166,7 @@ namespace FNPlugin
                         : (float)Math.Max(max_theoretical_thrust, 0.000000001);
                 }
 
-
-                double max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && current_isp > 0 
+                var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && current_isp > 0 
                     ? _engineMaxThrust / current_isp / PluginHelper.GravityConstant / (throttle > 0 ? throttle : 1)
                     : 0;
 

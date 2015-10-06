@@ -48,7 +48,7 @@ namespace FNPlugin
         public const double microwave_dish_efficiency = 0.85f;
         public const double microwave_alpha = 0.00399201596806387225548902195609f;
 
-        public const double stefan_const = 5.670373e-8;
+        public const float stefan_const = 5.670373e-8f;
         public const double warpspeed = 29979245.8;
         public const double rad_const_h = 1000;
         public const double alpha = 0.001998001998001998001998001998;
@@ -76,7 +76,7 @@ namespace FNPlugin
 
         public const double ELECTRON_CHARGE = 1.602176565e-19;
         public const double ATOMIC_MASS_UNIT =  1.660538921e-27;
-        public const double STANDARD_GRAVITY = 9.80665;
+        public const float STANDARD_GRAVITY = 9.80665f;
 
         public const double dilution_factor = 15000.0;
         public const double LfoFuelThrustModifier = 2.2222;

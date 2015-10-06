@@ -4,11 +4,18 @@ using System.Linq;
 
 namespace FNPlugin 
 {
+    class ReactorProduction
+    {
+        public ReactorProduct fuelmode;
+        public double mass;
+    }
+
+
     class ReactorFuelMode 
 	{
         protected int _reactor_type;
         protected string _mode_gui_name;
-        protected string _tech_requirement;
+        protected string _techRequirement;
         protected List<ReactorFuel> _fuels;
         protected List<ReactorProduct> _products;
         protected double _normreactionrate;
@@ -24,7 +31,7 @@ namespace FNPlugin
         {
             _reactor_type = Convert.ToInt32(node.GetValue("ReactorType"));
             _mode_gui_name = node.GetValue("GUIName");
-            _tech_requirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : String.Empty;
+            _techRequirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : String.Empty;
 
             _normreactionrate = Double.Parse(node.GetValue("NormalisedReactionRate"));
             _normpowerrequirements = Double.Parse(node.GetValue("NormalisedPowerConsumption"));
@@ -47,7 +54,7 @@ namespace FNPlugin
 
         public string ModeGUIName { get { return _mode_gui_name; } }
 
-        public string TechRequirement  { get { return _tech_requirement; } }
+        public string TechRequirement  { get { return _techRequirement; } }
 
         public IList<ReactorFuel> ReactorFuels { get { return _fuels; } }
 

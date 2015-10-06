@@ -1,10 +1,9 @@
-﻿extern alias ORSvKSPIE;
-
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORSvKSPIE::OpenResourceSystem;
+
 
 namespace FNPlugin 
 {
@@ -42,6 +41,13 @@ namespace FNPlugin
         public float convectionMod = 1;
         [KSPField(isPersistant = false)]
         public int maxStoreAmount = 0;
+
+        [KSPField(isPersistant = false)]
+        public bool showPower = true;
+        [KSPField(isPersistant = false)]
+        public bool showBoiloff = true;
+        [KSPField(isPersistant = false)]
+        public bool showTemp = true;
 
         //GUI
         [KSPField(isPersistant = false)]
@@ -98,9 +104,9 @@ namespace FNPlugin
 
                 Events["Activate"].active = isDisabled && coolingIsRelevant;
                 Events["Deactivate"].active = !isDisabled && coolingIsRelevant;
-                Fields["powerStatusStr"].guiActive = coolingIsRelevant;
-                Fields["boiloffStr"].guiActive = boiloff > 0.00001;
-                Fields["externalTemperature"].guiActive = coolingIsRelevant;
+                Fields["powerStatusStr"].guiActive = showPower && coolingIsRelevant;
+                Fields["boiloffStr"].guiActive = showBoiloff && boiloff > 0.00001;
+                Fields["externalTemperature"].guiActive = showTemp && coolingIsRelevant;
 
                 var atmosphereModifier = convectionMod == -1 ?  0 : convectionMod + (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / (convectionMod + 1);
 

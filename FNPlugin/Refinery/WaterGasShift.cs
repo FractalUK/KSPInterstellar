@@ -1,6 +1,4 @@
-﻿extern alias ORSvKSPIE;
-using ORSvKSPIE::OpenResourceSystem;
-
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -8,8 +8,9 @@ namespace FNPlugin.Propulsion
     public class ThermalEnginePropellant
     {
         private string _fuelmode;
-        
-        private bool _currentpropellant_is_jet;
+
+        private bool _isLFO;
+        private bool _is_jet;
 
         private float _propellantSootFactorFullThrotle;
         private float _propellantSootFactorMinThrotle;
@@ -21,6 +22,7 @@ namespace FNPlugin.Propulsion
         private float _fuelToxicity;
         private float _ispPropellantMultiplier;
         private float _thrustPropellantMultiplier;
+        
 
         public string Fuelmode { get {return _fuelmode;}}
         public float PropellantSootFactorFullThrotle { get { return _propellantSootFactorFullThrotle; } }
@@ -31,13 +33,16 @@ namespace FNPlugin.Propulsion
         public float DecompositionEnergy { get { return _decompositionEnergy; } }
         public float BaseIspMultiplier { get { return _baseIspMultiplier; } }
         public float FuelToxicity { get { return _fuelToxicity; } }
-        public bool Currentpropellant_is_jet { get { return _currentpropellant_is_jet; } }
+        public bool IsLFO { get { return _isLFO; } }
+        public bool IsJet { get { return _is_jet; } }
         public float IspPropellantMultiplier { get { return _ispPropellantMultiplier; } }
         public float ThrustPropellantMultiplier { get { return _thrustPropellantMultiplier; } }
 
         public void Load(ConfigNode node)
         {
             _fuelmode = node.GetValue("guiName");
+            _isLFO = node.HasValue("isLFO") ? bool.Parse(node.GetValue("isLFO")) : false;
+            _is_jet = node.HasValue("isJet") ? bool.Parse(node.GetValue("isJet")) : false;
             _propellantSootFactorFullThrotle = node.HasValue("maxSootFactor") ? float.Parse(node.GetValue("maxSootFactor")) : 0;
             _propellantSootFactorMinThrotle = node.HasValue("minSootFactor") ? float.Parse(node.GetValue("minSootFactor")) : 0;
             _propellantSootFactorEquilibrium = node.HasValue("levelSootFraction") ? float.Parse(node.GetValue("levelSootFraction")) : 0;
@@ -46,7 +51,7 @@ namespace FNPlugin.Propulsion
             _decompositionEnergy = node.HasValue("DecompositionEnergy") ? float.Parse(node.GetValue("DecompositionEnergy")) : 0;
             _baseIspMultiplier = node.HasValue("BaseIspMultiplier") ? float.Parse(node.GetValue("BaseIspMultiplier")) : 0;
             _fuelToxicity = node.HasValue("Toxicity") ? float.Parse(node.GetValue("Toxicity")) : 0;
-            _currentpropellant_is_jet = node.HasValue("isJet") ? bool.Parse(node.GetValue("isJet")) : false;
+            
             _ispPropellantMultiplier = node.HasValue("ispMultiplier") ? float.Parse(node.GetValue("ispMultiplier")) : 1;
             _thrustPropellantMultiplier = node.HasValue("thrustMultiplier") ? float.Parse(node.GetValue("thrustMultiplier")) : 1;
         }

@@ -173,6 +173,8 @@ namespace FNPlugin
 
         public float CoreTemperature { get { return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);  } }
 
+        public float HotBathTemperature  {  get { return CoreTemperature * 1.5f; } }
+
         public float StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 
         public float MaximumPower { get { return MaximumThermalPower; } }

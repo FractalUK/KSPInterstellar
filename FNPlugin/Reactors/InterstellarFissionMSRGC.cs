@@ -1,5 +1,4 @@
-﻿extern alias ORSvKSPIE;
-using ORSvKSPIE::OpenResourceSystem;
+﻿using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Text;
 namespace FNPlugin 
 {
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionMSRGCsmall : InterstellarFissionMSRGC { }
+    class InterstellarFissionNTR : InterstellarFissionMSRGC { }
 
 
     [KSPModule("Fission Reactor")]
@@ -16,7 +15,7 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides Modifier")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Actinides Modifier")]
         public float actinidesModifer;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
@@ -30,7 +29,9 @@ namespace FNPlugin
             if (isCurrentFuelDepleted())
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+                if (fuel_mode >= fuel_modes.Count) 
+                    fuel_mode = 0;
+
                 current_fuel_mode = fuel_modes[fuel_mode];
                 fuelModeStr = current_fuel_mode.ModeGUIName;
                 Refuel();
@@ -134,6 +135,9 @@ namespace FNPlugin
             {
                 try
                 {
+                    if (!HighLogic.LoadedSceneIsFlight)
+                        return base.MaximumThermalPower;
+
                     if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
                     {
                         double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.Density);
@@ -200,7 +204,8 @@ namespace FNPlugin
             if (isCurrentFuelDepleted())
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count) fuel_mode = 0;
+                if (fuel_mode >= fuel_modes.Count) 
+                    fuel_mode = 0;
                 
                 current_fuel_mode = fuel_modes[fuel_mode];
             }
@@ -257,6 +262,7 @@ namespace FNPlugin
             return 0;
         }
 
+        // This Methods loads the correct fuel mode
         protected override void setDefaultFuelMode()
         {
             current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
