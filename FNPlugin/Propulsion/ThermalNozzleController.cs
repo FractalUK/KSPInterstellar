@@ -164,7 +164,7 @@ namespace FNPlugin
         protected float expectedMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is LFO")]
         protected bool _propellantIsLFO = false;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Velocity Modifier")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Velocity Modifier")]
         protected float vcurveAtCurrentVelocity;
 
 		//Internal
@@ -199,6 +199,8 @@ namespace FNPlugin
         protected List<FNModulePreecooler> _vesselPrecoolers;
         protected List<ModuleResourceIntake> _vesselResourceIntake;
         protected List<INoozle> _vesselThermalNozzles;
+
+        protected float jetTechBonus;
 
         public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
         public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
@@ -344,8 +346,6 @@ namespace FNPlugin
                     break;
             }
 
-            
-
             if (state == StartState.Editor)
             {
                 part.OnEditorAttach += OnEditorAttach;
@@ -386,6 +386,13 @@ namespace FNPlugin
                 // if not, use basic propellants
                 propellants = getPropellants(isJet);
             }
+
+            bool hasJetUpgradeTech0 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech0);
+            bool hasJetUpgradeTech1 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
+            bool hasJetUpgradeTech2 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
+            bool hasJetUpgradeTech3 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
+
+            jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f *Convert.ToInt32(hasJetUpgradeTech3);
 
             SetupPropellants();
 
@@ -727,7 +734,7 @@ namespace FNPlugin
                     atmosphereCurve.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
 
                     velCurve.Add(0, 0.1f);
-                    velCurve.Add(2f, 1f);
+                    velCurve.Add(3f - (jetTechBonus / 4f), 1f);
                     velCurve.Add(4f, 1f);
 
                     // configure atmCurve
@@ -747,13 +754,15 @@ namespace FNPlugin
                     atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
                     atmosphereCurve.Add(1, Mathf.Min(_maxISP * 2.0f / 3.0f, PluginHelper.MaxThermalNozzleIsp));
 
-                    velCurve.Add(0, 0.5f);
-                    velCurve.Add(1f, 1f);
-                    velCurve.Add(2f, 0.85f);
-                    velCurve.Add(3f, 0.65f);
-                    velCurve.Add(4f, 0.45f);
-                    velCurve.Add(5f, 0.25f);
-                    velCurve.Add(6f, 0f);
+                    velCurve.Add(0, 0.4f + (jetTechBonus / 13.42f));
+                    velCurve.Add(0.5f, 0.6f + (jetTechBonus / 26.84f));
+                    velCurve.Add(1.5f, 1.0f + (jetTechBonus / 26.84f));
+                    velCurve.Add(2.5f, 0.80f + (jetTechBonus / 26.84f));
+                    velCurve.Add(3.5f, 0.60f + (jetTechBonus / 26.84f));
+                    velCurve.Add(4.5f, 0.40f + (jetTechBonus / 26.84f));
+                    velCurve.Add(5.5f, 0.20f + (jetTechBonus / 26.84f));
+                    velCurve.Add(6.5f, 0.0f + (jetTechBonus / 26.84f));
+                    velCurve.Add(7.5f, 0.0f);
 
                     // configure atmCurve
                     atmCurve.Add(0, 0, 0, 0);

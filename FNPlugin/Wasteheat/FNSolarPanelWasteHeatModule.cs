@@ -9,8 +9,9 @@ namespace FNPlugin
 {
 	class FNSolarPanelWasteHeatModule : FNResourceSuppliableModule 
     {
-		protected float wasteheat_production_f = 0;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Heat Production")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true,  guiName = "Solar Power", guiUnits = " MW", guiFormat="F5")]
+        public float megaJouleSolarPowerSupply;
+
 		public string heatProductionStr = ":";
 
         protected ModuleDeployableSolarPanel solarPanel;
@@ -25,60 +26,32 @@ namespace FNPlugin
 			solarPanel = (ModuleDeployableSolarPanel)this.part.Modules["ModuleDeployableSolarPanel"];
 		}
 
-		public override void OnUpdate() 
-        {
-			heatProductionStr = wasteheat_production_f.ToString ("0.00") + " KW";
-		}
-
         public override void OnFixedUpdate() 
         {
             active = true;
             base.OnFixedUpdate();
         }
 
-		public void FixedUpdate() 
+        public void FixedUpdate()
         {
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                if (!active)
-                {
-                    base.OnFixedUpdate();
-                }
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (solarPanel != null)
-                {
-                    //double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
-                    //FloatCurve satcurve = new FloatCurve();
-                    //satcurve.Add(0.0f, (float)inv_square_mult);
-                    //solarPanel.powerCurve = satcurve;
+            if (!active)
+                base.OnFixedUpdate();
 
-                    float solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
-                    //float clamper = PluginHelper.IsSolarPanelHeatingClamped 
-                    //    ? (float)Math.Min(Math.Max((Math.Sqrt(inv_square_mult) - 1.5), 0.0), 1.0) 
-                    //    : 1.0f;
-                    //float heat_rate =  clamper * solar_rate * 0.5f / 1000.0f;
+            if (solarPanel == null) return;
 
-                    //if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.98 && solarPanel.panelState == ModuleDeployableSolarPanel.panelStates.EXTENDED && solarPanel.sunTracking)
-                    //{
-                    //    solarPanel.Retract();
-                    //    if (FlightGlobals.ActiveVessel == vessel)
-                    //        ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Solar Panel retraction occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            float solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
 
-                    //    return;
-                    //}
+            List<PartResource> prl = part.GetConnectedResources("ElectricCharge").ToList();
+            double current_charge = prl.Sum(pr => pr.amount);
+            double max_charge = prl.Sum(pr => pr.maxAmount);
 
-                    List<PartResource> prl = part.GetConnectedResources("ElectricCharge").ToList();
-                    double current_charge = prl.Sum(pr => pr.amount);
-                    double max_charge = prl.Sum(pr => pr.maxAmount);
+            var solar_supply = current_charge >= max_charge ? solar_rate / 1000.0f : 0;
+            var solar_maxSupply = solar_rate / 1000.0f;
 
-                    var solar_supply = current_charge >= max_charge ? solar_rate / 1000.0f : 0;
-                    var solar_maxSupply = solar_rate / 1000.0f;
-
-                    supplyFNResourceFixedMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                    //wasteheat_production_f = supplyFNResource(heat_rate, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime * 1000.0f;
-                }
-            }
-		}
+            megaJouleSolarPowerSupply = supplyFNResourceFixedMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+        }
 	}
 }
 

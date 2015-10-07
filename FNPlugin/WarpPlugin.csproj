@@ -127,7 +127,7 @@
     <Compile Include="Science\FNLCMassSpectrometer.cs" />
     <Compile Include="Science\FNMassSpectrometer.cs" />
     <Compile Include="Storage\FNModuleCryostat.cs" />
-    <Compile Include="FNModulePreecooler.cs" />
+    <Compile Include="Wasteheat\FNModulePreecooler.cs" />
     <Compile Include="Refinery\FNModuleResourceExtraction.cs" />
     <Compile Include="Science\DTMagnetometer.cs" />
     <Compile Include="Reactors\FNAntimatterReactor.cs" />
@@ -147,12 +147,12 @@
     <Compile Include="Reactors\InterstellarReactor.cs" />
     <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
     <Compile Include="Collectors\ISRUScoop.cs" />
-    <Compile Include="FNResourceManager.cs" />
+    <Compile Include="Wasteheat\FNResourceManager.cs" />
     <Compile Include="FNResourceSuppliableModule.cs" />
     <Compile Include="Microwave\MicrowavePowerReceiver.cs" />
     <Compile Include="Microwave\MicrowavePowerTransmitter.cs" />
     <Compile Include="Microwave\MicrowaveRoute.cs" />
-    <Compile Include="ModableExperimentResultDialogPage.cs" />
+    <Compile Include="Science\ModableExperimentResultDialogPage.cs" />
     <Compile Include="Science\ModuleModableScienceGenerator.cs" />
     <Compile Include="Storage\ModuleElementRadioactiveDecay.cs" />
     <Compile Include="Propulsion\ModuleSabreHeating.cs" />

@@ -107,7 +107,6 @@ namespace FNPlugin
                 return;
             }
 
-			//power_consumed = part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, LaserPowerRequirements * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
             power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
             if (TimeWarp.fixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && power_consumed < LaserPowerRequirements && (accumulatedElectricChargeInMW + power_consumed) >= LaserPowerRequirements)

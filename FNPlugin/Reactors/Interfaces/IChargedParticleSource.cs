@@ -7,12 +7,12 @@ namespace FNPlugin
 {
     public interface IChargedParticleSource : IThermalSource
     {
-        float MaximumChargedPower { get; } 
-
-        double ChargedPowerRatio { get; }
-
         double CurrentMeVPerChargedProduct { get; }
 
         double  UseProductForPropulsion(double ratio, double consumedAmount);
+
+        float MaximumChargedIspMult { get; }
+
+        float MinimumChargdIspMult { get; }
     }
 }

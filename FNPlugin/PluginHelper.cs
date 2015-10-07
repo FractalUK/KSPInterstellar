@@ -24,23 +24,13 @@ namespace FNPlugin
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
         {
-            //Debug.Log("[KSP Interstellar] OnVesselSituationChange is called with situation " + change.from.ToString() + " to " + change.to.ToString() + " on vessel " + change.host.name);
-
             bool shouldReinitialise = false;
 
             if (change.from == Vessel.Situations.DOCKED)
-            {
-                //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed from Docked");
-
                 shouldReinitialise = true;
-            }
 
             if (change.to == Vessel.Situations.DOCKED)
-            {
-                //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange situation changed to Docked");
-
                 shouldReinitialise = true;
-            }
 
             if (shouldReinitialise)
             {
@@ -54,8 +44,6 @@ namespace FNPlugin
 
                 radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
             }
-
-            //Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange is finished");
         }
 
         void OnVesselChange(Vessel v)
@@ -245,6 +233,18 @@ namespace FNPlugin
         private static bool _matchDemandWithSupply = false;
         public static bool MatchDemandWithSupply { get { return _matchDemandWithSupply; } }
 
+        private static string _jetUpgradeTech0 = String.Empty;
+        public static string JetUpgradeTech0 { get { return _jetUpgradeTech0; } private set { _jetUpgradeTech0 = value; } }
+
+        private static string _jetUpgradeTech1 = String.Empty;
+        public static string JetUpgradeTech1 { get { return _jetUpgradeTech1; } private set { _jetUpgradeTech1 = value; } }
+
+        private static string _jetUpgradeTech2 = String.Empty;
+        public static string JetUpgradeTech2 { get { return _jetUpgradeTech2; } private set { _jetUpgradeTech2 = value; } }
+
+        private static string _jetUpgradeTech3 = String.Empty;
+        public static string JetUpgradeTech3 { get { return _jetUpgradeTech3; } private set { _jetUpgradeTech3 = value; } }
+
         #endregion
 
         public static bool hasTech(string techid)
@@ -423,9 +423,6 @@ namespace FNPlugin
         public static double getMaxAtmosphericAltitude(CelestialBody body)
         {
             if (!body.atmosphere) return 0;
-
-            //return (float)-body.atmosphereScaleHeight * 1000.0f * Mathf.Log(1e-6f);
-            //return (float)-body.atmosphereDepth * 1000.0f * Mathf.Log(1e-6f);
             return body.atmosphereDepth;
         }
 
@@ -710,6 +707,26 @@ namespace FNPlugin
                         PluginHelper._minAtmosphericAirDensity = double.Parse(plugin_settings.GetValue("MinAtmosphericAirDensity"));
                         Debug.Log("[KSP Interstellar] Minimum Atmospheric Air Density set to: " + PluginHelper.MinAtmosphericAirDensity.ToString("0.0"));
                     }
+                    if (plugin_settings.HasValue("JetUpgradeTech0"))
+                    {
+                        PluginHelper.JetUpgradeTech0 = plugin_settings.GetValue("JetUpgradeTech0");
+                        Debug.Log("[KSP Interstellar] JetUpgradeTech0" + PluginHelper.JetUpgradeTech0);
+                    }
+                    if (plugin_settings.HasValue("JetUpgradeTech1"))
+                    {
+                        PluginHelper.JetUpgradeTech1 = plugin_settings.GetValue("JetUpgradeTech1");
+                        Debug.Log("[KSP Interstellar] JetUpgradeTech1" + PluginHelper.JetUpgradeTech1);
+                    }
+                    if (plugin_settings.HasValue("JetUpgradeTech2"))
+                    {
+                        PluginHelper.JetUpgradeTech2 = plugin_settings.GetValue("JetUpgradeTech2");
+                        Debug.Log("[KSP Interstellar] JetUpgradeTech2" + PluginHelper.JetUpgradeTech2);
+                    }
+                    if (plugin_settings.HasValue("JetUpgradeTech3"))
+                    {
+                        PluginHelper.JetUpgradeTech3 = plugin_settings.GetValue("JetUpgradeTech3");
+                        Debug.Log("[KSP Interstellar] JetUpgradeTech3" + PluginHelper.JetUpgradeTech3);
+                    }
 
                     resources_configured = true;
                 }
@@ -725,15 +742,6 @@ namespace FNPlugin
             gdb = GameDatabase.Instance;
             plugin_init = true;
 
-            //AvailablePart kerbalRadiationPart = PartLoader.getPartInfoByName("kerbalEVA");
-            //if (kerbalRadiationPart.partPrefab.Modules != null)
-            //{
-            //    if (kerbalRadiationPart.partPrefab.FindModulesImplementing<FNModuleRadiation>().Count == 0)
-            //        kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
-            //}
-            //else
-            //    kerbalRadiationPart.partPrefab.gameObject.AddComponent<FNModuleRadiation>();
-
             List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
             foreach (AvailablePart available_part in available_parts)
             {
@@ -742,31 +750,29 @@ namespace FNPlugin
                 {
                     if (prefab_available_part.Modules == null) continue;
 
-                    if (prefab_available_part.FindModulesImplementing<ModuleResourceIntake>().Count > 0)
+                    ModuleResourceIntake intake = prefab_available_part.FindModuleImplementing<ModuleResourceIntake>();
+
+                    if (intake != null && intake.resourceName == "IntakeAir")
                     {
-                        ModuleResourceIntake intake = prefab_available_part.Modules["ModuleResourceIntake"] as ModuleResourceIntake;
-                        if (intake.resourceName == "IntakeAir")
+                        var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
+                        prefab_available_part.Modules.Add(pm);
+                        pm.area = intake.area;
+                        pm.aoaThreshold = intake.aoaThreshold;
+                        pm.intakeTransformName = intake.intakeTransformName;
+                        pm.maxIntakeSpeed = intake.maxIntakeSpeed;
+                        pm.unitScalar = intake.unitScalar;
+                        pm.useIntakeCompensation = intake.useIntakeCompensation;
+                        pm.storesResource = intake.storesResource;
+
+                        PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
+
+                        if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
                         {
-                            var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
-                            prefab_available_part.Modules.Add(pm);
-                            pm.area = intake.area;
-                            pm.aoaThreshold = intake.aoaThreshold;
-                            pm.intakeTransformName = intake.intakeTransformName;
-                            pm.maxIntakeSpeed = intake.maxIntakeSpeed;
-                            pm.unitScalar = intake.unitScalar;
-                            pm.useIntakeCompensation = intake.useIntakeCompensation;
-                            pm.storesResource = intake.storesResource;
-
-                            PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
-
-                            if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
-                            {
-                                ConfigNode node = new ConfigNode("RESOURCE");
-                                node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
-                                node.AddValue("maxAmount", intake_air_resource.maxAmount);
-                                node.AddValue("possibleAmount", intake_air_resource.amount);
-                                prefab_available_part.AddResource(node);
-                            }
+                            ConfigNode node = new ConfigNode("RESOURCE");
+                            node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+                            node.AddValue("maxAmount", intake_air_resource.maxAmount);
+                            node.AddValue("possibleAmount", intake_air_resource.amount);
+                            prefab_available_part.AddResource(node);
                         }
 
                     }
@@ -776,35 +782,35 @@ namespace FNPlugin
                         var existingSolarControlModule = prefab_available_part.FindModuleImplementing<FNSolarPanelWasteHeatModule>();
                         if (existingSolarControlModule == null)
                         {
-                            //ModuleDeployableSolarPanel panel = prefab_available_part.Modules["ModuleDeployableSolarPanel"] as ModuleDeployableSolarPanel;
                             ModuleDeployableSolarPanel panel = prefab_available_part.FindModuleImplementing<ModuleDeployableSolarPanel>();
                             if (panel.chargeRate > 0)
                             {
-                                Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
-                                if (type != null)
-                                {
+                                //Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
+                                Type type = typeof(FNSolarPanelWasteHeatModule);
+                                //if (type != null)
+                                //{
                                     FNSolarPanelWasteHeatModule pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
                                     prefab_available_part.Modules.Add(pm);
-                                }
+                                //}
                             }
 
-                            if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
-                            {
-                                ConfigNode node = new ConfigNode("RESOURCE");
-                                node.AddValue("name", "WasteHeat");
-                                node.AddValue("maxAmount", panel.chargeRate * 100);
-                                node.AddValue("possibleAmount", 0);
+                            //if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
+                            //{
+                            //    ConfigNode node = new ConfigNode("RESOURCE");
+                            //    node.AddValue("name", "WasteHeat");
+                            //    node.AddValue("maxAmount", panel.chargeRate * 100);
+                            //    node.AddValue("possibleAmount", 0);
 
-                                PartResource pr = prefab_available_part.AddResource(node);
+                            //    PartResource pr = prefab_available_part.AddResource(node);
 
-                                if (available_part.resourceInfo != null && pr != null)
-                                {
-                                    if (available_part.resourceInfo.Length == 0)
-                                        available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                                    else
-                                        available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                                }
-                            }
+                            //    if (available_part.resourceInfo != null && pr != null)
+                            //    {
+                            //        if (available_part.resourceInfo.Length == 0)
+                            //            available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                            //        else
+                            //            available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
+                            //    }
+                            //}
                         }
 
                     }
@@ -819,32 +825,6 @@ namespace FNPlugin
                              mod_info.moduleName = "Electric Engine";
                     }
 
-
-                    //if (prefab_available_part.FindModulesImplementing<FNNozzleController>().Count() > 0)
-                    //{
-                    //    available_part.moduleInfo = prefab_available_part.FindModulesImplementing<FNNozzleController>().First().GetInfo();
-                    //    available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                    //    AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.FirstOrDefault(modi => modi.moduleName == "FNNozzle Controller");
-
-                    //    if (mod_info != null)
-                    //        mod_info.moduleName = "Thermal Nozzle";
-                    //}
-
-                    //if (prefab_available_part.CrewCapacity > 0 || prefab_available_part.FindModulesImplementing<ModuleCommand>().Count > 0)
-                    //{
-                    //    Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNModuleRadiation");
-                    //    if (type != null)
-                    //    {
-                    //        FNModuleRadiation pm = prefab_available_part.gameObject.AddComponent(type) as FNModuleRadiation;
-                    //        prefab_available_part.Modules.Add(pm);
-                    //        pm.rad_hardness = (float)(prefab_available_part.mass / (Math.Max(prefab_available_part.CrewCapacity, 0.1)) * 7.5);
-                    //        AvailablePart.ModuleInfo minfo = new AvailablePart.ModuleInfo();
-                    //        minfo.moduleName = "Radiation Status";
-                    //        minfo.info = pm.GetInfo();
-                    //        available_part.moduleInfos.Add(minfo);
-                    //    }
-                    //    print("Adding ModuleRadiation to " + prefab_available_part.name);
-                    //}
                 }
                 catch (Exception ex)
                 {
