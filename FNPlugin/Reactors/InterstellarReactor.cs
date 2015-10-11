@@ -178,6 +178,7 @@ namespace FNPlugin
         protected GUIStyle bold_label;
         protected float previousTimeWarp;
         protected bool _hasPowerUpgradeTechnology;
+        protected bool? hasBimodelUpgradeTechReq;
 
         protected PartResource thermalPowerResource = null;
         protected PartResource chargedPowerResource = null;
@@ -310,7 +311,17 @@ namespace FNPlugin
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
-        public float ThermalEnergyEfficiency { get { return PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq) ? thermalEnergyEfficiency : 0; } }
+        public bool HasBimodelUpgradeTechReq
+        {
+            get
+            {
+                if (hasBimodelUpgradeTechReq == null)
+                    hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
+                return (bool)hasBimodelUpgradeTechReq;
+            }
+        }
+
+        public float ThermalEnergyEfficiency { get { return HasBimodelUpgradeTechReq ? thermalEnergyEfficiency : 0; } }
 
         public float ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
 
@@ -526,6 +537,7 @@ namespace FNPlugin
             PowerOutputBase = PowerOutput;
             upgradedPowerOutputBase = upgradedPowerOutput;
             finalPowerOutput = upgradedPowerOutput * powerUpgradeTechMult;
+            hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
 
             // initialise resource defenitions
             thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
