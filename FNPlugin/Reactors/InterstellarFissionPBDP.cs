@@ -44,9 +44,9 @@ namespace FNPlugin
             IsEnabled = false;
         }
 
-        public float MaximumChargedIspMult { get { return 11.4f; } }
+        public float MaximumChargedIspMult { get { return 114; } }
 
-        public float MinimumChargdIspMult { get { return 114; } }
+        public float MinimumChargdIspMult { get { return 11.4f ; } }
 
         public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 

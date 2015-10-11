@@ -14,8 +14,8 @@ namespace FNPlugin
 
 		public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
-        public float MaximumChargedIspMult { get { return 1f; } }
+        public float MaximumChargedIspMult { get { return 100f; } }
 
-        public float MinimumChargdIspMult { get { return 100; } }
+        public float MinimumChargdIspMult { get { return 1; } }
     }
 }

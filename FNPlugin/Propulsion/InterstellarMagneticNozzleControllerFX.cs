@@ -49,6 +49,7 @@ namespace FNPlugin
 		protected IChargedParticleSource _attached_reactor;
         protected int _attached_reactor_distance;
         protected float exchanger_thrust_divisor;
+        protected double calculatedIsp;
         
 
 		public override void OnStart(PartModule.StartState state) 
@@ -84,6 +85,9 @@ namespace FNPlugin
                 UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
                 return;
             }
+
+            double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
+            calculatedIsp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
 
             throtleExponent = Mathf.Abs(Mathf.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
 
@@ -135,10 +139,7 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null)
             {
-                double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
-                var calculatedIsp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
                 double minimum_isp = calculatedIsp * _attached_reactor.MinimumChargdIspMult;
-
                 var maximum_isp = calculatedIsp * _attached_reactor.MaximumChargedIspMult; //113.835;
                 var current_isp = _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
 
