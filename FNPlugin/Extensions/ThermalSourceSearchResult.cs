@@ -39,7 +39,6 @@ namespace FNPlugin.Extensions
         {
             if (stackdepth == 0)
             {
-                //var thermalsources = currentpart.FindModulesImplementing<IThermalSource>().Where(s => s.IsThermalSource);
                 var thermalsources = currentpart.FindModulesImplementing<IThermalSource>().Where(condition);
 
                 var source = skipSelfContained ? thermalsources.FirstOrDefault(s => !s.IsSelfContained) : thermalsources.FirstOrDefault();
@@ -49,7 +48,9 @@ namespace FNPlugin.Extensions
                     return null;
             }
 
-            int stackDepthCost = currentpart.partInfo.title.Contains("Non-androgynous") && currentpart.Modules.Contains("ModuleAdaptiveDockingNode") ? 0 : 1;
+            var thermalcostModifier = currentpart.FindModuleImplementing<ThermalPowerTransport>();
+
+            float stackDepthCost = thermalcostModifier != null ? thermalcostModifier.thermalCost : 1;
 
             foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
             {

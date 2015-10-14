@@ -12,7 +12,7 @@ namespace FNPlugin
 		//Persistent False
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiUnits = "m")]
 		public float radius;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = " t")]
         public float partMass;
         [KSPField(isPersistant = false)]
         public float powerThrustMultiplier = 1.0f;

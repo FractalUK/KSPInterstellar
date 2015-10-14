@@ -96,6 +96,7 @@
     <Compile Include="Propulsion\FNRCSSounds.cs" />
     <Compile Include="Propulsion\PropellantControl.cs" />
     <Compile Include="Propulsion\ThermalEnginePropellant.cs" />
+    <Compile Include="Propulsion\ThermalPowerTransport.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />
