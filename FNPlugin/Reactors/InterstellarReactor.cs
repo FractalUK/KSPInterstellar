@@ -349,7 +349,7 @@ namespace FNPlugin
 
         public virtual string TypeName { get { return isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName; } }
 
-        public double ChargedPowerRatio { get { return current_fuel_mode != null ? (float)current_fuel_mode.ChargedPowerRatio : 0f; } }
+        public virtual double ChargedPowerRatio { get { return current_fuel_mode != null ? (float)current_fuel_mode.ChargedPowerRatio : 0f; } }
 
         public virtual float CoreTemperature 
         { 
@@ -538,6 +538,16 @@ namespace FNPlugin
             upgradedPowerOutputBase = upgradedPowerOutput;
             finalPowerOutput = upgradedPowerOutput * powerUpgradeTechMult;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
+
+            if (!part.Resources.Contains(FNResourceManager.FNRESOURCE_THERMALPOWER))
+            {
+                ConfigNode node = new ConfigNode("RESOURCE");
+                node.AddValue("name", FNResourceManager.FNRESOURCE_THERMALPOWER);
+                node.AddValue("maxAmount", PowerOutput);
+                node.AddValue("possibleAmount", 0);
+                part.AddResource(node);
+                part.Resources.UpdateList();
+            }
 
             // initialise resource defenitions
             thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);

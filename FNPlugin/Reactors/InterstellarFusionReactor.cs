@@ -16,6 +16,10 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
 
+        public float MaximumChargedIspMult { get { return 100 ; } }
+
+        public float MinimumChargdIspMult { get { return 1; } }
+
         public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }

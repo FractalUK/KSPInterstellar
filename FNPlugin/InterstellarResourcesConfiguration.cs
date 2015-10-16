@@ -22,11 +22,9 @@ namespace FNPlugin
         private const String _LITHIUM = "Lithium";
         private const String _PLUTONIUM_238 = "Plutonium-238";
         private const String _ALUMINA = "Alumina";
-        //private const String _HELIUM = "LqdHelium";
-        //private const String _HELIUM3 = "LqdHe3";
         private const String _DEUTERIUM = "LqdDeuterium";
 
-        private String _uranium_TerraFloride = "EnrichedUranium";
+        private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
         private String _ammonia = "LqdAmmonia";
         private String _argon = "ArgonGas";
