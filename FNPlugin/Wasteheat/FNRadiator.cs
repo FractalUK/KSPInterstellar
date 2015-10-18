@@ -79,7 +79,6 @@ namespace FNPlugin
         public float wasteheatRatio;
 
         const float rad_const_h = 1000;
-        //const double alpha = 0.001998001998001998001998001998;
         const String kspShader = "KSP/Emissive/Bumped Specular";
 
 		protected Animation deployAnim;
@@ -87,7 +86,6 @@ namespace FNPlugin
 		protected float convectedThermalPower;
 		protected float current_rad_temp;
 		protected float directionrotate = 1;
-		//protected float oldangle = 0;
 		protected Vector3 original_eulers;
 		protected Transform pivot;
 		protected long last_draw_update = 0;
@@ -267,7 +265,6 @@ namespace FNPlugin
 		    convectedThermalPower = 0;
 		    current_rad_temp = 0;
 		    directionrotate = 1;
-		    //oldangle = 0;
 		    last_draw_update = 0;
             update_count = 0;
 		    hasrequiredupgrade = false;

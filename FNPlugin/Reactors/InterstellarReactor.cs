@@ -427,8 +427,8 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Activate Reactor", active = false)]
-        public void ActivateReactor()
+
+        public virtual void StartReactor()
         {
             if (HighLogic.LoadedSceneIsEditor)
                 startDisabled = false;
@@ -438,6 +438,13 @@ namespace FNPlugin
 
                 IsEnabled = true;
             }
+        }
+
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Activate Reactor", active = false)]
+        public void ActivateReactor()
+        {
+            StartReactor();
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deactivate Reactor", active = true)]
@@ -490,7 +497,7 @@ namespace FNPlugin
         {
             if (IsNuclear) return;
 
-            ActivateReactor();
+            StartReactor();
         }
 
         [KSPAction("Deactivate Reactor")]

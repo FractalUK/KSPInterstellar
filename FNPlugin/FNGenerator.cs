@@ -9,6 +9,15 @@ namespace FNPlugin
 {
     enum PowerStates { powerChange, powerOnline, powerDown, powerOffline };
 
+    [KSPModule("Super Capacitator")]
+    class KspiSuperCapacitator : PartModule
+    {
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Max Capacity", guiUnits = " MWe")]
+        public float maxStorageCapacityMJ = 0;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        public float partMass = 0;
+    }
+
     [KSPModule("Electrical Generator")]
     class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource
     {
@@ -20,7 +29,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
-        public bool chargedParticleMode;
+        public bool chargedParticleMode = false;
 
         // Persistent False
         [KSPField(isPersistant = false)]

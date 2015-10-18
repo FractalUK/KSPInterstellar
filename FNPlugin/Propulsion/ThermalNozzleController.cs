@@ -738,7 +738,7 @@ namespace FNPlugin
                     velCurve.Add(0, 0.1f);
                     velCurve.Add(3f - (jetTechBonus / 5.368f), 1f);
                     velCurve.Add(4f, 1f);
-                    velCurve.Add(8f, 0 + jetTechBonusPercentage);
+                    velCurve.Add(12f, 0 + jetTechBonusPercentage);
 
                     // configure atmCurve
                     atmCurve.Add(0, 0, 0, 0);

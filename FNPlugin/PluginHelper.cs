@@ -249,6 +249,31 @@ namespace FNPlugin
 
         public static bool hasTech(string techid)
         {
+            if (ResearchAndDevelopment.Instance == null)
+            {
+                UnityEngine.Debug.Log("[KSPI] - did not find research and development instance, therefore attemp to retieve from save file");
+                return hasTechFromSave(techid);
+            }
+
+            var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+            if (techstate != null)
+            {
+                var available = techstate.state == RDTech.State.Available;
+                if (available)
+                    UnityEngine.Debug.Log("[KSPI] - found techid " + techid + " available");
+                else
+                    UnityEngine.Debug.Log("[KSPI] - found techid " + techid + " unavailable");
+                return available;
+            }
+            else
+            {
+                UnityEngine.Debug.Log("[KSPI] - did not find techid " + techid);
+                return false;
+            }
+        }
+
+        public static bool hasTechFromSave(string techid)
+        {
             try
             {
                 string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
@@ -264,15 +289,18 @@ namespace FNPlugin
                         {
                             if (technode.GetValue("id") == techid)
                             {
+                                UnityEngine.Debug.Log("[KSPI] - found techid " + techid + " in save");
                                 return true;
                             }
                         }
                     }
                 }
+                UnityEngine.Debug.Log("[KSPI] - we did not find techid " + techid + " in save");
                 return false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                UnityEngine.Debug.LogError("[KSPI] - hasTech exception: " + ex.Message);
                 return false;
             }
         }
