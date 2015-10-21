@@ -45,6 +45,8 @@ namespace FNPlugin
         public float IspTempMultOffset = 0;
         [KSPField(isPersistant = false)]
         public float sootHeatDivider = 150;
+        [KSPField(isPersistant = false)]
+        public float sootThrustDivider = 150;
 
         //[KSPField(isPersistant = false)]
         //public float heatProduction = 1;
@@ -1074,7 +1076,7 @@ namespace FNPlugin
             }
 
             final_max_engine_thrust = !Single.IsInfinity(max_thrust_in_current_atmosphere) && !Single.IsNaN(max_thrust_in_current_atmosphere)
-                ? max_thrust_in_current_atmosphere * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / sootHeatDivider)
+                ? max_thrust_in_current_atmosphere * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / sootThrustDivider)
                 : 0.000001f;
 
             // amount of fuel being used at max throttle with no atmospheric limits

@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,9 +24,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
         public float resourceBarRatio;
         [KSPField(isPersistant = false)]
-        public float chargedPowerRatioModifier = 0.46f;
-        [KSPField(isPersistant = false)]
         public float thermalRatioEfficiencyModifier = 0.81f;
+        [KSPField(isPersistant = false)]
+        public float maximumChargedIspMult = 114f;
+        [KSPField(isPersistant = false)]
+        public float minimumChargdIspMult = 11.4f;
 
         private float optimalTempDifference;
      
@@ -44,9 +45,9 @@ namespace FNPlugin
             IsEnabled = false;
         }
 
-        public float MaximumChargedIspMult { get { return 114; } }
+        public float MaximumChargedIspMult { get { return maximumChargedIspMult; } }
 
-        public float MinimumChargdIspMult { get { return 11.4f ; } }
+        public float MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
         public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
@@ -54,7 +55,7 @@ namespace FNPlugin
 
         public override float MaximumThermalPower { get { return base.MaximumThermalPower * (float)ThermalRatioEfficiency; } }
 
-        public override double ChargedPowerRatio { get { return base.ChargedPowerRatio * chargedPowerRatioModifier; } }
+        public override double ChargedPowerRatio { get { return base.ChargedPowerRatio; } }
 
         public override float MaximumChargedPower { get  { return base.MaximumChargedPower * (float)ThermalRatioEfficiency; } }
 

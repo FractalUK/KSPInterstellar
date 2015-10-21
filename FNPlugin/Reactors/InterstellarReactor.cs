@@ -323,7 +323,7 @@ namespace FNPlugin
 
         public float ThermalEnergyEfficiency { get { return HasBimodelUpgradeTechReq ? thermalEnergyEfficiency : 0; } }
 
-        public float ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
+        public float ChargedParticleEnergyEfficiency {  get { return chargedParticleEnergyEfficiency; } }
 
         public bool IsSelfContained { get { return containsPowerGenerator; } }
 
@@ -349,7 +349,15 @@ namespace FNPlugin
 
         public virtual string TypeName { get { return isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName; } }
 
-        public virtual double ChargedPowerRatio { get { return current_fuel_mode != null ? (float)current_fuel_mode.ChargedPowerRatio : 0f; } }
+        public virtual double ChargedPowerRatio 
+        { 
+            get 
+            { 
+                return current_fuel_mode != null
+                    ? current_fuel_mode.ChargedPowerRatio * ChargedParticleEnergyEfficiency
+                    : 0f; 
+            } 
+        }
 
         public virtual float CoreTemperature 
         { 

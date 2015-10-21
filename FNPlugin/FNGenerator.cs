@@ -499,7 +499,7 @@ namespace FNPlugin
                 }
                 else // charged particle mode
                 {
-                    _totalEff = directConversionEff * myAttachedReactor.ChargedParticleEnergyEfficiency;
+                    _totalEff = isupgraded ? upgradedDirectConversionEff : directConversionEff;
 
                     myAttachedReactor.NotifyActiveChargedEnergyGenrator(_totalEff, ElectricGeneratorType.charged_particle);
 
