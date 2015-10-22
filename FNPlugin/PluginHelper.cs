@@ -1,8 +1,8 @@
-﻿using System;
+﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 using System.Reflection;
 
 namespace FNPlugin
@@ -12,14 +12,39 @@ namespace FNPlugin
     {
         void Start()
         {
-            GameEvents.onVesselChange.Add(OnVesselChange);
+            //GameEvents.onVesselChange.Add(OnVesselChange);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
+            GameEvents.onVesselLoaded.Add(OnVesselLoaded);
+            GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
+            GameEvents.onGameStateSaved.Add(onGameStateSaved);
+
             Debug.Log("[KSP Interstellar] GameEventSubscriber Initialised");
         }
         void OnDestroy()
         {
-            GameEvents.onVesselChange.Remove(OnVesselChange);
+            //GameEvents.onVesselChange.Remove(OnVesselChange);
+            GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
+            GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
+            GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
+            GameEvents.onGameStateSaved.Remove(onGameStateSaved);
+
             Debug.Log("[KSP Interstellar] GameEventSubscriber Deinitialised");
+        }
+
+        void onGameStateSaved(Game game)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected onGameStateSaved");
+            PluginHelper.LoadSaveFile();
+        }
+
+        void OnVesselLoaded(Vessel vessel)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselLoaded");
+        }
+
+        void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnTechnologyResearched");
         }
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
@@ -46,10 +71,10 @@ namespace FNPlugin
             }
         }
 
-        void OnVesselChange(Vessel v)
-        {
-            //Debug.Log("[KSP Interstellar] OnVesselChange is called");
-        }
+        //void OnVesselChange(Vessel v)
+        //{
+        //    Debug.Log("[KSP Interstellar] OnVesselChange is called");
+        //}
     }
 
 
@@ -249,32 +274,62 @@ namespace FNPlugin
 
         public static bool hasTech(string techid)
         {
-            try
+            if (ResearchAndDevelopment.Instance == null)
+                return HasTechFromSaveFile(techid);
+
+            var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+            if (techstate != null)
             {
-                string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-                ConfigNode config = ConfigNode.Load(persistentfile);
-                ConfigNode gameconf = config.GetNode("GAME");
-                ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
-                foreach (ConfigNode scenario in scenarios)
+                var available = techstate.state == RDTech.State.Available;
+                if (available)
+                    UnityEngine.Debug.Log("[KSPI] - found techid " + techid + " available");
+                else
+                    UnityEngine.Debug.Log("[KSPI] - found techid " + techid + " unavailable");
+                return available;
+            }
+            else
+            {
+                UnityEngine.Debug.Log("[KSPI] - did not find techid " + techid);
+                return false;
+            }
+        }
+
+        private static HashSet<string> researchedTechs;
+
+        public static void LoadSaveFile()
+        {
+            string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+            UnityEngine.Debug.Log("[KSPI] - Loading ConfigNode " + persistentfile);
+            ConfigNode config = ConfigNode.Load(persistentfile);
+            researchedTechs = new HashSet<string>();
+            ConfigNode gameconf = config.GetNode("GAME");
+            ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
+            foreach (ConfigNode scenario in scenarios)
+            {
+                if (scenario.GetValue("name") == "ResearchAndDevelopment")
                 {
-                    if (scenario.GetValue("name") == "ResearchAndDevelopment")
+                    ConfigNode[] techs = scenario.GetNodes("Tech");
+                    foreach (ConfigNode technode in techs)
                     {
-                        ConfigNode[] techs = scenario.GetNodes("Tech");
-                        foreach (ConfigNode technode in techs)
-                        {
-                            if (technode.GetValue("id") == techid)
-                            {
-                                return true;
-                            }
-                        }
+                        var technodename = technode.GetValue("id");
+                        researchedTechs.Add(technodename);
                     }
                 }
-                return false;
             }
-            catch (Exception)
-            {
-                return false;
-            }
+        }
+
+        public static bool HasTechFromSaveFile(string techid)
+        {
+            if (researchedTechs == null)
+                LoadSaveFile();
+
+            bool found = researchedTechs.Contains(techid);
+            if (found)
+                UnityEngine.Debug.Log("[KSPI] - found techid " + techid + " in saved hash");
+            else
+                UnityEngine.Debug.Log("[KSPI] - we did not find techid " + techid + " in saved hash");
+
+            return found;
         }
 
         public static bool HasTechRequirmentOrEmpty(string techName)
@@ -443,67 +498,6 @@ namespace FNPlugin
             else
                 return vessel.mainBody.scienceValues.InSpaceHighDataValue;
         }
-
-        //public static float getScienceMultiplier(int refbody, bool landed)
-        //{
-        //    float multiplier = 1;
-
-        //    if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY)
-        //        multiplier = 5f;
-        //    else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS)
-        //        multiplier = 2.5f;
-        //    else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP)
-        //        multiplier = 10f;
-        //    else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL)
-        //        multiplier = 12f;
-        //    else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO)
-        //        multiplier = 20f;
-        //    else if (refbody == REF_BODY_DRES)
-        //        multiplier = 7.5f;
-        //    else if (refbody == REF_BODY_KERBIN)
-        //        multiplier = 2f;
-        //    else if (refbody == REF_BODY_KERBOL)
-        //        multiplier = 15f;
-        //    else
-        //        multiplier = 20f; // must be somewhere special
-
-        //    if (landed)
-        //    {
-        //        if (refbody == REF_BODY_TYLO)
-        //            multiplier *= 3f;
-        //        if (refbody == REF_BODY_KERBIN)
-        //            multiplier *= 0.5f; // Starting on Kerbin is earier than getting a lab into orbit
-        //        else if (refbody == REF_BODY_EVE)
-        //            multiplier *= 2.5f;
-        //        else
-        //            multiplier *=  2f;
-        //    }
-
-        //    return multiplier;
-        //}
-
-        //public static float getImpactorScienceMultiplier(int refbody)
-        //{
-        //    float multiplier = 1;
-
-        //    if (refbody == REF_BODY_DUNA || refbody == REF_BODY_EVE || refbody == REF_BODY_IKE || refbody == REF_BODY_GILLY)
-        //        multiplier = 7f;
-        //    else if (refbody == REF_BODY_MUN || refbody == REF_BODY_MINMUS)
-        //        multiplier = 5f;
-        //    else if (refbody == REF_BODY_JOOL || refbody == REF_BODY_TYLO || refbody == REF_BODY_POL || refbody == REF_BODY_BOP)
-        //        multiplier = 9f;
-        //    else if (refbody == REF_BODY_LAYTHE || refbody == REF_BODY_VALL)
-        //        multiplier = 11f;
-        //    else if (refbody == REF_BODY_EELOO || refbody == REF_BODY_MOHO)
-        //        multiplier = 14f;
-        //    else if (refbody == REF_BODY_DRES)
-        //        multiplier = 8f;
-        //    else if (refbody == REF_BODY_KERBIN)
-        //        multiplier = 0.5f;
-        //    else
-        //        multiplier = 0f;
-        //    return multiplier;
-        //}
 
         public static string getFormattedPowerString(double power, string shortFormat = "0", string longFormat = "0.0")
         {

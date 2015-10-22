@@ -323,7 +323,7 @@ namespace FNPlugin
 
         public float ThermalEnergyEfficiency { get { return HasBimodelUpgradeTechReq ? thermalEnergyEfficiency : 0; } }
 
-        public float ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
+        public float ChargedParticleEnergyEfficiency {  get { return chargedParticleEnergyEfficiency; } }
 
         public bool IsSelfContained { get { return containsPowerGenerator; } }
 
@@ -349,7 +349,15 @@ namespace FNPlugin
 
         public virtual string TypeName { get { return isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName; } }
 
-        public virtual double ChargedPowerRatio { get { return current_fuel_mode != null ? (float)current_fuel_mode.ChargedPowerRatio : 0f; } }
+        public virtual double ChargedPowerRatio 
+        { 
+            get 
+            { 
+                return current_fuel_mode != null
+                    ? current_fuel_mode.ChargedPowerRatio * ChargedParticleEnergyEfficiency
+                    : 0f; 
+            } 
+        }
 
         public virtual float CoreTemperature 
         { 
@@ -427,8 +435,8 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Activate Reactor", active = false)]
-        public void ActivateReactor()
+
+        public virtual void StartReactor()
         {
             if (HighLogic.LoadedSceneIsEditor)
                 startDisabled = false;
@@ -438,6 +446,13 @@ namespace FNPlugin
 
                 IsEnabled = true;
             }
+        }
+
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Activate Reactor", active = false)]
+        public void ActivateReactor()
+        {
+            StartReactor();
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deactivate Reactor", active = true)]
@@ -490,7 +505,7 @@ namespace FNPlugin
         {
             if (IsNuclear) return;
 
-            ActivateReactor();
+            StartReactor();
         }
 
         [KSPAction("Deactivate Reactor")]

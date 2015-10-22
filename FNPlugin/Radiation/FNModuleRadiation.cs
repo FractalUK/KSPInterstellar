@@ -84,7 +84,10 @@ namespace FNPlugin {
                     }
                 }
             }
-            catch (Exception ex) { }
+            catch (Exception ex) 
+            {
+                UnityEngine.Debug.LogError("[KSPI] - InterstellarReactor.FNModuleRadiation exception: " + ex.Message);
+            }
         }
 
         public override void OnStart(PartModule.StartState state)
