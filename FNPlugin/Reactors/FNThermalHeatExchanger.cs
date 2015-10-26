@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FNPlugin  
@@ -190,31 +189,13 @@ namespace FNPlugin
 			setupThermalPower ();
 		}
 
-		public float getCoreTemp() {
-            return 1500;
-		}
-
-        public float GetCoreTempAtRadiatorTemp(float rad_temp) {
-            return 1500;
-        }
+        public float GetCoreTempAtRadiatorTemp(float rad_temp) {  return 1500; }
 
         public float GetThermalPowerAtTemp(float temp) {
             return _thermalpower;
         }
 
-		public float getThermalPower() {
-			return _thermalpower;
-		}
-
-        public float getChargedPower() {
-            return 0;
-        }
-
-		public bool getIsNuclear() {
-			return false;
-		}
-
-		public float getRadius() {
+		public float GetRadius() {
 			return radius;
 		}
 
@@ -222,7 +203,7 @@ namespace FNPlugin
             return IsEnabled;
         }
 
-        public void enableIfPossible() {
+        public void EnableIfPossible() {
             IsEnabled = true;
         }
 

@@ -57,6 +57,8 @@ namespace FNPlugin
         //[KSPField(isPersistant = false)]
         //public float emisiveConstantExp = 0.6f;
         [KSPField(isPersistant = false)]
+        public float delayedThrottleFactor = 0.5f;
+        [KSPField(isPersistant = false)]
         public float maxTemp = 2750;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
@@ -120,7 +122,7 @@ namespace FNPlugin
         //public string staticPresure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
         public float pressureTreshold;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmospheric Limit")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Atmospheric Limit")]
         public float atmospheric_limit;
         //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Thermal")]
         //public string requestedReactorThermalPower;
@@ -391,10 +393,10 @@ namespace FNPlugin
                 propellants = getPropellants(isJet);
             }
 
-            bool hasJetUpgradeTech0 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech0);
-            bool hasJetUpgradeTech1 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-            bool hasJetUpgradeTech2 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-            bool hasJetUpgradeTech3 = HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
+            bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech0);
+            bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
+            bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
+            bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
 
             jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f *Convert.ToInt32(hasJetUpgradeTech3);
             jetTechBonusPercentage = jetTechBonus / 26.84f;
@@ -516,10 +518,6 @@ namespace FNPlugin
             SetupPropellants(true, true);
         }
 
-        public static bool HasTechRequirementOrEmpty(string techName)
-        {
-            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
-        }
 
         public void SetupPropellants(bool forward = true, bool notifySwitching = false)
         {
@@ -611,11 +609,11 @@ namespace FNPlugin
                             missingResources += curEngine_propellant.name + " ";
                         next_propellant = true;
                     }
-                    else if (!HasTechRequirementOrEmpty(_fuelTechRequirement))
+                    else if (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         next_propellant = true;
                     else if (_fuelRequiresUpgrade && !isupgraded)
                         next_propellant = true;
-                    else if (_propellantIsLFO && !HasTechRequirementOrEmpty(afterburnerTechReq))
+                    else if (_propellantIsLFO && !PluginHelper.HasTechRequirementOrEmpty(afterburnerTechReq))
                         next_propellant = true;
                 }
 
@@ -639,11 +637,11 @@ namespace FNPlugin
                 // Still ignore propellants that don't exist or we cannot use due to the limmitations of the engine
                 if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && (switches <= propellants.Length || fuel_mode != 0))
                     next_propellant = true;
-                else if (!HasTechRequirementOrEmpty(_fuelTechRequirement))
+                else if (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                     next_propellant = true;
                 else if (_fuelRequiresUpgrade && !isupgraded)
                     next_propellant = true;
-                else if (_propellantIsLFO && !HasTechRequirementOrEmpty(afterburnerTechReq))
+                else if (_propellantIsLFO && !PluginHelper.HasTechRequirementOrEmpty(afterburnerTechReq))
                     next_propellant = true;
 
                 if (next_propellant)
@@ -737,9 +735,11 @@ namespace FNPlugin
                     atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
                     atmosphereCurve.Add(1, Mathf.Min(_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
 
+                    var curveChange = jetTechBonus / 5.368f;
+
                     velCurve.Add(0, 0.1f);
-                    velCurve.Add(3f - (jetTechBonus / 5.368f), 1f);
-                    velCurve.Add(4f, 1f);
+                    velCurve.Add(3f - curveChange, 1f);
+                    velCurve.Add(4f + curveChange, 1f);
                     velCurve.Add(12f, 0 + jetTechBonusPercentage);
 
                     // configure atmCurve
@@ -754,10 +754,10 @@ namespace FNPlugin
                 }
                 else if (jetPerformanceProfile == 1)
                 {
-                    atmosphereCurve.Add(0, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    //atmosphereCurve.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    //atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    //atmosphereCurve.Add(1, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0, Mathf.Min(_maxISP * 5.0f / 4.0f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.15f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.3f, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereCurve.Add(1, Mathf.Min(_maxISP, PluginHelper.MaxThermalNozzleIsp));
 
                     velCurve.Add(0.00f, 0.50f + jetTechBonusPercentage);
                     velCurve.Add(1.50f, 1.00f);
@@ -823,24 +823,14 @@ namespace FNPlugin
                 }
                 old_intake = currentintakeatm;
             }
-            atmospheric_limit = Mathf.MoveTowards(old_atmospheric_limit, atmospheric_limit, 0.1f);
+            atmospheric_limit = Mathf.MoveTowards(old_atmospheric_limit, atmospheric_limit, 0.2f);
             old_atmospheric_limit = atmospheric_limit;
             return atmospheric_limit;
         }
 
-		public double getNozzleFlowRate() 
+		public double GetNozzleFlowRate() 
         {
-			return max_fuel_flow_rate;
-		}
-
-		public bool getUpdating() 
-        {
-			return static_updating;
-		}
-
-		public bool hasStarted() 
-        {
-			return hasstarted;
+            return myAttachedEngine.isOperational ? max_fuel_flow_rate : 0;
 		}
 
         public void EstimateEditorPerformance()
@@ -926,7 +916,7 @@ namespace FNPlugin
 
             delayedThrottle = _currentpropellant_is_jet || myAttachedEngine.currentThrottle < delayedThrottle
                 ? myAttachedEngine.currentThrottle
-                : Mathf.MoveTowards(delayedThrottle, myAttachedEngine.currentThrottle, 0.5f * TimeWarp.fixedDeltaTime);
+                : Mathf.MoveTowards(delayedThrottle, myAttachedEngine.currentThrottle, delayedThrottleFactor * TimeWarp.fixedDeltaTime);
 
             thermalRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
             _currentMaximumPower = AttachedReactor.MaximumPower * delayedThrottle;
@@ -1013,7 +1003,7 @@ namespace FNPlugin
         private void   GenerateThrustFromReactorHeat()
         {
             if (!AttachedReactor.IsActive)
-                AttachedReactor.enableIfPossible();
+                AttachedReactor.EnableIfPossible();
 
             GetMaximumIspAndThrustMultiplier();
 
@@ -1097,7 +1087,7 @@ namespace FNPlugin
 
             if (atmospheric_limit > 0 && atmospheric_limit != 1 && !double.IsInfinity(atmospheric_limit) && !double.IsNaN(atmospheric_limit))
             {
-                max_fuel_flow_rate = max_fuel_flow_rate / atmospheric_limit;
+                max_fuel_flow_rate = max_fuel_flow_rate * atmospheric_limit;
             }
 
             engineHeatProduction = (max_fuel_flow_rate >= 0.0001) ? baseHeatProduction * 350 / max_fuel_flow_rate /(float)Math.Pow(_maxISP, 0.8)  : baseHeatProduction;
@@ -1273,7 +1263,7 @@ namespace FNPlugin
                 if (prop_node == null || prop_node[nozzle.Fuel_mode] == null) continue;
 
                 ConfigNode[] assprops = prop_node[nozzle.Fuel_mode].GetNodes("PROPELLANT");
-                if (assprops[0].GetValue("name").Equals(resourcename) && nozzle.getNozzleFlowRate() > 0)
+                if (assprops[0].GetValue("name").Equals(resourcename) && nozzle.GetNozzleFlowRate() > 0)
                     engines++;
 			}
 			return Math.Max(engines, 1);
@@ -1297,7 +1287,7 @@ namespace FNPlugin
 				if (!nozzle.Static_updating2) 
 					updating = false;
 							
-				if (nozzle.getNozzleFlowRate () > 0) 
+				if (nozzle.GetNozzleFlowRate () > 0) 
 					engines++;
 			}
 
@@ -1314,7 +1304,7 @@ namespace FNPlugin
 
                     if (prop_node[nozzle.Fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
 
-					enum_rate += nozzle.getNozzleFlowRate ();
+					enum_rate += nozzle.GetNozzleFlowRate ();
 					nozzle.Static_updating2 = false;
 				}
 
@@ -1360,7 +1350,7 @@ namespace FNPlugin
             get
             {
                 return _propellantIsLFO
-                    ? powerTrustMultiplierJet * (jetTechBonus / 21.472)
+                    ? powerTrustMultiplierJet  //* (jetTechBonus / 21.472)
                     : powerTrustMultiplier;
             }
         }
@@ -1417,9 +1407,9 @@ namespace FNPlugin
 
         private double GetHeatExchangerThrustDivisor()
         {
-            if (AttachedReactor == null || AttachedReactor.getRadius() == 0 || radius == 0 || _myAttachedReactor.GetFractionThermalReciever(id) == 0) return 0;
+            if (AttachedReactor == null || AttachedReactor.GetRadius() == 0 || radius == 0 || _myAttachedReactor.GetFractionThermalReciever(id) == 0) return 0;
 
-            var fractionalReactorRadius = Math.Sqrt(Math.Pow(AttachedReactor.getRadius(), 2) * _myAttachedReactor.GetFractionThermalReciever(id));
+            var fractionalReactorRadius = Math.Sqrt(Math.Pow(AttachedReactor.GetRadius(), 2) * _myAttachedReactor.GetFractionThermalReciever(id));
 
             // scale down thrust if it's attached to the wrong sized reactor
             double heat_exchanger_thrust_divisor = radius > fractionalReactorRadius

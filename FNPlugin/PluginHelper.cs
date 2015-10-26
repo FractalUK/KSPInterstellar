@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using OpenResourceSystem;
 
 namespace FNPlugin
 {
@@ -59,6 +60,8 @@ namespace FNPlugin
 
             if (shouldReinitialise)
             {
+                ORSHelper.removeVesselFromCache(change.host);
+
                 Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange reinitialising");
 
                 var generators = change.host.FindPartModulesImplementing<FNGenerator>();
@@ -271,6 +274,11 @@ namespace FNPlugin
         public static string JetUpgradeTech3 { get { return _jetUpgradeTech3; } private set { _jetUpgradeTech3 = value; } }
 
         #endregion
+
+        public static bool HasTechRequirementOrEmpty(string techName)
+        {
+            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
+        }
 
         public static bool hasTech(string techid)
         {

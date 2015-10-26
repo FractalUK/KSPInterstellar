@@ -11,6 +11,6 @@ namespace FNPlugin.Propulsion
         bool Static_updating { get; set; }
         bool Static_updating2 { get; set; }
         ConfigNode[] getPropellants();
-        double getNozzleFlowRate();
+        double GetNozzleFlowRate();
     }
 }

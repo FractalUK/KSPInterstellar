@@ -54,6 +54,14 @@ namespace OpenResourceSystem
             return fixedRequestResource(part, resourcename, resource_amount, flow);
         }
 
+        public static void removeVesselFromCache(Vessel vessel)
+        {
+            if (orsPropellantDictionary.ContainsKey(vessel))
+                orsPropellantDictionary.Remove(vessel);
+        }
+
+        private static Dictionary<Vessel, Dictionary<Part, ORSPropellantControl>> orsPropellantDictionary = new Dictionary<Vessel,Dictionary<Part,ORSPropellantControl>>();
+
         public static double fixedRequestResource(Part part, string resourcename, double resource_amount, ResourceFlowMode flow) 
         {
             if (flow == ResourceFlowMode.NULL)
@@ -62,14 +70,20 @@ namespace OpenResourceSystem
             if (flow == ResourceFlowMode.ALL_VESSEL) 
             { // use our code
 
-                //List<PartResource> prl = part.GetConnectedResources(resourcename).ToList();
-                var partsWithResource = part.vessel.parts.Where(p => p.Resources.Contains(resourcename)); //.Select(p => p.Resources[resourcename]).ToList();
+                var partsWithResource = part.vessel.parts.Where(p => p.Resources.Contains(resourcename)); 
 
-                var partLookup = part.vessel.FindPartModulesImplementing<ORSPropellantControl>().ToDictionary( p => p.part);
+                Dictionary<Part, ORSPropellantControl> partLookup;
+                if (orsPropellantDictionary.ContainsKey(part.vessel))
+                    partLookup = orsPropellantDictionary[part.vessel];
+                else
+                {
+                    partLookup = part.vessel.FindPartModulesImplementing<ORSPropellantControl>().ToDictionary(p => p.part);
+                    orsPropellantDictionary.Add(part.vessel, partLookup);
+                }
 
-                List<PartResource> prl = partsWithResource.Where(p => !partLookup.ContainsKey(p) || ((ORSPropellantControl)partLookup[p]).isPropellant).Select(p => p.Resources[resourcename]).ToList();
+                var partResources = partsWithResource.Where(p => !partLookup.ContainsKey(p) || ((ORSPropellantControl)partLookup[p]).isPropellant).Select(p => p.Resources[resourcename]);
 
-                prl = prl.Where(p => p.flowState == true).ToList();
+                var prl = partResources.Where(p => p.flowState == true).ToList();
                 double max_available = 0;
                 double spare_capacity = 0;
 

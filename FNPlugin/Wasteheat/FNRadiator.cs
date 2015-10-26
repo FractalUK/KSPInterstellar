@@ -306,7 +306,8 @@ namespace FNPlugin
                 return;
             }
 
-            list_of_thermal_sources = vessel.FindPartModulesImplementing<IThermalSource>();
+            // find all eal thermal sources
+            list_of_thermal_sources = vessel.FindPartModulesImplementing<IThermalSource>().Where(tc => tc.IsThermalSource).ToList();
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
@@ -410,20 +411,6 @@ namespace FNPlugin
                 Fields["upgradeTechReq"].guiActive = !isupgraded;
                 Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade;
                 Fields["radiatorArea"].guiActive = !isupgraded;
-                //Fields["upgradedRadiatorArea"].guiActive = isupgraded;
-
-                //if (Double.IsNaN(radiatedThermalPower) || Double.IsNaN(convectedThermalPower) || Double.IsNaN(current_rad_temp))
-                //{
-                //    if (Double.IsNaN(radiatedThermalPower))
-                //        Debug.Log("Double.IsNaN detected in radiatedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
-                //    if (Double.IsNaN(convectedThermalPower))
-                //        Debug.Log("Double.IsNaN detected in convectedThermalPower, attepting to reinistialise Radiator. Report if this is called repeatedly");
-                //    if (Double.IsNaN(current_rad_temp))
-                //        Debug.Log("Double.IsNaN detected in current_rad_temp, attepting to reinistialise Radiator. Report if this is called repeatedly");
-
-                ////    OnStart(PartModule.StartState.None);
-                //}
-
                 Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
                 if ((moduleDeployableRadiator != null && moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || moduleDeployableRadiator == null)
                 {
@@ -467,24 +454,7 @@ namespace FNPlugin
                 convectedThermalPower = consumeWasteHeat(conv_power_dissip) / TimeWarp.fixedDeltaTime;
 
                 if (isDeployable)
-                {
-                    pressureLoad = (dynamic_pressure / 1.4854428818159e-3f) * 100;
-                    if (pressureLoad > 100)
-                    {
-                        if (radiatorIsEnabled)
-                        {
-                            if (isAutomated)
-                                Retract();
-                            else
-                            {
-                                part.deactivate();
-                                part.decouple(1);
-                            }
-                        }
-                    }
-                    else if (!radiatorIsEnabled && isAutomated)
-                        Deploy();
-                }
+                    DeployMentControl(dynamic_pressure);
 			}
             else
             {
@@ -496,8 +466,9 @@ namespace FNPlugin
             wasteheatRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             radiator_temperature_temp_val = radiatorTemp * Mathf.Pow(wasteheatRatio, 0.25f);
-            if (HasAnyActiveThermalSources())
-                radiator_temperature_temp_val = Math.Min(GetAverageTemperatureofOfThermalSource() / 1.01f, radiator_temperature_temp_val);
+            var activeThermalSources = GetActiveThermalSources();
+            if (activeThermalSources.Any())
+                radiator_temperature_temp_val = Math.Min(GetAverageTemperatureofOfThermalSource(activeThermalSources) / 1.01f, radiator_temperature_temp_val);
 
 			if (radiatorIsEnabled) 
             {
@@ -530,7 +501,6 @@ namespace FNPlugin
                 
 				if (isDeployable) 
                 {
-					//Vector3 pivrot = pivot.rotation.eulerAngles;
 					pivot.Rotate (Vector3.up * 5f * TimeWarp.fixedDeltaTime * directionrotate);
 
 					Vector3 sunpos = FlightGlobals.Bodies [0].transform.position;
@@ -540,7 +510,6 @@ namespace FNPlugin
 					float dot = Mathf.Asin (Vector3.Dot (pivot.transform.right, flatVectorToTarget)) / Mathf.PI * 180.0f;
 
 					float anglediff = -dot;
-					//oldangle = dot;
 					directionrotate = anglediff / 5 / TimeWarp.fixedDeltaTime;
 					directionrotate = Mathf.Min (3, directionrotate);
 					directionrotate = Mathf.Max (-3, directionrotate);
@@ -570,15 +539,38 @@ namespace FNPlugin
 
 		}
 
-        public float GetAverageTemperatureofOfThermalSource()
+        private void DeployMentControl(float dynamic_pressure)
         {
-            var active_reactors = list_of_thermal_sources.Where(ts => ts.IsActive && ts.IsThermalSource).ToList();
-            return active_reactors.Any() ? active_reactors.Sum(r => r.HotBathTemperature) / active_reactors.Count : 0;
+            if (dynamic_pressure <= 0) return;
+
+            pressureLoad = (dynamic_pressure / 1.4854428818159e-3f) * 100;
+            if (pressureLoad > 100)
+            {
+                if (radiatorIsEnabled)
+                {
+                    if (isAutomated)
+                        Retract();
+                    else
+                    {
+                        part.deactivate();
+                        part.decouple(1);
+                    }
+                }
+            }
+            else if (!radiatorIsEnabled && isAutomated)
+                Deploy();
         }
 
-        public bool HasAnyActiveThermalSources()
+        public float GetAverageTemperatureofOfThermalSource(List<IThermalSource> active_thermal_sources)
         {
-            return list_of_thermal_sources.Any(ts => ts.IsActive);
+            return active_thermal_sources.Any() 
+                ? active_thermal_sources.Sum(r => r.HotBathTemperature) / active_thermal_sources.Count 
+                : 3500;
+        }
+
+        public List<IThermalSource> GetActiveThermalSources()
+        {
+            return list_of_thermal_sources.Where(ts => ts.IsActive).ToList();
         }
 
         private float consumeWasteHeat(double wasteheatToConsume)

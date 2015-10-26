@@ -37,7 +37,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerHeatMultiplier = 20f;
         [KSPField(isPersistant = false)]
-        public float powerHeatBase = 1600f;
+        public float powerHeatBase = 3500f;
         [KSPField(isPersistant = false)]
         public float receiverType = 0;
         [KSPField(isPersistant = false)]
@@ -171,7 +171,8 @@ namespace FNPlugin
 
         public bool IsSelfContained { get { return false; } }
 
-        public float CoreTemperature { get { return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);  } }
+        //public float CoreTemperature { get { return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);  } }
+        public float CoreTemperature { get { return powerHeatBase; } }
 
         public float HotBathTemperature  {  get { return CoreTemperature * 1.5f; } }
 
@@ -469,27 +470,9 @@ namespace FNPlugin
             get { return isThermalReceiver ? 0 : powerInputMegajoules; }
         }
 
-        public float getMegajoules()
-        {
-            return (float)(powerInput / 1000);
-        }
-
-        public float getCoreTemp()
-        {
-            return 1500.0f;
-        }
-
         public virtual float GetCoreTempAtRadiatorTemp(float rad_temp)
         {
-            if (isThermalReceiver)
-                return 1500;
-            else
-                return float.MaxValue;
-        }
-
-        public float getThermalPower()
-        {
-            return ThermalPower;
+            return 3500;
         }
 
         public float GetThermalPowerAtTemp(float temp)
@@ -497,12 +480,7 @@ namespace FNPlugin
             return ThermalPower;
         }
 
-        public bool getIsNuclear()
-        {
-            return false;
-        }
-
-        public float getRadius()
+        public float GetRadius()
         {
             return radius;
         }
@@ -517,22 +495,7 @@ namespace FNPlugin
             return false;
         }
 
-        public bool isVolatileSource()
-        {
-            return true;
-        }
-
-        public float getChargedPower()
-        {
-            return 0;
-        }
-
-        public float getMinimumThermalPower()
-        {
-            return 0;
-        }
-
-        public void enableIfPossible()
+        public void EnableIfPossible()
         {
             if (!receiverIsEnabled)
                 receiverIsEnabled = true;
@@ -550,34 +513,6 @@ namespace FNPlugin
 
             return 0;
         }
-
-        /*
-        protected bool lineOfSightTo(Vessel vess)
-        {
-            Vector3d a = vessel.transform.position;
-            Vector3d b = PluginHelper.getVesselPos(vess);
-            
-            if (Vector3d.Distance(a, b) < 2500.0)           // if both vessels are active
-                return true;
-
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
-            {
-                Vector3d refminusa = referenceBody.position - a;
-                Vector3d bminusa = b - a;
-
-                if (Vector3d.Dot(refminusa, bminusa) > 0 && (bminusa.magnitude > refminusa.magnitude - referenceBody.Radius))
-                {
-                    Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-                    Vector3d tang_knot = referenceBody.position - tang;
-                    Vector3d intersection_vector = (a - tang_knot).normalized * Math.Sqrt(referenceBody.Radius * referenceBody.Radius - tang.sqrMagnitude);
-
-                    if (intersection_vector.sqrMagnitude > (b - tang_knot).sqrMagnitude)
-                        return false;
-                }
-            }
-            return true;
-        }
-         */
 
         public static double getEnumeratedPowerFromSatelliteForAllVesssels(VesselMicrowavePersistence vmp)
         {
@@ -603,7 +538,6 @@ namespace FNPlugin
         #region RelayRouting
         protected double ComputeVisibilityAndDistance(VesselRelayPersistence r, Vessel v)
         {
-            //return r.lineOfSightTo(v) ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) : -1;
             return PluginHelper.HasLineOfSightWith(r.getVessel(), v, 0) 
                 ? Vector3d.Distance(PluginHelper.getVesselPos(r.getVessel()), PluginHelper.getVesselPos(v)) 
                 : -1;
@@ -618,8 +552,8 @@ namespace FNPlugin
         {
             double powerdissip = 1;
 
-            if (distance > penaltyFreeDistance)//if distance is <= penaltyFreeDistance then powerdissip will always be 1
-                powerdissip = (microwaveAngleTan * distance * microwaveAngleTan * distance) / collectorArea;//dissip is always > 1 here
+            if (distance > penaltyFreeDistance)
+                powerdissip = (microwaveAngleTan * distance * microwaveAngleTan * distance) / collectorArea;
 
             return facingFactor / powerdissip;
         }
@@ -677,7 +611,6 @@ namespace FNPlugin
                 //ignore if no power or transmitter is on the same vessel
                 if (isInlineReceiver && transmitterVessel == vessel) continue;
                 
-                //if (lineOfSightTo(transmitter.getVessel()))
                 if (PluginHelper.HasLineOfSightWith(this.vessel, transmitterVessel))
                 {
                     double distance = ComputeDistance(this.vessel, transmitterVessel);
@@ -776,7 +709,7 @@ namespace FNPlugin
                             else
                             {
                                 //there is no other route to this transmitter yet known so algorithm puts this one as optimal
-                                transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay,newDistance,relayRouteFacingFactor,relay);
+                                transmitterRouteDictionary[transmitter] = new MicrowaveRoute(efficiencyByThisRelay, newDistance, relayRouteFacingFactor, relay);
                             }
                         }
 
@@ -790,37 +723,32 @@ namespace FNPlugin
 
                             if (distanceToNextRelay <= 0) continue;
 
-                            //if (distanceToNextRelay > 0) //any relay which is in LOS of this relay
-                            //{
-                                double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
-                                double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(relayToNextRelayDistance, relayRouteFacingFactor);
 
-                                MicrowaveRoute currentOptimalPredecessor;
+                            double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
+                            double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(relayToNextRelayDistance, relayRouteFacingFactor);
 
-                                if (relayRouteDictionary.TryGetValue(nextRelay, out currentOptimalPredecessor))
-                                //this will return true if there is already a route to next relay
-                                {
-                                    if (currentOptimalPredecessor.Efficiency < efficiencyByThisRelay)
-                                        //if route using this relay is better
+                            MicrowaveRoute currentOptimalPredecessor;
 
-                                        relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay, relayToNextRelayDistance, relayRoute.FacingFactor, relay);
-                                    //we put it in dictionary as optimal
-                                }
-                                else //there is no other route to this relay yet known so we put this one as optimal
-                                {
-                                    relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay,
-                                                                                         relayToNextRelayDistance,
-                                                                                         relayRoute.FacingFactor,
-                                                                                         relay);
-                                }
+                            if (relayRouteDictionary.TryGetValue(nextRelay, out currentOptimalPredecessor))
+                            //this will return true if there is already a route to next relay
+                            {
+                                if (currentOptimalPredecessor.Efficiency < efficiencyByThisRelay)
+                                    //if route using this relay is better
 
-                                if (!coveredRelays.Contains(r))
-                                {
-                                    nextRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(nextRelay, r));
-                                    //in next iteration we will check what next relay can see
-                                    coveredRelays.Add(r);
-                                }
-                            //}
+                                    relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay, relayToNextRelayDistance, relayRoute.FacingFactor, relay);
+                                //we put it in dictionary as optimal
+                            }
+                            else //there is no other route to this relay yet known so we put this one as optimal
+                            {
+                                relayRouteDictionary[nextRelay] = new MicrowaveRoute(efficiencyByThisRelay, relayToNextRelayDistance, relayRoute.FacingFactor, relay);
+                            }
+
+                            if (!coveredRelays.Contains(r))
+                            {
+                                nextRelayGroup.Add(new KeyValuePair<VesselRelayPersistence, int>(nextRelay, r));
+                                //in next iteration we will check what next relay can see
+                                coveredRelays.Add(r);
+                            }
                         }
                     }
                     currentRelayGroup = nextRelayGroup;
