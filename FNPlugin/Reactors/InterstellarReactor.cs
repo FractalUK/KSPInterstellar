@@ -956,7 +956,7 @@ namespace FNPlugin
             return MaximumPower;
         }
 
-        public float getRadius()
+        public float GetRadius()
         {
             return radius;
         }
@@ -966,7 +966,7 @@ namespace FNPlugin
             return false;
         }
 
-        public void enableIfPossible()
+        public void EnableIfPossible()
         {
             if (!IsNuclear && !IsEnabled)
                 IsEnabled = true;

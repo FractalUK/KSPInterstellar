@@ -44,11 +44,11 @@ namespace FNPlugin
 
         bool IsVolatileSource { get; }
 
-        float getRadius();
+        float GetRadius();
 
         bool IsNuclear { get; }
 
-		void enableIfPossible();
+		void EnableIfPossible();
 
         bool shouldScaleDownJetISP();
 

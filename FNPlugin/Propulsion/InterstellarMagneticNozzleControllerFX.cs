@@ -91,9 +91,9 @@ namespace FNPlugin
 
             throtleExponent = Mathf.Abs(Mathf.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
 
-            exchanger_thrust_divisor = radius > _attached_reactor.getRadius()
-                ? _attached_reactor.getRadius() * _attached_reactor.getRadius() / radius / radius
-                : radius * radius / _attached_reactor.getRadius() / _attached_reactor.getRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
+            exchanger_thrust_divisor = radius > _attached_reactor.GetRadius()
+                ? _attached_reactor.GetRadius() * _attached_reactor.GetRadius() / radius / radius
+                : radius * radius / _attached_reactor.GetRadius() / _attached_reactor.GetRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
 		}
 
         private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)

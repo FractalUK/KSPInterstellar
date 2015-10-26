@@ -357,15 +357,15 @@ namespace FNPlugin
         {
             if (myAttachedReactor == null) return;
 
-            if (myAttachedReactor.getRadius() <= 0 || radius <= 0)
+            if (myAttachedReactor.GetRadius() <= 0 || radius <= 0)
             {
                 heat_exchanger_thrust_divisor = 1;
                 return;
             }
 
-            heat_exchanger_thrust_divisor = radius > myAttachedReactor.getRadius()
-                ? myAttachedReactor.getRadius() * myAttachedReactor.getRadius() / radius / radius
-                : radius * radius / myAttachedReactor.getRadius() / myAttachedReactor.getRadius();
+            heat_exchanger_thrust_divisor = radius > myAttachedReactor.GetRadius()
+                ? myAttachedReactor.GetRadius() * myAttachedReactor.GetRadius() / radius / radius
+                : radius * radius / myAttachedReactor.GetRadius() / myAttachedReactor.GetRadius();
         }
 
         public void updateGeneratorPower()
