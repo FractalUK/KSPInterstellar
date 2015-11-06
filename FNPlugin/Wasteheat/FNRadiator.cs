@@ -447,11 +447,11 @@ namespace FNPlugin
 				float low_temp = (float)FlightGlobals.getExternalTemperature (vessel.transform.position);
 
                 float delta_temp = Mathf.Max(0, (float)current_rad_temp - low_temp);
-                var conv_power_dissip = pressure * delta_temp * CurrentRadiatorArea * rad_const_h / 1e6f * TimeWarp.fixedDeltaTime * convectiveBonus;
+                double conv_power_dissip = pressure * delta_temp * CurrentRadiatorArea * rad_const_h / 1e6f * TimeWarp.fixedDeltaTime * convectiveBonus;
 				if (!radiatorIsEnabled) 
 					conv_power_dissip = conv_power_dissip / 2.0f;
 				
-                convectedThermalPower = consumeWasteHeat(conv_power_dissip) / TimeWarp.fixedDeltaTime;
+                convectedThermalPower = consumeWasteHeat(conv_power_dissip);
 
                 if (isDeployable)
                     DeployMentControl(dynamic_pressure);
