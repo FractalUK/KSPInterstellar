@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using KSP;
+
 
 namespace FNPlugin
 {
@@ -219,7 +219,8 @@ namespace FNPlugin
             realISP = atmosphereCurve.Evaluate((float)(vessel.staticPressurekPa * PhysicsGlobals.KpaToAtmospheres));
             exhaustVel = (double)realISP * (double)G * ispMult;
 
-            thrustForces.Clear();
+            //thrustForces.Clear();
+			thrustForces = new List<float>().ToArray();
 
             if (rcsEnabled && !part.ShieldedFromAirstream)
             {
@@ -282,7 +283,10 @@ namespace FNPlugin
                                 if (success)
                                 {
                                     curThrust += thrustForce;
-                                    thrustForces.Add(thrustForce);
+                                    //thrustForces.Add(thrustForce);
+	                                var newForces = thrustForces.ToList();
+									newForces.Add(thrustForce);
+									thrustForces = newForces.ToArray();
                                     if (!isJustForShow)
                                     {
                                         Vector3 force = -thrustForce * thruster;

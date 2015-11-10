@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace FNPlugin 
 {
@@ -165,7 +164,8 @@ namespace FNPlugin
                 return new ScienceData[0];
         }
 
-        
+
+
 
         public void ReviewDataItem(ScienceData science_data) 
         {
@@ -186,6 +186,19 @@ namespace FNPlugin
                 Deployed = false;
             }
         }
+
+		public void ReturnData(ScienceData data)
+	    {
+			// Do Nothing yet
+			data.container = science_data.container;
+			data.dataAmount = science_data.dataAmount;
+			data.labBoost = science_data.labBoost;
+			data.labValue = science_data.labValue;
+			data.subjectID = science_data.subjectID;
+			data.title = science_data.title;
+			data.transmitValue = science_data.transmitValue;
+			data.triggered = science_data.triggered;
+	    }
 
         protected void endExperiment(ScienceData science_data) 
         {

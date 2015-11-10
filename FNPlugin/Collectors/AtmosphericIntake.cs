@@ -1,44 +1,41 @@
 ﻿using OpenResourceSystem;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin  
 {
     class AtmosphericIntake : PartModule
     {
-        protected Vector3 _intake_direction;
+        //protected Vector3 _intake_direction;
         protected PartResourceDefinition _resourceAtmosphere;
 
         [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true)]
         protected float _intake_speed;
         [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F2", isPersistant = false, guiActive = false)]
-        public float airFlow;
+        public double airFlow;
         [KSPField(guiName = "Atmossphere Speed", guiUnits = "M/s", guiFormat = "F2", isPersistant = false, guiActive = false)]
         public float airSpeed;
         [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true)]
-        public float airThisUpdate;
+        public double airThisUpdate;
         [KSPField(guiName = "intake Angle", isPersistant = false, guiActive = false)]
         public float intakeAngle = 0;
 
         [KSPField(guiName = "aoaThreshold", isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float aoaThreshold = 0.1f;
         [KSPField(isPersistant = false, guiName = "Area", guiActiveEditor = false, guiActive = false)]
-        public float area = 0.01f;
+        public double area = 0.01f;
         [KSPField(isPersistant = false)]
         public string intakeTransformName;
         [KSPField(isPersistant = false, guiName = "maxIntakeSpeed", guiActive = false, guiActiveEditor = false)]
         public float maxIntakeSpeed = 100;
         [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = false, guiActiveEditor = true)]
-        public float unitScalar = 0.2f;
-        [KSPField(isPersistant = false, guiName = "useIntakeCompensation", guiActiveEditor = false)]
-        public bool useIntakeCompensation = true;
+        public double unitScalar = 0.2f;
+		//[KSPField(isPersistant = false, guiName = "useIntakeCompensation", guiActiveEditor = false)]
+		//public bool useIntakeCompensation = true;
         [KSPField(isPersistant = false, guiName = "storesResource", guiActiveEditor = true)]
         public bool storesResource = false;
         [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActiveEditor = false, guiActive = false)]
-        public float intakeExposure = 0;
+        public double intakeExposure = 0;
 
         private float jetTechBonusPercentage;
 
@@ -47,7 +44,7 @@ namespace FNPlugin
             Transform intakeTransform = part.FindModelTransform(intakeTransformName);
             if (intakeTransform == null)
                 Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
-            _intake_direction = intakeTransform != null ? intakeTransform.forward.normalized : Vector3.forward;
+            //_intake_direction = intakeTransform != null ? intakeTransform.forward.normalized : Vector3.forward;
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
 
             // ToDo: connect with atmospheric intake to readout updated area

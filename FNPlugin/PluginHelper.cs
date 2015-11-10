@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Reflection;
 using OpenResourceSystem;
 
 namespace FNPlugin
@@ -759,12 +757,12 @@ namespace FNPlugin
                         var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
                         prefab_available_part.Modules.Add(pm);
                         pm.area = intake.area;
-                        pm.aoaThreshold = intake.aoaThreshold;
+                        //pm.aoaThreshold = intake.aoaThreshold;
                         pm.intakeTransformName = intake.intakeTransformName;
-                        pm.maxIntakeSpeed = intake.maxIntakeSpeed;
+                        //pm.maxIntakeSpeed = intake.maxIntakeSpeed;
                         pm.unitScalar = intake.unitScalar;
-                        pm.useIntakeCompensation = intake.useIntakeCompensation;
-                        pm.storesResource = intake.storesResource;
+                        //pm.useIntakeCompensation = intake.useIntakeCompensation;
+                        //pm.storesResource = intake.storesResource;
 
                         PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
 
