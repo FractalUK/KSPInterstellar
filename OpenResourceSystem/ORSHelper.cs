@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace OpenResourceSystem 
 {
     public class ORSHelper 
     {
-
         public static double ToLatitude(double lat) 
         {
             int lat_s = ((int)Math.Ceiling(Math.Abs(lat / 90)) % 2);
@@ -33,7 +31,6 @@ namespace OpenResourceSystem
         {
             if (!body.atmosphere) return 0;
             
-            //return (float)-body.atmosphereScaleHeight * 1000.0f * Mathf.Log(1e-6f);
             return (float)-body.atmosphereDepth * 1000.0f * Mathf.Log(1e-6f);
         }
 
@@ -49,6 +46,9 @@ namespace OpenResourceSystem
 
         public static double fixedRequestResource(Part part, string resourcename, double resource_amount)
         {
+            if (resource_amount == 0)
+                return 0;
+
             ResourceFlowMode flow = PartResourceLibrary.Instance.GetDefinition(resourcename).resourceFlowMode;
 
             return fixedRequestResource(part, resourcename, resource_amount, flow);
@@ -62,83 +62,60 @@ namespace OpenResourceSystem
 
         private static Dictionary<Vessel, Dictionary<Part, ORSPropellantControl>> orsPropellantDictionary = new Dictionary<Vessel,Dictionary<Part,ORSPropellantControl>>();
 
-        public static double fixedRequestResource(Part part, string resourcename, double resource_amount, ResourceFlowMode flow) 
+        public static double fixedRequestResource(Part part, string resourcename, double resource_amount, ResourceFlowMode flow)
         {
             if (flow == ResourceFlowMode.NULL)
                 flow = PartResourceLibrary.Instance.GetDefinition(resourcename).resourceFlowMode;
 
-            if (flow == ResourceFlowMode.ALL_VESSEL) 
-            { // use our code
+            if (flow != ResourceFlowMode.ALL_VESSEL)
+                return part.RequestResource(resourcename, resource_amount);
 
-                var partsWithResource = part.vessel.parts.Where(p => p.Resources.Contains(resourcename)); 
+            var partsWithResource = part.vessel.parts.Where(p => p.Resources.Contains(resourcename));
 
-                Dictionary<Part, ORSPropellantControl> partLookup;
-                if (orsPropellantDictionary.ContainsKey(part.vessel))
-                    partLookup = orsPropellantDictionary[part.vessel];
+            Dictionary<Part, ORSPropellantControl> partLookup;
+            if (orsPropellantDictionary.ContainsKey(part.vessel))
+                partLookup = orsPropellantDictionary[part.vessel];
+            else
+            {
+                partLookup = part.vessel.FindPartModulesImplementing<ORSPropellantControl>().ToDictionary(p => p.part);
+                orsPropellantDictionary.Add(part.vessel, partLookup);
+            }
+
+            var partResources = partsWithResource.Where(p => !partLookup.ContainsKey(p) || partLookup[p].isPropellant).Select(p => p.Resources[resourcename]);
+            IList<PartResource> relevant_part_resources = new List<PartResource>
+                (
+                resource_amount > 0
+                    ? partResources.Where(p => p.flowState && p.amount > 0)
+                    : partResources.Where(p => p.flowState && p.maxAmount > p.amount)
+                );
+
+            if (!relevant_part_resources.Any())
+                return 0;
+
+            double total_resource_change = 0;
+            double res_ratio = resource_amount > 0
+                ? Math.Min(resource_amount/relevant_part_resources.Sum(p => p.amount), 1)
+                : Math.Min(-resource_amount/relevant_part_resources.Sum(p => p.maxAmount - p.amount), 1);
+
+            if (res_ratio == 0 || double.IsNaN(res_ratio) || double.IsInfinity(res_ratio))
+                return 0;
+            
+            foreach (PartResource local_part_resource in relevant_part_resources)
+            {
+                if (resource_amount > 0)
+                {
+                    var part_resource_change = local_part_resource.amount*res_ratio;
+                    local_part_resource.amount -= part_resource_change;
+                    total_resource_change += part_resource_change;
+                }
                 else
                 {
-                    partLookup = part.vessel.FindPartModulesImplementing<ORSPropellantControl>().ToDictionary(p => p.part);
-                    orsPropellantDictionary.Add(part.vessel, partLookup);
+                    var part_resource_change = (local_part_resource.maxAmount - local_part_resource.amount)*res_ratio;
+                    local_part_resource.amount += part_resource_change;
+                    total_resource_change -= part_resource_change;
                 }
-
-                var partResources = partsWithResource.Where(p => !partLookup.ContainsKey(p) || ((ORSPropellantControl)partLookup[p]).isPropellant).Select(p => p.Resources[resourcename]);
-
-                var prl = partResources.Where(p => p.flowState == true).ToList();
-                double max_available = 0;
-                double spare_capacity = 0;
-
-                foreach (PartResource partresource in prl)
-                {
-                    max_available += partresource.amount;
-                    spare_capacity += partresource.maxAmount - partresource.amount;
-                }
-
-                double resource_left_to_draw = 0;
-                double total_resource_change = 0;
-                double res_ratio = 0;
-                
-                if (resource_amount > 0) 
-                {
-                    resource_left_to_draw = Math.Min(resource_amount, max_available);
-                    res_ratio = Math.Min(resource_amount / max_available,1);
-                } 
-                else 
-                {
-                    resource_left_to_draw = Math.Max(-spare_capacity, resource_amount);
-                    res_ratio = Math.Min(-resource_amount / spare_capacity,1);
-                }
-
-                if (double.IsNaN(res_ratio) || double.IsInfinity(res_ratio) || res_ratio == 0) 
-                {
-                    return 0;
-                } 
-                else 
-                {
-                    foreach (PartResource local_part_resource in prl) 
-                    {
-                        if (resource_amount > 0) 
-                        {
-                            local_part_resource.amount = local_part_resource.amount - local_part_resource.amount * res_ratio;
-                            total_resource_change += local_part_resource.amount * res_ratio;
-                        }
-                        else
-                        {
-                            local_part_resource.amount = local_part_resource.amount + (local_part_resource.maxAmount - local_part_resource.amount) * res_ratio;
-                            total_resource_change -= (local_part_resource.maxAmount - local_part_resource.amount) * res_ratio;
-                        }
-                    }
-                }
-                return total_resource_change;
-            } 
-            else 
-            {
-                if (resource_amount > 0) 
-                    //return part.RequestResource(resourcename, Math.Min(resource_amount, max_available));
-                    return part.RequestResource(resourcename, resource_amount);
-                else 
-                    //return part.RequestResource(resourcename, Math.Max(-spare_capacity, resource_amount));
-                    return part.RequestResource(resourcename,resource_amount);
             }
+            return total_resource_change;
         }
     }
 }
