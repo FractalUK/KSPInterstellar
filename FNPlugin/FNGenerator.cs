@@ -75,6 +75,9 @@ namespace FNPlugin
         //[KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
         //public float _totalMaximumPowerAllReactors;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Required Capacity", guiUnits = " MW_e")]
+        public float requiredMegawattCapacity;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
         public float heat_exchanger_thrust_divisor;
 
@@ -408,7 +411,7 @@ namespace FNPlugin
                     _powerState = PowerStates.powerOnline;
 
                     var powerBufferingBonus = myAttachedReactor.PowerBufferBonus * maxStableMegaWattPower;
-                    var requiredMegawattCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
+                    requiredMegawattCapacity = (float)Math.Max(0.0001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
                     var previousMegawattCapacity = Math.Max(0.0001, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
 
                     if (megajouleResource != null)

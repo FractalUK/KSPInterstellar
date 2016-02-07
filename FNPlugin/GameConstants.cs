@@ -53,7 +53,7 @@ namespace FNPlugin
         public const double rad_const_h = 1000;
         public const double alpha = 0.001998001998001998001998001998;
         public const double atmospheric_non_precooled_limit = 740;
-        public const double initial_alcubierre_megajoules_required = 1000;
+        public const float initial_alcubierre_megajoules_required = 100;
 
         public const double telescopePerformanceTimescale = 2.1964508725630127431022388314009e-8;
         public const double telescopeBaseScience = 0.1666667;
