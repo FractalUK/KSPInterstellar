@@ -32,15 +32,15 @@ namespace FNPlugin
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public string originalName;
-        //[KSPField(isPersistant = false)]
-        //public float upgradeCost = 100;
         [KSPField(isPersistant = false)]
 		public float effectSize1;
         [KSPField(isPersistant = false)]
 		public float effectSize2;
+        [KSPField(isPersistant = false)]
+        public string upgradeTechReq;
+
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = "t")]
         public float partMass;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F3", guiUnits = "t")]
         protected float sumOfAlcubierreDrives;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F3")]
@@ -59,10 +59,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiFormat = "F2")]
         public float currentPowerRequirementForWarp;
         
-		[KSPField(isPersistant = false)]
-		public string upgradeTechReq;
 
-        public int old_selected_factor = 0;
+
+        
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
         public string warpdriveType = "Alcubierre Drive";
@@ -72,9 +71,6 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string DriveStatus;
-
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Upgrade")]
-        public string upgradeCostStr;
 
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
@@ -87,22 +83,21 @@ namespace FNPlugin
 
         private float[] engine_throtle = { 0.01f, 0.016f, 0.025f, 0.04f, 0.063f, 0.1f, 0.16f, 0.25f, 0.40f, 0.63f, 1.0f, 1.6f, 2.5f, 4.0f, 6.3f, 10f, 16f, 25f, 40f, 63f, 100f };
 
+        protected int old_selected_factor = 0;
         protected float tex_count;
         protected GameObject warp_effect;
         protected GameObject warp_effect2;
         protected Texture[] warp_textures;
         protected Texture[] warp_textures2;
         protected AudioSource warp_sound;
-        const float warp_size = 50000;
-		protected bool hasrequiredupgrade;
+        protected const float warp_size = 50000;
+        protected bool hasrequiredupgrade;
+		
         private AnimationState[] animationState;
         private Vector3d heading_act;
         private Vector3d previous_Frame_heading;
         private Vector3d active_part_heading;
-
         private List<AlcubierreDrive> alcubierreDrives;
-        
-
         private int minimum_selected_factor;
         
 
@@ -117,6 +112,8 @@ namespace FNPlugin
                 return;
             }
 
+            initiateWarpTimeout = 10;
+            insufficientPowerTimeout = 10;
 			IsCharging = true;
 		}
 
@@ -228,8 +225,6 @@ namespace FNPlugin
                     return;
                 }
             }
-
-            initiateWarpTimeout = 0;
 
             // consume all exotic matter to create warp field
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
@@ -355,7 +350,7 @@ namespace FNPlugin
 
         private float UpgradeCost()
         {
-            return partMass * 10;
+            return 0;
         }
 
         public override void OnStart(PartModule.StartState state) 
@@ -589,7 +584,7 @@ namespace FNPlugin
             Events["StopCharging"].active = !IsSlave && IsCharging;
             Events["ActivateWarpDrive"].active = !IsSlave && !IsEnabled;
             Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
-            Fields["upgradeCostStr"].guiActive = !IsSlave && !isupgraded && hasrequiredupgrade;
+            //Fields["upgradeCostStr"].guiActive = !IsSlave && !isupgraded && hasrequiredupgrade;
 
 			if (ResearchAndDevelopment.Instance != null)
                 Events["RetrofitDrive"].active = !IsSlave && !isupgraded && ResearchAndDevelopment.Instance.Science >= UpgradeCost() && hasrequiredupgrade;
@@ -598,8 +593,8 @@ namespace FNPlugin
 
             WarpEngineThrottle = (engine_throtle[selected_factor]).ToString("0.000") + "c";
 
-            if (ResearchAndDevelopment.Instance != null)
-                upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + UpgradeCost().ToString("0") + " Science";
+            //if (ResearchAndDevelopment.Instance != null)
+            //    upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + UpgradeCost().ToString("0") + " Science";
 
             if (animationState != null)
             {
@@ -698,10 +693,10 @@ namespace FNPlugin
 
                 float power_returned = consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
-                if (power_returned < minPowerRequirementForLightSpeed)
+                if (power_returned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;
                 else
-                    insufficientPowerTimeout = 1;
+                    insufficientPowerTimeout = 10;
 
                 if (insufficientPowerTimeout < 0)
                 {
@@ -749,7 +744,7 @@ namespace FNPlugin
             return powerModifier * exotic_power_required;
         }
 
-        private int insufficientPowerTimeout = 5;
+        private int insufficientPowerTimeout = 10;
 
         public void UpdateWarpspeed()
         {
@@ -774,7 +769,7 @@ namespace FNPlugin
             if (power_returned < 0.99 * currentPowerRequirementForWarp)
                 insufficientPowerTimeout--;
             else
-                insufficientPowerTimeout = 5;
+                insufficientPowerTimeout = 10;
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
@@ -783,7 +778,7 @@ namespace FNPlugin
 
             if (hasPowerShortage)
             {
-                insufficientPowerTimeout = 5;
+                insufficientPowerTimeout = 10;
                 if (selected_factor == minimum_selected_factor)
                 {
                     ScreenMessages.PostScreenMessage("Insufficient Power to maintian warp, deactive warp");
