@@ -39,11 +39,16 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public string upgradeTechReq;
 
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F3")]
+        public float gravityPull;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Warp Limit", guiUnits = "c", guiFormat = "F3")]
+        public float maximumWarpForGravityPull;
+
 		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = "t")]
 		public float partMass;
 		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F3", guiUnits = "t")]
 		protected float sumOfAlcubierreDrives;
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F3", guiUnits = "t")]
 		public float vesselTotalMass;
 		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Warp to Mass Ratio", guiFormat = "F3")]
 		public float warpToMassRatio;
@@ -54,20 +59,20 @@ namespace FNPlugin
 		public float magnitudeChange;
 		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Req Exotic Matter", guiUnits = " MW", guiFormat = "F2")]
 		protected float exotic_power_required = 1000;
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Min Power for Warp", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Abs Min Power Warp", guiFormat = "F2", guiUnits = "MW")]
 		public float minPowerRequirementForLightSpeed;
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiFormat = "F2", guiUnits = "MW")]
 		public float currentPowerRequirementForWarp;
-		
-
-
-		
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Min Power Warp", guiFormat = "F2", guiUnits = "MW")]
+        public float minAllowedPowerRequirementForLightSpeed;
 
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
 		public string warpdriveType = "Alcubierre Drive";
 
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Warp Engine Throttle")]
-		public string WarpEngineThrottle;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Current Selected Throttle", guiUnits = "c", guiFormat = "F3")]
+		public float WarpEngineThrottle;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Allowed Throtle", guiUnits = "c", guiFormat = "F3")]
+        public float maximumAllowedWarpThrotle;
 
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
 		public string DriveStatus;
@@ -99,7 +104,9 @@ namespace FNPlugin
 		private Vector3d active_part_heading;
 		private List<AlcubierreDrive> alcubierreDrives;
 		private int minimum_selected_factor;
-		
+        private int maximumWarpSpeedFactor;
+        private int minimumPowerAllowedFactor;
+
 
 		[KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
 		public void StartCharging() 
@@ -177,6 +184,9 @@ namespace FNPlugin
 				return;
 			}
 
+            if (maximumWarpSpeedFactor < selected_factor)
+                selected_factor = minimumPowerAllowedFactor;
+
 			float new_warpfactor = engine_throtle[selected_factor];
 
 			currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
@@ -195,28 +205,45 @@ namespace FNPlugin
 
 		private int initiateWarpTimeout;
 
+        private int GetMaximumFactor(float lightspeed)
+        {
+            int maxFactor = 0;
+
+            for (int i = 0 ; i < engine_throtle.Count() ; i++ )
+            {
+                if (engine_throtle[i] > lightspeed )
+                    return maxFactor;
+                maxFactor = i;
+            }
+            return maxFactor;
+        }
+
 		private void InitiateWarp()
 		{
-			float new_warpfactor = engine_throtle[selected_factor];
+            if (maximumWarpSpeedFactor < selected_factor)
+                selected_factor = minimumPowerAllowedFactor;
 
-			currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
+			float new_warp_factor = engine_throtle[selected_factor];
+
+			currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
 
 			float power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 			if (power_returned < 0.99 * currentPowerRequirementForWarp)
 			{
 				initiateWarpTimeout--;
+
 				if (initiateWarpTimeout == 1)
 				{
 					while (selected_factor != minimum_selected_factor)
 					{
 						ReduceWarpPower();
-						new_warpfactor = engine_throtle[selected_factor];
-						currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
+						new_warp_factor = engine_throtle[selected_factor];
+						currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
 						if (power_returned >= currentPowerRequirementForWarp)
 							return;
 					}
 				}
-				if (initiateWarpTimeout <= 0)
+				if (initiateWarpTimeout == 0)
 				{
 
 					ScreenMessages.PostScreenMessage("Not enough power to initiate warp " + power_returned + " " + currentPowerRequirementForWarp, 5.0f, ScreenMessageStyle.UPPER_CENTER);
@@ -224,6 +251,8 @@ namespace FNPlugin
 					return;
 				}
 			}
+
+            initiateWarpTimeout = 0; // stop charging
 
 			// consume all exotic matter to create warp field
 			part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
@@ -233,7 +262,7 @@ namespace FNPlugin
 
 			active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
-			heading_act = active_part_heading * GameConstants.warpspeed * new_warpfactor;
+			heading_act = active_part_heading * GameConstants.warpspeed * new_warp_factor;
 			serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
 			vessel.GoOnRails();
@@ -241,7 +270,8 @@ namespace FNPlugin
 			vessel.GoOffRails();
 
 			IsEnabled = true;
-			existing_warpfactor = new_warpfactor;
+            
+			existing_warpfactor = new_warp_factor;
 			previous_Frame_heading = active_part_heading;
 		}
 
@@ -386,12 +416,14 @@ namespace FNPlugin
 
 				Fields["exotic_power_required"].guiActive = !IsSlave;
 				Fields["WarpEngineThrottle"].guiActive = !IsSlave;
+                Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
 				Fields["warpToMassRatio"].guiActive = !IsSlave;
 				Fields["vesselTotalMass"].guiActive = !IsSlave;
 				Fields["DriveStatus"].guiActive = !IsSlave;
 				Fields["minPowerRequirementForLightSpeed"].guiActive = !IsSlave;
 				Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
-				Fields["sumOfAlcubierreDrives"].guiActive = !IsSlave;
+                Fields["sumOfAlcubierreDrives"].guiActive = !IsSlave;
+                Fields["minAllowedPowerRequirementForLightSpeed"].guiActive = !IsSlave;
 			   
 				Actions["StartChargingAction"].guiName = Events["StartCharging"].guiName = String.Format("Start Charging");
 				Actions["StopChargingAction"].guiName = Events["StopCharging"].guiName = String.Format("Stop Charging");
@@ -563,17 +595,10 @@ namespace FNPlugin
 				UnityEngine.Debug.LogError("KSPI - AlcubierreDrive OnStart 1 Exception " + e.Message);
 			}
 
-			try
-			{
 				warpdriveType = originalName;
 				minimum_selected_factor = engine_throtle.ToList().IndexOf(engine_throtle.First(w => w == 1f));
 				if (selected_factor == -1)
 					selected_factor = minimum_selected_factor;
-			}
-			catch (Exception e)
-			{
-				UnityEngine.Debug.LogError("KSPI - AlcubierreDrive OnStart 2 Exception " + e.Message);
-			}
 		}
 
 
@@ -583,17 +608,13 @@ namespace FNPlugin
 			Events["StopCharging"].active = !IsSlave && IsCharging;
 			Events["ActivateWarpDrive"].active = !IsSlave && !IsEnabled;
 			Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
-			//Fields["upgradeCostStr"].guiActive = !IsSlave && !isupgraded && hasrequiredupgrade;
 
 			if (ResearchAndDevelopment.Instance != null)
 				Events["RetrofitDrive"].active = !IsSlave && !isupgraded && ResearchAndDevelopment.Instance.Science >= UpgradeCost() && hasrequiredupgrade;
 			else 
 				Events ["RetrofitDrive"].active = false;
 
-			WarpEngineThrottle = (engine_throtle[selected_factor]).ToString("0.000") + "c";
-
-			//if (ResearchAndDevelopment.Instance != null)
-			//    upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + UpgradeCost().ToString("0") + " Science";
+            WarpEngineThrottle = engine_throtle[selected_factor];
 
 			if (animationState != null)
 			{
@@ -618,13 +639,27 @@ namespace FNPlugin
 
 		public void FixedUpdate() // FixedUpdate is also called when not activated
 		{
-			if (!IsSlave && alcubierreDrives != null)
+			if (alcubierreDrives != null)
 				sumOfAlcubierreDrives = alcubierreDrives.Sum(p => p.partMass * (p.isupgraded ? 20 : 10));
 
-			vesselTotalMass = vessel.GetTotalMass();
-			warpToMassRatio = sumOfAlcubierreDrives / vesselTotalMass;
-			exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass) / warpToMassRatio;
-			minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
+            if (vessel != null)
+            {
+                vesselTotalMass = vessel.GetTotalMass();
+                gravityPull = (float)FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
+                maximumWarpForGravityPull = 1 / Mathf.Pow(gravityPull, 2);
+                maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpForGravityPull);
+                maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
+                minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor  ? maximumWarpSpeedFactor : minimum_selected_factor; 
+            }
+
+            if (vesselTotalMass != 0)
+            {
+                warpToMassRatio = sumOfAlcubierreDrives / vesselTotalMass;
+                exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass) / warpToMassRatio;
+            }
+
+            minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
+            minAllowedPowerRequirementForLightSpeed = GetPowerRequirementForWarp(engine_throtle[minimumPowerAllowedFactor]);
 			currentPowerRequirementForWarp = GetPowerRequirementForWarp(engine_throtle[selected_factor]);
 
 			var exoticMatterResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.ExoticMatter);
@@ -751,8 +786,9 @@ namespace FNPlugin
 
 			float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-			float new_warpfactor = engine_throtle[selected_factor];
-			currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
+            float new_warp_factor = engine_throtle[selected_factor];
+
+			currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
 			float power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 			supplyFNResource(-power_returned * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 			
@@ -765,22 +801,27 @@ namespace FNPlugin
 			previous_Frame_heading = new_part_heading;
 
 			// detect power shortage
-			if (power_returned < 0.99 * currentPowerRequirementForWarp)
-				insufficientPowerTimeout--;
-			else
-				insufficientPowerTimeout = 10;
+            if (power_returned < 0.99 * currentPowerRequirementForWarp)
+                insufficientPowerTimeout--;
+            else
+                insufficientPowerTimeout = 10;
 
 			// determine if we need to change speed and heading
 			var hasPowerShortage = insufficientPowerTimeout < 0;
 			var hasHeadingChanged = magnitudeDiff > 0.05 && magnitudeChange < 0.0001;
-			var hasWarpFactorChange = existing_warpfactor != new_warpfactor;
+			var hasWarpFactorChange = existing_warpfactor != new_warp_factor;
+            var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
-			if (hasPowerShortage)
+            if (hasGavityPullInbalance)
+            {
+                selected_factor = maximumWarpSpeedFactor;
+            }
+
+            if (hasPowerShortage)
 			{
-				insufficientPowerTimeout = 10;
-				if (selected_factor == minimum_selected_factor)
+                if (selected_factor == minimumPowerAllowedFactor || power_returned < 0.99 * minAllowedPowerRequirementForLightSpeed)
 				{
-					ScreenMessages.PostScreenMessage("Insufficient Power to maintian warp, deactive warp");
+					ScreenMessages.PostScreenMessage("Insufficient Power to maintain warp, deactivating warp");
 					DeactivateWarpDrive();
 					return;
 				}
@@ -789,14 +830,14 @@ namespace FNPlugin
 				ReduceWarpPower();
 			}
 
-			if (hasWarpFactorChange || hasPowerShortage || hasHeadingChanged)
+            if (hasWarpFactorChange || hasPowerShortage || hasHeadingChanged || hasGavityPullInbalance)
 			{
-				new_warpfactor = engine_throtle[selected_factor];
-				existing_warpfactor = new_warpfactor;
+				new_warp_factor = engine_throtle[selected_factor];
+				existing_warpfactor = new_warp_factor;
 
 				Vector3d reverse_heading = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
-				heading_act = new_part_heading * GameConstants.warpspeed * new_warpfactor;
+				heading_act = new_part_heading * GameConstants.warpspeed * new_warp_factor;
 				active_part_heading = new_part_heading;
 				serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
