@@ -646,13 +646,13 @@ namespace FNPlugin
             {
                 vesselTotalMass = vessel.GetTotalMass();
                 gravityPull = (float)FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
-                maximumWarpForGravityPull = 1 / Mathf.Pow(gravityPull, 2);
+                maximumWarpForGravityPull = 1 / (Mathf.Pow(gravityPull, 1.5f) * 2);
                 maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpForGravityPull);
                 maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
                 minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor  ? maximumWarpSpeedFactor : minimum_selected_factor; 
             }
 
-            if (vesselTotalMass != 0)
+            if (sumOfAlcubierreDrives != 0 && vesselTotalMass != 0)
             {
                 warpToMassRatio = sumOfAlcubierreDrives / vesselTotalMass;
                 exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass) / warpToMassRatio;
@@ -697,7 +697,7 @@ namespace FNPlugin
 
 			WarpdriveCharging();
 
-			UpdateWarpspeed();
+			UpdateWarpSpeed();
 		}
 
 		private void UpdateWarpDriveStatus(float currentExoticMatter, double lostWarpFieldForWarp)
@@ -780,7 +780,7 @@ namespace FNPlugin
 
 		private int insufficientPowerTimeout = 10;
 
-		public void UpdateWarpspeed()
+		public void UpdateWarpSpeed()
 		{
 			if (!IsEnabled || exotic_power_required <= 0) return;
 

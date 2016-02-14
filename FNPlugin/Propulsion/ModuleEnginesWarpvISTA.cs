@@ -5,30 +5,27 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-    public class ModuleEnginesWarp : ModuleEnginesFX
+    public class ModuleEnginesWarpVista : ModuleEngines
     {
         // GUI display values
-        // Thrust
         [KSPField(isPersistant = true)]
         bool IsForceActivated;
 
         [KSPField(guiActive = true, guiName = "Warp Thrust")]
         protected string Thrust = "";
-        // Isp
         [KSPField(guiActive = true, guiName = "Warp Isp")]
         protected string Isp = "";
-        // Throttle
         [KSPField(guiActive = true, guiName = "Warp Throttle")]
         protected string Throttle = "";
 
-        [KSPField(guiActive = true, guiName = "Demand")]
-        public double propellantUsed;
-
-        //[KSPField(guiActive = false, guiName = "Calc Flow")]
-        //public double calcualtedFlow;
-
-        [KSPField(guiActive = true, guiName = "Mass Flow")]
-        public double requestedFlow;
+        [KSPField(guiActive = true, guiName = "Mass Flow", guiFormat = "F8", guiUnits=" U")]
+        public float totalMassFlow;
+        [KSPField(guiActive = true, guiName = "Hydrogen Used", guiFormat = "F6")]
+        public float propellantUsed;
+        [KSPField(guiActive = true, guiName = "Deuterium Used", guiFormat = "F6")]
+        public float deuteriumUsed;
+        [KSPField(guiActive = true, guiName = "Tritium Used", guiFormat = "F6")]
+        public float tritiumUsed;
 
         // Numeric display values
         protected double thrust_d = 0;
@@ -45,11 +42,14 @@ namespace FNPlugin
         [KSPField]
         bool warpToReal = false;
 
-        // Resource used for deltaV and mass calculations
-        [KSPField]
-        public string resourceDeltaV;
         // Density of resource
-        double density;
+        float densityHydrogen;
+        float densityDeuterium;
+        float densityTritium;
+
+        Propellant hydrogenPropellant;
+        Propellant deuteriumPropellant;
+        Propellant tritiumPropellant;
 
         // Update
         public override void OnUpdate()
@@ -85,7 +85,13 @@ namespace FNPlugin
             base.OnLoad(node);
 
             // Initialize density of propellant used in deltaV and mass calculations
-            density = PartResourceLibrary.Instance.GetDefinition(resourceDeltaV).density;
+            densityHydrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+            densityDeuterium = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Deuterium).density;
+            densityTritium = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium).density;
+
+            hydrogenPropellant = this.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Hydrogen);
+            deuteriumPropellant = this.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium);
+            tritiumPropellant = this.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium);
         }
 
         // Physics update
@@ -93,14 +99,26 @@ namespace FNPlugin
         {
             if (FlightGlobals.fetch == null || !isEnabled) return;
 
+            totalMassFlow = this.requestedMassFlow;
+
+            // retreive ratios
+            var propellant_ratio = hydrogenPropellant.ratio;
+            var deuterium_ratio = deuteriumPropellant.ratio;
+            var tritium_ratio = tritiumPropellant.ratio;
+            var sumOfRatios = propellant_ratio + deuterium_ratio + tritium_ratio;
+
+            // Resource demand
+            float demandReqPropellant = ((propellant_ratio / sumOfRatios) * this.requestedMassFlow) / densityHydrogen;
+            float demandReqDeuterium = ((deuterium_ratio / sumOfRatios) * this.requestedMassFlow) / densityDeuterium;
+            float demandReqTritium = ((tritium_ratio / sumOfRatios) * this.requestedMassFlow) / densityTritium;
+
             // Realtime mode
             if (!this.vessel.packed)
             {
-                //double mdot = requestedMassFlow;
-                requestedFlow = this.requestedMassFlow;
-                //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                double dm = requestedFlow * TimeWarp.fixedDeltaTime; 
-                propellantUsed = dm / density; // Resource demand
+                // Resource demand
+                propellantUsed = demandReqPropellant;
+                deuteriumUsed = demandReqDeuterium;
+                tritiumUsed = demandReqTritium;
 
                 // if not transitioning from warp to real
                 // Update values to use during timewarp
@@ -121,18 +139,19 @@ namespace FNPlugin
                 warpToReal = true; // Set to true for transition to realtime
                 double UT = Planetarium.GetUniversalTime(); // Universal time
 
-                requestedFlow = this.requestedMassFlow;
-                //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                double dm = requestedFlow * TimeWarp.fixedDeltaTime; // Change in mass over dT
-                double demandReq = dm / density; // Resource demand
-                // Update vessel resource
-                propellantUsed = part.RequestResource(resourceDeltaV, demandReq);
+                propellantUsed = (float)part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, demandReqPropellant * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                deuteriumUsed = (float)part.RequestResource(InterstellarResourcesConfiguration.Instance.Deuterium, demandReqDeuterium * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                tritiumUsed = (float)part.RequestResource(InterstellarResourcesConfiguration.Instance.Tritium, demandReqTritium * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+
                 // Calculate thrust and deltaV if demand output > 0
-                // TODO test if dm exceeds remaining propellant mass
-                if (propellantUsed > 0)
+                if (propellantUsed > 0 && deuteriumUsed > 0 && tritiumUsed > 0)
                 {
                     double vesselMass = this.vessel.GetTotalMass(); // Current mass
-                    double m1 = vesselMass - dm; // Mass at end of burn
+                    double m1 = vesselMass - (this.requestedMassFlow * TimeWarp.fixedDeltaTime); // Mass at end of burn
+
+                    if (m1 <= 0 || vesselMass <= 0)
+                        return;
+
                     double deltaV = IspPersistent * PluginHelper.GravityConstant * Math.Log(vesselMass / m1); // Delta V from burn
 
                     Vector3d thrustV = this.part.transform.up; // Thrust direction
@@ -142,7 +161,7 @@ namespace FNPlugin
                 // Otherwise, if throttle is turned on, and demand out is 0, show warning
                 else if (ThrottlePersistent > 0)
                 {
-                    Debug.Log("Propellant depleted");
+                    ScreenMessages.PostScreenMessage("Out of resource", 5.0f);
                 }
             }
             else //if (vessel.ctrlState.mainThrottle > 0)
