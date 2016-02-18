@@ -616,7 +616,7 @@ namespace FNPlugin
                         next_propellant = true;
                     else if (_fuelRequiresUpgrade && !isupgraded)
                         next_propellant = true;
-                    else if (_propellantIsLFO && !PluginHelper.HasTechRequirementOrEmpty(afterburnerTechReq))
+                    else if (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                         next_propellant = true;
                 }
 
@@ -644,7 +644,7 @@ namespace FNPlugin
                     next_propellant = true;
                 else if (_fuelRequiresUpgrade && !isupgraded)
                     next_propellant = true;
-                else if (_propellantIsLFO && !PluginHelper.HasTechRequirementOrEmpty(afterburnerTechReq))
+                else if (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                     next_propellant = true;
 
                 if (next_propellant)

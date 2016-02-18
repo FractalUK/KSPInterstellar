@@ -278,6 +278,11 @@ namespace FNPlugin
             return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
         }
 
+        public static bool HasTechRequirementAndNotEmpty(string techName)
+        {
+            return techName != String.Empty && PluginHelper.upgradeAvailable(techName);
+        }
+
         public static bool hasTech(string techid)
         {
             if (ResearchAndDevelopment.Instance == null)

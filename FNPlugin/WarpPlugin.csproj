@@ -172,7 +172,7 @@
     <Compile Include="FNGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Science\ComputerCore.cs" />
-    <Compile Include="Propulsion\InterstellarRCSModule.cs" />
+    <Compile Include="Microwave\InterstellarRCSModule.cs" />
     <Compile Include="Extensions\VesselExtensions.cs" />
     <Compile Include="Microwave\VesselMicrowavePersistence.cs" />
     <Compile Include="Microwave\VesselRelayPersistence.cs" />

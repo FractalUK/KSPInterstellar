@@ -66,8 +66,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fusionWasteHeatUpgraded2 = 10000;
 
+        // Use for SETI Mode
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float powerRequirementMultiplier = 1;
+
         [KSPField(isPersistant = false)]
         public float maxTemp = 2500;
         [KSPField(isPersistant = false)]
@@ -203,7 +207,7 @@ namespace FNPlugin
         {
             get
             {
-                return PowerRequirementMaximum * PowerRatio;
+                return PowerRequirementMaximum * PowerRatio * powerRequirementMultiplier;
             }
         }
 
