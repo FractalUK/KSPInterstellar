@@ -147,7 +147,7 @@ namespace FNPlugin
         public string connectedRecieversStr = String.Empty;
 
         // Gui floats
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Empty Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Empty Mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thermal Power", guiUnits = " MW")]
         public float maximumThermalPowerFloat = 0;
@@ -265,6 +265,8 @@ namespace FNPlugin
             get { return true; }      
         }
 
+        public Part Part { get { return this.part; } }
+
         public double ProducedWasteHeat { get { return ongoing_total_power_f ; } }
 
         public float PowerUpgradeTechnologyBonus { get { return _hasPowerUpgradeTechnology ? powerUpgradeTechMult : 1; } }
@@ -330,6 +332,8 @@ namespace FNPlugin
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         public float PowerBufferBonus { get { return this.bonusBufferFactor; } }
+
+        public float RawMaximumPower { get { return RawPowerOutput; } }
 
         public double FuelEfficiency
         {
@@ -564,6 +568,12 @@ namespace FNPlugin
                 part.Resources.UpdateList();
             }
 
+            // while in edit mode, listen to on attach event
+            if (state == StartState.Editor)
+            {
+                part.OnEditorAttach += OnEditorAttach;
+            }
+
             // initialise resource defenitions
             thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
             chargedPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -645,6 +655,21 @@ namespace FNPlugin
             print("[KSP Interstellar] Succesfully Completed Configuring Reactor");
         }
 
+        /// <summary>
+        /// Event handler called when part is attached to another part
+        /// </summary>
+        private void OnEditorAttach()
+        {
+            foreach (var node in part.attachNodes)
+            {
+                if (node.attachedPart == null) continue;
+
+                var generator = node.attachedPart.FindModuleImplementing<FNGenerator>();
+                if (generator != null)
+                    generator.FindAndAttachToThermalSource();
+            }
+        }
+
         public void Update()
         {
             //Update Events
@@ -698,7 +723,10 @@ namespace FNPlugin
             update_count++;
         }
 
-        public void FixedUpdate() // FixedUpdate is also called when not activated
+        /// <summary>
+        /// FixedUpdate is also called when not activated
+        /// </summary>
+        public void FixedUpdate() 
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -866,11 +894,9 @@ namespace FNPlugin
                 if (Planetarium.GetUniversalTime() != 0)
                     last_active_time = (float)(Planetarium.GetUniversalTime());
             }
-            else if (MaximumPower > 0 && Planetarium.GetUniversalTime() - last_active_time <= 3 * GameConstants.EARH_DAY_SECONDS && IsNuclear)
+            else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * GameConstants.EARH_DAY_SECONDS))
             {
-                double daughter_half_life = GameConstants.EARH_DAY_SECONDS / 24.0 * 9.0;
-                double time_t = Planetarium.GetUniversalTime() - last_active_time;
-                double power_fraction = 0.1 * Math.Exp(-time_t / daughter_half_life);
+                double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / GameConstants.EARH_DAY_SECONDS / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 double thermal_power_received = supplyManagedFNResourceWithMinimum(power_to_supply, 1.0, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 double total_power_ratio = thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime;

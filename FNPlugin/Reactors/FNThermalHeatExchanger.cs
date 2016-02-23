@@ -17,6 +17,8 @@ namespace FNPlugin
         public float radius;
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
+        [KSPField(isPersistant = false)]
+        public float maximumPowerRecieved = 6;
 
         //GUI
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
@@ -31,16 +33,18 @@ namespace FNPlugin
         protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
         protected float connectedRecieversSum;
 
-        protected double storedIsThermalEnergyGenratorActive;
-        protected double currentIsThermalEnergyGenratorActive;
+        protected double storedIsThermalEnergyGeneratorActive;
+        protected double currentIsThermalEnergyGeneratorActive;
 
-        public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
+        public Part Part { get { return this.part; } }
+
+        public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGeneratorActive; } }
 
         public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }
 
         public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
         {
-            currentIsThermalEnergyGenratorActive = efficency;
+            currentIsThermalEnergyGeneratorActive = efficency;
         }
 
         public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
@@ -50,6 +54,8 @@ namespace FNPlugin
         public bool ShouldApplyBalance (ElectricGeneratorType generatorType) {  return false;  }
 
         public double ChargedPowerRatio { get { return 0; } }
+
+        public float RawMaximumPower { get { return maximumPowerRecieved; } }
 
         public void AttachThermalReciever(Guid key, float radius)
         {
@@ -182,8 +188,8 @@ namespace FNPlugin
 
 		public override void OnFixedUpdate() 
         {
-            storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-            currentIsThermalEnergyGenratorActive = 0;
+            storedIsThermalEnergyGeneratorActive = currentIsThermalEnergyGeneratorActive;
+            currentIsThermalEnergyGeneratorActive = 0;
             
             base.OnFixedUpdate ();
 			setupThermalPower ();

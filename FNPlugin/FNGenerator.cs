@@ -30,6 +30,8 @@ namespace FNPlugin
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public bool chargedParticleMode = false;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 5f, maxValue = 100f, minValue = 5f)]
+        public float powerPercentage = 100;
 
         // Persistent False
         [KSPField(isPersistant = false)]
@@ -57,10 +59,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradedDirectConversionEff = 0.865f;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 5f, maxValue = 100f, minValue = 5f)]
-        public float powerPercentage = 100;
+        /// <summary>
+        /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
+        /// </summary>
+        [KSPField(isPersistant = false)]
+        public float rawPowerToMassDivider = 1000f;
 
         // GUI
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        public float effectiveMass = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
         public float maxChargedPower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW")]
@@ -75,9 +82,6 @@ namespace FNPlugin
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        //[KSPField(isPersistant = false, guiActive = false, guiName = "Combined Power", guiUnits = " MW_e")]
-        //public float _totalMaximumPowerAllReactors;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Required Capacity", guiUnits = " MW_e")]
         public float requiredMegawattCapacity;
 
@@ -89,17 +93,14 @@ namespace FNPlugin
         public float requestedPower_f;
 
         // Internal
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath")]
         protected float coldBathTemp = 500;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath")]
         protected float hotBathTemp = 1;
-
         protected float outputPower;
         protected double _totalEff;
         protected float sectracker = 0;
         protected bool play_down = true;
         protected bool play_up = true;
-        protected IThermalSource myAttachedReactor;
+        protected IThermalSource attachedThermalSource;
         protected bool hasrequiredupgrade = false;
         protected long last_draw_update = 0;
         protected int shutdown_counter = 0;
@@ -109,8 +110,7 @@ namespace FNPlugin
         protected int partDistance;
         protected PartResource megajouleResource;
         protected int startcount = 0;
-
-        private PowerStates _powerState;
+        protected PowerStates _powerState;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -164,9 +164,12 @@ namespace FNPlugin
             //Events["EditorSwapType"].guiActiveEditor = true;
         }
 
-        public void OnEditorAttach()
+        /// <summary>
+        /// Event handler which is called when part is attached to a new part
+        /// </summary>
+        private void OnEditorAttach()
         {
-            FindAttachedThermalSource();
+            FindAndAttachToThermalSource();
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -196,6 +199,7 @@ namespace FNPlugin
 
             base.OnStart(state);
             generatorType = originalName;
+            effectiveMass = part.mass;
 
             Fields["maxChargedPower"].guiActive = chargedParticleMode;
             Fields["maxThermalPower"].guiActive = !chargedParticleMode;
@@ -243,33 +247,51 @@ namespace FNPlugin
             if (isupgraded)
                 upgradePartModule();
 
-            FindAttachedThermalSource();
+            FindAndAttachToThermalSource();
 
             UpdateHeatExchangedThrustDivisor();
 
             print("[KSP Interstellar]  Generator OnStart Finished");
         }
 
-        private void FindAttachedThermalSource()
+        /// <summary>
+        /// Finds the nearest avialable thermalsource and update effective part mass
+        /// </summary>
+        public void FindAndAttachToThermalSource()
         {
             partDistance = 0;
 
             // first look if part contains an thermal source
-            myAttachedReactor = part.FindModulesImplementing<IThermalSource>().FirstOrDefault();
-            if (myAttachedReactor != null) return;
+            attachedThermalSource = part.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+            if (attachedThermalSource != null) return;
 
             // otherwise look for other non selfcontained thermal sources
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 0, true);
-            //var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 3, 0, true);
-            if (source == null) return;
+            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 0, true);
+            if (searchResult == null) return;
 
             // verify cost is not higher than 1
-            partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+            partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost) - 1, 0);
             if (partDistance > 0) return;
 
-            myAttachedReactor = source.Source;
+            // update attacked thermalsource
+            attachedThermalSource = searchResult.Source;
+
+            // update part mass
+            effectiveMass = attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0
+                ? attachedThermalSource.RawMaximumPower / rawPowerToMassDivider 
+                : part.mass;
+            part.mass = effectiveMass;
         }
 
+
+        public float GetModuleMass(float defaultMass)
+        {
+            return effectiveMass;
+        }
+
+        /// <summary>
+        /// Is called by KSP while the part is active
+        /// </summary>
         public override void OnUpdate()
         {
             Events["ActivateGenerator"].active = !IsEnabled;
@@ -345,48 +367,48 @@ namespace FNPlugin
 
         public bool isActive() { return IsEnabled; }
 
-        public IThermalSource getThermalSource() { return myAttachedReactor; }
+        public IThermalSource getThermalSource() { return attachedThermalSource; }
 
         public double MaxStableMegaWattPower
         {
             get
             {
-                return myAttachedReactor != null && IsEnabled
+                return attachedThermalSource != null && IsEnabled
                     ? chargedParticleMode
-                        ? myAttachedReactor.StableMaximumReactorPower * 0.85
-                        : myAttachedReactor.StableMaximumReactorPower * pCarnotEff
+                        ? attachedThermalSource.StableMaximumReactorPower * 0.85
+                        : attachedThermalSource.StableMaximumReactorPower * pCarnotEff
                     : 0;
             }
         }
 
         private void UpdateHeatExchangedThrustDivisor()
         {
-            if (myAttachedReactor == null) return;
+            if (attachedThermalSource == null) return;
 
-            if (myAttachedReactor.GetRadius() <= 0 || radius <= 0)
+            if (attachedThermalSource.GetRadius() <= 0 || radius <= 0)
             {
                 heat_exchanger_thrust_divisor = 1;
                 return;
             }
 
-            heat_exchanger_thrust_divisor = radius > myAttachedReactor.GetRadius()
-                ? myAttachedReactor.GetRadius() * myAttachedReactor.GetRadius() / radius / radius
-                : radius * radius / myAttachedReactor.GetRadius() / myAttachedReactor.GetRadius();
+            heat_exchanger_thrust_divisor = radius > attachedThermalSource.GetRadius()
+                ? attachedThermalSource.GetRadius() * attachedThermalSource.GetRadius() / radius / radius
+                : radius * radius / attachedThermalSource.GetRadius() / attachedThermalSource.GetRadius();
         }
 
         public void updateGeneratorPower()
         {
-            if (myAttachedReactor == null) return;
+            if (attachedThermalSource == null) return;
 
-            hotBathTemp = myAttachedReactor.HotBathTemperature;
+            hotBathTemp = attachedThermalSource.HotBathTemperature;
 
             if (HighLogic.LoadedSceneIsEditor)
                 UpdateHeatExchangedThrustDivisor();
 
-            maxThermalPower = myAttachedReactor.MaximumThermalPower * (powerPercentage / 100);
-            if (myAttachedReactor.EfficencyConnectedChargedEnergyGenrator == 0)
-                maxThermalPower += myAttachedReactor.MaximumChargedPower;
-            maxChargedPower = myAttachedReactor.MaximumChargedPower;
+            maxThermalPower = attachedThermalSource.MaximumThermalPower * (powerPercentage / 100);
+            if (attachedThermalSource.EfficencyConnectedChargedEnergyGenrator == 0)
+                maxThermalPower += attachedThermalSource.MaximumChargedPower;
+            maxChargedPower = attachedThermalSource.MaximumChargedPower;
 
             coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
         }
@@ -395,10 +417,20 @@ namespace FNPlugin
 
         private float previousTimeWarp;
 
+        /// <summary>
+        /// FixedUpdate is also called when not activated
+        /// </summary>
+        public void FixedUpdate()
+        {
+            if (HighLogic.LoadedSceneIsFlight) return;
+
+            Fields["effectiveMass"].guiActive = attachedThermalSource != null && attachedThermalSource.Part != this.part ;
+        }
+
         public override void OnFixedUpdate()
         {
             base.OnFixedUpdate();
-            if (IsEnabled && myAttachedReactor != null && FNRadiator.hasRadiatorsForVessel(vessel))
+            if (IsEnabled && attachedThermalSource != null && FNRadiator.hasRadiatorsForVessel(vessel))
             {
                 updateGeneratorPower();
 
@@ -413,7 +445,7 @@ namespace FNPlugin
                 {
                     _powerState = PowerStates.powerOnline;
 
-                    var powerBufferingBonus = myAttachedReactor.PowerBufferBonus * maxStableMegaWattPower;
+                    var powerBufferingBonus = attachedThermalSource.PowerBufferBonus * maxStableMegaWattPower;
                     requiredMegawattCapacity = (float)Math.Max(0.0001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
                     var previousMegawattCapacity = Math.Max(0.0001, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
 
@@ -429,18 +461,9 @@ namespace FNPlugin
                         }
                     }
 
-                    //PartResource wasteheatResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-                    //if (wasteheatResource != null)
-                    //{
-                    //    var previousMaxAmount = wasteheatResource.maxAmount;
-                    //    wasteheatResource.maxAmount = TimeWarp.fixedDeltaTime * part.mass * 1000;
-                    //    this.part.RequestResource(FNResourceManager.FNRESOURCE_WASTEHEAT, previousTimeWarp > TimeWarp.fixedDeltaTime ? previousMaxAmount - wasteheatResource.maxAmount : 0);
-                    //}
-
                     PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
                     if (electricChargeResource != null)
                     {
-                        //if (maxStableMegaWattPower <= 0)
                         electricChargeResource.maxAmount = requiredMegawattCapacity;
                         electricChargeResource.amount = maxStableMegaWattPower <= 0 ? 0 : Math.Min(electricChargeResource.maxAmount, electricChargeResource.amount);
                     }
@@ -458,10 +481,10 @@ namespace FNPlugin
 
                 double electrical_power_currently_needed;
 
-                if (myAttachedReactor.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal))
+                if (attachedThermalSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal))
                 {
-                    var chargedPowerPerformance = myAttachedReactor.EfficencyConnectedChargedEnergyGenrator * myAttachedReactor.ChargedPowerRatio;
-                    var thermalPowerPerformance = myAttachedReactor.EfficencyConnectedThermalEnergyGenrator * (1 - myAttachedReactor.ChargedPowerRatio);
+                    var chargedPowerPerformance = attachedThermalSource.EfficencyConnectedChargedEnergyGenrator * attachedThermalSource.ChargedPowerRatio;
+                    var thermalPowerPerformance = attachedThermalSource.EfficencyConnectedThermalEnergyGenrator * (1 - attachedThermalSource.ChargedPowerRatio);
 
                     var totalPerformance = chargedPowerPerformance + thermalPowerPerformance;
                     var balancePerformanceRatio = (chargedParticleMode ? chargedPowerPerformance / totalPerformance : thermalPowerPerformance / totalPerformance);
@@ -479,9 +502,9 @@ namespace FNPlugin
                 if (!chargedParticleMode) // thermal mode
                 {
                     double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
-                    _totalEff = carnotEff * pCarnotEff * myAttachedReactor.ThermalEnergyEfficiency;
+                    _totalEff = carnotEff * pCarnotEff * attachedThermalSource.ThermalEnergyEfficiency;
 
-                    myAttachedReactor.NotifyActiveThermalEnergyGenrator(_totalEff, ElectricGeneratorType.thermal);
+                    attachedThermalSource.NotifyActiveThermalEnergyGenrator(_totalEff, ElectricGeneratorType.thermal);
 
                     if (_totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) return;
 
@@ -493,7 +516,7 @@ namespace FNPlugin
 
                     double input_power = consumeFNResource(thermal_power_requested, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    if (!(myAttachedReactor.EfficencyConnectedChargedEnergyGenrator > 0) && input_power < thermal_power_requested)
+                    if (!(attachedThermalSource.EfficencyConnectedChargedEnergyGenrator > 0) && input_power < thermal_power_requested)
                         input_power += consumeFNResource(thermal_power_requested - input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     double wastedt = input_power * _totalEff;
@@ -507,7 +530,7 @@ namespace FNPlugin
                 {
                     _totalEff = isupgraded ? upgradedDirectConversionEff : directConversionEff;
 
-                    myAttachedReactor.NotifyActiveChargedEnergyGenrator(_totalEff, ElectricGeneratorType.charged_particle);
+                    attachedThermalSource.NotifyActiveChargedEnergyGenrator(_totalEff, ElectricGeneratorType.charged_particle);
 
                     if (_totalEff <= 0) return;
 
@@ -540,7 +563,7 @@ namespace FNPlugin
                         PowerDown();
                     }
 
-                    if (myAttachedReactor == null)
+                    if (attachedThermalSource == null)
                     {
                         IsEnabled = false;
                         Debug.Log("[WarpPlugin] Generator Shutdown: No reactor available!");

@@ -18,6 +18,13 @@ namespace FNPlugin
 
     public interface IThermalSource : IThermalReciever
     {
+        Part Part { get; }
+
+        /// <summary>
+        /// // The absolute maximum amount of power the thermalsource can possbly produce
+        /// </summary>
+        float RawMaximumPower { get; }  
+
         double ProducedWasteHeat { get; }
 
         float PowerBufferBonus { get; }

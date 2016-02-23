@@ -103,7 +103,7 @@ namespace InterstellarFuelSwitch
         public float addedCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Dry mass", guiUnits = " t")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Part mass", guiUnits = " t")]
         public float currentPartMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
         public string currentBoiloffTempStr = "";

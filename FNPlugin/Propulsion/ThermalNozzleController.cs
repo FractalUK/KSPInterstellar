@@ -440,7 +440,7 @@ namespace FNPlugin
 
             AttachedReactor = source.Source;
             partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal source with distance " + partDistance);
+            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
         }
 
         // Note: does not seem to be called while in vab mode

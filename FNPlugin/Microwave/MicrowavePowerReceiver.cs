@@ -42,6 +42,9 @@ namespace FNPlugin
         public float receiverType = 0;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float maximumPowerRecieved = 6000;
+
 
         [KSPField(isPersistant = false)]
         public float thermalPropulsionEfficiency = 1;
@@ -82,6 +85,8 @@ namespace FNPlugin
         protected double storedIsThermalEnergyGenratorActive;
         protected double currentIsThermalEnergyGenratorActive;
 
+        public Part Part { get { return this.part; } }
+
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
 
         public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }
@@ -97,6 +102,8 @@ namespace FNPlugin
         {
             get { return this.isThermalReceiver; }
         }
+
+        public float RawMaximumPower { get { return maximumPowerRecieved; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
