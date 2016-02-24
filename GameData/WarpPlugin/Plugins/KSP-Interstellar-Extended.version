@@ -1,12 +1,12 @@
 {
     "NAME":"KSP Interstellar Extended",
     "URL":"http://ksp-avc.cybutek.net/version.php?id=152",
-    "DOWNLOAD":"http://forum.kerbalspaceprogram.com/threads/111159-WIP-0-90-KSP-Interstellar-Extended",
+    "DOWNLOAD":"http://www.curse.com/ksp-mods/kerbal/236825-ksp-interstellar-extended",
     "VERSION":
     {
         "MAJOR":1,
         "MINOR":6,
-        "PATCH":8,
+        "PATCH":9,
         "BUILD":0
     },
     "KSP_VERSION":

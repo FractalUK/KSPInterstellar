@@ -35,6 +35,8 @@ namespace FNPlugin
 
         // Persistent False
         [KSPField(isPersistant = false)]
+        public bool calculatedMass = false;
+        [KSPField(isPersistant = false)]
         public float pCarnotEff = 0.31f;
         [KSPField(isPersistant = false)]
         public string upgradedName;
@@ -273,8 +275,11 @@ namespace FNPlugin
             partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost) - 1, 0);
             if (partDistance > 0) return;
 
-            // update attacked thermalsource
+            // update attached thermalsource
             attachedThermalSource = searchResult.Source;
+
+            // verify if mass calculation is active
+            if (!calculatedMass) return;
 
             // update part mass
             effectiveMass = attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0

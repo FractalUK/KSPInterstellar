@@ -365,7 +365,7 @@ namespace FNPlugin
 
             if (curEngineT == null) return;
 
-            throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
+            throttle = curEngineT.currentThrottle > MinThrottleRatio ? curEngineT.currentThrottle : 0;
 
             if (throttle > 0)
             {
@@ -429,8 +429,8 @@ namespace FNPlugin
                 curEngineT.atmosphereCurve = newISP;
                 var rateMultplier = minISP / SelectedIsp;
 
-                var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                //var maxFuelFlow = curEngineT.currentThrottle == 0 ?  MaximumThrust / currentIsp / PluginHelper.GravityConstant : 0;
+                curEngineT.maxFuelFlow = 0;//(float)maxFuelFlow;
 
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
