@@ -38,6 +38,8 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
+        public float ThermalProcessingModifier { get { return 1; } }
+
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGeneratorActive; } }
 
         public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }

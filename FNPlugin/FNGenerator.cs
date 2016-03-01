@@ -66,6 +66,8 @@ namespace FNPlugin
         /// </summary>
         [KSPField(isPersistant = false)]
         public float rawPowerToMassDivider = 1000f;
+        [KSPField(isPersistant = false)]
+        public float massModifier = 1;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
@@ -283,7 +285,7 @@ namespace FNPlugin
 
             // update part mass
             effectiveMass = attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0
-                ? attachedThermalSource.RawMaximumPower / rawPowerToMassDivider 
+                ? (massModifier * attachedThermalSource.ThermalProcessingModifier * attachedThermalSource.RawMaximumPower) / rawPowerToMassDivider 
                 : part.mass;
             part.mass = effectiveMass;
         }

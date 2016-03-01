@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    enum EngineGenerationType { Mk1, Mk2, Mk3 }
+    enum GenerationType { Mk1, Mk2, Mk3, Mk4 }
 
     class VistaEngineControllerAdvanced : VistaEngineControllerBase
     {
@@ -149,7 +149,7 @@ namespace FNPlugin
 		protected double standard_tritium_rate = 0;
         protected ModuleEngines curEngineT;
 
-        public EngineGenerationType EngineGenerationType { get; private set; }
+        public GenerationType EngineGenerationType { get; private set; }
 
 		[KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
 		public void DeactivateRadSafety() 
@@ -183,12 +183,12 @@ namespace FNPlugin
             if (PluginHelper.upgradeAvailable(upgradeTechReq2))
             {
                 engineType = upgradedName2 ;
-                EngineGenerationType = EngineGenerationType.Mk3;
+                EngineGenerationType = GenerationType.Mk3;
             }
             else
             {
                 engineType = upgradedName;
-                EngineGenerationType = EngineGenerationType.Mk2;
+                EngineGenerationType = GenerationType.Mk2;
             }
         }
 
@@ -200,9 +200,9 @@ namespace FNPlugin
         { 
             get 
             {
-                if (EngineGenerationType == EngineGenerationType.Mk1)
+                if (EngineGenerationType == GenerationType.Mk1)
                     return fusionWasteHeat;
-                else if (EngineGenerationType == EngineGenerationType.Mk2)
+                else if (EngineGenerationType == GenerationType.Mk2)
                     return fusionWasteHeatUpgraded;
                 else
                     return fusionWasteHeatUpgraded2;
@@ -213,9 +213,9 @@ namespace FNPlugin
         {
             get
             {
-                if (EngineGenerationType == EngineGenerationType.Mk1)
+                if (EngineGenerationType == GenerationType.Mk1)
                     return maxThrust;
-                else if (EngineGenerationType == EngineGenerationType.Mk2)
+                else if (EngineGenerationType == GenerationType.Mk2)
                     return maxThrustUpgraded;
                 else
                     return maxThrustUpgraded2;
@@ -226,9 +226,9 @@ namespace FNPlugin
         {
             get
             {
-                if (EngineGenerationType == EngineGenerationType.Mk1)
+                if (EngineGenerationType == GenerationType.Mk1)
                     return efficiency;
-                else if (EngineGenerationType == EngineGenerationType.Mk2)
+                else if (EngineGenerationType == GenerationType.Mk2)
                     return efficiencyUpgraded;
                 else
                     return efficiencyUpgraded2;
@@ -247,9 +247,9 @@ namespace FNPlugin
         {
             get
             {
-                if (EngineGenerationType == EngineGenerationType.Mk1)
+                if (EngineGenerationType == GenerationType.Mk1)
                     return powerRequirement;
-                else if (EngineGenerationType == EngineGenerationType.Mk2)
+                else if (EngineGenerationType == GenerationType.Mk2)
                     return powerRequirementUpgraded;
                 else
                     return powerRequirementUpgraded2;
@@ -260,9 +260,9 @@ namespace FNPlugin
         {
             get
             {
-                if (EngineGenerationType == EngineGenerationType.Mk1)
+                if (EngineGenerationType == GenerationType.Mk1)
                     return minThrottleRatioMk1;
-                else if (EngineGenerationType == EngineGenerationType.Mk2)
+                else if (EngineGenerationType == GenerationType.Mk2)
                     return minThrottleRatioMk2;
                 else
                     return minThrottleRatioMk3;
@@ -275,7 +275,7 @@ namespace FNPlugin
             part.maxTemp = maxTemp;
             part.thermalMass = 1;
             part.thermalMassModifier = 1;
-            EngineGenerationType = EngineGenerationType.Mk1;
+            EngineGenerationType = GenerationType.Mk1;
 
             engineType = originalName;
             curEngineT = this.part.FindModuleImplementing<ModuleEngines>();

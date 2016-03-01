@@ -20,10 +20,16 @@ namespace FNPlugin
     {
         Part Part { get; }
 
+
         /// <summary>
         /// // The absolute maximum amount of power the thermalsource can possbly produce
         /// </summary>
-        float RawMaximumPower { get; }  
+        float RawMaximumPower { get; }
+
+        /// <summary>
+        /// Influences the Mass in Electric Generator
+        /// </summary>
+        float ThermalProcessingModifier { get; }
 
         double ProducedWasteHeat { get; }
 

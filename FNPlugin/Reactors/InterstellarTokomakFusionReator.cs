@@ -6,9 +6,6 @@ namespace FNPlugin
 {
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Maintance")]
-        public string tokomakPower;
-
         public bool fusion_alert = false;
         public float power_consumed = 0.0f;
         public int jumpstartPowerTime = 0;
@@ -20,9 +17,9 @@ namespace FNPlugin
         public float HeatingPowerRequirements 
 		{ 
 			get { 
-				return current_fuel_mode == null 
-					? powerRequirements 
-					: (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); 
+				return current_fuel_mode == null
+                    ? PowerRequirement
+                    : PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; 
 			} 
 		}
 
@@ -45,7 +42,7 @@ namespace FNPlugin
 
             Events["SwapNextFuelMode"].active = true;
             Events["SwapPreviousFuelMode"].active = true;
-            tokomakPower = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
+            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
         }
 
         private float GetPlasmaRatio(float consumedPower)

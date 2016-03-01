@@ -5,13 +5,10 @@ using UnityEngine;
 namespace FNPlugin 
 {
     [KSPModule("IC Fusion Reactor")]
-    class InterstellarInertialConfinementReactor : InterstellarFusionReactor, IChargedParticleSource
+    class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Maintenance")]
-        public string laserPower;
         [KSPField(isPersistant = true)]
         protected double accumulatedElectricChargeInMW;
-
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
@@ -52,9 +49,10 @@ namespace FNPlugin
 	    [KSPField(isPersistant = false, guiActive = true, guiName = "HeatingPowerRequirements")]
 	    public float LaserPowerRequirements
 	    {
-		    get { return current_fuel_mode == null 
-				? powerRequirements 
-				: (float)(powerRequirements * current_fuel_mode.NormalisedPowerRequirements); }
+		    get { return current_fuel_mode == null
+                ? PowerRequirement
+                : PowerRequirement * current_fuel_mode.NormalisedPowerRequirements;
+            }
 	    }
         
         public override bool shouldScaleDownJetISP() 
@@ -78,7 +76,7 @@ namespace FNPlugin
             Fields["accumulatedChargeStr"].guiActive = plasma_ratio < 1;
 
 
-            laserPower = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
+            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
             base.OnUpdate();
         }
 

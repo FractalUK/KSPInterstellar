@@ -239,8 +239,6 @@ namespace FNPlugin
 		private static float _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
         public static float MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
 
-
-
 		private static bool _isPanelHeatingClamped = false;
         public static bool IsSolarPanelHeatingClamped { get { return _isPanelHeatingClamped; }}
 
@@ -285,6 +283,9 @@ namespace FNPlugin
 
         public static bool hasTech(string techid)
         {
+            if (techid == null)
+                return false;
+
             if (ResearchAndDevelopment.Instance == null)
                 return HasTechFromSaveFile(techid);
 
@@ -309,12 +310,14 @@ namespace FNPlugin
 
         public static void LoadSaveFile()
         {
-            string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-            UnityEngine.Debug.Log("[KSPI] - Loading ConfigNode " + persistentfile);
-            ConfigNode config = ConfigNode.Load(persistentfile);
             researchedTechs = new HashSet<string>();
+
+            string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+            //UnityEngine.Debug.Log("[KSPI] - Loading ConfigNode " + persistentfile);
+            ConfigNode config = ConfigNode.Load(persistentfile);
             ConfigNode gameconf = config.GetNode("GAME");
             ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
+            
             foreach (ConfigNode scenario in scenarios)
             {
                 if (scenario.GetValue("name") == "ResearchAndDevelopment")
@@ -353,10 +356,7 @@ namespace FNPlugin
             if (HighLogic.CurrentGame != null)
             {
                 if (PluginHelper.TechnologyIsInUse)
-                {
-                    if (techid != null && PluginHelper.hasTech(techid))
-                        return true;
-                }
+                    return PluginHelper.hasTech(techid);
                 else
                     return true;
             }
