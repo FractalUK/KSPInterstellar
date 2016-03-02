@@ -11,6 +11,15 @@ namespace FNPlugin
 {
     class ThermalNozzleController : FNResourceSuppliableModule, INoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
+        const float maxIsp = 50000f;
+        const float minIsp = 20000f;
+        const float steps = (maxIsp - minIsp) / 100f;
+
+        // Persistant setting
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Selected Isp"), UI_FloatRange(stepIncrement = steps, maxValue = maxIsp, minValue = minIsp)]
+        public float chargedParticlePropulsionIsp = minIsp;
+
+
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled;
@@ -24,7 +33,8 @@ namespace FNPlugin
 		public int fuel_mode = 0;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Soot Accumulation", guiUnits = " %")]
         public float sootAccumulationPercentage;
-
+        [KSPField(isPersistant = true)]
+        public bool showChargedParticlePropulsionIsp = false;
 
 		//Persistent False
         [KSPField(isPersistant = false)]
@@ -78,12 +88,8 @@ namespace FNPlugin
         //public string EffectNameThrustMult = String.Empty;
         [KSPField(isPersistant = false)]
         public bool showPartTemperature = true;
-
         [KSPField(isPersistant = false)]
-        public bool canUseNeutronAbsorbingPropellant = false;
-        [KSPField(isPersistant = false)]
-        public bool canUseNonNeutronAbsorbingPropellant = true;
-
+        public int supportedPropellants = 127;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
         public float radius;
@@ -181,8 +187,9 @@ namespace FNPlugin
         protected bool _propellantIsLFO = false;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Velocity Modifier")]
         protected float vcurveAtCurrentVelocity;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Neutron Absorbing Propellant")]
-        protected bool _propellantIsNeutronAbsorbing = false;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Propellanr Type")]
+        protected int _propellantType = 1;
+
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Power", guiUnits = " MJ")]
         protected float _currentMaximumPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Modifier")]
@@ -426,6 +433,7 @@ namespace FNPlugin
             hasstarted = true;
 
             Fields["temperatureStr"].guiActive = showPartTemperature;
+            Fields["chargedParticlePropulsionIsp"].guiActive = showChargedParticlePropulsionIsp;
         }
 
         private void ConfigEffects()
@@ -637,11 +645,10 @@ namespace FNPlugin
                                (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                             || (_fuelRequiresUpgrade && !isupgraded)
                             || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                            || (_propellantIsNeutronAbsorbing && !canUseNeutronAbsorbingPropellant)
-                            || (!_propellantIsNeutronAbsorbing && !canUseNonNeutronAbsorbingPropellant)
+                            || ((_propellantType & supportedPropellants) != _propellantType)
                             )
                         {
-                            UnityEngine.Debug.Log("[KSPI] - Skip Fuel Mode " + _fuelmode);
+                            UnityEngine.Debug.Log("[KSPI] - Skip Fuel Mode=" + _fuelmode + " supportedPropellants=" + supportedPropellants + " _propellantType=" + _propellantType + " &=" + (_propellantType & supportedPropellants));
                             next_propellant = true;
                         }
                     }
@@ -669,11 +676,10 @@ namespace FNPlugin
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                        || (_propellantIsNeutronAbsorbing && !canUseNeutronAbsorbingPropellant)
-                        || (!_propellantIsNeutronAbsorbing && !canUseNonNeutronAbsorbingPropellant)
+                        || ((_propellantType & supportedPropellants) != _propellantType)
                         )
                     {
-                        UnityEngine.Debug.Log("[KSPI] - Skip Fuel Mode " + _fuelmode);
+                        UnityEngine.Debug.Log("[KSPI] - Skip Fuel Mode=" + _fuelmode + " supportedPropellants=" + supportedPropellants + " _propellantType=" + _propellantType + " &=" + (_propellantType & supportedPropellants));
                         next_propellant = true;
                     }
 
@@ -715,7 +721,7 @@ namespace FNPlugin
 
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
             _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
-            _propellantIsNeutronAbsorbing = chosenpropellant.HasValue("isNeutronAbsorbing") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorbing")) : false;
+            _propellantType = chosenpropellant.HasValue("propellantType") ? int.Parse(chosenpropellant.GetValue("propellantType")) : 1;
 
             if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
