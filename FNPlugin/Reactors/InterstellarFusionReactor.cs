@@ -27,6 +27,8 @@ namespace FNPlugin
         public string upgradeTechReqMk3 = null;
         [KSPField(isPersistant = false)]
         public string upgradeTechReqMk4 = null;
+        [KSPField(isPersistant = false)]
+        public string upgradeTechReqMk5 = null;
 
         [KSPField(isPersistant = false)]
         public float powerOutputMk1 = 0;
@@ -99,18 +101,36 @@ namespace FNPlugin
             if (upgradeTechReqMk3 == null)
                 upgradeTechReqMk3 = powerUpgradeTechReq;
 
-            // determine fusion tech levels
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
-                FusionGenerationType = GenerationType.Mk4;
-            else  if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
-                FusionGenerationType = GenerationType.Mk3;
-            else if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
-                FusionGenerationType = GenerationType.Mk2;
-            else 
-                FusionGenerationType = GenerationType.Mk1;
+            DetermineGenerationType();
 
             // call Interstellar Reactor Onstart
             base.OnStart(state);
+        }
+
+        private void DetermineGenerationType()
+        {
+            // determine number of upgrade techs
+            int nrAvailableUpgradeTechs = 1;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
+                nrAvailableUpgradeTechs++;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
+                nrAvailableUpgradeTechs++;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
+                nrAvailableUpgradeTechs++;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
+                nrAvailableUpgradeTechs++;
+
+            // determine fusion tech levels
+            if (nrAvailableUpgradeTechs == 5)
+                FusionGenerationType = GenerationType.Mk5;
+            else if (nrAvailableUpgradeTechs == 4)
+                FusionGenerationType = GenerationType.Mk4;
+            else if (nrAvailableUpgradeTechs == 3)
+                FusionGenerationType = GenerationType.Mk3;
+            else if (nrAvailableUpgradeTechs == 2)
+                FusionGenerationType = GenerationType.Mk2;
+            else
+                FusionGenerationType = GenerationType.Mk1;
         }
 
         public override float RawPowerOutput

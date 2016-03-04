@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    enum GenerationType { Mk1, Mk2, Mk3, Mk4 }
+    enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
 
     class VistaEngineControllerAdvanced : VistaEngineControllerBase
     {
@@ -35,8 +35,6 @@ namespace FNPlugin
         // Persistant
 		[KSPField(isPersistant = true)]
 		bool IsEnabled;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Upgraded")]
-        public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
 
@@ -98,16 +96,7 @@ namespace FNPlugin
         public float maxTemp = 2500;
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
-        [KSPField(isPersistant = false)]
-        public string originalName = "Prototype DT Vista Engine";
-        [KSPField(isPersistant = false)]
-        public string upgradedName = "DT Vista Engine Mk2";
-        [KSPField(isPersistant = false)]
-        public string upgradedName2 = "DT Vista Engine Mk3";
 
-        // Gui
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
-        public string engineType = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName= "upgrade tech 1")]
         public string upgradeTechReq = "advFusionReactions";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgrade tech 2")]
@@ -163,33 +152,26 @@ namespace FNPlugin
 			rad_safety_features = true;
 		}
 
-        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
-        public void RetrofitEngine()
-        {
-            if (ResearchAndDevelopment.Instance == null || isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
-
-            upgradePartModule();
-            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
-        }
-
         #region IUpgradeableModule
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
-        public void upgradePartModule()
-        {
-            isupgraded = true;
+        public void upgradePartModule() {}
 
+        public void DetermineTechLevel()
+        {
+            int numberOfUpgradeTechs = 1;
+            if (PluginHelper.upgradeAvailable(upgradeTechReq))
+                numberOfUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(upgradeTechReq2))
-            {
-                engineType = upgradedName2 ;
+                numberOfUpgradeTechs++;
+
+            if (numberOfUpgradeTechs == 3)
                 EngineGenerationType = GenerationType.Mk3;
-            }
-            else
-            {
-                engineType = upgradedName;
+            else if (numberOfUpgradeTechs == 2)
                 EngineGenerationType = GenerationType.Mk2;
-            }
+            else
+                EngineGenerationType = GenerationType.Mk2;
         }
 
         #endregion
@@ -277,7 +259,6 @@ namespace FNPlugin
             part.thermalMassModifier = 1;
             EngineGenerationType = GenerationType.Mk1;
 
-            engineType = originalName;
             curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
 
             if (curEngineT == null) return;
@@ -287,20 +268,9 @@ namespace FNPlugin
             standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio;
             standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio;
 
-            // if we can upgrade, let's do so
-            if (isupgraded)
-                upgradePartModule();
-            else if (this.HasTechsRequiredToUpgrade())
-                hasrequiredupgrade = true;
+            DetermineTechLevel();
 
-            // calculate WasteHeat Capacity
             part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
-
-            if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
-            {
-                isupgraded = true;
-                upgradePartModule();
-            }
 
             if (state != StartState.Editor)
                 part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
@@ -312,7 +282,6 @@ namespace FNPlugin
 
             Events["DeactivateRadSafety"].active = rad_safety_features;
             Events["ActivateRadSafety"].active = !rad_safety_features;
-            Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 
 			if (curEngineT.isOperational && !IsEnabled) 
             {
@@ -429,9 +398,7 @@ namespace FNPlugin
                 curEngineT.atmosphereCurve = newISP;
                 var rateMultplier = minISP / SelectedIsp;
 
-                //var maxFuelFlow = curEngineT.currentThrottle == 0 ?  MaximumThrust / currentIsp / PluginHelper.GravityConstant : 0;
-                curEngineT.maxFuelFlow = 0;//(float)maxFuelFlow;
-
+                curEngineT.maxFuelFlow = 0;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
@@ -457,7 +424,6 @@ namespace FNPlugin
 
                 if (distance >= leathalDistance || vess == this.vessel || vess.GetCrewCount() <= 0) continue;
 
-                //float neutronAbsorbtionEffect = 1f - (neutronAbsorptionFractionAtMinIsp * throttle);
                 float inv_sq_dist = distance / killDivider;
                 float inv_sq_mult = 1.0f / inv_sq_dist / inv_sq_dist;
                 foreach (ProtoCrewMember crew_member in vess.GetVesselCrew())
@@ -493,7 +459,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName() 
         {
-            return engineType;
+            return part.name;
         }
 
         public override int getPowerPriority() 
