@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -20,31 +21,42 @@ namespace FNPlugin
         public float fusionEnergyGainFactorMk3 = 40;
         [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk4 = 80;
+        [KSPField(isPersistant = false)]
+        public float fusionEnergyGainFactorMk5 = 120;
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk3 = null;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk4 = null;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk5 = null;
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float powerOutputMk1 = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float powerOutputMk2 = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float powerOutputMk3 = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float powerOutputMk4 = 0;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public float powerOutputMk5 = 0;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Maintance")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Min Power Req ", guiUnits = " MW")]
+        //public float minimumPowerRequirement;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Fusion Q factor")]
+        //public float fusionQfactor;
+
+        //public float
+        protected PartResource lithiumPartResource = null;
 
         public GenerationType FusionGenerationType { get; private set; }
 
@@ -56,11 +68,21 @@ namespace FNPlugin
 
         public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
-        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
+        public override float MaximumThermalPower 
+        { 
+            get 
+            {
+                float lithiumModifier = lithiumPartResource != null ? (float)Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) : 1;
+
+                float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
+
+                return base.MaximumThermalPower * lithiumModifier * Math.Max(lithiumModifier * plasmaModifier, 0.000000001f); 
+            } 
+        }
 
         public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
 
-        public override float CoreTemperature {  get { return base.CoreTemperature * (current_fuel_mode != null ? (float)Math.Sqrt(current_fuel_mode.NormalisedPowerRequirements) : 1); } }
+        //public override float CoreTemperature {  get { return base.CoreTemperature * (current_fuel_mode != null ? (float)Math.Sqrt(current_fuel_mode.NormalisedPowerRequirements) : 1); } }
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
@@ -68,11 +90,14 @@ namespace FNPlugin
 
         public float PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
+
         public float FusionEnergyGainFactor
         {
             get
             {
-                if (FusionGenerationType == GenerationType.Mk4)
+                if (FusionGenerationType == GenerationType.Mk5)
+                    return fusionEnergyGainFactorMk5;
+                else if (FusionGenerationType == GenerationType.Mk4)
                     return fusionEnergyGainFactorMk4;
                 else if (FusionGenerationType == GenerationType.Mk3)
                     return fusionEnergyGainFactorMk3;
@@ -85,6 +110,14 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // initialse tech requirment if missing 
+            if (upgradeTechReqMk2 == null)
+                upgradeTechReqMk2 = upgradeTechReq;
+            if (upgradeTechReqMk3 == null)
+                upgradeTechReqMk3 = powerUpgradeTechReq;
+
+            DetermineGenerationType();
+
             // initialise power output when missing
             if (powerOutputMk1 == 0)
                 powerOutputMk1 = PowerOutput;
@@ -94,14 +127,10 @@ namespace FNPlugin
                 powerOutputMk3 = PowerOutput * 1.5f * 1.5f;
             if (powerOutputMk4 == 0)
                 powerOutputMk4 = PowerOutput * 1.5f * 1.5f * 1.5f;
+            if (powerOutputMk5 == 0)
+                powerOutputMk5 = PowerOutput * 1.5f * 1.5f * 1.5f * 1.5f;
 
-            // initialse tech requirment if missing 
-            if (upgradeTechReqMk2 == null)
-                upgradeTechReqMk2 = upgradeTechReq;
-            if (upgradeTechReqMk3 == null)
-                upgradeTechReqMk3 = powerUpgradeTechReq;
-
-            DetermineGenerationType();
+            lithiumPartResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium);
 
             // call Interstellar Reactor Onstart
             base.OnStart(state);
@@ -119,6 +148,8 @@ namespace FNPlugin
                 nrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
                 nrAvailableUpgradeTechs++;
+
+            ScreenMessages.PostScreenMessage("Fusion Tech Level: " + nrAvailableUpgradeTechs, 10.0f, ScreenMessageStyle.UPPER_CENTER);
 
             // determine fusion tech levels
             if (nrAvailableUpgradeTechs == 5)
@@ -138,7 +169,9 @@ namespace FNPlugin
             get
             {
                 float rawPowerOutput;
-                if (FusionGenerationType == GenerationType.Mk4)
+                if (FusionGenerationType == GenerationType.Mk5)
+                    rawPowerOutput = powerOutputMk5;
+                else if (FusionGenerationType == GenerationType.Mk4)
                     rawPowerOutput = powerOutputMk4;
                 else if (FusionGenerationType == GenerationType.Mk3)
                     rawPowerOutput = powerOutputMk3;
@@ -151,10 +184,28 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next Fuel Mode", active = true)]
-        public void SwapNextFuelMode()
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Next Fusion Mode", active = true)]
+        public void NextFusionModeEvent()
         {
             SwitchToNextFuelMode(fuel_mode);
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Previous Fusion Mode", active = true)]
+        public void PreviousFusionModeEvent()
+        {
+            SwitchToPreviousFuelMode(fuel_mode);
+        }
+
+        [KSPAction("Next Fusion Mode")]
+        public void NextFusionModeAction(KSPActionParam param)
+        {
+            NextFusionModeEvent();
+        }
+
+        [KSPAction("Previous Fusion Mode")]
+        public void PreviousFusionModeAction(KSPActionParam param)
+        {
+            PreviousFusionModeEvent();
         }
 
         private void SwitchToNextFuelMode(int initial_fuel_mode)
@@ -195,12 +246,6 @@ namespace FNPlugin
             return hasAllFuels;
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous Fuel Mode", active = true)]
-        public void SwapPreviousFuelMode()
-        {
-            SwitchToPreviousFuelMode(fuel_mode);
-        }
-
         private void SwitchToPreviousFuelMode(int initial_fuel_mode)
         {
             if (fuel_modes == null || fuel_modes.Count == 0)
@@ -218,6 +263,32 @@ namespace FNPlugin
                 SwitchToPreviousFuelMode(initial_fuel_mode);
 
             isSwappingFuelMode = true;
+        }
+
+        protected override void WindowReactorSpecificOverride()
+        {
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Next Fusion Mode", GUILayout.ExpandWidth(true)))
+            {
+                NextFusionModeEvent();
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Previous Fusion Mode", GUILayout.ExpandWidth(true)))
+            {
+                PreviousFusionModeEvent();
+            }
+            GUILayout.EndHorizontal();
+
+            PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_label);
+        }
+
+        public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
+        {
+            //fusionQfactor = FusionEnergyGainFactor;
+            //minimumPowerRequirement = PowerRequirement;
+            base.OnFixedUpdate();
         }
     }
 }

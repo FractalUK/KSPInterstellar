@@ -27,9 +27,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            Events["SwapNextFuelMode"].active = true;
-            Events["SwapPreviousFuelMode"].active = true;
-
             if (state != StartState.Editor && allowJumpStart)
             {
                 if (startDisabled)
@@ -46,7 +43,6 @@ namespace FNPlugin
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
-	    [KSPField(isPersistant = false, guiActive = true, guiName = "HeatingPowerRequirements")]
 	    public float LaserPowerRequirements
 	    {
 		    get { return current_fuel_mode == null
@@ -70,13 +66,9 @@ namespace FNPlugin
             else 
                 fusion_alert = false;
 
-            Events["SwapNextFuelMode"].active = true;
-            Events["SwapPreviousFuelMode"].active = true;
-
             Fields["accumulatedChargeStr"].guiActive = plasma_ratio < 1;
 
-
-            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
+            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
             base.OnUpdate();
         }
 

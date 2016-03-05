@@ -18,7 +18,8 @@ namespace FNPlugin
         protected string _techRequirement;
         protected List<ReactorFuel> _fuels;
         protected List<ReactorProduct> _products;
-        protected double _normreactionrate;
+        protected float _reactionRate;
+        protected float _powerMultiplier;
         protected float _normpowerrequirements;
         protected float _charged_power_ratio;
         protected double _mev_per_charged_product;
@@ -33,8 +34,9 @@ namespace FNPlugin
             _mode_gui_name = node.GetValue("GUIName");
             _techRequirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : String.Empty;
 
-            _normreactionrate = Double.Parse(node.GetValue("NormalisedReactionRate"));
-            _normpowerrequirements = Single.Parse(node.GetValue("NormalisedPowerConsumption"));
+            _reactionRate = node.HasValue("NormalisedReactionRate") ? Single.Parse(node.GetValue("NormalisedReactionRate")) : 1;
+            _powerMultiplier = node.HasValue("NormalisedPowerMultiplier") ? Single.Parse(node.GetValue("NormalisedPowerMultiplier")) : 1;
+            _normpowerrequirements = node.HasValue("NormalisedPowerConsumption") ? Single.Parse(node.GetValue("NormalisedPowerConsumption")) : 1;
             _charged_power_ratio = Single.Parse(node.GetValue("ChargedParticleRatio"));
 
             _mev_per_charged_product = node.HasValue("MeVPerChargedProduct") ? Double.Parse(node.GetValue("MeVPerChargedProduct")) : 0;
@@ -70,7 +72,7 @@ namespace FNPlugin
 
         public double MeVPerChargedProduct { get { return _mev_per_charged_product; } }
 
-        public double NormalisedReactionRate { get { return _normreactionrate; } }
+        public float NormalisedReactionRate { get { return _reactionRate * _powerMultiplier; } }
 
         public float NormalisedPowerRequirements { get { return _normpowerrequirements; } }
 

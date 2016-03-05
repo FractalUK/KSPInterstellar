@@ -283,7 +283,7 @@ namespace FNPlugin
 
         public static bool hasTech(string techid)
         {
-            if (techid == null)
+            if (String.IsNullOrEmpty(techid))
                 return false;
 
             if (ResearchAndDevelopment.Instance == null)
@@ -353,6 +353,9 @@ namespace FNPlugin
 
         public static bool upgradeAvailable(string techid)
         {
+            if (String.IsNullOrEmpty(techid))
+                return false;
+
             if (HighLogic.CurrentGame != null)
             {
                 if (PluginHelper.TechnologyIsInUse)

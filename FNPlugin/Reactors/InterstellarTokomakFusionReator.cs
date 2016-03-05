@@ -40,9 +40,7 @@ namespace FNPlugin
                 fusion_alert = true;
             }
 
-            Events["SwapNextFuelMode"].active = true;
-            Events["SwapPreviousFuelMode"].active = true;
-            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + "/" + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
+            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
         }
 
         private float GetPlasmaRatio(float consumedPower)
@@ -102,9 +100,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            Events["SwapNextFuelMode"].active = true;
-            Events["SwapPreviousFuelMode"].active = true;
-
             if (state != StartState.Editor)
             {
                 if (allowJumpStart)
