@@ -31,6 +31,10 @@ namespace FNPlugin
         /// </summary>
         float ThermalProcessingModifier { get; }
 
+        int SupportedPropellantsTypes { get; }
+
+        bool FullPowerForNonNeutronAbsorbants { get; }
+
         double ProducedWasteHeat { get; }
 
         float PowerBufferBonus { get; }

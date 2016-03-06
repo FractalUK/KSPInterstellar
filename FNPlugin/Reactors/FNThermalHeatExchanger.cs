@@ -38,6 +38,10 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
+        public int SupportedPropellantsTypes { get { return 119; } }
+
+        public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
+
         public float ThermalProcessingModifier { get { return 1; } }
 
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGeneratorActive; } }

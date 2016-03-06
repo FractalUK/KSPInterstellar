@@ -11,15 +11,6 @@ namespace FNPlugin
 {
     class ThermalNozzleController : FNResourceSuppliableModule, INoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
-        const float maxIsp = 50000f;
-        const float minIsp = 20000f;
-        const float steps = (maxIsp - minIsp) / 100f;
-
-        // Persistant setting
-        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Selected Isp"), UI_FloatRange(stepIncrement = steps, maxValue = maxIsp, minValue = minIsp)]
-        //public float chargedParticlePropulsionIsp = minIsp;
-
-
 		// Persistent True
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled;
@@ -33,14 +24,17 @@ namespace FNPlugin
 		public int fuel_mode = 0;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Soot Accumulation", guiUnits = " %")]
         public float sootAccumulationPercentage;
-        //[KSPField(isPersistant = true)]
-        //public bool showChargedParticlePropulsionIsp = false;
 
-		//Persistent False
+        /// <summary>
+        /// hidden setting used by ballance mods
+        /// </summary>
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
+        /// <summary>
+        /// Determing Jet Engine Performance
+        /// </summary>
         [KSPField(isPersistant = false)]
         public int jetPerformanceProfile = 0;
-        [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1; // hidden setting used by ballance mods
         [KSPField(isPersistant = false)]
         public int buildInPrecoolers = 0;
         [KSPField(isPersistant = false)]
@@ -52,20 +46,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerTrustMultiplierJet = 1;
         [KSPField(isPersistant = false)]
-        public float IspTempMultOffset = 0;
+        public float IspTempMultOffset = -1.371670613f;
         [KSPField(isPersistant = false)]
         public float sootHeatDivider = 150;
         [KSPField(isPersistant = false)]
         public float sootThrustDivider = 150;
 
-        //[KSPField(isPersistant = false)]
-        //public float heatProduction = 1;
-        //[KSPField(isPersistant = false)]
-        //public float heatProductionMult = 5;
-        //[KSPField(isPersistant = false)]
-        //public float emisiveConstantMult = 3;
-        //[KSPField(isPersistant = false)]
-        //public float emisiveConstantExp = 0.6f;
         [KSPField(isPersistant = false)]
         public float delayedThrottleFactor = 0.5f;
         [KSPField(isPersistant = false)]
@@ -84,14 +70,11 @@ namespace FNPlugin
         public string EffectNameLFO = String.Empty;
         [KSPField(isPersistant = false)]
         public string EffectNameNonLFO = String.Empty;
-        //[KSPField(isPersistant = false)]
-        //public string EffectNameThrustMult = String.Empty;
+        [KSPField(isPersistant = false)]
+        public string EffectNameLithium = String.Empty;
         [KSPField(isPersistant = false)]
         public bool showPartTemperature = true;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public int supportedPropellantsType = 119;
-        [KSPField(isPersistant = false)]
-        public bool fullPowerForNonNeutronAbsorbants = true;
+
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
         public float radius;
@@ -448,17 +431,19 @@ namespace FNPlugin
             {
                 if (!String.IsNullOrEmpty(EffectNameJet))
                     part.Effect(EffectNameJet, 0);
-
                 if (!String.IsNullOrEmpty(EffectNameLFO))
                     part.Effect(EffectNameLFO, 0);
-
                 if (!String.IsNullOrEmpty(EffectNameNonLFO))
                     part.Effect(EffectNameNonLFO, 0);
+                if (!String.IsNullOrEmpty(EffectNameLithium))
+                    part.Effect(EffectNameLithium, 0);
 
                 if (_currentpropellant_is_jet && !String.IsNullOrEmpty(EffectNameJet))
                     _particleFXName = EffectNameJet;
-                else if ((_propellantIsLFO || _isNeutronAbsorber) && !String.IsNullOrEmpty(EffectNameLFO))
+                else if (_propellantIsLFO && !String.IsNullOrEmpty(EffectNameLFO))
                     _particleFXName = EffectNameLFO;
+                else if (_isNeutronAbsorber && !String.IsNullOrEmpty(EffectNameLithium))
+                    _particleFXName = EffectNameLithium;
                 else if (!String.IsNullOrEmpty(EffectNameNonLFO))
                     _particleFXName = EffectNameNonLFO;
             }
@@ -651,10 +636,9 @@ namespace FNPlugin
                                (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                             || (_fuelRequiresUpgrade && !isupgraded)
                             || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                            || ((_propellantType & supportedPropellantsType) != _propellantType)
+                            || ((_propellantType & _myAttachedReactor.SupportedPropellantsTypes) != _propellantType)
                             )
                         {
-                            UnityEngine.Debug.Log("[KSPI] - Skip Fuel Mode=" + _fuelmode + " supportedPropellantsType=" + supportedPropellantsType + " _propellantType=" + _propellantType + " &=" + (_propellantType & supportedPropellantsType));
                             next_propellant = true;
                         }
                     }
@@ -682,10 +666,9 @@ namespace FNPlugin
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                        || ((_propellantType & supportedPropellantsType) != _propellantType)
+                        || ((_propellantType & _myAttachedReactor.SupportedPropellantsTypes) != _propellantType)
                         )
                     {
-                        UnityEngine.Debug.Log("[KSPI] - Skip Fuel Mode=" + _fuelmode + " supportedPropellantsType=" + supportedPropellantsType + " _propellantType=" + _propellantType + " &=" + (_propellantType & supportedPropellantsType));
                         next_propellant = true;
                     }
 
@@ -908,8 +891,6 @@ namespace FNPlugin
                 _myAttachedReactor.DetachThermalReciever(id);
                 ConfigEffects();
             }
-
-            
         }
 
         public override void OnFixedUpdate() // OnFixedUpdate does not seem to be called in edit mode
@@ -1027,13 +1008,13 @@ namespace FNPlugin
 
             GetMaximumIspAndThrustMultiplier();
 
-            float chargedPowerModifier = _isNeutronAbsorber ? 1 :(fullPowerForNonNeutronAbsorbants ? 1 : (float)_myAttachedReactor.ChargedPowerRatio);
+            float chargedPowerModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : (float)_myAttachedReactor.ChargedPowerRatio);
 
             thermal_modifiers = myAttachedEngine.currentThrottle * GetAtmosphericLimit() * _myAttachedReactor.GetFractionThermalReciever(id) * chargedPowerModifier;
 
             var maximum_requested_thermal_power = _currentMaximumPower * thermal_modifiers;
 
-            var neutronAbsorbingModifier = _isNeutronAbsorber ? 1 : (fullPowerForNonNeutronAbsorbants ? 1 : 0);
+            var neutronAbsorbingModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : 0);
             requested_thermal_power = Math.Min(_availableThermalPower * thermal_modifiers, AttachedReactor.MaximumThermalPower * delayedThrottle * neutronAbsorbingModifier);
 
             thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) * _myAttachedReactor.ThermalPropulsionEfficiency / TimeWarp.fixedDeltaTime;
@@ -1048,7 +1029,7 @@ namespace FNPlugin
 
             UpdateSootAccumulation();
 
-            var extraWasteheatRedution = fullPowerForNonNeutronAbsorbants 
+            var extraWasteheatRedution = AttachedReactor.FullPowerForNonNeutronAbsorbants 
                 ? TimeWarp.fixedDeltaTime * getResourceAvailability(FNResourceManager.FNRESOURCE_WASTEHEAT) * myAttachedEngine.currentThrottle 
                 : 0;
 

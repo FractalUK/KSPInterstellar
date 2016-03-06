@@ -112,6 +112,10 @@ namespace FNPlugin
         public float hotBathModifier = 1;
         [KSPField(isPersistant = false)]
         public float thermalProcessingModifier = 1;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public int supportedPropellantsTypes = 119;
+        [KSPField(isPersistant = false)]
+        public bool fullPowerForNonNeutronAbsorbants = true;
 
 
         // Visible imput parameters 
@@ -123,7 +127,6 @@ namespace FNPlugin
         public float powerUpgradeTechMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade Core temp Mult")]
         public float powerUpgradeCoreTempMult = 1;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Raw Power", guiUnits = " MJ")]
         public float currentRawPowerOutput;
 
@@ -250,6 +253,10 @@ namespace FNPlugin
 
             return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
         }
+
+        public int SupportedPropellantsTypes { get { return supportedPropellantsTypes; } }
+
+        public bool FullPowerForNonNeutronAbsorbants { get { return fullPowerForNonNeutronAbsorbants; } }
 
         public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
 
