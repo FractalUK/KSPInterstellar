@@ -457,7 +457,7 @@ namespace FNPlugin
 
                 if (_currentpropellant_is_jet && !String.IsNullOrEmpty(EffectNameJet))
                     _particleFXName = EffectNameJet;
-                else if (_propellantIsLFO && !String.IsNullOrEmpty(EffectNameLFO))
+                else if ((_propellantIsLFO || _isNeutronAbsorber) && !String.IsNullOrEmpty(EffectNameLFO))
                     _particleFXName = EffectNameLFO;
                 else if (!String.IsNullOrEmpty(EffectNameNonLFO))
                     _particleFXName = EffectNameNonLFO;
