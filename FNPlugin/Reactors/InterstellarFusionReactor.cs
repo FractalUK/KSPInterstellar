@@ -24,6 +24,17 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk5 = 120;
 
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk1 = 1;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk2 = 1;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk3 = 1;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk4 = 1;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk5 = 1;
+
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
         [KSPField(isPersistant = false, guiActive = false)]
@@ -108,6 +119,26 @@ namespace FNPlugin
             }
         }
 
+        public override double FuelEfficiency
+        {
+            get
+            {
+                float basEfficency;
+                if (FusionGenerationType == GenerationType.Mk5)
+                    basEfficency = fuelEfficencyMk5;
+                else if (FusionGenerationType == GenerationType.Mk4)
+                    basEfficency = fuelEfficencyMk4;
+                else if (FusionGenerationType == GenerationType.Mk3)
+                    basEfficency = fuelEfficencyMk3;
+                else if (FusionGenerationType == GenerationType.Mk2)
+                    basEfficency = fuelEfficencyMk2;
+                else
+                    basEfficency = fuelEfficencyMk1;
+
+                return basEfficency * current_fuel_mode.FuelEfficencyMultiplier;
+            }
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             // initialse tech requirment if missing 
@@ -115,6 +146,17 @@ namespace FNPlugin
                 upgradeTechReqMk2 = upgradeTechReq;
             if (upgradeTechReqMk3 == null)
                 upgradeTechReqMk3 = powerUpgradeTechReq;
+
+            if (fuelEfficencyMk1 == 1)
+                fuelEfficencyMk1 = base.fuelEfficiency;
+            if (fuelEfficencyMk2 == 1)
+                fuelEfficencyMk2 = base.upgradedFuelEfficiency;
+            if (fuelEfficencyMk3 == 1)
+                fuelEfficencyMk3 = fuelEfficencyMk2;
+            if (fuelEfficencyMk4 == 1)
+                fuelEfficencyMk4 = fuelEfficencyMk2;
+            if (fuelEfficencyMk5 == 1)
+                fuelEfficencyMk5 = fuelEfficencyMk2;
 
             DetermineGenerationType();
 
@@ -284,11 +326,11 @@ namespace FNPlugin
             PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_label);
         }
 
-        public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
-        {
-            //fusionQfactor = FusionEnergyGainFactor;
-            //minimumPowerRequirement = PowerRequirement;
-            base.OnFixedUpdate();
-        }
+        //public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
+        //{
+        //    //fusionQfactor = FusionEnergyGainFactor;
+        //    //minimumPowerRequirement = PowerRequirement;
+        //    base.OnFixedUpdate();
+        //}
     }
 }

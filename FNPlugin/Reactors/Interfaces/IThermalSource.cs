@@ -31,7 +31,9 @@ namespace FNPlugin
         /// </summary>
         float ThermalProcessingModifier { get; }
 
-        int SupportedPropellantsTypes { get; }
+        int SupportedPropellantAtoms { get; }
+
+        int SupportedPropellantTypes { get; }
 
         bool FullPowerForNonNeutronAbsorbants { get; }
 

@@ -166,8 +166,10 @@ namespace FNPlugin
         protected bool _propellantIsLFO = false;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Velocity Modifier")]
         protected float vcurveAtCurrentVelocity;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atom Type")]
+        protected int _atomType = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Propellant Type")]
-        protected int _propellantType = 1;
+        protected int _propType = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is Neutron Absorber")]
         protected bool _isNeutronAbsorber = false;
 
@@ -636,7 +638,8 @@ namespace FNPlugin
                                (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                             || (_fuelRequiresUpgrade && !isupgraded)
                             || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                            || ((_propellantType & _myAttachedReactor.SupportedPropellantsTypes) != _propellantType)
+                            || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                            || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                             )
                         {
                             next_propellant = true;
@@ -666,7 +669,8 @@ namespace FNPlugin
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                        || ((_propellantType & _myAttachedReactor.SupportedPropellantsTypes) != _propellantType)
+                        || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                        || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                         )
                     {
                         next_propellant = true;
@@ -710,7 +714,8 @@ namespace FNPlugin
 
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
             _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
-            _propellantType = chosenpropellant.HasValue("type") ? int.Parse(chosenpropellant.GetValue("type")) : 1;
+            _atomType = chosenpropellant.HasValue("atomType") ? int.Parse(chosenpropellant.GetValue("atomType")) : 1;
+            _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
             _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
 
             if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)

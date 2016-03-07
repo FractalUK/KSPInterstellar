@@ -82,7 +82,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public int upgradedReactorType;
         [KSPField(isPersistant = false)]
-        public float fuelEfficiency;
+        public float fuelEfficiency = 1;
         [KSPField(isPersistant = false)]
         public float upgradedFuelEfficiency;
         [KSPField(isPersistant = false)]
@@ -113,7 +113,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float thermalProcessingModifier = 1;
         [KSPField(isPersistant = false, guiActive = false)]
-        public int supportedPropellantsTypes = 119;
+        public int supportedPropellantAtoms = 57;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public int supportedPropellantTypes = 63;
         [KSPField(isPersistant = false)]
         public bool fullPowerForNonNeutronAbsorbants = true;
 
@@ -130,9 +132,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Raw Power", guiUnits = " MJ")]
         public float currentRawPowerOutput;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Output (Basic)", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Basic)", guiUnits = " MW")]
         public float PowerOutput = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Output (Upgraded)", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Upgraded)", guiUnits = " MW")]
         public float upgradedPowerOutput = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade")]
         public string upgradeTechReq = String.Empty;
@@ -254,7 +256,9 @@ namespace FNPlugin
             return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
         }
 
-        public int SupportedPropellantsTypes { get { return supportedPropellantsTypes; } }
+        public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
+
+        public int SupportedPropellantTypes { get { return supportedPropellantTypes; } }
 
         public bool FullPowerForNonNeutronAbsorbants { get { return fullPowerForNonNeutronAbsorbants; } }
 
@@ -356,7 +360,7 @@ namespace FNPlugin
 
         public float RawMaximumPower { get { return RawPowerOutput; } }
 
-        public double FuelEfficiency
+        public virtual double FuelEfficiency
         {
             get
             {

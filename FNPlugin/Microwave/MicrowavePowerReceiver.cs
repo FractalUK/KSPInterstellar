@@ -87,7 +87,9 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
-        public int SupportedPropellantsTypes { get { return 119; } }
+        public int SupportedPropellantAtoms { get { return 57; } }
+
+        public int SupportedPropellantTypes { get { return 63; } }
 
         public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
 
