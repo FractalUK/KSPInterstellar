@@ -1058,14 +1058,17 @@ namespace FNPlugin
 
             max_thrust_in_space = engineMaxThrust / myAttachedEngine.thrustPercentage * 100;
 
-            var vesselStaticPresure = (float)FlightGlobals.getStaticPressure(vessel.transform.position);
+            var nozzleStaticPresure = (float)FlightGlobals.getStaticPressure(vessel.transform.position);
 
             max_thrust_in_current_atmosphere = max_thrust_in_space;
             
             // update engine thrust/ISP for thermal noozle
             if (!_currentpropellant_is_jet)
             {
-                pressureTreshold = exitArea * vesselStaticPresure;
+                pressureTreshold = exitArea * nozzleStaticPresure;
+                if (_maxISP > GameConstants.MaxThermalNozzleIsp )
+                    pressureTreshold *= 10;
+
                 max_thrust_in_current_atmosphere = Mathf.Max(max_thrust_in_space - pressureTreshold, Mathf.Max(myAttachedEngine.currentThrottle * 0.01f, 0.0001f));
 
                 var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01 ) : 0.01;
@@ -1109,9 +1112,9 @@ namespace FNPlugin
                 part.Effect(_particleFXName, Mathf.Max(0.1f * myAttachedEngine.currentThrottle,  Mathf.Min((float)Math.Pow(thermal_power_received / requested_thermal_power, 0.5), delayedThrottle)));
             }
 
-            if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && vesselStaticPresure > 1)
+            if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && nozzleStaticPresure > 1)
             {
-                _savedReputationCost += (float)(max_fuel_flow_rate * _fuelToxicity * TimeWarp.fixedDeltaTime * Math.Pow(vesselStaticPresure / 100, 3));
+                _savedReputationCost += (float)(max_fuel_flow_rate * _fuelToxicity * TimeWarp.fixedDeltaTime * Math.Pow(nozzleStaticPresure / 100, 3));
                 if (_savedReputationCost > 1)
                 {
                     float flooredReputationCost = (int)Math.Floor(_savedReputationCost);

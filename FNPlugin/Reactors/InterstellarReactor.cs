@@ -113,9 +113,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float thermalProcessingModifier = 1;
         [KSPField(isPersistant = false, guiActive = false)]
-        public int supportedPropellantAtoms = 57;
+        public int supportedPropellantAtoms = GameConstants.defaultSupportedPropellantAtoms;
         [KSPField(isPersistant = false, guiActive = false)]
-        public int supportedPropellantTypes = 63;
+        public int supportedPropellantTypes = GameConstants.defaultSupportedPropellantTypes;
         [KSPField(isPersistant = false)]
         public bool fullPowerForNonNeutronAbsorbants = true;
 
