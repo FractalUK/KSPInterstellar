@@ -42,6 +42,37 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public float windowPositionY = 20;
 
+        [KSPField(isPersistant = false, guiActive = false)]
+        public string upgradeTechReqMk2 = null;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public string upgradeTechReqMk3 = null;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public string upgradeTechReqMk4 = null;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public string upgradeTechReqMk5 = null;
+
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk1 = 0;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk2 = 0;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk3 = 0;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk4 = 0;
+        [KSPField(isPersistant = false)]
+        public float fuelEfficencyMk5 = 0;
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        public float powerOutputMk1 = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        public float powerOutputMk2 = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        public float powerOutputMk3 = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        public float powerOutputMk4 = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        public float powerOutputMk5 = 0;
+
         // Persistent False
         [KSPField(isPersistant = false)]
         public bool canBeCombinedWithLab = false;
@@ -119,7 +150,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public bool fullPowerForNonNeutronAbsorbants = true;
 
-
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Bimodel upgrade tech")]
         public string bimodelUpgradeTechReq = String.Empty;
@@ -129,10 +159,10 @@ namespace FNPlugin
         public float powerUpgradeTechMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade Core temp Mult")]
         public float powerUpgradeCoreTempMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Raw Power", guiUnits = " MJ")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Raw Power", guiUnits = " MJ")]
         public float currentRawPowerOutput;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Basic)", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Output (Basic)", guiUnits = " MW")]
         public float PowerOutput = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Upgraded)", guiUnits = " MW")]
         public float upgradedPowerOutput = 0;
@@ -214,6 +244,12 @@ namespace FNPlugin
 
         protected double partBaseWasteheat;
 
+        public float currentPowerOutputMk1;
+        public float currentPowerOutputMk2;
+        public float currentPowerOutputMk3;
+        public float currentPowerOutputMk4;
+        public float currentPowerOutputMk5;
+
         protected double storedIsThermalEnergyGenratorActive;
         protected double storedIsChargedEnergyGenratorActive;
         protected double currentIsThermalEnergyGenratorActive;
@@ -255,6 +291,8 @@ namespace FNPlugin
 
             return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
         }
+
+        public GenerationType CurrentGenerationType { get; private set; }
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -360,15 +398,35 @@ namespace FNPlugin
 
         public float RawMaximumPower { get { return RawPowerOutput; } }
 
+        //public virtual double FuelEfficiency
+        //{
+        //    get
+        //    {
+        //        var basEfficency = isupgraded
+        //            ? upgradedFuelEfficiency > 0
+        //                ? upgradedFuelEfficiency
+        //                : fuelEfficiency
+        //            : fuelEfficiency;
+
+        //        return basEfficency * current_fuel_mode.FuelEfficencyMultiplier;
+        //    }
+        //}
+
         public virtual double FuelEfficiency
         {
             get
             {
-                var basEfficency = isupgraded
-                    ? upgradedFuelEfficiency > 0
-                        ? upgradedFuelEfficiency
-                        : fuelEfficiency
-                    : fuelEfficiency;
+                float basEfficency;
+                if (CurrentGenerationType == GenerationType.Mk5)
+                    basEfficency = fuelEfficencyMk5;
+                else if (CurrentGenerationType == GenerationType.Mk4)
+                    basEfficency = fuelEfficencyMk4;
+                else if (CurrentGenerationType == GenerationType.Mk3)
+                    basEfficency = fuelEfficencyMk3;
+                else if (CurrentGenerationType == GenerationType.Mk2)
+                    basEfficency = fuelEfficencyMk2;
+                else
+                    basEfficency = fuelEfficencyMk1;
 
                 return basEfficency * current_fuel_mode.FuelEfficencyMultiplier;
             }
@@ -441,12 +499,32 @@ namespace FNPlugin
 
         public virtual float StableMaximumReactorPower { get { return IsEnabled ? RawPowerOutput : 0; } }
 
-        public virtual float RawPowerOutput
+        //public virtual float RawPowerOutput
+        //{
+        //    get
+        //    {
+        //        var rawPower = (isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput) * PowerUpgradeTechnologyBonus;
+        //        return rawPower * powerOutputMultiplier;
+        //    }
+        //}
+        
+        public float RawPowerOutput
         {
             get
             {
-                var rawPower = (isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput) * PowerUpgradeTechnologyBonus;
-                return rawPower * powerOutputMultiplier;
+                float rawPowerOutput;
+                if (CurrentGenerationType == GenerationType.Mk5)
+                    rawPowerOutput = currentPowerOutputMk5;
+                else if (CurrentGenerationType == GenerationType.Mk4)
+                    rawPowerOutput = currentPowerOutputMk4;
+                else if (CurrentGenerationType == GenerationType.Mk3)
+                    rawPowerOutput = currentPowerOutputMk5;
+                else if (CurrentGenerationType == GenerationType.Mk2)
+                    rawPowerOutput = currentPowerOutputMk2;
+                else
+                    rawPowerOutput = currentPowerOutputMk1;
+
+                return rawPowerOutput * powerOutputMultiplier;
             }
         }
 
@@ -559,8 +637,63 @@ namespace FNPlugin
             return PluginHelper.upgradeAvailable(upgradetechName);
         }
 
+        public void DeterminePowerOutput()
+        {
+            currentPowerOutputMk1 = powerOutputMk1;
+            currentPowerOutputMk2 = powerOutputMk2;
+            currentPowerOutputMk3 = powerOutputMk3;
+            currentPowerOutputMk4 = powerOutputMk4;
+            currentPowerOutputMk5 = powerOutputMk5;
+
+            // if Mk powerOutput is missing, try use lagacy values
+            if (currentPowerOutputMk1 == 0)
+                currentPowerOutputMk1 = PowerOutput;
+            if (currentPowerOutputMk2 == 0)
+                currentPowerOutputMk2 = upgradedPowerOutput;
+            if (currentPowerOutputMk3 == 0)
+                currentPowerOutputMk3 = upgradedPowerOutput * PowerUpgradeTechnologyBonus;
+
+            // initialise power output when missing
+            if (currentPowerOutputMk2 == 0)
+                currentPowerOutputMk2 = currentPowerOutputMk1 * 1.5f;
+            if (currentPowerOutputMk3 == 0)
+                currentPowerOutputMk3 = currentPowerOutputMk2 * 1.5f;
+            if (currentPowerOutputMk4 == 0)
+                currentPowerOutputMk4 = currentPowerOutputMk3 * 1.5f;
+            if (currentPowerOutputMk5 == 0)
+                currentPowerOutputMk5 = currentPowerOutputMk4 * 1.5f;
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
+            // initialse tech requirment if missing 
+            if (string.IsNullOrEmpty(upgradeTechReqMk2))
+                upgradeTechReqMk2 = upgradeTechReq;
+            if (string.IsNullOrEmpty(upgradeTechReqMk3))
+                upgradeTechReqMk3 = powerUpgradeTechReq;
+
+            DetermineGenerationType();
+
+            DeterminePowerOutput();
+
+            // if Mk fuel efficency is missing, try to use lagacy value
+            if (fuelEfficencyMk1 == 0)
+                fuelEfficencyMk1 = fuelEfficiency;
+            if (fuelEfficencyMk2 == 0)
+                fuelEfficencyMk2 = upgradedFuelEfficiency;
+
+            // prevent any initial values
+            if (fuelEfficencyMk1 == 0)
+                fuelEfficencyMk1 = 1;
+            if (fuelEfficencyMk2 == 0)
+                fuelEfficencyMk2 = fuelEfficencyMk1;
+            if (fuelEfficencyMk3 == 0)
+                fuelEfficencyMk3 = fuelEfficencyMk2;
+            if (fuelEfficencyMk4 == 0)
+                fuelEfficencyMk4 = fuelEfficencyMk3;
+            if (fuelEfficencyMk5 == 0)
+                fuelEfficencyMk5 = fuelEfficencyMk4;
+
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
 
             _firstGeneratorType = ElectricGeneratorType.unknown;
@@ -660,6 +793,34 @@ namespace FNPlugin
             print("[KSP Interstellar] Succesfully Completed Configuring Reactor");
         }
 
+        private void DetermineGenerationType()
+        {
+            // determine number of upgrade techs
+            int nrAvailableUpgradeTechs = 1;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
+                nrAvailableUpgradeTechs++;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
+                nrAvailableUpgradeTechs++;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
+                nrAvailableUpgradeTechs++;
+            if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
+                nrAvailableUpgradeTechs++;
+
+            //ScreenMessages.PostScreenMessage("Fusion Tech Level: " + nrAvailableUpgradeTechs, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+
+            // determine fusion tech levels
+            if (nrAvailableUpgradeTechs == 5)
+                CurrentGenerationType = GenerationType.Mk5;
+            else if (nrAvailableUpgradeTechs == 4)
+                CurrentGenerationType = GenerationType.Mk4;
+            else if (nrAvailableUpgradeTechs == 3)
+                CurrentGenerationType = GenerationType.Mk3;
+            else if (nrAvailableUpgradeTechs == 2)
+                CurrentGenerationType = GenerationType.Mk2;
+            else
+                CurrentGenerationType = GenerationType.Mk1;
+        }
+
         /// <summary>
         /// Event handler called when part is attached to another part
         /// </summary>
@@ -677,6 +838,8 @@ namespace FNPlugin
 
         public void Update()
         {
+            currentRawPowerOutput = RawPowerOutput;
+
             //Update Events
             //Events["ActivateReactor"].active = (HighLogic.LoadedSceneIsEditor && startDisabled) || (!HighLogic.LoadedSceneIsEditor && !IsEnabled && !IsNuclear);
             //Events["DeactivateReactor"].active = (HighLogic.LoadedSceneIsEditor && !startDisabled) || (!HighLogic.LoadedSceneIsEditor && IsEnabled && !IsNuclear);
@@ -691,8 +854,6 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            maximumThermalPowerFloat = MaximumThermalPower;
-
             Events["StartBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsNeutronRich && IsEnabled;
             Events["StopBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsNeutronRich && IsEnabled;
             Events["RetrofitReactor"].active = ResearchAndDevelopment.Instance != null ? !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade : false;
@@ -734,7 +895,12 @@ namespace FNPlugin
         /// </summary>
         public void FixedUpdate() 
         {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight)
+            {
+                DeterminePowerOutput();
+                maximumThermalPowerFloat = MaximumThermalPower;
+                return;
+            }
 
             base.OnFixedUpdate();
 
@@ -752,8 +918,6 @@ namespace FNPlugin
             storedIsChargedEnergyGenratorActive = currentIsChargedEnergyGenratorActive;
             currentIsThermalEnergyGenratorActive = 0;
             currentIsChargedEnergyGenratorActive = 0;
-
-            currentRawPowerOutput = RawPowerOutput;
 
             decay_ongoing = false;
             //base.OnFixedUpdate();

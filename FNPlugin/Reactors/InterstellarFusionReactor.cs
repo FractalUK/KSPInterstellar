@@ -24,43 +24,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk5 = 120;
 
-        [KSPField(isPersistant = false)]
-        public float fuelEfficencyMk1 = 1;
-        [KSPField(isPersistant = false)]
-        public float fuelEfficencyMk2 = 1;
-        [KSPField(isPersistant = false)]
-        public float fuelEfficencyMk3 = 1;
-        [KSPField(isPersistant = false)]
-        public float fuelEfficencyMk4 = 1;
-        [KSPField(isPersistant = false)]
-        public float fuelEfficencyMk5 = 1;
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string upgradeTechReqMk2 = null;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string upgradeTechReqMk3 = null;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string upgradeTechReqMk4 = null;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string upgradeTechReqMk5 = null;
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        public float powerOutputMk1 = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public float powerOutputMk2 = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public float powerOutputMk3 = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public float powerOutputMk4 = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public float powerOutputMk5 = 0;
-
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
+
         //[KSPField(isPersistant = false, guiActive = true, guiName = "Min Power Req ", guiUnits = " MW")]
         //public float minimumPowerRequirement;
         //[KSPField(isPersistant = false, guiActive = true, guiName = "Fusion Q factor")]
@@ -68,8 +38,6 @@ namespace FNPlugin
 
         //public float
         protected PartResource lithiumPartResource = null;
-
-        public GenerationType FusionGenerationType { get; private set; }
 
         public float MaximumChargedIspMult { get { return 100 ; } }
 
@@ -106,124 +74,26 @@ namespace FNPlugin
         {
             get
             {
-                if (FusionGenerationType == GenerationType.Mk5)
+                if (CurrentGenerationType == GenerationType.Mk5)
                     return fusionEnergyGainFactorMk5;
-                else if (FusionGenerationType == GenerationType.Mk4)
+                else if (CurrentGenerationType == GenerationType.Mk4)
                     return fusionEnergyGainFactorMk4;
-                else if (FusionGenerationType == GenerationType.Mk3)
+                else if (CurrentGenerationType == GenerationType.Mk3)
                     return fusionEnergyGainFactorMk3;
-                else if (FusionGenerationType == GenerationType.Mk2)
+                else if (CurrentGenerationType == GenerationType.Mk2)
                     return fusionEnergyGainFactorMk2;
                 else
                     return fusionEnergyGainFactorMk1;
             }
         }
 
-        public override double FuelEfficiency
-        {
-            get
-            {
-                float basEfficency;
-                if (FusionGenerationType == GenerationType.Mk5)
-                    basEfficency = fuelEfficencyMk5;
-                else if (FusionGenerationType == GenerationType.Mk4)
-                    basEfficency = fuelEfficencyMk4;
-                else if (FusionGenerationType == GenerationType.Mk3)
-                    basEfficency = fuelEfficencyMk3;
-                else if (FusionGenerationType == GenerationType.Mk2)
-                    basEfficency = fuelEfficencyMk2;
-                else
-                    basEfficency = fuelEfficencyMk1;
-
-                return basEfficency * current_fuel_mode.FuelEfficencyMultiplier;
-            }
-        }
-
         public override void OnStart(PartModule.StartState state)
         {
-            // initialse tech requirment if missing 
-            if (upgradeTechReqMk2 == null)
-                upgradeTechReqMk2 = upgradeTechReq;
-            if (upgradeTechReqMk3 == null)
-                upgradeTechReqMk3 = powerUpgradeTechReq;
-
-            if (fuelEfficencyMk1 == 1)
-                fuelEfficencyMk1 = base.fuelEfficiency;
-            if (fuelEfficencyMk2 == 1)
-                fuelEfficencyMk2 = base.upgradedFuelEfficiency;
-            if (fuelEfficencyMk3 == 1)
-                fuelEfficencyMk3 = fuelEfficencyMk2;
-            if (fuelEfficencyMk4 == 1)
-                fuelEfficencyMk4 = fuelEfficencyMk2;
-            if (fuelEfficencyMk5 == 1)
-                fuelEfficencyMk5 = fuelEfficencyMk2;
-
-            DetermineGenerationType();
-
-            // initialise power output when missing
-            if (powerOutputMk1 == 0)
-                powerOutputMk1 = PowerOutput;
-            if (powerOutputMk2 == 0)
-                powerOutputMk2 = PowerOutput * 1.5f;
-            if (powerOutputMk3 == 0)
-                powerOutputMk3 = PowerOutput * 1.5f * 1.5f;
-            if (powerOutputMk4 == 0)
-                powerOutputMk4 = PowerOutput * 1.5f * 1.5f * 1.5f;
-            if (powerOutputMk5 == 0)
-                powerOutputMk5 = PowerOutput * 1.5f * 1.5f * 1.5f * 1.5f;
 
             lithiumPartResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium);
 
             // call Interstellar Reactor Onstart
             base.OnStart(state);
-        }
-
-        private void DetermineGenerationType()
-        {
-            // determine number of upgrade techs
-            int nrAvailableUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
-                nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
-                nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
-                nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
-                nrAvailableUpgradeTechs++;
-
-            ScreenMessages.PostScreenMessage("Fusion Tech Level: " + nrAvailableUpgradeTechs, 10.0f, ScreenMessageStyle.UPPER_CENTER);
-
-            // determine fusion tech levels
-            if (nrAvailableUpgradeTechs == 5)
-                FusionGenerationType = GenerationType.Mk5;
-            else if (nrAvailableUpgradeTechs == 4)
-                FusionGenerationType = GenerationType.Mk4;
-            else if (nrAvailableUpgradeTechs == 3)
-                FusionGenerationType = GenerationType.Mk3;
-            else if (nrAvailableUpgradeTechs == 2)
-                FusionGenerationType = GenerationType.Mk2;
-            else
-                FusionGenerationType = GenerationType.Mk1;
-        }
-
-        public override float RawPowerOutput
-        {
-            get
-            {
-                float rawPowerOutput;
-                if (FusionGenerationType == GenerationType.Mk5)
-                    rawPowerOutput = powerOutputMk5;
-                else if (FusionGenerationType == GenerationType.Mk4)
-                    rawPowerOutput = powerOutputMk4;
-                else if (FusionGenerationType == GenerationType.Mk3)
-                    rawPowerOutput = powerOutputMk3;
-                else if (FusionGenerationType == GenerationType.Mk2)
-                    rawPowerOutput = powerOutputMk2;
-                else 
-                    rawPowerOutput = powerOutputMk1;
-
-                return rawPowerOutput * powerOutputMultiplier;
-            }
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Next Fusion Mode", active = true)]
