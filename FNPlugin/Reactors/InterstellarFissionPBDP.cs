@@ -94,12 +94,14 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
-            if (upgradedOptimalPebbleTemp <= 1000)
-                upgradedOptimalPebbleTemp = upgradedReactorTemp;
-            if (upgradedTempZeroPower <= 1250)
-                upgradedTempZeroPower = upgradedReactorTemp * 1.25f;
+
 
             base.OnStart(state);
+
+            if (upgradedOptimalPebbleTemp <= 1000)
+                upgradedOptimalPebbleTemp = coreTemperatureMk2;
+            if (upgradedTempZeroPower <= 1250)
+                upgradedTempZeroPower = coreTemperatureMk2 * 1.25f;
 
             overheatPercentage = (1 - ThermalRatioEfficiency) * 100;
 

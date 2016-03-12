@@ -62,16 +62,38 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fuelEfficencyMk5 = 0;
 
+        [KSPField(isPersistant = false)]
+        public float coreTemperatureMk1 = 0;
+        [KSPField(isPersistant = false)]
+        public float coreTemperatureMk2 = 0;
+        [KSPField(isPersistant = false)]
+        public float coreTemperatureMk3 = 0;
+        [KSPField(isPersistant = false)]
+        public float coreTemperatureMk4 = 0;
+        [KSPField(isPersistant = false)]
+        public float coreTemperatureMk5 = 0;
+
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float powerOutputMk1 = 0;
+        public float basePowerOutputMk1 = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float powerOutputMk2 = 0;
+        public float basePowerOutputMk2 = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float powerOutputMk3 = 0;
+        public float basePowerOutputMk3 = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float powerOutputMk4 = 0;
+        public float basePowerOutputMk4 = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float powerOutputMk5 = 0;
+        public float basePowerOutputMk5 = 0;
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk1", guiUnits = " MJ")]
+        public float powerOutputMk1;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ")]
+        public float powerOutputMk2;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ")]
+        public float powerOutputMk3;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ")]
+        public float powerOutputMk4;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ")]
+        public float powerOutputMk5;
 
         // Persistent False
         [KSPField(isPersistant = false)]
@@ -84,7 +106,7 @@ namespace FNPlugin
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
         public float bonusBufferFactor = 0.05f;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Heat Transport Efficency")]
+        [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.8f;
         [KSPField(isPersistant = false)]
         public float ReactorTemp;
@@ -159,10 +181,10 @@ namespace FNPlugin
         public float powerUpgradeTechMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade Core temp Mult")]
         public float powerUpgradeCoreTempMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Raw Power", guiUnits = " MJ")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Active Raw Power", guiUnits = " MJ")]
         public float currentRawPowerOutput;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Output (Basic)", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Basic)", guiUnits = " MW")]
         public float PowerOutput = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Upgraded)", guiUnits = " MW")]
         public float upgradedPowerOutput = 0;
@@ -227,7 +249,6 @@ namespace FNPlugin
         protected bool render_window = false;
         protected GUIStyle bold_label;
         protected float previousTimeWarp;
-        protected bool _hasPowerUpgradeTechnology;
         protected bool? hasBimodelUpgradeTechReq;
 
         protected PartResource thermalPowerResource = null;
@@ -241,14 +262,12 @@ namespace FNPlugin
 
         protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
         protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
-
         protected double partBaseWasteheat;
 
-        public float currentPowerOutputMk1;
-        public float currentPowerOutputMk2;
-        public float currentPowerOutputMk3;
-        public float currentPowerOutputMk4;
-        public float currentPowerOutputMk5;
+        protected bool hasUpgradeTechMk2;
+        protected bool hasUpgradeTechMk3;
+        protected bool hasUpgradeTechMk4;
+        protected bool hasUpgradeTechMk5;
 
         protected double storedIsThermalEnergyGenratorActive;
         protected double storedIsChargedEnergyGenratorActive;
@@ -331,8 +350,6 @@ namespace FNPlugin
         public Part Part { get { return this.part; } }
 
         public double ProducedWasteHeat { get { return ongoing_total_power_f ; } }
-
-        public float PowerUpgradeTechnologyBonus { get { return _hasPowerUpgradeTechnology ? powerUpgradeTechMult : 1; } }
 
         public void AttachThermalReciever(Guid key, float radius)
         {
@@ -446,17 +463,41 @@ namespace FNPlugin
             } 
         }
 
+        //public virtual float CoreTemperature 
+        //{ 
+        //    get 
+        //    {
+        //            var baseCoreTemperature = isupgraded ? upgradedReactorTemp != 0 ? upgradedReactorTemp : ReactorTemp : ReactorTemp;
+
+        //            var modifiedBaseCoreTemperature = baseCoreTemperature * (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2);
+
+        //            return _hasPowerUpgradeTechnology ? modifiedBaseCoreTemperature * powerUpgradeCoreTempMult : modifiedBaseCoreTemperature;
+        //    }
+        //}
+
         public virtual float CoreTemperature 
-        { 
-            get 
+        {
+            get
             {
-                    var baseCoreTemperature = isupgraded ? upgradedReactorTemp != 0 ? upgradedReactorTemp : ReactorTemp : ReactorTemp;
+                float baseCoreTemperature;
+                if (CurrentGenerationType == GenerationType.Mk5)
+                    baseCoreTemperature = coreTemperatureMk5;
+                else if (CurrentGenerationType == GenerationType.Mk4)
+                    baseCoreTemperature = coreTemperatureMk4;
+                else if (CurrentGenerationType == GenerationType.Mk3)
+                    baseCoreTemperature = coreTemperatureMk3;
+                else if (CurrentGenerationType == GenerationType.Mk2)
+                    baseCoreTemperature = coreTemperatureMk2;
+                else
+                    baseCoreTemperature = coreTemperatureMk1;
 
-                    var modifiedBaseCoreTemperature = baseCoreTemperature * (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2);
+                var modifiedBaseCoreTemperature = baseCoreTemperature * (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2);
 
-                    return _hasPowerUpgradeTechnology ? modifiedBaseCoreTemperature * powerUpgradeCoreTempMult : modifiedBaseCoreTemperature;
+                return modifiedBaseCoreTemperature;
             }
         }
+
+        
 
         public float HotBathTemperature 
         { 
@@ -493,7 +534,7 @@ namespace FNPlugin
 
         public virtual bool IsNeutronRich { get { return false; } }
 
-        public bool IsUpgradeable { get { return upgradedName != ""; } }
+        //public bool IsUpgradeable { get { return upgradedName != ""; } }
 
         public virtual float MaximumPower { get { return MaximumThermalPower + MaximumChargedPower; } }
 
@@ -514,15 +555,15 @@ namespace FNPlugin
             {
                 float rawPowerOutput;
                 if (CurrentGenerationType == GenerationType.Mk5)
-                    rawPowerOutput = currentPowerOutputMk5;
+                    rawPowerOutput = powerOutputMk5;
                 else if (CurrentGenerationType == GenerationType.Mk4)
-                    rawPowerOutput = currentPowerOutputMk4;
+                    rawPowerOutput = powerOutputMk4;
                 else if (CurrentGenerationType == GenerationType.Mk3)
-                    rawPowerOutput = currentPowerOutputMk5;
+                    rawPowerOutput = powerOutputMk3;
                 else if (CurrentGenerationType == GenerationType.Mk2)
-                    rawPowerOutput = currentPowerOutputMk2;
+                    rawPowerOutput = powerOutputMk2;
                 else
-                    rawPowerOutput = currentPowerOutputMk1;
+                    rawPowerOutput = powerOutputMk1;
 
                 return rawPowerOutput * powerOutputMultiplier;
             }
@@ -639,65 +680,37 @@ namespace FNPlugin
 
         public void DeterminePowerOutput()
         {
-            currentPowerOutputMk1 = powerOutputMk1;
-            currentPowerOutputMk2 = powerOutputMk2;
-            currentPowerOutputMk3 = powerOutputMk3;
-            currentPowerOutputMk4 = powerOutputMk4;
-            currentPowerOutputMk5 = powerOutputMk5;
+            powerOutputMk1 = basePowerOutputMk1;
+            powerOutputMk2 = basePowerOutputMk2;
+            powerOutputMk3 = basePowerOutputMk3;
+            powerOutputMk4 = basePowerOutputMk4;
+            powerOutputMk5 = basePowerOutputMk5;
 
             // if Mk powerOutput is missing, try use lagacy values
-            if (currentPowerOutputMk1 == 0)
-                currentPowerOutputMk1 = PowerOutput;
-            if (currentPowerOutputMk2 == 0)
-                currentPowerOutputMk2 = upgradedPowerOutput;
-            if (currentPowerOutputMk3 == 0)
-                currentPowerOutputMk3 = upgradedPowerOutput * PowerUpgradeTechnologyBonus;
+            if (powerOutputMk1 == 0)
+                powerOutputMk1 = PowerOutput;
+            if (powerOutputMk2 == 0)
+                powerOutputMk2 = upgradedPowerOutput;
+            if (powerOutputMk3 == 0)
+                powerOutputMk3 = upgradedPowerOutput * powerUpgradeTechMult;
 
             // initialise power output when missing
-            if (currentPowerOutputMk2 == 0)
-                currentPowerOutputMk2 = currentPowerOutputMk1 * 1.5f;
-            if (currentPowerOutputMk3 == 0)
-                currentPowerOutputMk3 = currentPowerOutputMk2 * 1.5f;
-            if (currentPowerOutputMk4 == 0)
-                currentPowerOutputMk4 = currentPowerOutputMk3 * 1.5f;
-            if (currentPowerOutputMk5 == 0)
-                currentPowerOutputMk5 = currentPowerOutputMk4 * 1.5f;
+            if (powerOutputMk2 == 0)
+                powerOutputMk2 = powerOutputMk1 * 1.5f;
+            if (powerOutputMk3 == 0)
+                powerOutputMk3 = powerOutputMk2 * 1.5f;
+            if (powerOutputMk4 == 0)
+                powerOutputMk4 = powerOutputMk3 * 1.5f;
+            if (powerOutputMk5 == 0)
+                powerOutputMk5 = powerOutputMk4 * 1.5f;
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            // initialse tech requirment if missing 
-            if (string.IsNullOrEmpty(upgradeTechReqMk2))
-                upgradeTechReqMk2 = upgradeTechReq;
-            if (string.IsNullOrEmpty(upgradeTechReqMk3))
-                upgradeTechReqMk3 = powerUpgradeTechReq;
-
-            DetermineGenerationType();
-
-            DeterminePowerOutput();
-
-            // if Mk fuel efficency is missing, try to use lagacy value
-            if (fuelEfficencyMk1 == 0)
-                fuelEfficencyMk1 = fuelEfficiency;
-            if (fuelEfficencyMk2 == 0)
-                fuelEfficencyMk2 = upgradedFuelEfficiency;
-
-            // prevent any initial values
-            if (fuelEfficencyMk1 == 0)
-                fuelEfficencyMk1 = 1;
-            if (fuelEfficencyMk2 == 0)
-                fuelEfficencyMk2 = fuelEfficencyMk1;
-            if (fuelEfficencyMk3 == 0)
-                fuelEfficencyMk3 = fuelEfficencyMk2;
-            if (fuelEfficencyMk4 == 0)
-                fuelEfficencyMk4 = fuelEfficencyMk3;
-            if (fuelEfficencyMk5 == 0)
-                fuelEfficencyMk5 = fuelEfficencyMk4;
+            UpdateReactorCharacteristics();
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
-
             _firstGeneratorType = ElectricGeneratorType.unknown;
-            _hasPowerUpgradeTechnology = PluginHelper.upgradeAvailable(powerUpgradeTechReq);
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
 
@@ -793,18 +806,95 @@ namespace FNPlugin
             print("[KSP Interstellar] Succesfully Completed Configuring Reactor");
         }
 
+        private void UpdateReactorCharacteristics()
+        {
+            DetermineGenerationType();
+
+            DeterminePowerOutput();
+
+            DetermineFuelEfficency();
+
+            DetermineCoreTemperature();
+        }
+
+        private void DetermineCoreTemperature()
+        {
+            // if coretemperature is missing, first look at lagacy value
+            if (coreTemperatureMk1 == 0)
+                coreTemperatureMk1 = ReactorTemp;
+            if (coreTemperatureMk2 == 0)
+                coreTemperatureMk2 = upgradedReactorTemp;
+            if (coreTemperatureMk3 == 0)
+                coreTemperatureMk3 = upgradedReactorTemp * powerUpgradeCoreTempMult;
+
+            // prevent initial values
+            if (coreTemperatureMk1 == 0)
+                coreTemperatureMk1 = 2500;
+            if (coreTemperatureMk2 == 0)
+                coreTemperatureMk2 = coreTemperatureMk1;
+            if (coreTemperatureMk3 == 0)
+                coreTemperatureMk3 = coreTemperatureMk2;
+            if (coreTemperatureMk4 == 0)
+                coreTemperatureMk4 = coreTemperatureMk3;
+            if (coreTemperatureMk5 == 0)
+                coreTemperatureMk5 = coreTemperatureMk4;
+        }
+
+        private void DetermineFuelEfficency()
+        {
+            // if fuel efficency is missing, try to use lagacy value
+            if (fuelEfficencyMk1 == 0)
+                fuelEfficencyMk1 = fuelEfficiency;
+            if (fuelEfficencyMk2 == 0)
+                fuelEfficencyMk2 = upgradedFuelEfficiency;
+
+            // prevent any initial values
+            if (fuelEfficencyMk1 == 0)
+                fuelEfficencyMk1 = 1;
+            if (fuelEfficencyMk2 == 0)
+                fuelEfficencyMk2 = fuelEfficencyMk1;
+            if (fuelEfficencyMk3 == 0)
+                fuelEfficencyMk3 = fuelEfficencyMk2;
+            if (fuelEfficencyMk4 == 0)
+                fuelEfficencyMk4 = fuelEfficencyMk3;
+            if (fuelEfficencyMk5 == 0)
+                fuelEfficencyMk5 = fuelEfficencyMk4;
+        }
+
         private void DetermineGenerationType()
         {
+            // initialse tech requirment if missing 
+            if (string.IsNullOrEmpty(upgradeTechReqMk2))
+                upgradeTechReqMk2 = upgradeTechReq;
+            if (string.IsNullOrEmpty(upgradeTechReqMk3))
+                upgradeTechReqMk3 = powerUpgradeTechReq;
+
             // determine number of upgrade techs
             int nrAvailableUpgradeTechs = 1;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
+            {
+                hasUpgradeTechMk5 = true;
                 nrAvailableUpgradeTechs++;
+                Fields["powerOutputMk5"].guiActiveEditor = true;
+            }
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
+            {
+                hasUpgradeTechMk4 = true;
                 nrAvailableUpgradeTechs++;
+                Fields["powerOutputMk4"].guiActiveEditor = true;
+            }
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
+            {
+                hasUpgradeTechMk3 = true;
                 nrAvailableUpgradeTechs++;
+                Fields["powerOutputMk3"].guiActiveEditor = true;
+            }
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
+            {
+                hasUpgradeTechMk2 = true;
                 nrAvailableUpgradeTechs++;
+                Fields["powerOutputMk2"].guiActiveEditor = true;
+            }
 
             //ScreenMessages.PostScreenMessage("Fusion Tech Level: " + nrAvailableUpgradeTechs, 10.0f, ScreenMessageStyle.UPPER_CENTER);
 
@@ -1182,15 +1272,17 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
+            UpdateReactorCharacteristics();
+
             ConfigNode[] fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
             List<ReactorFuelMode> basic_fuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & reactorType) == reactorType).ToList();
             List<ReactorFuelMode> advanced_fuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & (upgradedReactorType > 0 ? upgradedReactorType : reactorType)) == (upgradedReactorType > 0 ? upgradedReactorType : reactorType)).ToList();
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("BASIC REACTOR INFO");
             sb.AppendLine(originalName);
-            sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(PowerOutput));
-            sb.AppendLine("Heat Exchanger Temperature: " + ReactorTemp.ToString("0") + "K");
-            sb.AppendLine("Fuel Burnup: " + (fuelEfficiency * 100.0).ToString("0.00") + "%");
+            sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(powerOutputMk1));
+            sb.AppendLine("Core Temperature: " + coreTemperatureMk1.ToString("0") + "K");
+            sb.AppendLine("Fuel Burnup: " + (fuelEfficencyMk1 * 100.0).ToString("0.00") + "%");
             sb.AppendLine("BASIC FUEL MODES");
             basic_fuelmodes.ForEach(fm =>
             {
@@ -1205,14 +1297,14 @@ namespace FNPlugin
                 }
                 sb.AppendLine("---");
             });
-            if (IsUpgradeable)
+            if (!string.IsNullOrEmpty(upgradeTechReqMk2))
             {
                 sb.AppendLine("-----");
                 sb.AppendLine("UPGRADED REACTOR INFO");
                 sb.AppendLine(upgradedName);
-                sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(upgradedPowerOutput));
-                sb.AppendLine("Heat Exchanger Temperature: " + upgradedReactorTemp.ToString("0") + "K");
-                sb.AppendLine("Fuel Burnup: " + (upgradedFuelEfficiency * 100.0).ToString("0.00") + "%");
+                sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(powerOutputMk2));
+                sb.AppendLine("Core Temperature: " + coreTemperatureMk2.ToString("0") + "K");
+                sb.AppendLine("Fuel Burnup: " + (fuelEfficencyMk2 * 100.0).ToString("0.00") + "%");
                 sb.AppendLine("UPGRADED FUEL MODES");
                 advanced_fuelmodes.ForEach(fm =>
                 {

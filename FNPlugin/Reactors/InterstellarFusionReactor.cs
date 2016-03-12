@@ -61,8 +61,6 @@ namespace FNPlugin
 
         public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
 
-        //public override float CoreTemperature {  get { return base.CoreTemperature * (current_fuel_mode != null ? (float)Math.Sqrt(current_fuel_mode.NormalisedPowerRequirements) : 1); } }
-
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
