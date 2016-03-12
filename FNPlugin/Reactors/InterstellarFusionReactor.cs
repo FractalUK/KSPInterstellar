@@ -31,11 +31,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Min Power Req ", guiUnits = " MW")]
-        //public float minimumPowerRequirement;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Fusion Q factor")]
-        //public float fusionQfactor;
-
         //public float
         protected PartResource lithiumPartResource = null;
 

@@ -51,11 +51,29 @@ namespace FNPlugin
         public float sootHeatDivider = 150;
         [KSPField(isPersistant = false)]
         public float sootThrustDivider = 150;
-
         [KSPField(isPersistant = false)]
         public float delayedThrottleFactor = 0.5f;
+
         [KSPField(isPersistant = false)]
         public float maxTemp = 2750;
+        [KSPField(isPersistant = false)]
+        public float heatConductivity = 0.12f;
+        [KSPField(isPersistant = false)]
+        public float heatConvectiveConstant = 1f;
+        [KSPField(isPersistant = false)]
+        public float emissiveConstant = 0.85f;
+        [KSPField(isPersistant = false)]
+        public float thermalMassModifier = 1f;
+
+        [KSPField(isPersistant = false)]
+        public float skinMaxTemp = 2750;
+        [KSPField(isPersistant = false)]
+        public float skinInternalConductionMult = 1;
+        [KSPField(isPersistant = false)]
+        public float skinThermalMassModifier = 1;
+        [KSPField(isPersistant = false)]
+        public float skinSkinConductionMult = 1;
+
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
@@ -329,8 +347,17 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            // make sure max temp is correct
+            // make sure thermal values are fixed and not screwed up by Deadly Reentry
             part.maxTemp = maxTemp;
+            part.emissiveConstant = emissiveConstant;
+            part.heatConductivity = heatConductivity;
+            part.thermalMassModifier = thermalMassModifier;
+            part.heatConvectiveConstant = heatConvectiveConstant;
+
+            part.skinMaxTemp = skinMaxTemp;
+            part.skinSkinConductionMult = skinSkinConductionMult;
+            part.skinThermalMassModifier = skinThermalMassModifier;
+            part.skinInternalConductionMult = skinInternalConductionMult;
 
             PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
 
@@ -343,7 +370,6 @@ namespace FNPlugin
             }
 
             engineType = originalName;
-
             myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
 
             // find attached thermal source

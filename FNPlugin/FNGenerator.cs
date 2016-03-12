@@ -34,7 +34,7 @@ namespace FNPlugin
         public float powerPercentage = 100;
 
         // Persistent False
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
         public bool calculatedMass = false;
         [KSPField(isPersistant = false)]
         public float pCarnotEff = 0.31f;
@@ -88,11 +88,8 @@ namespace FNPlugin
         public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Required Capacity", guiUnits = " MW_e")]
         public float requiredMegawattCapacity;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
         public float heat_exchanger_thrust_divisor;
-
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiUnits = " MW")]
         public float requestedPower_f;
 
@@ -165,7 +162,6 @@ namespace FNPlugin
             pCarnotEff = upgradedpCarnotEff;
             directConversionEff = this.upgradedDirectConversionEff;
             generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
-            //Events["EditorSwapType"].guiActiveEditor = true;
         }
 
         /// <summary>

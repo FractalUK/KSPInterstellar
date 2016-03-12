@@ -102,6 +102,7 @@ namespace FNPlugin
         public bool canBreedTritium = false;
         [KSPField(isPersistant = false)]
         public bool canDisableTritiumBreeding = true;
+
         [KSPField(isPersistant = false)]
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
@@ -241,6 +242,7 @@ namespace FNPlugin
         protected long last_draw_update;
         protected float ongoing_thermal_power_f;
         protected float ongoing_charged_power_f;
+        protected int nrAvailableUpgradeTechs;
         
         protected double total_power_per_frame;
         protected bool decay_ongoing = false;
@@ -263,11 +265,6 @@ namespace FNPlugin
         protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
         protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
         protected double partBaseWasteheat;
-
-        protected bool hasUpgradeTechMk2;
-        protected bool hasUpgradeTechMk3;
-        protected bool hasUpgradeTechMk4;
-        protected bool hasUpgradeTechMk5;
 
         protected double storedIsThermalEnergyGenratorActive;
         protected double storedIsChargedEnergyGenratorActive;
@@ -540,15 +537,6 @@ namespace FNPlugin
 
         public virtual float StableMaximumReactorPower { get { return IsEnabled ? RawPowerOutput : 0; } }
 
-        //public virtual float RawPowerOutput
-        //{
-        //    get
-        //    {
-        //        var rawPower = (isupgraded && upgradedPowerOutput != 0 ? upgradedPowerOutput : PowerOutput) * PowerUpgradeTechnologyBonus;
-        //        return rawPower * powerOutputMultiplier;
-        //    }
-        //}
-        
         public float RawPowerOutput
         {
             get
@@ -870,33 +858,27 @@ namespace FNPlugin
                 upgradeTechReqMk3 = powerUpgradeTechReq;
 
             // determine number of upgrade techs
-            int nrAvailableUpgradeTechs = 1;
+            nrAvailableUpgradeTechs = 1;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
-            {
-                hasUpgradeTechMk5 = true;
                 nrAvailableUpgradeTechs++;
-                Fields["powerOutputMk5"].guiActiveEditor = true;
-            }
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
-            {
-                hasUpgradeTechMk4 = true;
                 nrAvailableUpgradeTechs++;
-                Fields["powerOutputMk4"].guiActiveEditor = true;
-            }
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
-            {
-                hasUpgradeTechMk3 = true;
                 nrAvailableUpgradeTechs++;
-                Fields["powerOutputMk3"].guiActiveEditor = true;
-            }
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
-            {
-                hasUpgradeTechMk2 = true;
                 nrAvailableUpgradeTechs++;
-                Fields["powerOutputMk2"].guiActiveEditor = true;
-            }
 
-            //ScreenMessages.PostScreenMessage("Fusion Tech Level: " + nrAvailableUpgradeTechs, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+            // show poweroutput when appropriate
+            if (nrAvailableUpgradeTechs >= 5)
+                Fields["powerOutputMk5"].guiActiveEditor = true;
+            if (nrAvailableUpgradeTechs >= 4)
+                Fields["powerOutputMk4"].guiActiveEditor = true;
+            if (nrAvailableUpgradeTechs >= 3)
+                Fields["powerOutputMk3"].guiActiveEditor = true;
+            if (nrAvailableUpgradeTechs >= 2)
+                Fields["powerOutputMk2"].guiActiveEditor = true;
+            if (nrAvailableUpgradeTechs >= 1)
+                Fields["powerOutputMk1"].guiActiveEditor = true;
 
             // determine fusion tech levels
             if (nrAvailableUpgradeTechs == 5)
@@ -1297,7 +1279,7 @@ namespace FNPlugin
                 }
                 sb.AppendLine("---");
             });
-            if (!string.IsNullOrEmpty(upgradeTechReqMk2))
+            if (nrAvailableUpgradeTechs > 1)
             {
                 sb.AppendLine("-----");
                 sb.AppendLine("UPGRADED REACTOR INFO");
