@@ -12,8 +12,8 @@ namespace FNPlugin
 		// persistant
 		[KSPField(isPersistant = true)]
 		public bool IsEnabled = false;
-		[KSPField(isPersistant = true)]
-		public bool IsCharging = true;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false)]
+		public bool IsCharging = false;
 		[KSPField(isPersistant = true)]
 		private float existing_warpfactor;
 		[KSPField(isPersistant = true)]
@@ -27,7 +27,7 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public bool IsSlave;
 		[KSPField(isPersistant = false)]
-		public string AnimationName = "";
+		public string AnimationName = String.Empty;
 		[KSPField(isPersistant = false)]
 		public string upgradedName;
 		[KSPField(isPersistant = false)]
@@ -50,9 +50,9 @@ namespace FNPlugin
 		public float partMass;
 		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F3", guiUnits = "t")]
 		protected float sumOfAlcubierreDrives;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F3", guiUnits = "t")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Vessel Total Mass", guiFormat = "F3", guiUnits = "t")]
 		public float vesselTotalMass;
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Warp to Mass Ratio", guiFormat = "F3")]
+		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp to Mass Ratio", guiFormat = "F3")]
 		public float warpToMassRatio;
 
 		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
@@ -591,7 +591,7 @@ namespace FNPlugin
 				//warp_effect.transform.localScale.z = 200f;
 
 				// disable charging at startup
-				IsCharging = false;
+				//IsCharging = false;
 			}
 			catch (Exception e )
 			{

@@ -145,6 +145,8 @@ namespace FNPlugin
         public float fuelUsePerMJMult = 1f;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float hotBathTemperature = 0;
 
         [KSPField(isPersistant = false)]
         public float alternatorPowerKW = 0;
@@ -500,7 +502,10 @@ namespace FNPlugin
         { 
             get
             {
-                return CoreTemperature * hotBathModifier;
+                if (hotBathTemperature == 0)
+                    return CoreTemperature * hotBathModifier;
+                else
+                    return hotBathTemperature;
             }
         }
 

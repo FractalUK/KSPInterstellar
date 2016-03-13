@@ -83,8 +83,8 @@ namespace FNPlugin
 
             foreach (FNRadiator radiator in radiators) 
             {
-                double area = radiator.CurrentRadiatorArea;  //radiator.radiatorArea;
-                double temp = radiator.isupgraded ? radiator.upgradedRadiatorTemp : radiator.radiatorTemp;
+                double area = radiator.RadiatorArea; 
+                double temp = radiator.RadiatorTemperature;
                 temp = Math.Min(temp, source_temp_at_100pc);
                 n_rads += 1;
                 rad_max_dissip += GameConstants.stefan_const * area * Math.Pow(temp, 4) / 1e6;

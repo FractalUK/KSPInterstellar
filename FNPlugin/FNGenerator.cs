@@ -60,6 +60,8 @@ namespace FNPlugin
         public float directConversionEff = 0.5f;
         [KSPField(isPersistant = false)]
         public float upgradedDirectConversionEff = 0.865f;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public float carnotEff;
 
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
@@ -86,11 +88,11 @@ namespace FNPlugin
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Required Capacity", guiUnits = " MW_e")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Required Capacity", guiUnits = " MW_e")]
         public float requiredMegawattCapacity;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Heat Exchange Divisor")]
         public float heat_exchanger_thrust_divisor;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Requested Power", guiUnits = " MW")]
         public float requestedPower_f;
 
         // Internal
@@ -403,7 +405,9 @@ namespace FNPlugin
         {
             if (attachedThermalSource == null) return;
 
-            hotBathTemp = attachedThermalSource.HotBathTemperature;
+            var wasteHeateModifier = 1.0f - (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+            hotBathTemp = attachedThermalSource.HotBathTemperature + wasteHeateModifier * FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+            coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
 
             if (HighLogic.LoadedSceneIsEditor)
                 UpdateHeatExchangedThrustDivisor();
@@ -412,8 +416,6 @@ namespace FNPlugin
             if (attachedThermalSource.EfficencyConnectedChargedEnergyGenrator == 0)
                 maxThermalPower += attachedThermalSource.MaximumChargedPower;
             maxChargedPower = attachedThermalSource.MaximumChargedPower;
-
-            coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
         }
 
         private double _previousMaxStableMegaWattPower;
@@ -504,7 +506,7 @@ namespace FNPlugin
 
                 if (!chargedParticleMode) // thermal mode
                 {
-                    double carnotEff = 1.0 - coldBathTemp / hotBathTemp;
+                    carnotEff = 1.0f - coldBathTemp / hotBathTemp;
                     _totalEff = carnotEff * pCarnotEff * attachedThermalSource.ThermalEnergyEfficiency;
 
                     attachedThermalSource.NotifyActiveThermalEnergyGenrator(_totalEff, ElectricGeneratorType.thermal);
