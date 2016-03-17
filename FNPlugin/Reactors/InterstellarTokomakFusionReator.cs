@@ -12,7 +12,7 @@ namespace FNPlugin
         public int fusionAlertFrames = 0;
 
         // properties
-        public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
+        //public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
         public float HeatingPowerRequirements 
 		{ 

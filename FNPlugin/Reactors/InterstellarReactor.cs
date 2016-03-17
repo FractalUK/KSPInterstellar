@@ -9,7 +9,7 @@ using TweakScale;
 namespace FNPlugin
 {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule
-    {
+   { 
         public enum ReactorTypes
         {
             FISSION_MSR = 1,
@@ -450,7 +450,7 @@ namespace FNPlugin
 
         public int ReactorType { get { return isupgraded ? upgradedReactorType > 0 ? upgradedReactorType : reactorType : reactorType; } }
 
-        public virtual string TypeName { get { return isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName; } }
+        public virtual string TypeName { get { return part.partInfo.title; } }
 
         public virtual double ChargedPowerRatio 
         { 

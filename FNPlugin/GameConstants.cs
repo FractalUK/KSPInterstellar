@@ -80,9 +80,9 @@ namespace FNPlugin
 
         public const double dilution_factor = 15000.0;
         public const double LfoFuelThrustModifier = 2.2222;
-        public const double IspCoreTemperatureMultiplier = 22.371670613;
-        public const double BaseThrustPowerMultiplier = 2000;
-        public const double HighCoreTempThrustMultiplier = 1600;
+        public const float IspCoreTemperatureMultiplier = 22.371670613f;
+        public const float BaseThrustPowerMultiplier = 2000;
+        public const float HighCoreTempThrustMultiplier = 1600;
 
         public const float BaseMaxPowerDrawForExoticMatter = 1000f;
         public const float MaxThermalNozzleIsp = 2997.13f;

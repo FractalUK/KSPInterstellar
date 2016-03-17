@@ -39,7 +39,7 @@ namespace FNPlugin
             base.OnStart(state);
         }
 
-        public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
+        //public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Reactor"; } }
 
         public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 

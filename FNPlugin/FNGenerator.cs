@@ -452,7 +452,7 @@ namespace FNPlugin
 
                     var powerBufferingBonus = attachedThermalSource.PowerBufferBonus * maxStableMegaWattPower;
                     requiredMegawattCapacity = (float)Math.Max(0.0001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + powerBufferingBonus);
-                    var previousMegawattCapacity = Math.Max(0.0001, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
+                    var previousMegawattCapacity = Math.Max(0.0001f, previousTimeWarp * maxStableMegaWattPower + powerBufferingBonus);
 
                     if (megajouleResource != null)
                     {

@@ -869,38 +869,33 @@ namespace FNPlugin
         public void EstimateEditorPerformance()
         {
             FloatCurve atmospherecurve = new FloatCurve();
-            float thrust = 0;
             UpdateRadiusModifier();
 
             if (AttachedReactor != null)
             {
-                //if (myAttachedReactor is IUpgradeableModule) {
-                //    IUpgradeableModule upmod = myAttachedReactor as IUpgradeableModule;
-                //    if (upmod.HasTechsRequiredToUpgrade()) {
-                //        attached_reactor_upgraded = true;
-                //    }
-                //}
+                _maxISP = Mathf.Sqrt(AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier();
 
-                _maxISP = (float)(Math.Sqrt((double)AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
-                _minISP = _maxISP * 0.4f;
+                float thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor() * _thrustPropellantMultiplier;
+                myAttachedEngine.maxFuelFlow = thrust / (PluginHelper.GravityConstant * _maxISP);
+                myAttachedEngine.maxThrust = thrust;
+
+                _minISP = _maxISP * ((thrust - maxPressureThresholdAtKerbinSurface) / thrust) * GetHeatExchangerThrustDivisor();
                 atmospherecurve.Add(0, _maxISP, 0, 0);
                 atmospherecurve.Add(1, _minISP, 0, 0);
 
-                thrust = (float)(AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
-                myAttachedEngine.maxThrust = thrust;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
             else
             {
                 atmospherecurve.Add(0, 0.00001f, 0, 0);
-                myAttachedEngine.maxThrust = thrust;
+                myAttachedEngine.maxThrust = 0;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
         }
 
-        private double GetIspPropellantModifier()
+        private float GetIspPropellantModifier()
         {
-            double ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0
+            float ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0
                 ? _ispPropellantMultiplier
                 : (PluginHelper.IspNtrPropellantModifierBase + _ispPropellantMultiplier) / (1.0f + PluginHelper.IspNtrPropellantModifierBase));
             return ispModifier;
@@ -994,9 +989,11 @@ namespace FNPlugin
                 _maxISP = (float)(Math.Sqrt((double)AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset) * GetIspPropellantModifier());
                 
                 expectedMaxThrust = (float)(AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP);
-
                 expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 200f);
 
+                myAttachedEngine.maxThrust = expectedMaxThrust;
+
+                // suggested by RzTen1 to improve compatibility with BetterBurnTime 
                 max_fuel_flow_rate = (float)(expectedMaxThrust / _maxISP / PluginHelper.GravityConstant);
 
                 pressureTreshold = _currentpropellant_is_jet ? 0 : exitArea * (float)FlightGlobals.getStaticPressure(vessel.transform.position);
@@ -1370,19 +1367,19 @@ namespace FNPlugin
             return propellantlist;
         }
 
-        private double GetHeatThrustModifier()
+        private float GetHeatThrustModifier()
         {
-            double coretempthreshold = PluginHelper.ThrustCoreTempThreshold;
-            double lowcoretempbase = PluginHelper.LowCoreTempBaseThrust;
+            float coretempthreshold = PluginHelper.ThrustCoreTempThreshold;
+            float lowcoretempbase = PluginHelper.LowCoreTempBaseThrust;
 
             return coretempthreshold <= 0 
-                ? 1.0 
+                ? 1.0f 
                 : AttachedReactor.CoreTemperature < coretempthreshold
                     ? (AttachedReactor.CoreTemperature + lowcoretempbase) / (coretempthreshold + lowcoretempbase)
-                    : 1.0 + PluginHelper.HighCoreTempThrustMult * Math.Max(Math.Log10(AttachedReactor.CoreTemperature / coretempthreshold), 0);
+                    : 1.0f + PluginHelper.HighCoreTempThrustMult * Mathf.Max(Mathf.Log10(AttachedReactor.CoreTemperature / coretempthreshold), 0);
         }
 
-        private double CurrentPowerThrustMultiplier
+        private float CurrentPowerThrustMultiplier
         {
             get
             {
@@ -1392,7 +1389,7 @@ namespace FNPlugin
             }
         }
 
-        private double GetPowerThrustModifier()
+        private float GetPowerThrustModifier()
         {
             return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * CurrentPowerThrustMultiplier;
         }
@@ -1442,14 +1439,14 @@ namespace FNPlugin
         }
 
 
-        private double GetHeatExchangerThrustDivisor()
+        private float GetHeatExchangerThrustDivisor()
         {
             if (AttachedReactor == null || AttachedReactor.GetRadius() == 0 || radius == 0 || _myAttachedReactor.GetFractionThermalReciever(id) == 0) return 0;
 
-            var fractionalReactorRadius = Math.Sqrt(Math.Pow(AttachedReactor.GetRadius(), 2) * _myAttachedReactor.GetFractionThermalReciever(id));
+            var fractionalReactorRadius = Mathf.Sqrt(Mathf.Pow(AttachedReactor.GetRadius(), 2) * _myAttachedReactor.GetFractionThermalReciever(id));
 
             // scale down thrust if it's attached to the wrong sized reactor
-            double heat_exchanger_thrust_divisor = radius > fractionalReactorRadius
+            float heat_exchanger_thrust_divisor = radius > fractionalReactorRadius
                 ? fractionalReactorRadius * fractionalReactorRadius / radius / radius
                 : normalizeFraction(radius / (float)fractionalReactorRadius, 1f);
 
