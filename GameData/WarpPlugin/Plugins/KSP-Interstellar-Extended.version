@@ -1,0 +1,18 @@
+{
+    "NAME":"KSP Interstellar Extended",
+    "URL":"http://ksp-avc.cybutek.net/version.php?id=152",
+    "DOWNLOAD":"http://www.curse.com/ksp-mods/kerbal/236825-ksp-interstellar-extended",
+    "VERSION":
+    {
+        "MAJOR":1,
+        "MINOR":7,
+        "PATCH":0,
+        "BUILD":0
+    },
+    "KSP_VERSION":
+    {
+        "MAJOR":1,
+        "MINOR":0,
+        "PATCH":5
+    }
+}

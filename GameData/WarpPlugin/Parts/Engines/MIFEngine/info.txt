@@ -1,0 +1,3 @@
+animation is "enginePulse"; 1:6 ratio @ 60 frames default. 0~10 compression; 11~60 release.
+
+thrustTransform name is thrustTransform

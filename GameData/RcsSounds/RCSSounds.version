@@ -1,0 +1,26 @@
+{
+    "NAME":"RCS Sounds",
+    "URL":"http://ksp-avc.cybutek.net/version.php?id=11",
+    "DOWNLOAD":"http://kerbal.curseforge.com/ksp-mods/220521-rcs-sounds",
+    "VERSION":{
+        "MAJOR":4,
+        "MINOR":3,
+        "PATCH":0,
+        "BUILD":0
+    },
+    "KSP_VERSION":{
+        "MAJOR":0,
+        "MINOR":90,
+        "PATCH":0
+    },
+    "KSP_VERSION_MIN":{
+        "MAJOR":0,
+        "MINOR":25,
+        "PATCH":0
+    }
+    "KSP_VERSION_MAX":{
+        "MAJOR":0,
+        "MINOR":90,
+        "PATCH":0
+    }
+}

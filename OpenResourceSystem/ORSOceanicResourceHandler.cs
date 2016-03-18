@@ -38,13 +38,20 @@ namespace OpenResourceSystem {
 
         public static List<ORSOceanicResource> getOceanicCompositionForBody(int refBody) {
             List<ORSOceanicResource> bodyOceanicComposition = new List<ORSOceanicResource>();
-            try {
-                if (body_oceanic_resource_list.ContainsKey(refBody)) {
+            try 
+            {
+                if (body_oceanic_resource_list.ContainsKey(refBody)) 
+                {
                     return body_oceanic_resource_list[refBody];
-                } else {
-                    ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION").FirstOrDefault();
+                } 
+                else 
+                {
+                    ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+                    //ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION").FirstOrDefault(c => c.name == "KSPI_OceanicPack");
+
                     Debug.Log("[ORS] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
-                    if (oceanic_resource_pack != null) {
+                    if (oceanic_resource_pack != null) 
+                    {
                         List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
                         if (oceanic_resource_list.Any())
                         {
@@ -57,7 +64,9 @@ namespace OpenResourceSystem {
                         }
                     }
                 }
-            } catch (Exception ex) {
+            } 
+            catch (Exception ex) 
+            {
                 Debug.Log("[ORS] Exception while loading oceanic resources : " + ex.ToString());
             }
             return bodyOceanicComposition;

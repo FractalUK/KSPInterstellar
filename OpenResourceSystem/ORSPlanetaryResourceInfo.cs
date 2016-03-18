@@ -5,7 +5,8 @@ using System.Text;
 using UnityEngine;
 
 namespace OpenResourceSystem {
-    public class ORSPlanetaryResourceInfo {
+    public class ORSPlanetaryResourceInfo 
+    {
         public const int LOG_SCALE = 0;
         public const int LINEAR_SCALE = 1;
 
@@ -50,9 +51,12 @@ namespace OpenResourceSystem {
             double resource_val = 0;
             double scale_factor = ScaleFactor;
             double scale_multiplier = ScaleMultiplier;
-            if (getResourceScale() == ORSPlanetaryResourceInfo.LOG_SCALE) {
+            if (getResourceScale() == ORSPlanetaryResourceInfo.LOG_SCALE) 
+            {
                 resource_val = Math.Pow(scale_factor, pix_color.grayscale * 255.0) / 1000000 * scale_multiplier;
-            } else if (getResourceScale() == ORSPlanetaryResourceInfo.LINEAR_SCALE) {
+            } 
+            else if (getResourceScale() == ORSPlanetaryResourceInfo.LINEAR_SCALE) 
+            {
                 resource_val = pix_color.grayscale * scale_multiplier;
             }
             return resource_val;

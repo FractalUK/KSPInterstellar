@@ -1,0 +1,15 @@
+KSPI 1.7
+
+- Added Tokamak Engine, which Conbines Fusuin Reactor and integrated Magnetic Noozle
+- Added XI Fusion Reactor which combine a Magnetic Confinement Reactor with Direct Energy Converter
+- Added Half Size Wrap Radiator
+- Direct Energy Converter now requires High Tech Electric Systems to be unlocked
+- Added 4 additional techlevel to Interstellar Radiators which are unlock by CTT heat management tech nodes
+- Increased Volume Fusion Reactor, Incresed Mass and Reduced Initial Power Output
+- Fusion Reactor now has 5 techlevels
+- Merged Dumbo and Solid Core Reactor (NERVA) which now has 5 tech levels
+- Reduced Initial Power Output Pebble Bed Reactor but added 2 additional tech levels
+- Added New Fusion Mode proton-Lithium7
+- Fusion Mode proton-Boron11 now required Exotic Fusion Tech
+- Fusion Mode proton-Lithium6 now requires United Field Theory
+
