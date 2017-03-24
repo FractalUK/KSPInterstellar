@@ -66,24 +66,63 @@ namespace FNPlugin {
 			return is_thermal_dissip_disabled;
 		}
 
-		public static bool hasTech(string techid) {
-			try{
+
+		private static string lastScene = "";
+		private static ConfigNode[] techNodes;
+
+		
+		private static bool GetTechNodes(out ConfigNode[] techs)
+		{
+			techs = null;
+
+			//only do the horribly slow file i/o once per scene transition 
+			if (HighLogic.LoadedScene.ToString() == lastScene)
+			{
+				techs = techNodes;
+				return true;
+			}
+
+			try
+			{
 				string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-				ConfigNode config = ConfigNode.Load (persistentfile);
-				ConfigNode gameconf = config.GetNode ("GAME");
-				ConfigNode[] scenarios = gameconf.GetNodes ("SCENARIO");
-				foreach (ConfigNode scenario in scenarios) {
-					if (scenario.GetValue ("name") == "ResearchAndDevelopment") {
-						ConfigNode[] techs = scenario.GetNodes ("Tech");
-						foreach (ConfigNode technode in techs) {
-							if (technode.GetValue ("id") == techid) {
-								return true;
-							}
-						}
+				ConfigNode config = ConfigNode.Load(persistentfile);
+				ConfigNode gameconf = config.GetNode("GAME");
+				ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
+				foreach (ConfigNode scenario in scenarios)
+				{
+					if (scenario.GetValue("name") == "ResearchAndDevelopment")
+					{
+						techs = techNodes = scenario.GetNodes("Tech");
+						lastScene = HighLogic.LoadedScene.ToString();
+						return true;						
 					}
 				}
 				return false;
+			}
+			catch (Exception ex)
+			{
+				return false;
+			}
+		} 
+
+		public static bool hasTech(string techid) {
+			try{
+				ConfigNode[] techs;
+				if (GetTechNodes(out techs))
+				{
+					foreach (ConfigNode technode in techs)
+					{
+						if (technode.GetValue("id") == techid)
+						{
+							return true;
+						}
+					}
+				}
+				return false; 
+
+
 			} catch (Exception ex) {
+				Debug.Log(ex.Message);
 				return false;
 			}
 		}
@@ -295,6 +334,10 @@ namespace FNPlugin {
         }
 
         public void Start() {
+			//clear out tech data
+			techNodes = null;
+			lastScene = "";
+
             tech_window = new TechUpdateWindow();
             tech_checked = false;
 
